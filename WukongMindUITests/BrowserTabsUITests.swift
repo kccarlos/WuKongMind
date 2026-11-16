@@ -212,6 +212,178 @@ final class BrowserTabsUITests: DCUITestCase {
             app.terminate()
         }
     }
+
+    // MARK: - T4: `tabs` Agent tool & "Opened a new tab · Show" row
+
+    func testTabsToolOpenShowsRowAndShowButtonSwitchesToFreshTabLightAndDark() throws {
+        let server = LocalTabsUIFixture()
+        try server.start()
+        defer { server.stop() }
+
+        let orientation: UIDeviceOrientation = isPhone ? .portrait : .landscapeLeft
+        for style in ["Light", "Dark"] {
+            let tag = "\(isPhone ? "iphone" : "ipad")-\(style.lowercased())"
+            let app = launch(
+                [
+                    "-dc-open", server.guideURL,
+                    "-dc-browser-agent-demo", "tabs-open",
+                    "-dc-drawer-detent", "large",
+                    "-AppleInterfaceStyle", style
+                ],
+                orientation: orientation
+            )
+
+            showAssistant(in: app)
+            let reply = any(app, "agentAssistantReply")
+            XCTAssertTrue(waitOrDump(reply, timeout: 30, in: app), "T4 recorded reply did not appear (\(tag)).")
+            XCTAssertTrue(reply.label.contains("06:10"), "Expected companion schedule details in reply (\(tag)): \(reply.label)")
+
+            // Outside the collapsed `Steps 3` fold, the "Opened a new tab · <url> · in the background" row and Show button show.
+            let showButton = app.buttons["agentToolShowTab"].firstMatch
+            XCTAssertTrue(waitOrDump(showButton, timeout: 10, in: app), "Show button did not appear on opened-tab row (\(tag)).")
+            XCTAssertEqual(showButton.label, "Show")
+            XCTAssertGreaterThanOrEqual(showButton.frame.width, 43.5, "Show button hit target width < 44pt (\(tag))")
+            XCTAssertGreaterThanOrEqual(showButton.frame.height, 43.5, "Show button hit target height < 44pt (\(tag))")
+
+            let openedRow = app.descendants(matching: .any)
+                .matching(identifier: "agentToolRow")
+                .matching(label(contains: "Opened a new tab"))
+                .firstMatch
+            XCTAssertTrue(openedRow.exists, "Opened a new tab row missing (\(tag)).")
+            XCTAssertTrue(
+                openedRow.label.contains("in the background"),
+                "Opened tab row VoiceOver label should include 'in the background' (\(tag)): \(openedRow.label)"
+            )
+            capture("t4-recorded-\(tag)-1-folded-show")
+
+            // Expand `Steps 3` to match the `PhoneTabs` artboard (`Read page`, `Opened a new tab · Show`, `Read page`).
+            let stepsFold = app.buttons["agentStepsSummary"].firstMatch
+            if stepsFold.exists {
+                stepsFold.tap()
+                XCTAssertTrue(
+                    wait(timeout: 5) { app.buttons.matching(identifier: "agentToolShowTab").count == 1 },
+                    "Expected exactly one Show button when Steps 3 is expanded (\(tag))."
+                )
+                capture("t4-recorded-\(tag)-2-expanded-steps")
+            }
+
+            // Tab 1 is still on /guide before tapping Show.
+            if !usesDrawerLayout(app) {
+                XCTAssertTrue(app.webViews.staticTexts["Harbor Ferry Field Guide"].firstMatch.exists)
+            }
+
+            // Tap Show: switches front tab to Tab 2 (/companion), lowers drawer from .large to .medium on iPhone,
+            // and presents Tab 2's fresh empty Agent conversation.
+            showButton.tap()
+
+            let companionHeading = app.webViews.staticTexts["Companion Ferry Schedule"].firstMatch
+            XCTAssertTrue(
+                waitOrDump(companionHeading, timeout: 15, in: app),
+                "Tapping Show did not switch the front tab to Companion Ferry Schedule (\(tag))."
+            )
+            XCTAssertFalse(
+                any(app, "agentAssistantReply").exists,
+                "Switched background tab must start with an empty conversation (\(tag))."
+            )
+            capture("t4-recorded-\(tag)-3-after-show-tab2")
+            app.terminate()
+        }
+    }
+
+    func testTabsToolOpenedNewTabRowAccessibilityXXXL() throws {
+        let server = LocalTabsUIFixture()
+        try server.start()
+        defer { server.stop() }
+
+        let orientation: UIDeviceOrientation = isPhone ? .portrait : .landscapeLeft
+        let tag = isPhone ? "iphone" : "ipad"
+        let app = launch(
+            [
+                "-dc-open", server.guideURL,
+                "-dc-browser-agent-demo", "tabs-open",
+                "-dc-drawer-detent", "large",
+                "-AppleInterfaceStyle", "Light",
+                "-UIPreferredContentSizeCategoryName", UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue
+            ],
+            orientation: orientation
+        )
+
+        showAssistant(in: app)
+        let showButton = app.buttons["agentToolShowTab"].firstMatch
+        XCTAssertTrue(waitOrDump(showButton, timeout: 30, in: app), "Show button missing at XXXL Dynamic Type (\(tag)).")
+        XCTAssertGreaterThanOrEqual(showButton.frame.width, 43.5)
+        XCTAssertGreaterThanOrEqual(showButton.frame.height, 43.5)
+        capture("t4-recorded-\(tag)-xxxl")
+        app.terminate()
+    }
+
+    func testLiveTabsToolOpensBackgroundTabWithShowButton() throws {
+        guard !apiKey.isEmpty else {
+            throw XCTSkip("Set TEST_RUNNER_ANTHROPIC_API_KEY to run the live claude-haiku-5-5 tabs check.")
+        }
+
+        let server = LocalTabsUIFixture()
+        try server.start()
+        defer { server.stop() }
+
+        let tag = isPhone ? "iphone" : "ipad"
+        let orientation: UIDeviceOrientation = isPhone ? .portrait : .landscapeLeft
+        let companionURL = "\(server.baseURL)/companion"
+
+        XCUIDevice.shared.orientation = orientation
+        let app = XCUIApplication()
+        app.launchEnvironment["ANTHROPIC_API_KEY"] = apiKey
+        app.launchArguments = [
+            "-dc-skip-onboarding",
+            "-dc-developer-mode",
+            "-dc-open", server.guideURL,
+            "-dc-browser-agent-live-model", "claude-haiku-5-5",
+            "-dc-browser-agent-live-prompt",
+            "Open \(companionURL) in a new background tab with the tabs tool (do not switch the front tab), read that new tab with the tabs tool to get the first and last boat times, and answer in one short sentence.",
+            "-dc-drawer-detent", "large",
+            "-AppleInterfaceStyle", "Light"
+        ]
+        app.launch()
+
+        let status = any(app, "agentStatusLine")
+        XCTAssertTrue(
+            wait(timeout: 90) {
+                status.exists && (status.label.contains("Done") || status.label.contains("Turn failed"))
+            },
+            "Live claude-haiku-5-5 tabs run did not finish (\(tag))."
+        )
+        let reply = any(app, "agentAssistantReply")
+        XCTAssertTrue(waitOrDump(reply, timeout: 10, in: app), "Live claude-haiku-5-5 reply missing (\(tag)).")
+        attachText("Live claude-haiku-5-5 reply (\(tag)): \(reply.label)", named: "t4-live-reply-\(tag)")
+
+        let showButton = app.buttons["agentToolShowTab"].firstMatch
+        XCTAssertTrue(waitOrDump(showButton, timeout: 10, in: app), "Live claude-haiku-5-5 run did not show the Show button (\(tag)).")
+        capture("t4-live-\(tag)-1-before-show")
+
+        // Expand steps (if folded) and tap a tool row in developer mode so `claude-haiku-5-5` is visible in the proof!
+        let stepsFold = app.buttons["agentStepsSummary"].firstMatch
+        if stepsFold.exists {
+            stepsFold.tap()
+        }
+        let firstRow = app.descendants(matching: .any).matching(identifier: "agentToolRow").firstMatch
+        if firstRow.waitForExistence(timeout: 5) {
+            firstRow.tap()
+            _ = any(app, "agentDevTurnLine").waitForExistence(timeout: 5)
+        }
+        capture("t4-live-\(tag)-2-model-id")
+
+        // Tap Show to verify switching to the newly opened background tab.
+        let activeShow = app.buttons["agentToolShowTab"].firstMatch
+        XCTAssertTrue(waitOrDump(activeShow, timeout: 5, in: app))
+        activeShow.tap()
+
+        let companionHeading = app.webViews.staticTexts["Companion Ferry Schedule"].firstMatch
+        XCTAssertTrue(
+            waitOrDump(companionHeading, timeout: 15, in: app),
+            "Tapping Show after live claude-haiku-5-5 tabs open did not switch to Companion Ferry Schedule (\(tag))."
+        )
+        capture("t4-live-\(tag)-3-after-show")
+    }
 }
 
 private final class LocalTabsUIFixture: @unchecked Sendable {

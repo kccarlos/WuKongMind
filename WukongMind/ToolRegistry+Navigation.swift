@@ -34,24 +34,24 @@ extension ToolRegistry {
         }
     }
 
-    /// The address `navigate` may open, or a refusal.
-    static func navigableURL(_ raw: String) throws -> URL {
+    /// The address `navigate` or `tabs` may open, or a refusal.
+    static func navigableURL(_ raw: String, toolName: String = "navigate") throws -> URL {
         let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         if trimmed.lowercased() == "about:blank" {
             return URL(string: "about:blank")!
         }
         guard let url = URL(string: trimmed), let scheme = url.scheme?.lowercased() else {
             throw ToolValidationError(
-                "Invalid arguments for 'navigate': '\(trimmed)' is not a full address; include http:// or https://."
+                "Invalid arguments for '\(toolName)': '\(trimmed)' is not a full address; include http:// or https://."
             )
         }
         guard scheme == "http" || scheme == "https" else {
             throw ToolValidationError(
-                "Refused: navigate opens only http, https and about:blank addresses, not '\(scheme):'."
+                "Refused: \(toolName) opens only http, https and about:blank addresses, not '\(scheme):'."
             )
         }
         guard let host = url.host, !host.isEmpty else {
-            throw ToolValidationError("Invalid arguments for 'navigate': '\(trimmed)' has no host.")
+            throw ToolValidationError("Invalid arguments for '\(toolName)': '\(trimmed)' has no host.")
         }
         return url
     }

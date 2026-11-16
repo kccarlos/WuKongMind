@@ -418,6 +418,10 @@ struct ToolNote: Codable, Equatable, Sendable {
     static let readSavedFile = ToolNote("The full result is in the workspace file named in the result; "
         + "read any part with file_read(path, offset).")
 
+    /// The pre-save exploration cap passed 4 probes on a run that has not shown it is learning: a nudge, never a refusal.
+    static let explorationNudge = ToolNote("If you are working out how to read this site, stop exploring: save the reader "
+        + "with `script_save` and `provides` now. Otherwise carry on.")
+
     /// `run_js` in the page world failed on the page's Content Security Policy.
     static let pageWorldCSP = ToolNote("The page's Content Security Policy restricts eval or cross-origin requests "
         + "in the 'page' world; retry with environment: 'isolated' unless you specifically need page JS globals.")
@@ -452,6 +456,10 @@ struct ToolExecutionOutput: Equatable, Sendable {
     var shape: ForumShape?
     /// The app's own notes, sent before the untrusted wrapper (`ToolNote`).
     var notes: [ToolNote]
+    /// Tab ID opened by `tabs(action: "open")` or a `run_js` popup, enabling the tool row's Show button.
+    var openedTabID: String?
+    /// Extra URLs touched during execution (e.g. a background tab opened or read) for task-record cookie scrubbing.
+    var touchedURLs: [String]
 
     init(
         content: String,
@@ -462,7 +470,9 @@ struct ToolExecutionOutput: Equatable, Sendable {
         isRanged: Bool = false,
         images: [AgentImage] = [],
         shape: ForumShape? = nil,
-        notes: [ToolNote] = []
+        notes: [ToolNote] = [],
+        openedTabID: String? = nil,
+        touchedURLs: [String] = []
     ) {
         self.content = content
         self.summary = summary ?? Self.defaultSummary(for: content)
@@ -473,6 +483,8 @@ struct ToolExecutionOutput: Equatable, Sendable {
         self.images = images
         self.shape = shape
         self.notes = notes
+        self.openedTabID = openedTabID
+        self.touchedURLs = touchedURLs
     }
 
     static func defaultSummary(for text: String, maxChars: Int = 96) -> String {
@@ -525,6 +537,55 @@ final class ScriptRepairRunState: Sendable {
             return true
         }
         return false
+    }
+}
+
+final class SiteLearningRunState: @unchecked Sendable {
+    nonisolated static let maxRefusals = 3
+    nonisolated static let threeAttemptsStopMessage = "Stop: three attempts failed."
+    private let lock = NSLock()
+    private var refusalCounts: [String: Int] = [:]
+    private var preSaveProbes = 0
+    private var probingClosed = false
+    private var learningArmed = false
+    let verifierLimits: SiteToolVerifier.Limits
+    init(verifierLimits: SiteToolVerifier.Limits = .default) { self.verifierLimits = verifierLimits }
+    private func key(host: String, scriptID: String?, slot: SiteToolSlot) -> String {
+        scriptID.map { "script:\($0)" } ?? "slot:\(host):\(slot.rawValue)"
+    }
+    func hasReachedLimit(host: String, scriptID: String?, slots: [SiteToolSlot]) -> Bool {
+        lock.withLock { slots.contains { refusalCounts[key(host: host, scriptID: scriptID, slot: $0), default: 0] >= Self.maxRefusals } }
+    }
+    /// Counts one data-source probe made before this run's first reader save; nil once saving began.
+    func noteProbe() -> Int? {
+        lock.withLock {
+            guard !probingClosed else { return nil }
+            preSaveProbes += 1
+            return preSaveProbes
+        }
+    }
+    /// Arms the hard cap: a forum tool was refused in this run for want of a reading tool, so the run is after a learned reader.
+    func armLearning() { lock.withLock { learningArmed = true } }
+    /// Step 1 of "Learning a site" is a fixed line in the assistant's text: seeing it shows the run is learning.
+    func noteAssistantText(_ text: String) {
+        if text.lowercased().contains(Self.learningAnnouncement) { armLearning() }
+    }
+    static let learningAnnouncement = "how to read this site"
+    var isLearningArmed: Bool { lock.withLock { learningArmed } }
+    /// A reader save was attempted: fixing a refusal may need more probes, so the cap ends.
+    func closeProbing() { lock.withLock { probingClosed = true } }
+    @discardableResult
+    func noteRefusal(host: String, scriptID: String?, slots: [SiteToolSlot]) -> Int {
+        lock.withLock {
+            var maxCount = 0, seen: Set<String> = []
+            for slot in slots {
+                let k = key(host: host, scriptID: scriptID, slot: slot)
+                guard seen.insert(k).inserted else { continue }
+                let next = refusalCounts[k, default: 0] + 1
+                refusalCounts[k] = next; maxCount = max(maxCount, next)
+            }
+            return maxCount
+        }
     }
 }
 
@@ -581,6 +642,10 @@ struct ToolDispatchResult: Equatable, Sendable {
     var shape: ForumShape? = nil
     /// The app's own notes (hints, page feedback), outside the wrapper in `modelContent`.
     var notes: [ToolNote] = []
+    /// Tab ID opened by `tabs(action: "open")` or a `run_js` popup, enabling the tool row's Show button.
+    var openedTabID: String? = nil
+    /// Extra URLs touched during execution for task-record cookie scrubbing.
+    var touchedURLs: [String] = []
 }
 
 /// Validates tool arguments against JSON Schema, dispatches tool calls, converts
@@ -605,6 +670,8 @@ struct ToolRegistry: Sendable {
     var siteReadingPrompt: SiteReadingPromptState = .none
     /// WebMCP page-tool dispatcher context, for the page context's count line.
     var pageTools: PageToolContext?
+    /// The run's learning state, so the session can tell it what the assistant said.
+    var learningRunState: SiteLearningRunState?
 
     init(
         tools: [AgentTool] = [],
@@ -915,6 +982,8 @@ struct ToolRegistry: Sendable {
                 images: execution.images,
                 shape: execution.shape,
                 notes: execution.notes,
+                openedTabID: execution.openedTabID,
+                touchedURLs: execution.touchedURLs,
                 step: step
             )
         } catch let cancellation as CancellationError {
@@ -947,6 +1016,8 @@ struct ToolRegistry: Sendable {
         images: [AgentImage] = [],
         shape: ForumShape? = nil,
         notes: [ToolNote] = [],
+        openedTabID: String? = nil,
+        touchedURLs: [String] = [],
         step: Int? = nil
     ) async -> ToolDispatchResult {
         let scrubbedOutput = UntrustedWebContent.redactSecrets(in: rawOutput, secrets: redactedSecrets)
@@ -1008,7 +1079,9 @@ struct ToolRegistry: Sendable {
             savedPath: finalSavedPath,
             images: images,
             shape: shape,
-            notes: notes
+            notes: notes,
+            openedTabID: openedTabID,
+            touchedURLs: touchedURLs
         )
     }
 
@@ -1117,6 +1190,7 @@ extension ToolRegistry {
     private static func makeRunJSTool(
         bridge: AgentPageDriving,
         workspace: AgentWorkspace? = nil,
+        tabsContext: TabsToolContext? = nil,
         secrets: [String] = [],
         supportsImageInput: Bool = false
     ) -> AgentTool {
@@ -1180,7 +1254,7 @@ extension ToolRegistry {
                 let env = AgentExecutionEnvironment(rawValue: envRaw) ?? .defaultEnvironment
                 let timeout = args["timeout"]?.strictDoubleValue ?? AgentBridge.defaultJSTimeout
 
-                let result = workspace == nil
+                let result = (workspace == nil && tabsContext == nil)
                     ? try await bridge.runJS(code: code, environment: env, timeout: timeout)
                     : try await bridge.runAgentJS(code: code, environment: env, timeout: timeout)
                 if let errorMessage = result.error {
@@ -1196,6 +1270,25 @@ extension ToolRegistry {
                     )
                 }
 
+                var openedTabID: String?
+                var openedSummaryOverride: String?
+                var openedTabURLs: [String] = []
+                if let lastOpened = result.openedTabs.last {
+                    openedTabID = lastOpened.id
+                    let resolvedURL: String
+                    if let tabsContext {
+                        resolvedURL = await MainActor.run {
+                            tabsContext.resolvePopupURL(tabID: lastOpened.id, fallback: lastOpened.url)
+                        }
+                    } else {
+                        resolvedURL = lastOpened.url
+                    }
+                    openedSummaryOverride = openedTabSummary(rawURL: resolvedURL, inBackground: true)
+                    if !resolvedURL.isEmpty {
+                        openedTabURLs.append(resolvedURL)
+                    }
+                }
+
                 let valueDisplay = result.valueJSON ?? "undefined"
                 if let workspace, let target = args["save_to"]?.stringValue {
                     // A returned string is saved as its text, anything else as JSON.
@@ -1209,22 +1302,30 @@ extension ToolRegistry {
                     }
                     return ToolExecutionOutput(
                         content: sections.joined(separator: "\n\n"),
-                        summary: "Saved \(saved.path)",
-                        savedPath: saved.path
+                        summary: openedSummaryOverride ?? "Saved \(saved.path)",
+                        savedPath: saved.path,
+                        openedTabID: openedTabID,
+                        touchedURLs: openedTabURLs
                     )
                 }
                 var sections = [valueDisplay]
                 if !result.consoleOutput.isEmpty {
                     sections.append("Console:\n" + result.consoleOutput.joined(separator: "\n"))
                 }
+                if !result.openedTabs.isEmpty {
+                    let ids = result.openedTabs.map(\.id).joined(separator: ", ")
+                    sections.append("Opened background tab: \(ids)")
+                }
                 let summaryValue = condenseInline(valueDisplay, maxChars: 72)
-                let summary = result.consoleOutput.isEmpty
+                let defaultSummary = result.consoleOutput.isEmpty
                     ? summaryValue
                     : "\(summaryValue) (\(result.consoleOutput.count) console line\(result.consoleOutput.count == 1 ? "" : "s"))"
                 return ToolExecutionOutput(
                     content: sections.joined(separator: "\n\n"),
-                    summary: summary,
-                    isError: false
+                    summary: openedSummaryOverride ?? defaultSummary,
+                    isError: false,
+                    openedTabID: openedTabID,
+                    touchedURLs: openedTabURLs
                 )
             }
         )
@@ -1407,6 +1508,7 @@ extension ToolRegistry {
     static func pageTools(
         bridge: AgentPageDriving,
         workspace: AgentWorkspace?,
+        tabsContext: TabsToolContext? = nil,
         secrets: [String] = [],
         supportsImageInput: Bool = false
     ) -> [AgentTool] {
@@ -1415,6 +1517,7 @@ extension ToolRegistry {
             makeRunJSTool(
                 bridge: bridge,
                 workspace: workspace,
+                tabsContext: tabsContext,
                 secrets: secrets,
                 supportsImageInput: supportsImageInput
             ),
@@ -1430,7 +1533,10 @@ extension ToolRegistry {
         currentUserPrompt: (@MainActor @Sendable () -> String?)? = nil,
         pageBaseline: (@MainActor @Sendable () -> PageStateSnapshot?)? = nil,
         pageBaselineImage: (@MainActor @Sendable () -> AgentImage?)? = nil,
-        supportsImageInput: Bool = false
+        supportsImageInput: Bool = false,
+        pageToolBridge: PageToolBridge? = nil,
+        siteToolStateStore: SiteToolStateStore? = nil,
+        learningRunState: SiteLearningRunState = SiteLearningRunState()
     ) -> [AgentTool] {
         [
             makeScriptSaveTool(
@@ -1440,7 +1546,10 @@ extension ToolRegistry {
                 currentUserPrompt: currentUserPrompt,
                 pageBaseline: pageBaseline,
                 pageBaselineImage: pageBaselineImage,
-                supportsImageInput: supportsImageInput
+                supportsImageInput: supportsImageInput,
+                pageToolBridge: pageToolBridge,
+                siteToolStateStore: siteToolStateStore,
+                learningRunState: learningRunState
             ),
             makeScriptListTool(scriptStore: scriptStore),
             makeScriptReadTool(scriptStore: scriptStore),
@@ -1451,11 +1560,15 @@ extension ToolRegistry {
                 currentUserPrompt: currentUserPrompt,
                 pageBaseline: pageBaseline,
                 pageBaselineImage: pageBaselineImage,
-                supportsImageInput: supportsImageInput
+                supportsImageInput: supportsImageInput,
+                pageToolBridge: pageToolBridge,
+                siteToolStateStore: siteToolStateStore,
+                learningRunState: learningRunState
             ),
             makeScriptDeleteTool(
                 scriptStore: scriptStore,
-                liveApplier: liveApplier
+                liveApplier: liveApplier,
+                siteToolStateStore: siteToolStateStore
             )
         ]
     }
@@ -1480,6 +1593,13 @@ extension ToolRegistry {
         itemsType: .string
     )
 
+    private static let providesParameters: [ToolParameterSchema] = [
+        ToolParameterSchema(name: "provides", type: .array, description: "Slots registered ('read_topic', 'list_latest', 'search_forum').", itemsType: .string),
+        ToolParameterSchema(name: "thread_match", type: .string, description: "@match pattern for thread pages."),
+        ToolParameterSchema(name: "list_match", type: .string, description: "@match pattern for list pages."),
+        ToolParameterSchema(name: "test_urls", type: .array, description: "URLs to verify provides (2 threads or 1 list page).", itemsType: .string)
+    ]
+
     private static func makeScriptSaveTool(
         bridge: AgentPageDriving,
         scriptStore: ScriptStore,
@@ -1487,7 +1607,10 @@ extension ToolRegistry {
         currentUserPrompt: (@MainActor @Sendable () -> String?)?,
         pageBaseline: (@MainActor @Sendable () -> PageStateSnapshot?)? = nil,
         pageBaselineImage: (@MainActor @Sendable () -> AgentImage?)? = nil,
-        supportsImageInput: Bool = false
+        supportsImageInput: Bool = false,
+        pageToolBridge: PageToolBridge? = nil,
+        siteToolStateStore: SiteToolStateStore? = nil,
+        learningRunState: SiteLearningRunState = SiteLearningRunState()
     ) -> AgentTool {
         let definition = AgentToolDefinition(
             name: "script_save",
@@ -1495,7 +1618,8 @@ extension ToolRegistry {
             Save a persistent per-site userscript (with JavaScript, CSS, or both) that runs \
             automatically on every matching page load and SPA route change, and apply it to \
             the current page right away if the current URL matches. Call this only when the \
-            user asks to always apply a change or persist it for future visits.
+            user asks to always apply a change or persist it for future visits, or when \
+            saving a learned site reader.
             """,
             parameters: [
                 ToolParameterSchema(
@@ -1538,10 +1662,16 @@ extension ToolRegistry {
                 grantsParameter,
                 connectParameter,
                 confirmChangeParameter
-            ],
+            ] + providesParameters,
             required: ["name", "match_rules"]
         )
 
+        let env = ProvidedVerifyEnv(
+            bridge: bridge, scriptStore: scriptStore, liveApplier: liveApplier,
+            pageToolBridge: pageToolBridge, siteToolStateStore: siteToolStateStore,
+            learningRunState: learningRunState, pageBaseline: pageBaseline,
+            pageBaselineImage: pageBaselineImage, supportsImageInput: supportsImageInput
+        )
         return AgentTool(
             definition: definition,
             customValidate: { args in
@@ -1561,6 +1691,10 @@ extension ToolRegistry {
                 }
                 _ = try extractValidatedGrants(from: args["grants"], toolName: "script_save")
                 _ = try extractValidatedConnectHosts(from: args["connect"], toolName: "script_save")
+                _ = try extractValidatedProvides(from: args["provides"], toolName: "script_save")
+                _ = try extractValidatedOptionalMatchPattern(from: args["thread_match"], argument: "thread_match", toolName: "script_save")
+                _ = try extractValidatedOptionalMatchPattern(from: args["list_match"], argument: "list_match", toolName: "script_save")
+                _ = try extractValidatedTestURLStrings(from: args["test_urls"], toolName: "script_save")
             },
             summarizeArguments: { args in
                 let name = condenseInline(args["name"]?.stringValue ?? "", maxChars: 36)
@@ -1570,7 +1704,8 @@ extension ToolRegistry {
                 }
                 return name
             },
-            execute: { args in
+            execute: { _ in ToolExecutionOutput(content: "Internal error: script_save requires call context.", isError: true) },
+            executeWithContext: { args, callContext in
                 let name = args["name"]?.stringValue ?? ""
                 let rules = try extractValidatedMatchRules(from: args["match_rules"], toolName: "script_save")
                 let js = args["js"]?.stringValue ?? ""
@@ -1581,6 +1716,10 @@ extension ToolRegistry {
                 let environment = AgentExecutionEnvironment(rawValue: envRaw) ?? .defaultEnvironment
                 let grants = try extractValidatedGrants(from: args["grants"], toolName: "script_save") ?? []
                 let connectHosts = try extractValidatedConnectHosts(from: args["connect"], toolName: "script_save") ?? []
+                let provides = try extractValidatedProvides(from: args["provides"], toolName: "script_save") ?? []
+                let threadMatches = try extractValidatedOptionalMatchPattern(from: args["thread_match"], argument: "thread_match", toolName: "script_save") ?? []
+                let listMatches = try extractValidatedOptionalMatchPattern(from: args["list_match"], argument: "list_match", toolName: "script_save") ?? []
+                let rawTestURLs = try extractValidatedTestURLStrings(from: args["test_urls"], toolName: "script_save") ?? []
                 let confirmChange = args["confirm_change"]?.strictBoolValue ?? false
 
                 let candidate: UserScript = try await MainActor.run {
@@ -1590,12 +1729,23 @@ extension ToolRegistry {
                         matchRules: rules,
                         js: js,
                         css: css,
-                        injectionTime: injectionTime,
-                        environment: environment,
+                        injectionTime: provides.isEmpty ? injectionTime : .documentEnd,
+                        environment: provides.isEmpty ? environment : .isolated,
                         isEnabled: true,
                         source: .agent(userPrompt: prompt),
                         grants: grants,
-                        connectHosts: connectHosts
+                        connectHosts: connectHosts,
+                        provides: provides.map(\.rawValue),
+                        threadMatches: threadMatches,
+                        listMatches: listMatches,
+                        testURLs: rawTestURLs
+                    )
+                }
+
+                if !provides.isEmpty {
+                    return try await finishProvidedSave(
+                        candidate: candidate, provides: provides, rawTestURLs: rawTestURLs,
+                        confirmChange: confirmChange, env: env, callContext: callContext
                     )
                 }
 
@@ -1775,6 +1925,7 @@ extension ToolRegistry {
                     "version": .int(Int64(script.version)),
                     "grants": .array(script.metadata.grants.map(JSONValue.string)),
                     "connect": .array(script.metadata.connectHosts.map(JSONValue.string)),
+                    "provides": .array(script.metadata.provides.map(JSONValue.string)),
                     "source": .string(script.source.kindIdentifier),
                     "versions": .array(script.versions.map { .int(Int64($0.version)) }),
                     "user_script": .string(script.toUserScriptFileContent())
@@ -1805,7 +1956,10 @@ extension ToolRegistry {
         currentUserPrompt: (@MainActor @Sendable () -> String?)? = nil,
         pageBaseline: (@MainActor @Sendable () -> PageStateSnapshot?)? = nil,
         pageBaselineImage: (@MainActor @Sendable () -> AgentImage?)? = nil,
-        supportsImageInput: Bool = false
+        supportsImageInput: Bool = false,
+        pageToolBridge: PageToolBridge? = nil,
+        siteToolStateStore: SiteToolStateStore? = nil,
+        learningRunState: SiteLearningRunState = SiteLearningRunState()
     ) -> AgentTool {
         let definition = AgentToolDefinition(
             name: "script_update",
@@ -1865,10 +2019,11 @@ extension ToolRegistry {
                 grantsParameter,
                 connectParameter,
                 confirmChangeParameter
-            ],
+            ] + providesParameters,
             required: ["script_id"]
         )
 
+        let mutableKeys = ["name", "match_rules", "js", "css", "injection_time", "environment", "enabled", "grants", "connect", "provides", "thread_match", "list_match", "test_urls"]
         return AgentTool(
             definition: definition,
             customValidate: { args in
@@ -1877,14 +2032,17 @@ extension ToolRegistry {
                     throw ToolValidationError("Invalid arguments for 'script_update': 'script_id' must not be empty.")
                 }
 
-                let mutableKeys = ["name", "match_rules", "js", "css", "injection_time", "environment", "enabled", "grants", "connect"]
                 guard mutableKeys.contains(where: { args[$0] != nil }) else {
                     throw ToolValidationError(
-                        "Invalid arguments for 'script_update': provide at least one field to update (name, match_rules, js, css, injection_time, environment, enabled, grants, or connect)."
+                        "Invalid arguments for 'script_update': provide at least one field to update (name, match_rules, js, css, injection_time, environment, enabled, grants, connect, provides, thread_match, list_match, or test_urls)."
                     )
                 }
                 _ = try extractValidatedGrants(from: args["grants"], toolName: "script_update")
                 _ = try extractValidatedConnectHosts(from: args["connect"], toolName: "script_update")
+                _ = try extractValidatedProvides(from: args["provides"], toolName: "script_update")
+                _ = try extractValidatedOptionalMatchPattern(from: args["thread_match"], argument: "thread_match", toolName: "script_update")
+                _ = try extractValidatedOptionalMatchPattern(from: args["list_match"], argument: "list_match", toolName: "script_update")
+                _ = try extractValidatedTestURLStrings(from: args["test_urls"], toolName: "script_update")
 
                 if let rawName = args["name"]?.stringValue,
                    rawName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -1904,8 +2062,7 @@ extension ToolRegistry {
             },
             summarizeArguments: { args in
                 let id = condenseInline(args["script_id"]?.stringValue ?? "", maxChars: 36)
-                var changed = ["name", "match_rules", "js", "css", "injection_time", "environment", "enabled", "grants", "connect"]
-                    .filter { args[$0] != nil }
+                var changed = mutableKeys.filter { args[$0] != nil }
                 if args["confirm_change"]?.strictBoolValue == true {
                     changed.append("confirm_change")
                 }
@@ -1939,6 +2096,8 @@ extension ToolRegistry {
                     matchRules = nil
                 }
 
+                let explicitProvides = try extractValidatedProvides(from: args["provides"], toolName: "script_update")
+                let explicitTestURLs = try extractValidatedTestURLStrings(from: args["test_urls"], toolName: "script_update")
                 let patch = ScriptUpdatePatch(
                     name: args["name"]?.stringValue,
                     matchRules: matchRules,
@@ -1948,7 +2107,11 @@ extension ToolRegistry {
                     environment: args["environment"]?.stringValue.flatMap(AgentExecutionEnvironment.init(rawValue:)),
                     isEnabled: args["enabled"]?.strictBoolValue ?? (isTargetRepair ? true : nil),
                     grants: try extractValidatedGrants(from: args["grants"], toolName: "script_update"),
-                    connectHosts: try extractValidatedConnectHosts(from: args["connect"], toolName: "script_update")
+                    connectHosts: try extractValidatedConnectHosts(from: args["connect"], toolName: "script_update"),
+                    provides: explicitProvides?.map(\.rawValue),
+                    threadMatches: try extractValidatedOptionalMatchPattern(from: args["thread_match"], argument: "thread_match", toolName: "script_update"),
+                    listMatches: try extractValidatedOptionalMatchPattern(from: args["list_match"], argument: "list_match", toolName: "script_update"),
+                    testURLs: explicitTestURLs
                 )
 
                 let prospective: ScriptStore.ProspectiveUpdate = try await MainActor.run {
@@ -1970,6 +2133,20 @@ extension ToolRegistry {
                         ? "Stopped · 3 failed fixes"
                         : "Not saved · repair cannot widen permissions"
                     return ToolExecutionOutput(content: message, summary: summary, isError: true)
+                }
+
+                let effectiveProvides = explicitProvides ?? prospective.updated.metadata.provides.compactMap(SiteToolSlot.init(rawValue:))
+                if !effectiveProvides.isEmpty {
+                    let env = ProvidedVerifyEnv(
+                        bridge: bridge, scriptStore: scriptStore, liveApplier: liveApplier,
+                        pageToolBridge: pageToolBridge, siteToolStateStore: siteToolStateStore,
+                        learningRunState: learningRunState, pageBaseline: pageBaseline,
+                        pageBaselineImage: pageBaselineImage, supportsImageInput: supportsImageInput
+                    )
+                    return try await finishProvidedUpdate(
+                        prospective: prospective, provides: effectiveProvides, explicitTestURLs: explicitTestURLs,
+                        confirmChange: confirmChange, isTargetRepair: isTargetRepair, env: env, callContext: callContext
+                    )
                 }
 
                 var verification = try await verifyCandidateBeforeSaving(
@@ -2091,7 +2268,8 @@ extension ToolRegistry {
 
     private static func makeScriptDeleteTool(
         scriptStore: ScriptStore,
-        liveApplier: ScriptLiveApplying?
+        liveApplier: ScriptLiveApplying?,
+        siteToolStateStore: SiteToolStateStore? = nil
     ) -> AgentTool {
         let definition = AgentToolDefinition(
             name: "script_delete",
@@ -2138,6 +2316,15 @@ extension ToolRegistry {
                         summary: "Error: Script '\(id)' was not found.",
                         isError: true
                     )
+                }
+
+                if let siteToolStateStore, case .success(let host) = SiteToolVerifier.singleNormalizedHost(for: deletedScript.matchRules),
+                   siteToolStateStore.state(forHost: host) != nil {
+                    _ = try? siteToolStateStore.update(host: host) { state in
+                        for slot in SiteToolSlot.allCases where state.slot(slot).scriptID == id {
+                            state.setSlot(SiteSlotState(), for: slot)
+                        }
+                    }
                 }
 
                 if let liveApplier {
@@ -2214,6 +2401,262 @@ extension ToolRegistry {
             validate: ScriptMetadata.validatedConnectHost,
             hint: "must be a bare host name such as 'api.example.org' (covers subdomains), an IP address, 'localhost', 'self', or '*' (no scheme, port, path, or '*.' prefix)."
         )
+    }
+
+    private static func extractValidatedProvides(from rawValue: JSONValue?, toolName: String) throws -> [SiteToolSlot]? {
+        try extractValidatedStrings(
+            from: rawValue, toolName: toolName, argument: "provides", validate: ScriptMetadata.validatedProvidedSlot,
+            hint: "must be one of: \(ScriptMetadata.supportedProvidedSlots.joined(separator: ", "))."
+        )?.compactMap(SiteToolSlot.init(rawValue:))
+    }
+
+    private static func extractValidatedOptionalMatchPattern(
+        from rawValue: JSONValue?, argument: String, toolName: String
+    ) throws -> [String]? {
+        guard let rawValue, !rawValue.isNull else { return nil }
+        guard let raw = rawValue.stringValue else {
+            throw ToolValidationError("Invalid arguments for '\(toolName)': '\(argument)' must be a string.")
+        }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return [] }
+        do { _ = try MatchPattern.parse(trimmed) } catch {
+            throw ToolValidationError("Invalid arguments for '\(toolName)': invalid \(argument) '\(trimmed)' (\(error.localizedDescription))")
+        }
+        return [trimmed]
+    }
+
+    private static func extractValidatedTestURLStrings(from rawValue: JSONValue?, toolName: String) throws -> [String]? {
+        try extractValidatedStrings(
+            from: rawValue, toolName: toolName, argument: "test_urls",
+            validate: { let t = $0.trimmingCharacters(in: .whitespacesAndNewlines); return t.isEmpty ? nil : t },
+            hint: "must not be empty."
+        )
+    }
+
+    private struct ProvidedVerifyEnv: Sendable {
+        let bridge: AgentPageDriving
+        let scriptStore: ScriptStore
+        let liveApplier: ScriptLiveApplying?
+        let pageToolBridge: PageToolBridge?
+        let siteToolStateStore: SiteToolStateStore?
+        let learningRunState: SiteLearningRunState
+        let pageBaseline: (@MainActor @Sendable () -> PageStateSnapshot?)?
+        let pageBaselineImage: (@MainActor @Sendable () -> AgentImage?)?
+        let supportsImageInput: Bool
+    }
+
+    private enum ProvidedVerificationOutcome: Sendable {
+        case verified(prepared: UserScript, report: SiteToolVerificationReport, host: String)
+        case refused(ToolExecutionOutput)
+    }
+
+    private static func finishProvidedSave(
+        candidate: UserScript, provides: [SiteToolSlot], rawTestURLs: [String],
+        confirmChange: Bool, env: ProvidedVerifyEnv, callContext: ToolCallContext
+    ) async throws -> ToolExecutionOutput {
+        switch try await verifyProvidedCandidate(
+            candidate: candidate, previousScript: nil, providedSlots: provides, rawTestURLs: rawTestURLs,
+            confirmChange: confirmChange, env: env, callContext: callContext
+        ) {
+        case .refused(let output): return output
+        case .verified(let prepared, let report, let host):
+            let saved: UserScript = try await MainActor.run {
+                let committed = try env.scriptStore.commitCreated(prepared)
+                env.scriptStore.noteExecuted(scriptID: committed.id)
+                return committed
+            }
+            try persistVerifiedSiteState(script: saved, report: report, host: host, stateStore: env.siteToolStateStore, taskID: callContext.taskID)
+            let payload: [String: JSONValue] = [
+                "script_id": .string(saved.id), "name": .string(saved.name), "version": .int(Int64(saved.version)),
+                "match_rules": .array(saved.matchRules.map(JSONValue.string)),
+                "injection_time": .string(saved.injectionTime.rawValue), "environment": .string(saved.environment.rawValue),
+                "grants": .array(saved.metadata.grants.map(JSONValue.string)), "connect": .array(saved.metadata.connectHosts.map(JSONValue.string)),
+                "provides": .array(saved.metadata.provides.map(JSONValue.string)), "test_urls": .array(saved.metadata.testURLs.map(JSONValue.string)),
+                "verification": .string(report.verificationSummary), "applied_to_current_page": .bool(true), "verified": .bool(true)
+            ]
+            return ToolExecutionOutput(
+                content: JSONValue.encodeCompactJSON(payload),
+                summary: "Saved '\(saved.name)' (\(saved.id), v\(saved.version)) · \(report.verificationSummary)", isError: false
+            )
+        }
+    }
+
+    private static func finishProvidedUpdate(
+        prospective: ScriptStore.ProspectiveUpdate, provides: [SiteToolSlot], explicitTestURLs: [String]?,
+        confirmChange: Bool, isTargetRepair: Bool, env: ProvidedVerifyEnv, callContext: ToolCallContext
+    ) async throws -> ToolExecutionOutput {
+        var candidate = prospective.updated
+        candidate.environment = .isolated; candidate.injectionTime = .documentEnd
+        switch try await verifyProvidedCandidate(
+            candidate: candidate, previousScript: prospective.previous, providedSlots: provides,
+            rawTestURLs: explicitTestURLs ?? candidate.metadata.testURLs,
+            confirmChange: confirmChange, env: env, callContext: callContext
+        ) {
+        case .refused(let output): return output
+        case .verified(var prepared, let report, let host):
+            if isTargetRepair { prepared.isEnabled = true; prepared.disabledReason = nil }
+            let touches = prospective.touchesVersionedFields || prepared.metadata != prospective.previous.metadata
+                || prepared.environment != prospective.previous.environment || prepared.injectionTime != prospective.previous.injectionTime
+            let toCommit = ScriptStore.ProspectiveUpdate(previous: prospective.previous, updated: prepared, touchesVersionedFields: touches)
+            let updated: UserScript = try await MainActor.run {
+                let committed = try env.scriptStore.commitUpdated(toCommit, clearErrors: true)
+                env.scriptStore.clearError(for: committed.id)
+                env.scriptStore.noteExecuted(scriptID: committed.id)
+                return committed
+            }
+            try persistVerifiedSiteState(script: updated, report: report, host: host, stateStore: env.siteToolStateStore, taskID: callContext.taskID)
+            var payload: [String: JSONValue] = [
+                "script_id": .string(updated.id), "name": .string(updated.name),
+                "match_rules": .array(updated.matchRules.map(JSONValue.string)),
+                "version": .int(Int64(updated.version)), "enabled": .bool(updated.isEnabled),
+                "grants": .array(updated.metadata.grants.map(JSONValue.string)), "connect": .array(updated.metadata.connectHosts.map(JSONValue.string)),
+                "provides": .array(updated.metadata.provides.map(JSONValue.string)), "test_urls": .array(updated.metadata.testURLs.map(JSONValue.string)),
+                "verification": .string(report.verificationSummary), "applied_to_current_page": .bool(true), "verified": .bool(true)
+            ]
+            if isTargetRepair { payload["repaired"] = .bool(true) }
+            let verb = isTargetRepair ? "Fixed '\(updated.name)' (v\(updated.version))" : "Updated '\(updated.name)' to v\(updated.version)"
+            return ToolExecutionOutput(content: JSONValue.encodeCompactJSON(payload), summary: "\(verb) · \(report.verificationSummary)", isError: false)
+        }
+    }
+
+    private static func verifyProvidedCandidate(
+        candidate: UserScript, previousScript: UserScript?, providedSlots: [SiteToolSlot], rawTestURLs: [String],
+        confirmChange: Bool, env: ProvidedVerifyEnv, callContext: ToolCallContext
+    ) async throws -> ProvidedVerificationOutcome {
+        guard candidate.isEnabled else {
+            return .refused(ToolExecutionOutput(content: "Error: Not saved: a reading tool is saved only when it can be checked (cannot save disabled).", summary: "Not saved · disabled", isError: true))
+        }
+        guard await MainActor.run(body: { env.scriptStore.isGlobalEnabled }) else {
+            return .refused(ToolExecutionOutput(content: "Error: Not saved: userscripts are turned off in Settings.", summary: "Not saved · userscripts off", isError: true))
+        }
+        let (resolvedBridge, pageToolsEnabled): (PageToolBridge?, Bool) = await MainActor.run {
+            let b = env.pageToolBridge ?? (env.liveApplier as? ScriptWebController)?.pageToolBridge
+            return (b, b?.isEnabled == true)
+        }
+        guard let pageToolBridge = resolvedBridge, pageToolsEnabled else {
+            return .refused(ToolExecutionOutput(content: "Error: Not saved: page tools are turned off in Settings.", summary: "Not saved · page tools off", isError: true))
+        }
+        let meta = await env.bridge.currentPageMetadata()
+        let openHint = providedSlots.contains(.readTopic) ? "open a thread of the site" : "open a page of the site"
+        guard !meta.url.isEmpty, meta.url != "about:blank", let openURL = URL(string: meta.url),
+              let openHost = SiteToolState.normalizedHost(from: openURL), candidate.matches(urlString: meta.url) else {
+            return .refused(ToolExecutionOutput(content: "Error: Not saved: a reading tool is saved only when it can be checked: \(openHint).", summary: "Not saved · page mismatch", isError: true))
+        }
+
+        let existingState = env.siteToolStateStore?.state(forHost: openHost)
+        let allScripts = await MainActor.run { env.scriptStore.scripts }
+        let scriptsByID = Dictionary(uniqueKeysWithValues: allScripts.map { ($0.id, $0) })
+        for slot in providedSlots {
+            let owner = existingState?.slot(slot).scriptID.flatMap { $0 == previousScript?.id ? nil : scriptsByID[$0] }
+                ?? allScripts.first { $0.id != previousScript?.id && $0.matchesDomain(openHost) && $0.metadata.provides.contains(slot.rawValue) }
+            if let owner {
+                return .refused(ToolExecutionOutput(
+                    content: "Error: Not saved: \(owner.name) (\(owner.id)) already provides \(slot.rawValue) here; change it with `script_update`.",
+                    summary: "Not saved · slot owned by \(owner.id)", isError: true
+                ))
+            }
+        }
+
+        if env.learningRunState.hasReachedLimit(host: openHost, scriptID: previousScript?.id, slots: providedSlots) {
+            return .refused(ToolExecutionOutput(content: "Error: \(SiteLearningRunState.threeAttemptsStopMessage)", summary: "Stopped · 3 failed attempts", isError: true))
+        }
+
+        func recordCountedRefusal(reason: String, summary: String? = nil, images: [AgentImage] = []) async -> ProvidedVerificationOutcome {
+            if let repairState = callContext.repairState, let prev = previousScript { _ = await MainActor.run { repairState.noteRefusal(for: prev.id) } }
+            let count = env.learningRunState.noteRefusal(host: openHost, scriptID: previousScript?.id, slots: providedSlots)
+            let formatted = reason.hasPrefix("Error:") ? reason : "Error: Not saved: \(reason)"
+            if count >= SiteLearningRunState.maxRefusals {
+                let now = Date()
+                _ = try? env.siteToolStateStore?.update(host: openHost) { state in
+                    for slot in providedSlots {
+                        var s = state.slot(slot)
+                        s.status = .failed
+                        if let prev = previousScript { s.scriptID = prev.id }
+                        s.failure = SiteSlotFailure(code: .refused3, date: now, agentReason: reason)
+                        state.setSlot(s, for: slot)
+                        state.appendLog(SiteLogEntry(kind: .failed, slot: slot, date: now, taskID: callContext.taskID))
+                    }
+                }
+                return .refused(ToolExecutionOutput(content: "\(formatted)\n\(SiteLearningRunState.threeAttemptsStopMessage)", summary: "Stopped · 3 failed attempts", isError: true, images: images))
+            }
+            return .refused(ToolExecutionOutput(content: formatted, summary: summary ?? "Not saved · \(condenseInline(reason, maxChars: 48))", isError: true, images: images))
+        }
+
+        if !candidate.metadata.grants.isEmpty || !candidate.metadata.connectHosts.isEmpty {
+            return await recordCountedRefusal(reason: "a learned reading tool cannot use `@grant` or `@connect`.")
+        }
+        let ruleHost: String
+        switch SiteToolVerifier.singleNormalizedHost(for: candidate.matchRules) {
+        case .success(let h): ruleHost = h
+        case .failure(let e): return await recordCountedRefusal(reason: e.message)
+        }
+        guard ruleHost == openHost else {
+            return await recordCountedRefusal(reason: "match_rules host '\(ruleHost)' does not match open page host '\(openHost)'.")
+        }
+
+        var prepared = candidate; prepared.environment = .isolated; prepared.injectionTime = .documentEnd
+        let baseVerification = try await verifyCandidateBeforeSaving(
+            candidate: prepared, replacingScriptID: previousScript?.id, confirmChange: confirmChange,
+            bridge: env.bridge, scriptStore: env.scriptStore, liveApplier: env.liveApplier,
+            pageBaseline: env.pageBaseline, pageBaselineImage: env.pageBaselineImage, supportsImageInput: env.supportsImageInput
+        )
+        var usedFallbackApply = false
+        switch baseVerification {
+        case .refused(let message, let summary, let images):
+            return await recordCountedRefusal(reason: message, summary: summary, images: images)
+        case .unverified(let note):
+            return .refused(ToolExecutionOutput(content: "Error: Not saved: \(note)", summary: "Not saved · unverified", isError: true))
+        case .fallbackLiveApply:
+            guard let liveApplier = env.liveApplier else {
+                return .refused(ToolExecutionOutput(content: "Error: Not saved: a reading tool is saved only when it can be checked: \(openHint).", summary: "Not saved · unverified", isError: true))
+            }
+            usedFallbackApply = true
+            let live = await liveApplier.applyLiveScript(prepared, runJS: true)
+            if let err = live.runtimeError {
+                await pageToolBridge.clearScriptTools(scriptID: prepared.id)
+                if let prev = previousScript, prev.isEnabled { _ = await liveApplier.applyLiveScript(prev, runJS: true) }
+                else { await liveApplier.removeLiveScript(id: prepared.id) }
+                return await recordCountedRefusal(reason: "runtime error: \(err)")
+            }
+        case .verifiedOnCurrentPage: break
+        }
+
+        let report = await SiteToolVerifier.verify(
+            candidate: prepared, providedSlots: providedSlots, siteHost: openHost, openPageURL: meta.url,
+            rawTestURLs: rawTestURLs, existingState: existingState, bridge: env.bridge,
+            pageToolBridge: pageToolBridge, scriptStore: env.scriptStore, limits: env.learningRunState.verifierLimits
+        )
+        guard report.passed else {
+            await pageToolBridge.clearScriptTools(scriptID: prepared.id)
+            if usedFallbackApply {
+                if let prev = previousScript, prev.isEnabled { _ = await env.liveApplier?.applyLiveScript(prev, runJS: true) }
+                else { await env.liveApplier?.removeLiveScript(id: prepared.id) }
+            } else {
+                await restorePageAfterRefusedCandidate(bridge: env.bridge, liveApplier: env.liveApplier)
+            }
+            return await recordCountedRefusal(reason: report.reason ?? "site tool verification failed")
+        }
+        prepared.metadata.setTestURLs(report.headerTestURLs)
+        return .verified(prepared: prepared, report: report, host: openHost)
+    }
+
+    private static func persistVerifiedSiteState(
+        script: UserScript, report: SiteToolVerificationReport, host: String, stateStore: SiteToolStateStore?, taskID: String?
+    ) throws {
+        guard let stateStore else { return }
+        let now = Date(), hash = SiteToolVerifier.scriptTextHash(for: script)
+        try stateStore.update(host: host) { state in
+            if !script.metadata.threadMatches.isEmpty { state.threadMatch = script.metadata.threadMatches }
+            if !script.metadata.listMatches.isEmpty { state.listMatch = script.metadata.listMatches }
+            for (slot, v) in report.slots {
+                state.setSlot(SiteSlotState(
+                    status: .learned, scriptID: script.id, scriptHash: hash, testURLs: v.testURLs,
+                    verifiedAt: now, postStarts: v.postStarts, repairFailures: 0, failure: nil,
+                    lastCheck: SiteSlotCheck(date: now, url: v.primaryURL, result: v.summary, counts: v.counts, durationMs: v.durationMs)
+                ), for: slot)
+                state.appendLog(SiteLogEntry(kind: .learned, slot: slot, date: now, taskID: taskID))
+            }
+        }
     }
 
     private static func extractValidatedStrings(
@@ -2592,14 +3035,15 @@ struct ForumToolContext: Sendable {
 struct LearnedSiteContext: Sendable {
     var host: String
     var state: SiteToolState
+    var stateStore: SiteToolStateStore?
     var pageToolBridge: PageToolBridge
     var scope: LearnedRunScope
     var promptState: SiteReadingPromptState
 
     @MainActor
-    init(host: String, state: SiteToolState, pageToolBridge: PageToolBridge, scriptStore: ScriptStore, scope: LearnedRunScope? = nil) {
+    init(host: String, state: SiteToolState, pageToolBridge: PageToolBridge, scriptStore: ScriptStore, scope: LearnedRunScope? = nil, stateStore: SiteToolStateStore? = nil) {
         self.host = SiteToolState.normalizedHost(host) ?? host.lowercased()
-        self.state = state; self.pageToolBridge = pageToolBridge; self.scope = scope ?? LearnedRunScope()
+        self.state = state; self.stateStore = stateStore; self.pageToolBridge = pageToolBridge; self.scope = scope ?? LearnedRunScope()
         self.promptState = SiteToolState.readingPromptState(state: state, scripts: scriptStore.scripts, pageToolsEnabled: pageToolBridge.isEnabled)
     }
 }
@@ -2630,6 +3074,10 @@ struct AgentToolContext: Sendable {
     var browse: BrowseToolContext?
     /// WebMCP page tools (`page_tools_list`, `page_tool_call`) when the switch is on.
     var pageTools: PageToolContext?
+    var siteToolStateStore: SiteToolStateStore?
+    var learningRunState: SiteLearningRunState
+    /// Open browser tabs and this conversation's bound tab (`tabs` tool).
+    var tabs: TabsToolContext?
 
     init(
         bridge: AgentPageDriving,
@@ -2646,7 +3094,10 @@ struct AgentToolContext: Sendable {
         learnedSite: LearnedSiteContext? = nil,
         capabilities: CapabilityToolContext? = nil,
         browse: BrowseToolContext? = nil,
-        pageTools: PageToolContext? = nil
+        pageTools: PageToolContext? = nil,
+        siteToolStateStore: SiteToolStateStore? = nil,
+        learningRunState: SiteLearningRunState = SiteLearningRunState(),
+        tabs: TabsToolContext? = nil
     ) {
         self.bridge = bridge
         self.workspace = workspace
@@ -2663,6 +3114,9 @@ struct AgentToolContext: Sendable {
         self.capabilities = capabilities
         self.browse = browse
         self.pageTools = pageTools
+        self.siteToolStateStore = siteToolStateStore ?? learnedSite?.stateStore
+        self.learningRunState = learningRunState
+        self.tabs = tabs
     }
 }
 
@@ -2671,9 +3125,12 @@ extension ToolRegistry {
     /// results to the workspace, plus one list per tool family. Each family
     /// lives in its own `ToolRegistry+<Family>.swift`.
     static func m3(context: AgentToolContext, surface: ToolSurface = .text) -> ToolRegistry {
+        let resolvedPageToolBridge = context.learnedSite?.pageToolBridge
+            ?? (context.pageTools?.bridge as? PageToolBridge)
         var tools = pageTools(
             bridge: context.bridge,
             workspace: context.workspace,
+            tabsContext: context.tabs,
             secrets: context.settings.redactedSecrets,
             supportsImageInput: context.settings.supportsImageInput
         )
@@ -2684,16 +3141,21 @@ extension ToolRegistry {
             currentUserPrompt: context.currentUserPrompt,
             pageBaseline: context.pageBaseline,
             pageBaselineImage: context.pageBaselineImage,
-            supportsImageInput: context.settings.supportsImageInput
+            supportsImageInput: context.settings.supportsImageInput,
+            pageToolBridge: resolvedPageToolBridge,
+            siteToolStateStore: context.siteToolStateStore,
+            learningRunState: context.learningRunState
         )
         tools += workspaceTools(context: context)
         tools += captureTools(context: context)
         tools += navigationTools(context: context)
+        tools += tabTools(context: context)
         tools += networkTools(context: context)
         tools += forumTools(context: context, surface: surface)
         tools += capabilityTools(context: context, surface: surface)
         tools += browseTools(context: context)
         tools += pageDispatcherTools(context: context)
+        tools = capPreSaveExploration(tools, context: context)
         var registry = ToolRegistry(
             tools: tools.filter { $0.surfaces.contains(surface) },
             truncationLimit: context.settings.truncationLimit,
@@ -2706,6 +3168,7 @@ extension ToolRegistry {
                 maxTopicReads: $0.maxTopicReads, openTopicID: $0.openTopicID, openTopicURL: $0.openTopicURL
             )
         }
+        registry.learningRunState = context.learningRunState
         registry.siteReadingPrompt = context.forum == nil ? (context.learnedSite?.promptState ?? .none) : .none
         if surface == .text, let pageTools = context.pageTools, pageTools.isEnabled {
             registry.pageTools = pageTools

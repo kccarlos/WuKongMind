@@ -406,9 +406,14 @@ extension AppModel {
                     }
                 }
                 guard let self, demoMode != "no-model", demoMode != "empty", demoMode != "run-limit" else { return }
-                let demoPrompt = demoMode == "saved-script"
-                    ? "Keep only the original poster's posts and hide the sidebar on every visit"
-                    : "Make this page dark and hide the sidebar"
+                let demoPrompt: String
+                if demoMode == "saved-script" {
+                    demoPrompt = "Keep only the original poster's posts and hide the sidebar on every visit"
+                } else if demoMode == "tabs-open" {
+                    demoPrompt = "Find the companion schedule and keep it open in a new tab"
+                } else {
+                    demoPrompt = "Make this page dark and hide the sidebar"
+                }
                 if demoMode == "voice" {
                     // Voice turns around a hand-off run (the voice bubble's screenshots).
                     self.browserAgent.appendVoiceTurn(.voiceUser, text: demoPrompt)

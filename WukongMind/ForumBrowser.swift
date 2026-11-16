@@ -1787,12 +1787,17 @@ final class BrowserTabsWebHostView: UIView {
             cancellables.removeAll()
             currentBrowserHomeCancellable = nil
             observedBrowser = nil
-            Publishers.CombineLatest3(tabs.$tabs, tabs.$currentTabID, tabs.$runningTabIDs)
-                .sink { [weak self] allTabs, currentID, runningIDs in
+            Publishers.CombineLatest4(
+                tabs.$tabs,
+                tabs.$currentTabID,
+                tabs.$runningTabIDs,
+                tabs.$agentAttachedTabIDs
+            )
+                .sink { [weak self] allTabs, currentID, runningIDs, attachedIDs in
                     self?.reconcileSubviews(
                         allTabs: allTabs,
                         currentTabID: currentID,
-                        runningTabIDs: runningIDs
+                        runningTabIDs: runningIDs.union(attachedIDs)
                     )
                 }
                 .store(in: &cancellables)
@@ -1814,7 +1819,7 @@ final class BrowserTabsWebHostView: UIView {
         reconcileSubviews(
             allTabs: tabs.tabs,
             currentTabID: tabs.currentTabID,
-            runningTabIDs: tabs.runningTabIDs
+            runningTabIDs: tabs.runningTabIDs.union(tabs.agentAttachedTabIDs)
         )
     }
 
