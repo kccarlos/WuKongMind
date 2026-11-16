@@ -238,11 +238,15 @@ final class SpeechFrameInjector: ObservableObject {
     @Published private(set) var isInjecting = false
     @Published private(set) var utterancesInjected = 0
 
-    private let synthesizer = AVSpeechSynthesizer()
-    private let voice: AVSpeechSynthesisVoice?
+    // Defer AVSpeechSynthesizer and speechVoices() XPC lookup until speak(_:sink:) is called
+    // so creating SpeechFrameInjector never stalls the main thread at launch.
+    private lazy var synthesizer = AVSpeechSynthesizer()
+    private lazy var voice: AVSpeechSynthesisVoice? = Self.pickPreferredVoice()
     private var streamTask: Task<Void, Never>?
 
-    init() {
+    init() {}
+
+    private static func pickPreferredVoice() -> AVSpeechSynthesisVoice? {
         let preferred = AVSpeechSynthesisVoice.speechVoices()
             .filter {
                 $0.language == "en-US"
@@ -251,7 +255,7 @@ final class SpeechFrameInjector: ObservableObject {
                     && !$0.identifier.contains(".speech.synthesis.voice.")
             }
             .max { $0.quality.rawValue < $1.quality.rawValue }
-        voice = preferred ?? AVSpeechSynthesisVoice(language: "en-US")
+        return preferred ?? AVSpeechSynthesisVoice(language: "en-US")
     }
 
     func speak(_ text: String, sink: @escaping @MainActor ([Int16]) -> Void) {
