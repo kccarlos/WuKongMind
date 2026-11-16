@@ -530,6 +530,27 @@ final class LearnedSiteRepairWebTests: XCTestCase {
         XCTAssertEqual(slot(h, .readTopic).status, .broken)
     }
 
+    /// A script that arrives with no state (synced) runs the full check on its header's test URLs before its first answer.
+    func testSyncedScriptWithNoStateGetsTheFullCheckBeforeItsFirstAnswer() async throws {
+        let h = try await makeHarness(), script = try await learn(h)
+        defer { h.controller.detach(); h.pageToolBridge.detach() }
+        let synced = try XCTUnwrap(h.scriptStore.script(id: script.id))
+        XCTAssertEqual(synced.metadata.testURLs.count, 3)
+        h.stateStore.forget(host: "127.0.0.1")
+        var state = SiteToolState(host: "127.0.0.1")
+        XCTAssertTrue(state.adoptSyncedReaders(from: h.scriptStore.scripts))
+        XCTAssertEqual(state.slot(.listLatest).testURLs, [h.forum])
+        XCTAssertEqual(state.slot(.readTopic).testURLs.count, 2)
+        XCTAssertNil(state.slot(.readTopic).lastCheck)
+        try h.stateStore.save(state)
+        let result = try await h.registry().dispatch(toolName: "read_topic", arguments: ["url": .string(h.u2)])
+        XCTAssertFalse(result.isError, result.output)
+        let checked = slot(h, .readTopic)
+        XCTAssertEqual(checked.scriptHash, SiteToolVerifier.scriptTextHash(for: synced))
+        XCTAssertNotNil(checked.lastCheck); XCTAssertFalse(checked.postStarts.isEmpty)
+        XCTAssertFalse(state.adoptSyncedReaders(from: h.scriptStore.scripts), "a slot that has a script is not adopted again")
+    }
+
     /// Acceptance check 5 as a replay: a broken reader is repaired inside the run that needed it, with no second script.
     func testRecordedRunRepairsABrokenReaderAndAnswers() async throws {
         let h = try await makeHarness(), script = try await learn(h)

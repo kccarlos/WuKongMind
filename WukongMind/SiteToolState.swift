@@ -174,6 +174,28 @@ struct SiteToolState: Codable, Equatable, Sendable {
         if log.count > Self.maxLogEntries { log.removeSubrange(Self.maxLogEntries...) }
     }
 
+    /// A script that arrives with no state here (synced from another device) and provides a slot is seeded
+    /// `learned` with an empty hash, so its first call runs the full check on the header's test URLs.
+    /// Returns whether the state changed. A script that is off is never adopted.
+    mutating func adoptSyncedReaders(from scripts: [UserScript]) -> Bool {
+        var changed = false
+        for script in scripts where script.isEnabled && script.matchesDomain(host) {
+            let thread = script.metadata.threadMatches.compactMap { try? MatchPattern.parse($0) }
+            let list = script.metadata.listMatches.compactMap { try? MatchPattern.parse($0) }
+            for slot in script.metadata.provides.compactMap(SiteToolSlot.init(rawValue:)) {
+                let current = self.slot(slot)
+                guard current.scriptID == nil, current.status == .untried else { continue }
+                let patterns = slot == .readTopic ? thread : list
+                let urls = script.metadata.testURLs.filter { raw in patterns.isEmpty || patterns.contains { $0.matches(urlString: raw) } }
+                setSlot(SiteSlotState(status: .learned, scriptID: script.id, scriptHash: "", testURLs: urls), for: slot)
+                if threadMatch.isEmpty { threadMatch = script.metadata.threadMatches }
+                if listMatch.isEmpty { listMatch = script.metadata.listMatches }
+                changed = true
+            }
+        }
+        return changed
+    }
+
     static func normalizedHost(_ rawHost: String) -> String? {
         var host = rawHost.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         if host.hasPrefix("["), host.hasSuffix("]") { host = String(host.dropFirst().dropLast()) }

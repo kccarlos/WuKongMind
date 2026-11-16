@@ -45,6 +45,8 @@ enum LearnedSiteRepair {
             s.verifiedAt = Date(); s.failure = nil
             if wasBroken { s.repairFailures = 0; state.appendLog(SiteLogEntry(kind: .repaired, slot: slot, date: Date(), taskID: taskID)) }
             if let v = report.slots[slot] {
+                if !v.testURLs.isEmpty { s.testURLs = v.testURLs }
+                s.postStarts = v.postStarts
                 s.lastCheck = SiteSlotCheck(date: Date(), url: v.primaryURL, result: v.summary, counts: v.counts, durationMs: v.durationMs)
             }
             state.setSlot(s, for: slot)
