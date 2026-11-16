@@ -526,7 +526,8 @@ final class AppModel: ObservableObject {
                                 await appBox?.value?.settings.agentConfirmBeforeWrites ?? false
                             }
                         )
-                    } : nil
+                    } : nil,
+                    siteToolStateStore: app.siteToolStateStore
                 ))
             },
             auditLog: auditLog,
@@ -3314,13 +3315,16 @@ final class AppModel: ObservableObject {
         let page = targetBrowser?.pageContext ?? pageContext
         let candidateURL = page.url ?? targetBrowser?.webView.url ?? browser.webView.url
         guard let url = candidateURL,
-              let host = SiteToolState.normalizedHost(from: url),
-              let state = siteToolStateStore.state(forHost: host) else { return nil }
+              let host = SiteToolState.normalizedHost(from: url) else { return nil }
+        let state = siteToolStateStore.state(forHost: host) ?? SiteToolState(host: host)
         let scope = LearnedRunScope(
             readBudget: { [weak self] in self?.settings.agentMaxTopicReads ?? AgentLimits.defaultMaxTopicReads },
             readLimit: settings.agentReadLimit
         )
-        return LearnedSiteContext(host: host, state: state, pageToolBridge: bridge, scriptStore: scriptStore, scope: scope)
+        return LearnedSiteContext(
+            host: host, state: state, pageToolBridge: bridge,
+            scriptStore: scriptStore, scope: scope, stateStore: siteToolStateStore
+        )
     }
 
     /// Reads a job's topic, cached pages reused. Every new page goes into

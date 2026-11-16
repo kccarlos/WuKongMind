@@ -277,7 +277,11 @@ extension ToolRegistry {
 
     static func pageDispatcherTools(context: AgentToolContext) -> [AgentTool] {
         guard let pageTools = context.pageTools, pageTools.isEnabled else { return [] }
-        return [makePageToolsListTool(pageTools: pageTools), makePageToolCallTool(context: context, pageTools: pageTools)]
+        return [
+            makePageToolsListTool(pageTools: pageTools),
+            makePageToolCallTool(context: context, pageTools: pageTools),
+            makeSiteLearningReportTool(context: context)
+        ]
     }
 
     private static func makePageToolsListTool(pageTools: PageToolContext) -> AgentTool {
@@ -373,6 +377,91 @@ extension ToolRegistry {
                     throw PageToolDispatchError(failure.message)
                 }
             }
+        )
+    }
+
+    private static func makeSiteLearningReportTool(context: AgentToolContext) -> AgentTool {
+        let defaultCall = ToolCallContext(
+            workspace: nil, taskID: nil, step: nil,
+            truncationLimit: ToolRegistry.defaultTruncationLimit, redactedSecrets: []
+        )
+        let definition = AgentToolDefinition(
+            name: "site_learning_report",
+            description: "Record why learning a slot stopped (`gave_up` or `not_applicable`) so later runs do not retry.",
+            parameters: [
+                ToolParameterSchema(name: "slot", type: .string, description: "Slot.", enumValues: SiteToolSlot.allCases.map(\.rawValue)),
+                ToolParameterSchema(name: "outcome", type: .string, description: "Outcome.", enumValues: ["gave_up", "not_applicable"]),
+                ToolParameterSchema(name: "reason", type: .string, description: "Reason.", minLength: 1)
+            ],
+            required: ["slot", "outcome", "reason"]
+        )
+        @Sendable func run(_ args: [String: JSONValue], _ callContext: ToolCallContext) async throws -> ToolExecutionOutput {
+            guard context.forum == nil else {
+                return ToolExecutionOutput(content: "Error: This site already has a built-in forum adapter.", summary: "Built-in forum", isError: true)
+            }
+            guard let rawSlot = args["slot"]?.stringValue, let slot = SiteToolSlot(rawValue: rawSlot),
+                  let outcome = args["outcome"]?.stringValue else {
+                throw ToolValidationError("Invalid arguments for 'site_learning_report'.")
+            }
+            let reason = (args["reason"]?.stringValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !reason.isEmpty else {
+                throw ToolValidationError("Invalid arguments for 'site_learning_report': 'reason' must not be empty.")
+            }
+            let pageURL = await context.bridge.currentPageMetadata().url
+            let resolvedHost = URL(string: pageURL).flatMap(SiteToolState.normalizedHost(from:)) ?? context.learnedSite?.host
+            guard let host = resolvedHost else {
+                return ToolExecutionOutput(content: "Error: Open an http or https page of the site first.", summary: "No site open", isError: true)
+            }
+            guard let stateStore = context.siteToolStateStore else {
+                return ToolExecutionOutput(content: "Error: Site state store is unavailable.", summary: "Unavailable", isError: true)
+            }
+            let scriptsByID = await MainActor.run {
+                Dictionary(uniqueKeysWithValues: context.scriptStore.scripts.map { ($0.id, $0) })
+            }
+            if let existing = stateStore.state(forHost: host) {
+                let s = existing.slot(slot)
+                if SiteToolState.isTurnedOffByPerson(s, scriptsByID: scriptsByID) {
+                    return ToolExecutionOutput(content: "Error: The reading tool for this site is turned off in This page.", summary: "Turned off", isError: true)
+                }
+                if s.status == .learned, let id = s.scriptID, scriptsByID[id] != nil {
+                    return ToolExecutionOutput(content: "Error: `\(slot.rawValue)` is already learned here.", summary: "Already learned", isError: true)
+                }
+            }
+            let now = Date()
+            let nextStatus: SiteSlotStatus = outcome == "not_applicable" ? .notApplicable : .failed
+            try stateStore.update(host: host) { state in
+                var slotState = state.slot(slot)
+                if let id = slotState.scriptID, scriptsByID[id] == nil { slotState.scriptID = nil }
+                slotState.status = nextStatus
+                slotState.failure = SiteSlotFailure(code: .gaveUp, date: now, agentReason: reason)
+                state.setSlot(slotState, for: slot)
+                state.appendLog(SiteLogEntry(kind: .failed, slot: slot, date: now, taskID: callContext.taskID))
+            }
+            let payload: [String: JSONValue] = [
+                "host": .string(host), "slot": .string(slot.rawValue),
+                "outcome": .string(outcome), "status": .string(nextStatus.rawValue)
+            ]
+            return ToolExecutionOutput(
+                content: JSONValue.encodeCompactJSON(payload),
+                summary: "\(slot.rawValue): \(outcome)",
+                isError: false
+            )
+        }
+        return AgentTool(
+            definition: definition,
+            customValidate: { args in
+                let r = (args["reason"]?.stringValue ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                if r.isEmpty {
+                    throw ToolValidationError("Invalid arguments for 'site_learning_report': 'reason' must not be empty.")
+                }
+            },
+            summarizeArguments: { args in
+                let slot = args["slot"]?.stringValue ?? ""
+                let out = args["outcome"]?.stringValue ?? ""
+                return out.isEmpty ? slot : "\(slot) · \(out)"
+            },
+            execute: { args in try await run(args, defaultCall) },
+            executeWithContext: { args, callContext in try await run(args, callContext) }
         )
     }
 }

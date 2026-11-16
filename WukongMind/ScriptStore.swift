@@ -245,6 +245,10 @@ struct ScriptUpdatePatch: Equatable, Sendable {
     var isEnabled: Bool?
     var grants: [String]?
     var connectHosts: [String]?
+    var provides: [String]?
+    var threadMatches: [String]?
+    var listMatches: [String]?
+    var testURLs: [String]?
 
     init(
         name: String? = nil,
@@ -255,7 +259,11 @@ struct ScriptUpdatePatch: Equatable, Sendable {
         environment: AgentExecutionEnvironment? = nil,
         isEnabled: Bool? = nil,
         grants: [String]? = nil,
-        connectHosts: [String]? = nil
+        connectHosts: [String]? = nil,
+        provides: [String]? = nil,
+        threadMatches: [String]? = nil,
+        listMatches: [String]? = nil,
+        testURLs: [String]? = nil
     ) {
         self.name = name
         self.matchRules = matchRules
@@ -266,18 +274,14 @@ struct ScriptUpdatePatch: Equatable, Sendable {
         self.isEnabled = isEnabled
         self.grants = grants
         self.connectHosts = connectHosts
+        self.provides = provides
+        self.threadMatches = threadMatches
+        self.listMatches = listMatches
+        self.testURLs = testURLs
     }
 
     var hasChanges: Bool {
-        name != nil
-            || matchRules != nil
-            || js != nil
-            || css != nil
-            || injectionTime != nil
-            || environment != nil
-            || isEnabled != nil
-            || grants != nil
-            || connectHosts != nil
+        isEnabled != nil || touchesVersionedFields
     }
 
     var touchesVersionedFields: Bool {
@@ -289,6 +293,10 @@ struct ScriptUpdatePatch: Equatable, Sendable {
             || environment != nil
             || grants != nil
             || connectHosts != nil
+            || provides != nil
+            || threadMatches != nil
+            || listMatches != nil
+            || testURLs != nil
     }
 }
 
@@ -882,6 +890,11 @@ struct ScriptMetadata: Codable, Equatable, Sendable {
 
     static let grantKey = "@grant"
     static let connectKey = "@connect"
+    static let providesKey = "@wukong-provides"
+    static let threadMatchKey = "@wukong-thread-match"
+    static let listMatchKey = "@wukong-list-match"
+    static let testURLKey = "@wukong-test-url"
+    static let supportedProvidedSlots: [String] = ["read_topic", "list_latest", "search_forum"]
 
     /// The grant names the app implements (`GM_*` and their `GM.` spellings).
     static let supportedGrants: [String] = [
@@ -939,6 +952,30 @@ struct ScriptMetadata: Codable, Equatable, Sendable {
     mutating func setGrants(_ grants: [String]) { setValues(grants, for: Self.grantKey) }
 
     mutating func setConnectHosts(_ hosts: [String]) { setValues(hosts, for: Self.connectKey) }
+
+    var provides: [String] {
+        var result: [String] = []
+        for raw in nonEmptyValues(for: Self.providesKey) {
+            for token in raw.split(whereSeparator: { $0.isWhitespace || $0 == "," }).map(String.init) where !token.isEmpty && !result.contains(token) {
+                result.append(token)
+            }
+        }
+        return result
+    }
+
+    var threadMatches: [String] { nonEmptyValues(for: Self.threadMatchKey) }
+    var listMatches: [String] { nonEmptyValues(for: Self.listMatchKey) }
+    var testURLs: [String] { nonEmptyValues(for: Self.testURLKey) }
+
+    mutating func setProvides(_ slots: [String]) { setValues(slots, for: Self.providesKey) }
+    mutating func setThreadMatches(_ patterns: [String]) { setValues(patterns, for: Self.threadMatchKey) }
+    mutating func setListMatches(_ patterns: [String]) { setValues(patterns, for: Self.listMatchKey) }
+    mutating func setTestURLs(_ urls: [String]) { setValues(urls, for: Self.testURLKey) }
+
+    static func validatedProvidedSlot(_ raw: String) -> String? {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return supportedProvidedSlots.contains(trimmed) ? trimmed : nil
+    }
 
     // MARK: Validation for values the Agent declares
 
@@ -1495,6 +1532,11 @@ struct UserScript: Identifiable, Codable, Equatable, Sendable {
                             url: url, sha256: String(parts[0]).lowercased(), sizeBytes: size
                         ))
                     }
+                }
+            case "@wukong-provides", "@wukong-thread-match", "@wukong-list-match", "@wukong-test-url":
+                let cleaned = value.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !cleaned.isEmpty {
+                    keptLines.append(.init(key: key, value: cleaned))
                 }
             default:
                 keptLines.append(.init(key: writtenKey, value: rawValue))
@@ -2118,6 +2160,10 @@ final class ScriptStore {
         source: ScriptSource = .imported,
         grants: [String] = [],
         connectHosts: [String] = [],
+        provides: [String] = [],
+        threadMatches: [String] = [],
+        listMatches: [String] = [],
+        testURLs: [String] = [],
         now: Date = Date()
     ) throws -> UserScript {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -2130,6 +2176,10 @@ final class ScriptStore {
         var metadata = ScriptMetadata()
         metadata.setGrants(grants)
         metadata.setConnectHosts(connectHosts)
+        metadata.setProvides(provides)
+        metadata.setThreadMatches(threadMatches)
+        metadata.setListMatches(listMatches)
+        metadata.setTestURLs(testURLs)
 
         let existingIDs = Set(scripts.map(\.id))
         let resolvedID: String
@@ -2248,6 +2298,10 @@ final class ScriptStore {
         source: ScriptSource = .imported,
         grants: [String] = [],
         connectHosts: [String] = [],
+        provides: [String] = [],
+        threadMatches: [String] = [],
+        listMatches: [String] = [],
+        testURLs: [String] = [],
         now: Date = Date()
     ) throws -> UserScript {
         let created = try makeCandidateForCreate(
@@ -2262,6 +2316,10 @@ final class ScriptStore {
             source: source,
             grants: grants,
             connectHosts: connectHosts,
+            provides: provides,
+            threadMatches: threadMatches,
+            listMatches: listMatches,
+            testURLs: testURLs,
             now: now
         )
         return try commitCreated(created)
@@ -2338,6 +2396,10 @@ final class ScriptStore {
         var nextMetadata = existing.metadata
         if let grants = patch.grants { nextMetadata.setGrants(grants) }
         if let hosts = patch.connectHosts { nextMetadata.setConnectHosts(hosts) }
+        if let provides = patch.provides { nextMetadata.setProvides(provides) }
+        if let threadMatches = patch.threadMatches { nextMetadata.setThreadMatches(threadMatches) }
+        if let listMatches = patch.listMatches { nextMetadata.setListMatches(listMatches) }
+        if let testURLs = patch.testURLs { nextMetadata.setTestURLs(testURLs) }
         if nextMetadata.installURL != nil { nextMetadata.locallyChanged = true }
 
         let archivedSnapshot = existing.snapshotVersion()
