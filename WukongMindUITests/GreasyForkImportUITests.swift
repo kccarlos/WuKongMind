@@ -64,13 +64,12 @@ final class GreasyForkImportUITests: DCUITestCase {
             capture("gf\(index + 1)-\(script.slug)-after")
             if script.slug == "github" {
                 // The script adds fast download links to the "Code" menu of a repository page.
-                let codeButtons = after.buttons.matching(NSPredicate(format: "label == 'Code'"))
-                _ = codeButtons.firstMatch.waitForExistence(timeout: 10)
-                if let code = codeButtons.allElementsBoundByIndex.last {
-                    code.tap()
-                    RunLoop.current.run(until: Date().addingTimeInterval(4))
-                    capture("gf\(index + 1)-\(script.slug)-after-code-menu")
-                }
+                after.coordinate(withNormalizedOffset: CGVector(dx: 0.72, dy: 0.795)).tap()
+                RunLoop.current.run(until: Date().addingTimeInterval(4))
+                capture("gf\(index + 1)-\(script.slug)-after-code-menu")
+                after.swipeUp()
+                RunLoop.current.run(until: Date().addingTimeInterval(2))
+                capture("gf\(index + 1)-\(script.slug)-after-code-menu-scrolled")
             }
             after.terminate()
         }

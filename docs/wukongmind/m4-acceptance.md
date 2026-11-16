@@ -5,7 +5,7 @@ Run on 2026-11-15 for WUKO-98 against the twelve checks in [design-m4.md "Accept
 **Two things the owner must know before tagging:**
 
 - **Script sync ships switched off and was not tested on two devices.** It is built and unit-tested on the engine's test transport (check 10), behind the existing CloudKit flag. CloudKit stays off until the owner registers the iCloud container; the two-device check runs then ([open question 4](design-m4.md#open-questions)).
-- **Check 6 ran against two real Greasy Fork scripts, with one caveat.** `GreasyForkImportUITests` opens greasyfork.org in the app's own browser, taps **Install this script**, reviews the sheet and taps **Add and turn on**. *Dark Mode* (XIU2, id 426377, applies to all sites) visibly tints `example.com`. *Github Enhancement - High Speed Download* (XIU2) imports, turns on and runs on `github.com` (the Agent button's script count goes from 1 to 2), but its effect sits in the repository's Code menu and was not captured, so its visible effect is not shown. `@require` was proven on fixtures only.
+- **Check 6 ran against two real Greasy Fork scripts and both show their effect.** `GreasyForkImportUITests` opens greasyfork.org in the app's own browser, taps **Install this script**, reviews the sheet and taps **Add and turn on**. *Dark Mode* (XIU2, id 426377, applies to all sites) visibly tints `example.com`. *Github Enhancement - High Speed Download* (XIU2) imports, turns on and runs on `github.com`: its Code menu gains mirror clone links and extra *Download ZIP* links (screenshots in the proof). `@require` was proven on fixtures only.
 
 **Environments:** simulator = iPhone 18 Pro on the Mac mini via `scripts/remote-test.sh`; phone = the owner's iPhone via `scripts/device-check.sh` only.
 
@@ -20,7 +20,7 @@ Run on 2026-11-15 for WUKO-98 against the twelve checks in [design-m4.md "Accept
 | 3 | Core four under each CSP | **Pass (tests).** `GMBridgeTests.testDocumentStartSyncReadAcrossAllSevenM0CSPVariantsAnd256KBCeiling`, `testValueLifecycleSizeLimitsAndDeleteUndoRestore`. | |
 | 4 | Requests are fenced | **Pass (tests).** `GMRequestTests.testConnectFencingInitialAndRedirectHopsAndDefaultSelf`, `testWildcardConnectRefusesLocalhostAndAllPrivateAddressesOnEveryHopUnlessNamed`, `testSameSiteCookiesCrossSiteDropSetCookieStripAndConfirmBeforeWrites`, `testWKWebViewGMXmlhttpRequestCallbacksAbortUnsupportedOptionsAndAuditLog`. | |
 | 5 | Powers can't be borrowed | **Pass (tests, real `WKWebView`).** `GMBridgeTests.testCrossWorldIsolationPreventsHandlerValueAndErrorSpoofing`. | |
-| 6 | Import | **Pass for import and one visible effect; second script's effect not captured.** Real scripts: see above. Fixture scripts, including `@require` and `@grant GM_*` values: `ScriptImportTests.testImportWithRequireAndGMValuesNeverRunsBeforeConfirmThenRunsInOwnWorld`, `ScriptImportUITests.testImportFromLinkMenuAndReviewConfirmFlows` (pasted link and link tap, nothing runs before **Add and turn on**), `ScriptStoreCoreTests.testPublishedHeaderExportsWithEveryHeaderLine`.  | screenshots |
+| 6 | Import | **Pass for import and a visible effect of both scripts.** Real scripts: see above. Fixture scripts, including `@require` and `@grant GM_*` values: `ScriptImportTests.testImportWithRequireAndGMValuesNeverRunsBeforeConfirmThenRunsInOwnWorld`, `ScriptImportUITests.testImportFromLinkMenuAndReviewConfirmFlows` (pasted link and link tap, nothing runs before **Add and turn on**), `ScriptStoreCoreTests.testPublishedHeaderExportsWithEveryHeaderLine`.  | screenshots |
 | 7 | Update | **Pass (tests).** `ScriptImportTests.testUpdateCheckDiffConfirmHistoryRollbackAndDuplicateNameIsolation`, `testUpdateChecksUseOnlyHTTPSUpdateLinks`; sheet screenshots in light and dark. | screenshots |
 | 8 | Repair | **Pass.** Recorded: `ScriptRepairTests.testBrokenScriptAutoDisablesRepairsViaRecordedReplayUndoesAndStopsAfterThreeFailedFixes`. Live: `testLiveHaikuScriptRepair` with `claude-haiku-5-5` passed on the simulator. | |
 | 9 | Late error is seen | **Pass (tests).** `ScriptRepairTests.testLateErrorsInScriptWorldCaptureHandlersTimersObserversRejectionsAndIsolatePageNoise`. | |
@@ -39,6 +39,6 @@ Run on 2026-11-15 for WUKO-98 against the twelve checks in [design-m4.md "Accept
 
 ## Not proven
 
-- A visible effect for the second Greasy Fork script (check 6), and a real Greasy Fork script with `@require`.
+- A real Greasy Fork script with `@require` (check 6; only fixtures cover it).
 - Script sync on two real devices (check 10); CloudKit is off.
 - Vertex Gemini on the iPhone.
