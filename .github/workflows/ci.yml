@@ -177,6 +177,10 @@ jobs:
           }
           # Retry the whole step once, only when the runner never launched or hung.
           run_ui || { { [ -f ui.stalled ] || grep -q "Lost pending connection to the test runner" ui.log; } && rm -rf TestResults.xcresult && run_ui; }
+      - name: Raw xcodebuild tail
+        # The beautifier hides why xcodebuild exited early; show the raw end.
+        if: failure()
+        run: tail -n 60 ui.log || true
       - name: Flaky tests (passed on retry)
         # Never fails the job: a missing or unreadable result only gets a note.
         if: always()
