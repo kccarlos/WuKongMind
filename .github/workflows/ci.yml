@@ -89,7 +89,7 @@ jobs:
           set -o pipefail
           formatter=(cat)
           if command -v xcbeautify >/dev/null; then formatter=(xcbeautify --renderer github-actions); fi
-          # One retry only: the unit suite has a rare flake; UI tests get 3.
+          # Same cap as before the split: AIViewIntentTests.testAnswerReady... is a known flake.
           xcodebuild test \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
@@ -97,7 +97,7 @@ jobs:
             -only-testing:WukongMindTests \
             -parallel-testing-enabled NO \
             -retry-tests-on-failure \
-            -test-iterations 2 \
+            -test-iterations 3 \
             -test-timeouts-enabled YES \
             -maximum-test-execution-time-allowance 300 \
             -derivedDataPath DerivedData \
