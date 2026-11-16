@@ -65,7 +65,8 @@ jobs:
 
   # Build once; the unit and UI jobs below reuse the products on two runners.
   # Measured on run 43820992301 (30m of test work): build 4.6m, unit tests
-  # 12.4m (one retry), UI tests 11.8m. Timeouts are measured time + ~50%.
+  # 12.4m (one retry), UI tests 11.8m. Timeouts are measured time + ~50%;
+  # shared runners vary a lot (one unit run took 31m), so unit gets 45m.
   build-for-testing:
     name: Build for testing
     runs-on: ${{ vars.CI_MACOS_RUNNER || 'xcode-27' }}
@@ -108,7 +109,7 @@ jobs:
     name: Build & unit tests
     needs: build-for-testing
     runs-on: ${{ vars.CI_MACOS_RUNNER || 'xcode-27' }}
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
       - name: Select Xcode
@@ -118,6 +119,10 @@ jobs:
         env:
           SIM_PREFER: iPhone 17 Pro,iPhone 18 Pro,iPhone 17,iPhone Air
         run: scripts/ci/pick-simulator.sh
+      - name: Boot simulator
+        # The old single job ran UI tests on a simulator the unit tests had
+        # warmed up; a cold first launch made the 15s page-seal wait flaky.
+        run: xcrun simctl bootstatus "${{ steps.sim.outputs.udid }}" -b
       - uses: actions/download-artifact@v7
         with:
           name: test-products-${{ github.run_id }}-${{ github.run_attempt }}
@@ -172,6 +177,10 @@ jobs:
         env:
           SIM_PREFER: iPhone 17 Pro,iPhone 18 Pro,iPhone 17,iPhone Air
         run: scripts/ci/pick-simulator.sh
+      - name: Boot simulator
+        # The old single job ran UI tests on a simulator the unit tests had
+        # warmed up; a cold first launch made the 15s page-seal wait flaky.
+        run: xcrun simctl bootstatus "${{ steps.sim.outputs.udid }}" -b
       - uses: actions/download-artifact@v7
         with:
           name: test-products-${{ github.run_id }}-${{ github.run_attempt }}
