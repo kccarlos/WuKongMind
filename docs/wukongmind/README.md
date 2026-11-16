@@ -44,7 +44,7 @@ Marketing versions follow milestones on the `1.x` line (see [section 7 of next-p
 | One loop | `1.3.0` | Acceptance run, version bumped ([one-loop-acceptance.md](one-loop-acceptance.md)); `v1.3.0` waits for the owner's approval. One Agent loop; adapters and capabilities become Agent tools; voice shares tools |
 | 1.3.1 | `1.3.1` | Feedback fixes for 1.3.0 (A: Agent context and prompt caching, B: New conversation and scroll-to-bottom, C: Share and site row, D: x.com in the app). Acceptance run, version bumped ([release-1.3.1.md](release-1.3.1.md)); the Assistant tags `v1.3.1` after acceptance |
 | 1.3.2 | `1.3.2` | Voice anywhere ([voice-review.md](voice-review.md): voice tools on every page, `open_page`, `open_link`, listen and summarize on any page, forum guardrails and live hand-off refusal/cancel). Acceptance run on simulator and the owner's iPhone 13, version bumped ([voice-anywhere-acceptance.md](voice-anywhere-acceptance.md)); the Assistant tags `v1.3.2` after acceptance |
-| M4 | `1.4.0` | Self-extension, Tampermonkey compatibility and `GM_ai` |
+| M4 | `1.4.0` | Self-extension, Tampermonkey compatibility and `GM_ai`. Acceptance run, version bumped ([m4-acceptance.md](m4-acceptance.md)); script sync ships switched off and was not tested on two devices; the Assistant tags `v1.4.0` after the owner approves |
 | Trial | No release | Two-week daily-use trial (`docs/wukongmind/trial-notes.md` and task exports) |
 | Learn on ask | `1.5.0` | Learn page tools (WebMCP shape) automatically when asked, plus site inspector |
 
