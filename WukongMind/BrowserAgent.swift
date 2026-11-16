@@ -1078,7 +1078,17 @@ final class BrowserAgentSession {
     private(set) var messages: [BrowserAgentMessage] = []
     private(set) var runs: [BrowserAgentRun] = []
     private(set) var toolCalls: [BrowserAgentToolCallRow] = []
-    private(set) var runState: BrowserAgentRunState = .idle
+    private(set) var runState: BrowserAgentRunState = .idle {
+        didSet {
+            guard oldValue.isRunning else { return }
+            switch runState {
+            case .completed, .stepLimitReached, .failed:
+                onRunFinished?()
+            case .idle, .running, .stopped:
+                break
+            }
+        }
+    }
     private(set) var currentStep = 0
     private(set) var maxSteps = BrowserAgentLimits.defaultMaxSteps
     private(set) var tokenUsage: AgentTokenUsage = .zero
@@ -1108,6 +1118,8 @@ final class BrowserAgentSession {
     /// Called once at the end of a turn that completed with a final answer; a
     /// failed, stopped or step-limited turn, or empty text, never calls it.
     @ObservationIgnored var onAnswer: (@MainActor (BrowserAgentAnswer) -> Void)?
+    /// Called whenever a run transitions out of `.running` on its own (`.completed`, `.stepLimitReached`, `.failed`).
+    @ObservationIgnored var onRunFinished: (@MainActor () -> Void)?
     /// The task ID of the latest run (the run's UUID string).
     private(set) var currentTaskID: String?
     private(set) var lastUserPrompt: String?

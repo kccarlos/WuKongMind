@@ -24,6 +24,8 @@ struct AgentConfirmation: Identifiable, Equatable, Sendable {
 final class AgentConfirmationGate {
     private(set) var pending: [AgentConfirmation] = []
     @ObservationIgnored private var continuations: [UUID: CheckedContinuation<Bool, Error>] = [:]
+    /// Called when a confirmation card is queued so chrome can reveal the waiting state.
+    @ObservationIgnored var onAsk: ((AgentConfirmation) -> Void)?
     /// Called with the question and the answer ("allowed", "declined" or "stopped").
     @ObservationIgnored var onAnswer: ((_ tool: String, _ question: String, _ answer: String) -> Void)?
 
@@ -40,6 +42,7 @@ final class AgentConfirmationGate {
                 }
                 pending.append(item)
                 continuations[item.id] = continuation
+                onAsk?(item)
             }
         } onCancel: {
             Task { @MainActor in self.finish(item.id, result: .failure(CancellationError())) }

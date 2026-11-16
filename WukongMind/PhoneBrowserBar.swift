@@ -1,247 +1,396 @@
 import SwiftUI
 import WebKit
 
-// MARK: - iPhone browser bar
+// MARK: - Browser bar (iPhone morphing glass capsule + iPad split top bar)
 //
-// The page in a NavigationStack (no navigation bar) with one bar of three
-// items: the forum avatar (the forum menu), the title capsule (tap to edit the
-// address, long press for history; the not-a-forum icon, the solved hint and
-// the ad shield sit inside it) and the AI button (the drawer; long press
-// starts voice). On Home the capsule is "Search or enter a forum address" and
-// the AI button gives way to the mic (only when voice is available); pages
-// pushed over Home (`AppModel.homePath`) go on this stack. At the bottom it
-// is the system toolbar; at the top (the
-// user's choice) the same items in a bar above the page. While the address
-// is edited the field rides on the keyboard instead. In the iPad split layout
-// the same bar sits at the top over the page and the AI panel, with three
-// groups (`SplitBarContext`).
+// On iPhone (`split == nil`), the page sits in a NavigationStack (no navigation
+// bar) with one floating glass capsule driven continuously by scroll progress
+// `p ∈ [0, 1]` (`BrowserBarMorph.swift`):
+// - Expanded (`p = 0`): Back, Forum/page menu, address field (domain, tap to
+//   edit, long press for history), and the Agent ring (tabs slot stays empty
+//   until T3). On Home, the address field gives way to Home's own field and the
+//   bar stays expanded (`p = 0`).
+// - Collapsed (`p = 1`): centred pill (`120…240 × 34 pt`, `44 pt` hit target)
+//   with lock (or 16 pt turning Agent ring + scripts seal while Agent works)
+//   and domain; tapping springs back to `p = 0`.
+// - While editing the address, `addressRow` rides on the keyboard. While a page
+//   form field raises the keyboard, `p` freezes and the bottom bar hides under
+//   the keyboard (top bar stays in place, frozen).
+// In the iPad split layout (`split != nil`), the top bar stays above the page
+// and panel until B3 adds split-bar collapse.
 
 struct PhoneBrowser<Page: View>: View {
     @ObservedObject var app: AppModel
     @ObservedObject var browser: ForumBrowserModel
     /// The voice Dock replaces the bottom bar while a session shows.
     @ObservedObject var voice: VoiceController
+    @ObservedObject private var router: PresentationRouter
     /// Resolved: `.top` or `.bottom`.
     let position: BrowserBarPosition
     let actions: BrowserActions
     /// Bumped by ⌘L to start editing the address.
     var addressFocusRequest = 0
-    /// The window width: toolbar items get their ideal width, so the
-    /// capsule is given the room the avatar and the AI button leave.
+    /// The window width.
     var width: CGFloat = 0
     /// iPad split layout: the top bar's three groups, with the AI panel's
-    /// toggle. nil: the iPhone bar.
+    /// toggle. nil: the iPhone morphing bar.
     var split: SplitBarContext?
-    @ViewBuilder let page: () -> Page
+    @ViewBuilder let page: (CGFloat) -> Page
 
-    @State private var isEditingAddress = false
-    @State private var addressDraft = ""
-    @State private var addressError: AddressError?
-    @FocusState private var addressFocused: Bool
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var colorSchemeContrast
 
-    /// The toolbar's own side margins and the glass container's padding.
-    static var toolbarMargins: CGFloat { 56 }
-
-    /// Scrolling down the page swaps the bar for a thin strip (today's
-    /// behaviour). The system's own toolbar minimization (iOS 27,
-    /// `toolbarMinimizationBehavior`) doesn't follow WKWebView's scroll view,
-    /// so it isn't used.
-    private var showsStrip: Bool {
-        !isEditingAddress && browser.isChromeMinimized && !browser.showsForumsHome && split == nil
+    init(
+        app: AppModel,
+        browser: ForumBrowserModel,
+        voice: VoiceController,
+        position: BrowserBarPosition,
+        actions: BrowserActions,
+        addressFocusRequest: Int = 0,
+        width: CGFloat = 0,
+        split: SplitBarContext? = nil,
+        @ViewBuilder page: @escaping (CGFloat) -> Page
+    ) {
+        self.app = app
+        self.browser = browser
+        self.voice = voice
+        self.router = app.router
+        self.position = position
+        self.actions = actions
+        self.addressFocusRequest = addressFocusRequest
+        self.width = width
+        self.split = split
+        self.page = page
     }
 
-    private var showsToolbar: Bool {
-        position == .bottom && !isEditingAddress && !showsStrip && !voice.showsBar
+    private var usesMorphingPhoneBar: Bool {
+        split == nil
+    }
+
+    private var isLandscape: Bool {
+        verticalSizeClass == .compact
+    }
+
+    /// States where the bar must stay expanded (`p = 0`).
+    /// Note: iPad split (`!usesMorphingPhoneBar`) is intentionally NOT locked here so
+    /// `isChromeMinimized` still shrinks `ResultCardsOverlay` to a chip on scroll while
+    /// `managesWebViewInsets == false` keeps `scrollView.contentInset` at `.zero`.
+    private var isBarLockedExpanded: Bool {
+        browser.showsForumsHome
+            || voice.showsBar
+            || dynamicTypeSize.isAccessibilitySize
+    }
+
+    private static func normalSceneWindow() -> UIWindow? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        if let window = scenes
+            .flatMap(\.windows)
+            .first(where: { !$0.isHidden && $0.windowLevel == .normal }) {
+            return window
+        }
+        return scenes.first?.windows.first(where: { $0.windowLevel == .normal })
+    }
+
+    /// Hardware/container bottom safe area excluding software keyboards so focusing a page
+    /// form field or address bar never inflates `expandedBottomInset`.
+    private var resolvedSafeAreaBottom: CGFloat {
+        Self.normalSceneWindow()?.safeAreaInsets.bottom ?? 0
+    }
+
+    private var resolvedContainerWidth: CGFloat {
+        if width > 0 { return width }
+        return Self.normalSceneWindow()?.bounds.width ?? 390
+    }
+
+    /// Whether the floating morphing bar reserves clearance below `DockLayer`.
+    private var showsMorphingBar: Bool {
+        guard usesMorphingPhoneBar, app.homePath.isEmpty, !browser.isEditingAddress else {
+            return false
+        }
+        if position == .bottom {
+            if voice.showsBar || browser.isPageFormInputFocused {
+                return false
+            }
+            if browser.isSystemKeyboardVisible && !app.isAIViewShown && app.rootPresentation == nil {
+                return false
+            }
+        }
+        return true
     }
 
     var body: some View {
+        let _ = router.splitPanelMode
+        let safeAreaBottom = resolvedSafeAreaBottom
+        let containerWidth = resolvedContainerWidth
+        let dockClearance = bottomDockClearance(safeAreaBottom: safeAreaBottom)
+
         NavigationStack(path: $app.homePath) {
-            page()
+            page(dockClearance)
                 .toolbar(.hidden, for: .navigationBar)
                 .modifier(HomeDestinations(app: app, onOpenDigestLink: actions.openDigestLink))
-                .toolbar {
-                    // One item: the bar is one glass container (avatar,
-                    // capsule, AI button); its width is set, since toolbar
-                    // items otherwise get their ideal width and overflow.
-                    ToolbarItem(placement: .bottomBar) {
-                        if showsToolbar {
-                            HStack(spacing: 2) { items }
-                                .frame(width: width > 0 ? max(200, width - Self.toolbarMargins) : nil)
-                        }
-                    }
-                }
-                .toolbar(showsToolbar ? .visible : .hidden, for: .bottomBar)
                 .safeAreaInset(edge: .top, spacing: 0) {
-                    if position == .top { topBar }
-                }
-                .safeAreaInset(edge: .bottom, spacing: 0) {
-                    if position == .bottom {
-                        if isEditingAddress {
-                            addressRow
-                                .background(.bar)
-                        } else if showsStrip {
-                            strip
-                                .background(.bar)
-                        }
+                    if !usesMorphingPhoneBar, position == .top {
+                        SplitTopBarHost(
+                            app: app,
+                            browser: browser,
+                            router: router,
+                            actions: actions,
+                            split: split,
+                            width: containerWidth,
+                            addressFocusRequest: addressFocusRequest
+                        )
                     }
                 }
         }
-        .onAppear { app.barShowsTopicFacts = true }
-        .onChange(of: addressFocused) {
-            if !addressFocused {
-                isEditingAddress = false
-            }
-        }
-        .onChange(of: addressFocusRequest) {
-            browser.expandChrome()
-            beginEditingAddress()
-        }
-        .alert(
-            addressError?.title ?? "",
-            isPresented: Binding(
-                get: { addressError != nil },
-                set: { if !$0 { addressError = nil } }
-            ),
-            presenting: addressError
-        ) { _ in
-            Button("OK", role: .cancel) {}
-        } message: { error in
-            Text(error.message)
-        }
-    }
-
-    // MARK: Bars
-
-    /// The Agent ring after the address capsule.
-    private var trailingItemCount: CGFloat { 1 }
-
-    @ViewBuilder
-    private var items: some View {
-        if let split {
-            splitItems(split)
-        } else {
-            phoneItems
-        }
-    }
-
-    /// Forum avatar, back, forward | address capsule | mic, ···, AI panel. Home
-    /// has its own address field, so the bar hides its capsule while it shows.
-    @ViewBuilder
-    private func splitItems(_ split: SplitBarContext) -> some View {
-        let controls = 5 + (app.showsVoiceButton ? 1 : 0)
-        ForumMenuButton(app: app, browser: browser, actions: actions)
-        SplitNavigationButtons(browser: browser)
-        if browser.showsForumsHome {
-            Spacer(minLength: 0)
-        } else {
-            PhoneTitleCapsule(
-                app: app,
-                browser: browser,
-                filled: true,
-                width: max(0, width - 2 * DCTheme.spacingM - CGFloat(controls) * (DCTheme.controlHeight + DCTheme.spacingS)),
-                onEdit: beginEditingAddress
-            )
-        }
-        if app.showsVoiceButton {
-            VoiceBarButton(voice: app.voice)
-        }
-        SplitMoreMenu(app: app, browser: browser, actions: actions)
-        SplitPanelToggle(app: app, isShown: split.panelShown, action: split.togglePanel)
-    }
-
-    /// Forum menu | address capsule | Agent ring. On Home the capsule gives way
-    /// to Home's own address field: the menu, the mic (when voice is set up)
-    /// and, with a page loaded under Home, the Agent ring.
-    @ViewBuilder
-    private var phoneItems: some View {
-        ForumMenuButton(app: app, browser: browser, actions: actions)
-        if browser.showsForumsHome {
-            Spacer(minLength: 0)
-            if app.showsVoiceButton {
-                VoiceBarButton(voice: app.voice)
-            }
-            if browser.currentURL != nil {
-                PhoneAIButton(
+        .background {
+            if usesMorphingPhoneBar {
+                PhoneBarObserverHost(
                     app: app,
-                    voice: app.voice,
-                    router: app.router,
-                    podcast: app.podcast,
-                    isAvailable: app.isDrawerAvailable,
-                    onOpen: {
-                        // The page comes forward, then the panel opens over it.
-                        browser.hideForumsHome()
-                        actions.openAssistant()
-                    }
+                    browser: browser,
+                    voice: voice,
+                    addressFocusRequest: addressFocusRequest,
+                    safeAreaBottom: safeAreaBottom,
+                    isLandscape: isLandscape,
+                    reduceMotion: reduceMotion
                 )
             }
-        } else {
-            PhoneTitleCapsule(
-                app: app,
-                browser: browser,
-                filled: position == .top || !PhoneBarStyle.usesGlass,
-                width: max(0, (position == .bottom ? width - Self.toolbarMargins : width - 2 * DCTheme.spacingM)
-                    - (1 + trailingItemCount) * (DCTheme.controlHeight + DCTheme.spacingS)),
-                onEdit: beginEditingAddress
-            )
-            PhoneAIButton(
-                app: app,
-                voice: app.voice,
-                router: app.router,
-                podcast: app.podcast,
-                isAvailable: app.isDrawerAvailable && browser.currentURL != nil,
-                onOpen: actions.openAssistant
-            )
+        }
+        .overlay {
+            if usesMorphingPhoneBar {
+                PhoneMorphingBarHost(
+                    app: app,
+                    browser: browser,
+                    progressModel: browser.barProgressModel,
+                    browserAgent: app.browserAgent,
+                    scriptStore: app.scriptStore,
+                    voice: voice,
+                    actions: actions,
+                    addressFocusRequest: addressFocusRequest,
+                    containerWidth: containerWidth,
+                    safeAreaBottom: safeAreaBottom,
+                    isLandscape: isLandscape,
+                    reduceMotion: reduceMotion,
+                    reduceTransparency: reduceTransparency,
+                    increasedContrast: colorSchemeContrast == .increased
+                )
+            }
+        }
+        .onAppear {
+            app.barShowsTopicFacts = true
+            if !usesMorphingPhoneBar {
+                syncSplitFallbackConfiguration()
+            }
+        }
+        .onChange(of: usesMorphingPhoneBar) { _, morphing in
+            if !morphing {
+                syncSplitFallbackConfiguration()
+            }
+        }
+        .onChange(of: isBarLockedExpanded) { _, _ in
+            if !usesMorphingPhoneBar {
+                syncSplitFallbackConfiguration()
+            }
+        }
+        .onChange(of: reduceMotion) { _, _ in
+            if !usesMorphingPhoneBar {
+                syncSplitFallbackConfiguration()
+            }
         }
     }
 
-    private var topBar: some View {
-        VStack(spacing: 0) {
-            Group {
-                if isEditingAddress {
-                    addressRow
-                } else if showsStrip {
-                    strip
-                } else {
-                    HStack(spacing: DCTheme.spacingS) { items }
-                        .padding(.horizontal, DCTheme.spacingM)
-                        .padding(.vertical, 6)
+    /// Extra bottom clearance inside safe area so `DockLayer` cards/rows sit above the floating bottom bar.
+    /// Driven by `isChromeMinimized` (0.6 / 0.4 hysteresis) so `BrowserContent` does not re-layout per scroll frame.
+    private func bottomDockClearance(safeAreaBottom: CGFloat) -> CGFloat {
+        guard usesMorphingPhoneBar, position == .bottom, showsMorphingBar else {
+            return 0
+        }
+        let effectiveP: CGFloat = browser.isChromeMinimized ? 1 : 0
+        let collapsedFont = BrowserBarFontMetrics.collapsedFontSize(for: dynamicTypeSize)
+        let barHeight = BrowserBarMorphMetrics.lerp(
+            BrowserBarMorphMetrics.expandedHeight(isLandscape: isLandscape),
+            BrowserBarMorphMetrics.collapsedHeight(collapsedFontSize: collapsedFont),
+            effectiveP
+        )
+        let bottomEdge = BrowserBarMorphMetrics.bottomEdgeFromScreen(
+            safeAreaBottom: safeAreaBottom,
+            progress: effectiveP
+        )
+        return max(0, barHeight + bottomEdge - safeAreaBottom)
+    }
+
+    private func syncSplitFallbackConfiguration() {
+        browser.barMorph.updateLayoutConfiguration(
+            managesInsets: false,
+            position: .top,
+            safeAreaBottom: 0,
+            isLandscape: true,
+            isLockedExpanded: isBarLockedExpanded,
+            reduceMotion: reduceMotion
+        )
+        browser.setExternalKeyboardFrozen(false)
+    }
+}
+
+/// Always-mounted zero-size observer leaf for the iPhone morphing bar.
+/// Hanging `.onChange` and `UIResponder.keyboard*Notification` publishers on a dedicated
+/// concrete view (never on a `Group` that can become `EmptyView` while the bar is hidden
+/// under a page keyboard, Voice Dock, or pushed Settings screen) keeps keyboard-hide and
+/// lock transitions live at all times without re-evaluating `PhoneBrowser` at 120 Hz.
+private struct PhoneBarObserverHost: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var browser: ForumBrowserModel
+    @ObservedObject var voice: VoiceController
+    let addressFocusRequest: Int
+    let safeAreaBottom: CGFloat
+    let isLandscape: Bool
+    let reduceMotion: Bool
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @State private var lastReadyAnswerID: UUID?
+
+    private var resolvedPosition: BrowserBarPosition {
+        app.settings.browserBarPosition.resolved(isSplit: false)
+    }
+
+    private var isBarLockedExpanded: Bool {
+        browser.showsForumsHome
+            || voice.showsBar
+            || dynamicTypeSize.isAccessibilitySize
+    }
+
+    private var isAnyKeyboardVisible: Bool {
+        browser.isSystemKeyboardVisible || browser.isPageFormInputFocused
+    }
+
+    /// Keyboard raised by a web-page form field (not our address bar, drawer, root sheet, Home field, or voice Dock).
+    private var isPageFormKeyboardActive: Bool {
+        guard !browser.isEditingAddress, !voice.showsBar, !browser.showsForumsHome else {
+            return false
+        }
+        if browser.isPageFormInputFocused {
+            return true
+        }
+        return isAnyKeyboardVisible && !app.isAIViewShown && app.rootPresentation == nil
+    }
+
+    var body: some View {
+        Color.clear
+            .frame(width: 0, height: 0)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+            .onAppear {
+                lastReadyAnswerID = app.readyAnswer?.id
+                syncMorphConfiguration()
+            }
+            .onDisappear {
+                browser.setSystemKeyboardVisible(false)
+                browser.setExternalKeyboardFrozen(false)
+            }
+            .onChange(of: ObjectIdentifier(browser)) { _, _ in
+                syncMorphConfiguration()
+            }
+            .onChange(of: safeAreaBottom) { _, _ in
+                syncMorphConfiguration()
+            }
+            .onChange(of: isLandscape) { _, _ in
+                syncMorphConfiguration()
+            }
+            .onChange(of: resolvedPosition) { _, _ in
+                syncMorphConfiguration()
+            }
+            .onChange(of: isBarLockedExpanded) { _, _ in
+                syncMorphConfiguration()
+            }
+            .onChange(of: reduceMotion) { _, _ in
+                syncMorphConfiguration()
+            }
+            .onChange(of: isPageFormKeyboardActive) { _, active in
+                browser.setExternalKeyboardFrozen(active)
+            }
+            .onChange(of: addressFocusRequest) {
+                browser.expandChrome(deferIfTracking: false)
+                browser.setEditingAddress(true)
+            }
+            .onChange(of: app.readyAnswer?.id) { _, nextID in
+                defer { lastReadyAnswerID = nextID }
+                if let nextID, nextID != lastReadyAnswerID, !app.isAIViewShown {
+                    browser.expandChrome(deferIfTracking: true)
                 }
             }
-            Divider()
-        }
-        .background(.bar)
-    }
-
-    /// The minimized bar while the page scrolls down; a tap brings it back.
-    private var strip: some View {
-        Button(action: browser.expandChrome) {
-            HStack(spacing: 6) {
-                if let forum = app.barForum, browser.pageContext.isForum {
-                    ForumIcon(forum: forum, size: 14)
-                } else {
-                    Image(systemName: "lock.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                }
-                Text(BrowserAddress.host(browser.currentURL))
-                    .font(.caption.weight(.semibold))
-                    .lineLimit(1)
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { note in
+                updateSystemKeyboardVisibility(from: note, isHideNotification: false)
             }
-            .frame(maxWidth: .infinity, minHeight: 30)
-            // 44 pt to tap, over the page's edge; the strip stays 30 pt.
-            .padding(.vertical, 7)
-            .contentShape(Rectangle())
-            .padding(.vertical, -7)
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Show browser bar")
-        .accessibilityIdentifier("browserChromeStrip")
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)) { note in
+                updateSystemKeyboardVisibility(from: note, isHideNotification: false)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { note in
+                updateSystemKeyboardVisibility(from: note, isHideNotification: false)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { note in
+                updateSystemKeyboardVisibility(from: note, isHideNotification: true)
+            }
+            .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidHideNotification)) { note in
+                updateSystemKeyboardVisibility(from: note, isHideNotification: true)
+            }
     }
 
-    // MARK: Address
+    private func syncMorphConfiguration() {
+        browser.barMorph.updateLayoutConfiguration(
+            managesInsets: true,
+            position: resolvedPosition,
+            safeAreaBottom: safeAreaBottom,
+            isLandscape: isLandscape,
+            isLockedExpanded: isBarLockedExpanded,
+            reduceMotion: reduceMotion
+        )
+        browser.setExternalKeyboardFrozen(isPageFormKeyboardActive)
+    }
 
-    /// Edit, paste (the field's menu), Go (return) and clear, on the keyboard.
-    private var addressRow: some View {
+    private func updateSystemKeyboardVisibility(from notification: Notification, isHideNotification: Bool) {
+        if isHideNotification {
+            browser.setSystemKeyboardVisible(false)
+            return
+        }
+        guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
+            return
+        }
+        let screenBounds = (UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first?.screen.bounds) ?? CGRect(x: 0, y: 0, width: 402, height: frame.maxY)
+        let intersection = screenBounds.intersection(frame)
+        let overlapHeight = intersection.isNull ? 0 : intersection.height
+        // Measure direct screen intersection (do not subtract `safeAreaBottom`, which is 34 pt on
+        // Face ID iPhones and would swallow WebKit's 44–54 pt compact `^ v ✓` input-assistant bar
+        // when a hardware keyboard is attached). When hidden, `frame.minY >= screenBounds.maxY`.
+        let visible = overlapHeight >= 20 && frame.minY < screenBounds.maxY - 16
+        browser.setSystemKeyboardVisible(visible)
+    }
+}
+
+// MARK: - Shared Address Editing Bar & Split Top Bar Host
+
+private struct AddressEditBar: View {
+    let app: AppModel
+    @ObservedObject var browser: ForumBrowserModel
+    let addressFocusRequest: Int
+
+    @State private var addressDraft: String
+    @State private var addressError: AddressError?
+    @State private var didGainFocus = false
+    @FocusState private var addressFocused: Bool
+
+    init(app: AppModel, browser: ForumBrowserModel, addressFocusRequest: Int) {
+        self.app = app
+        self.browser = browser
+        self.addressFocusRequest = addressFocusRequest
+        let initial = browser.showsForumsHome ? "" : (browser.currentURL?.absoluteString ?? "")
+        _addressDraft = State(initialValue: initial)
+    }
+
+    var body: some View {
         HStack(spacing: DCTheme.spacingS) {
             HStack(spacing: 6) {
                 Image(systemName: "globe")
@@ -284,18 +433,40 @@ struct PhoneBrowser<Page: View>: View {
             .overlay { Capsule().strokeBorder(Color.accentColor, lineWidth: 1.5) }
 
             // Esc / ⌘. too, like Safari.
-            Button("Cancel") { addressFocused = false }
-                .keyboardShortcut(.cancelAction)
-                .frame(minHeight: DCTheme.controlHeight)
-                .accessibilityIdentifier("addressCancel")
+            Button("Cancel") {
+                addressFocused = false
+                browser.setEditingAddress(false)
+            }
+            .keyboardShortcut(.cancelAction)
+            .frame(minHeight: DCTheme.controlHeight)
+            .accessibilityIdentifier("addressCancel")
         }
         .padding(.horizontal, DCTheme.spacingM)
         .padding(.vertical, 6)
-    }
-
-    private func beginEditingAddress() {
-        addressDraft = browser.showsForumsHome ? "" : (browser.currentURL?.absoluteString ?? "")
-        isEditingAddress = true
+        .onChange(of: addressFocused) { _, isFocused in
+            if isFocused {
+                didGainFocus = true
+            } else if didGainFocus, addressError == nil {
+                browser.setEditingAddress(false)
+            }
+        }
+        .onChange(of: addressFocusRequest) {
+            addressFocused = true
+        }
+        .alert(
+            addressError?.title ?? "",
+            isPresented: Binding(
+                get: { addressError != nil },
+                set: { if !$0 { addressError = nil } }
+            ),
+            presenting: addressError
+        ) { _ in
+            Button("OK", role: .cancel) {
+                DispatchQueue.main.async { addressFocused = true }
+            }
+        } message: { error in
+            Text(error.message)
+        }
     }
 
     /// An address opens; other words search the current forum.
@@ -303,22 +474,848 @@ struct PhoneBrowser<Page: View>: View {
         let query = addressDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         if browser.open(address: addressDraft) {
             addressFocused = false
-            isEditingAddress = false
+            browser.setEditingAddress(false)
         } else if !query.isEmpty, let url = app.searchPageURL(query: query) ?? app.webSearchURL(query: query) {
             browser.load(url)
             addressFocused = false
-            isEditingAddress = false
+            browser.setEditingAddress(false)
         } else {
             addressError = AddressError(address: addressDraft, hasForum: browser.homeSiteURL != nil)
         }
     }
 }
 
-enum PhoneBarStyle {
-    /// iOS 26+: the system toolbar is Liquid Glass, so the capsule needs no fill.
-    static var usesGlass: Bool {
-        if #available(iOS 26.0, *) { return true }
-        return false
+private struct SplitTopBarHost: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var browser: ForumBrowserModel
+    @ObservedObject var router: PresentationRouter
+    let actions: BrowserActions
+    let split: SplitBarContext?
+    let width: CGFloat
+    let addressFocusRequest: Int
+
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var lastReadyAnswerID: UUID?
+
+    private var isBarLockedExpanded: Bool {
+        browser.showsForumsHome
+            || app.voice.showsBar
+            || dynamicTypeSize.isAccessibilitySize
+    }
+
+    var body: some View {
+        let _ = router.splitPanelMode
+        VStack(spacing: 0) {
+            Group {
+                if browser.isEditingAddress {
+                    AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
+                } else if let split {
+                    HStack(spacing: DCTheme.spacingS) { splitItems(split) }
+                        .padding(.horizontal, DCTheme.spacingM)
+                        .padding(.vertical, 6)
+                }
+            }
+            Divider()
+        }
+        .background(.bar)
+        .onAppear {
+            lastReadyAnswerID = app.readyAnswer?.id
+            syncSplitMorphConfiguration()
+        }
+        .onChange(of: ObjectIdentifier(browser)) { _, _ in
+            syncSplitMorphConfiguration()
+        }
+        .onChange(of: isBarLockedExpanded) { _, _ in
+            syncSplitMorphConfiguration()
+        }
+        .onChange(of: reduceMotion) { _, _ in
+            syncSplitMorphConfiguration()
+        }
+        .onChange(of: addressFocusRequest) {
+            browser.expandChrome(deferIfTracking: false)
+            browser.setEditingAddress(true)
+        }
+        .onChange(of: app.readyAnswer?.id) { _, nextID in
+            defer { lastReadyAnswerID = nextID }
+            if let nextID, nextID != lastReadyAnswerID, !app.isAIViewShown {
+                browser.expandChrome(deferIfTracking: true)
+            }
+        }
+    }
+
+    private func syncSplitMorphConfiguration() {
+        browser.barMorph.updateLayoutConfiguration(
+            managesInsets: false,
+            position: .top,
+            safeAreaBottom: 0,
+            isLandscape: true,
+            isLockedExpanded: isBarLockedExpanded,
+            reduceMotion: reduceMotion
+        )
+    }
+
+    /// Forum avatar, back, forward | address capsule | mic, ···, AI panel. Home
+    /// has its own address field, so the bar hides its capsule while it shows.
+    @ViewBuilder
+    private func splitItems(_ split: SplitBarContext) -> some View {
+        let controls = 5 + (app.showsVoiceButton ? 1 : 0)
+        ForumMenuButton(app: app, browser: browser, actions: actions)
+        SplitNavigationButtons(browser: browser)
+        if browser.showsForumsHome {
+            Spacer(minLength: 0)
+        } else {
+            PhoneTitleCapsule(
+                app: app,
+                browser: browser,
+                filled: true,
+                width: max(0, width - 2 * DCTheme.spacingM - CGFloat(controls) * (DCTheme.controlHeight + DCTheme.spacingS)),
+                onEdit: {
+                    browser.setEditingAddress(true)
+                }
+            )
+        }
+        if app.showsVoiceButton {
+            VoiceBarButton(voice: app.voice)
+        }
+        SplitMoreMenu(app: app, browser: browser, actions: actions)
+        SplitPanelToggle(app: app, isShown: app.showsSplitPanel(forWidth: width), action: split.togglePanel)
+    }
+}
+
+// MARK: - Single Morphing Glass Bar (iPhone)
+
+enum BrowserBarFontMetrics {
+    private static func cappedCategory(for dynamicTypeSize: DynamicTypeSize) -> UIContentSizeCategory {
+        switch dynamicTypeSize {
+        case .xSmall: .extraSmall
+        case .small: .small
+        case .medium: .medium
+        case .large: .large
+        case .xLarge: .extraLarge
+        case .xxLarge: .extraExtraLarge
+        case .xxxLarge, .accessibility1, .accessibility2, .accessibility3, .accessibility4, .accessibility5:
+            .extraExtraExtraLarge
+        @unknown default: .large
+        }
+    }
+
+    static func expandedFontSize(for dynamicTypeSize: DynamicTypeSize) -> CGFloat {
+        let traits = UITraitCollection(preferredContentSizeCategory: cappedCategory(for: dynamicTypeSize))
+        return UIFontMetrics(forTextStyle: .subheadline).scaledValue(for: 15, compatibleWith: traits)
+    }
+
+    static func collapsedFontSize(for dynamicTypeSize: DynamicTypeSize) -> CGFloat {
+        let traits = UITraitCollection(preferredContentSizeCategory: cappedCategory(for: dynamicTypeSize))
+        return UIFontMetrics(forTextStyle: .footnote).scaledValue(for: 13, compatibleWith: traits)
+    }
+
+    static func measuredWidth(of text: String, fontSize: CGFloat) -> CGFloat {
+        guard !text.isEmpty else { return 0 }
+        let font = UIFont.systemFont(ofSize: fontSize, weight: .semibold)
+        return ceil((text as NSString).size(withAttributes: [.font: font]).width)
+    }
+}
+
+/// Isolates 120 Hz scroll-progress observation to the floating bar overlay so `PhoneBrowser`
+/// and `BrowserContent` do not re-evaluate their view bodies on every scroll frame.
+private struct PhoneMorphingBarHost: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var browser: ForumBrowserModel
+    @ObservedObject var progressModel: BrowserBarProgressModel
+    var browserAgent: BrowserAgentSession
+    var scriptStore: ScriptStore
+    @ObservedObject var voice: VoiceController
+    let actions: BrowserActions
+    let addressFocusRequest: Int
+    let containerWidth: CGFloat
+    let safeAreaBottom: CGFloat
+    let isLandscape: Bool
+    let reduceMotion: Bool
+    let reduceTransparency: Bool
+    let increasedContrast: Bool
+
+    private var resolvedPosition: BrowserBarPosition {
+        app.settings.browserBarPosition.resolved(isSplit: false)
+    }
+
+    private var isAnyKeyboardVisible: Bool {
+        browser.isSystemKeyboardVisible || browser.isPageFormInputFocused
+    }
+
+    private var hidesBottomBar: Bool {
+        guard resolvedPosition == .bottom else { return false }
+        if voice.showsBar || browser.isPageFormInputFocused {
+            return true
+        }
+        return isAnyKeyboardVisible && !app.isAIViewShown && app.rootPresentation == nil
+    }
+
+    var body: some View {
+        let position = resolvedPosition
+        Group {
+            if !app.homePath.isEmpty {
+                EmptyView()
+            } else if browser.isEditingAddress {
+                Group {
+                    if position == .top {
+                        VStack(spacing: 0) {
+                            AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
+                            Divider()
+                        }
+                        .background(.bar)
+                    } else {
+                        AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
+                            .background(.bar)
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: position == .top ? .top : .bottom)
+            } else if hidesBottomBar {
+                EmptyView()
+            } else {
+                PhoneMorphingBar(
+                    app: app,
+                    browser: browser,
+                    browserAgent: browserAgent,
+                    scriptStore: scriptStore,
+                    voice: voice,
+                    actions: actions,
+                    position: position,
+                    containerWidth: containerWidth,
+                    safeAreaBottom: safeAreaBottom,
+                    isLandscape: isLandscape,
+                    progress: browser.showsForumsHome ? 0 : min(1, max(0, progressModel.progress)),
+                    reduceMotion: reduceMotion,
+                    reduceTransparency: reduceTransparency,
+                    increasedContrast: increasedContrast,
+                    onEdit: {
+                        browser.expandChrome(deferIfTracking: false)
+                        browser.setEditingAddress(true)
+                    }
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: position == .top ? .top : .bottom)
+                .ignoresSafeArea([.container, .keyboard], edges: position == .bottom ? .bottom : [])
+            }
+        }
+    }
+}
+
+/// One glass capsule that morphs smoothly between expanded bar (`p = 0`) and domain pill (`p = 1`).
+/// Uses SwiftUI's native animatable layout/effect modifiers (`frame`, `padding`, `opacity`, `scaleEffect`)
+/// rather than composite `Animatable` conformance so UIKit-backed `Menu` buttons and accessibility
+/// visibility remain live across spring transitions.
+struct PhoneMorphingBar: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var browser: ForumBrowserModel
+    var browserAgent: BrowserAgentSession
+    var scriptStore: ScriptStore
+    @ObservedObject var voice: VoiceController
+    let actions: BrowserActions
+    let position: BrowserBarPosition
+    let containerWidth: CGFloat
+    let safeAreaBottom: CGFloat
+    let isLandscape: Bool
+    var progress: CGFloat
+    let reduceMotion: Bool
+    let reduceTransparency: Bool
+    let increasedContrast: Bool
+    let onEdit: () -> Void
+
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var isAgentWorking: Bool {
+        browserAgent.isRunning || app.activeResearch != nil
+    }
+
+    private var scriptBadge: ToolbarScriptBadgeSummary {
+        app.toolbarScriptBadgeSummary
+    }
+
+    private var domainText: String {
+        let host = BrowserAddress.host(browser.currentURL)
+        if !host.isEmpty { return host }
+        let display = BrowserAddress.display(browser.currentURL)
+        return display.isEmpty ? browser.pageTitle : display
+    }
+
+    private var isSecurePage: Bool {
+        browser.currentURL?.scheme?.lowercased() == "https"
+    }
+
+    private var answerPost: Int? {
+        guard !browser.showsForumsHome, app.pageContext.state == .topic else { return nil }
+        return app.pageContext.acceptedAnswerPost
+    }
+
+    var body: some View {
+        let effectiveP: CGFloat = if browser.showsForumsHome {
+            0
+        } else if reduceMotion {
+            browser.isChromeMinimized ? 1 : 0
+        } else {
+            min(1, max(0, progress))
+        }
+        morphingCapsule(at: effectiveP, snapsGeometry: reduceMotion)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .ignoresSafeArea(.container, edges: position == .bottom ? .bottom : [])
+    }
+
+    @ViewBuilder
+    private func morphingCapsule(at p: CGFloat, snapsGeometry: Bool = false) -> some View {
+        let expandedFont = BrowserBarFontMetrics.expandedFontSize(for: dynamicTypeSize)
+        let collapsedFont = BrowserBarFontMetrics.collapsedFontSize(for: dynamicTypeSize)
+        let domainWidth = BrowserBarFontMetrics.measuredWidth(of: domainText, fontSize: collapsedFont)
+
+        let expandedW = BrowserBarMorphMetrics.expandedWidth(containerWidth: containerWidth)
+        let collapsedW = BrowserBarMorphMetrics.collapsedWidth(
+            domainWidth: domainWidth,
+            isAgentWorking: isAgentWorking,
+            scriptCount: scriptBadge.count
+        )
+        let expandedH = BrowserBarMorphMetrics.expandedHeight(isLandscape: isLandscape)
+        let collapsedH = BrowserBarMorphMetrics.collapsedHeight(collapsedFontSize: collapsedFont)
+
+        let barWidth = BrowserBarMorphMetrics.lerp(expandedW, collapsedW, p)
+        let barHeight = BrowserBarMorphMetrics.lerp(expandedH, collapsedH, p)
+        let outerHPad = BrowserBarMorphMetrics.lerp(6, 3, p)
+        let itemGap = BrowserBarMorphMetrics.lerp(2, 0, p)
+        let fontSize = BrowserBarMorphMetrics.lerp(expandedFont, collapsedFont, p)
+
+        let bottomOffset = BrowserBarMorphMetrics.bottomEdgeFromScreen(safeAreaBottom: safeAreaBottom, progress: p)
+        let topOffset = BrowserBarMorphMetrics.topEdgeFromSafeArea(progress: p)
+        let isCollapsedHalf = !browser.showsForumsHome && p >= 0.5
+        let extraHit = isCollapsedHalf ? max(0, BrowserBarMorphMetrics.minHitTargetHeight - barHeight) : 0
+        let capsuleAlignment: Alignment = position == .bottom ? .bottom : .top
+
+        // Keep `expandedMorphItems` permanently mounted inside a single `ZStack` over one
+        // continuous glass capsule so UIKit-backed controls (`Menu`, `PhoneAddressTitleButton`)
+        // never tear down and recreate mid-spring across `p = 0.5`.
+        ZStack(alignment: capsuleAlignment) {
+            if browser.showsForumsHome {
+                HStack(spacing: itemGap) {
+                    homeItems
+                }
+                .padding(.horizontal, outerHPad)
+                .frame(width: barWidth, height: barHeight)
+                .accessibilityElement(children: .contain)
+            } else {
+                HStack(spacing: itemGap) {
+                    expandedMorphItems(
+                        p: snapsGeometry ? 0 : p,
+                        barHeight: barHeight,
+                        fontSize: snapsGeometry ? expandedFont : fontSize,
+                        isExpandedHalf: !isCollapsedHalf,
+                        sideButtonsHitTarget: !isCollapsedHalf && (snapsGeometry || p < 0.35)
+                    )
+                }
+                .padding(.horizontal, outerHPad)
+                .frame(width: barWidth, height: barHeight)
+                .accessibilityElement(children: .contain)
+                .opacity(isCollapsedHalf ? 0 : 1)
+                .allowsHitTesting(!isCollapsedHalf)
+                .accessibilityHidden(isCollapsedHalf)
+
+                if isCollapsedHalf {
+                    Button {
+                        DCHaptics.tap()
+                        browser.expandChrome(deferIfTracking: false)
+                    } label: {
+                        collapsedPillInner(fontSize: snapsGeometry ? collapsedFont : fontSize)
+                            .padding(.horizontal, outerHPad)
+                            .frame(width: barWidth, height: barHeight)
+                            .padding(position == .bottom ? .top : .bottom, extraHit)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(collapsedAccessibilityLabel)
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityIdentifier("browserChromeStrip")
+                }
+            }
+        }
+        .background(alignment: capsuleAlignment) {
+            Color.clear
+                .frame(width: barWidth, height: barHeight)
+                .modifier(
+                    PhoneBarGlassSurface(
+                        reduceTransparency: reduceTransparency,
+                        increasedContrast: increasedContrast
+                    )
+                )
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
+        .padding(.bottom, position == .bottom ? bottomOffset : 0)
+        .padding(.top, position == .top ? topOffset : 0)
+    }
+
+    @ViewBuilder
+    private var homeItems: some View {
+        ForumMenuButton(app: app, browser: browser, actions: actions)
+        Spacer(minLength: 0)
+        if app.showsVoiceButton {
+            VoiceBarButton(voice: app.voice)
+        }
+        if browser.currentURL != nil {
+            PhoneAIButton(
+                app: app,
+                voice: app.voice,
+                router: app.router,
+                podcast: app.podcast,
+                isAvailable: app.isDrawerAvailable,
+                onOpen: {
+                    browser.hideForumsHome()
+                    actions.openAssistant()
+                }
+            )
+        }
+    }
+
+    @ViewBuilder
+    private func expandedMorphItems(
+        p: CGFloat,
+        barHeight: CGFloat,
+        fontSize: CGFloat,
+        isExpandedHalf: Bool,
+        sideButtonsHitTarget: Bool
+    ) -> some View {
+        let btnOpacity = BrowserBarMorphMetrics.sideButtonOpacity(progress: p)
+        let btnScale = BrowserBarMorphMetrics.sideButtonScale(progress: p)
+        let slotWidth = BrowserBarMorphMetrics.sideButtonSlotWidth(progress: p)
+        let fieldFill = BrowserBarMorphMetrics.addressFieldFillOpacity(
+            progress: p,
+            isDark: colorScheme == .dark
+        )
+        let innerHeight = max(30, barHeight - BrowserBarMorphMetrics.lerp(14, 2, p))
+
+        if isExpandedHalf {
+            PhoneBackButton(browser: browser)
+                .scaleEffect(btnScale)
+                .opacity(btnOpacity)
+                .frame(width: slotWidth, height: DCTheme.controlHeight)
+                .allowsHitTesting(sideButtonsHitTarget)
+
+            ForumMenuButton(app: app, browser: browser, actions: actions)
+                .scaleEffect(btnScale)
+                .opacity(btnOpacity)
+                .frame(width: slotWidth, height: DCTheme.controlHeight)
+                .allowsHitTesting(sideButtonsHitTarget)
+        }
+
+        HStack(spacing: 4) {
+            PhoneAddressTitleButton(
+                domainText: domainText,
+                fontSize: fontSize,
+                minHeight: innerHeight,
+                isActive: isExpandedHalf,
+                accessibilityLabelText: "\(browser.pageTitle), \(BrowserAddress.display(browser.currentURL))",
+                accessibilityHintText: String(
+                    localized: "Tap to enter an address. Touch and hold for history.",
+                    comment: "Accessibility hint of the iPhone bar title"
+                ),
+                browser: browser,
+                onEdit: onEdit
+            )
+            .frame(maxWidth: .infinity, minHeight: innerHeight)
+
+            if isExpandedHalf, let answerPost, btnOpacity > 0.05 {
+                SolvedAnswerChip(postNumber: answerPost) {
+                    app.jumpToCitation(answerPost)
+                }
+                .opacity(btnOpacity)
+                .scaleEffect(btnScale)
+            }
+        }
+        .padding(.horizontal, 10)
+        .frame(maxWidth: .infinity, minHeight: innerHeight)
+        .background {
+            if isExpandedHalf, fieldFill > 0.001 {
+                Capsule().fill(DCTheme.ink.opacity(fieldFill))
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if isExpandedHalf {
+                LoadingLine(progress: browser.estimatedProgress, isLoading: browser.isLoading)
+                    .padding(.horizontal, 14)
+                    .padding(.bottom, 2)
+            }
+        }
+        .contentShape(Capsule())
+
+        if isExpandedHalf {
+            PhoneAIButton(
+                app: app,
+                voice: app.voice,
+                router: app.router,
+                podcast: app.podcast,
+                isAvailable: app.isDrawerAvailable && browser.currentURL != nil,
+                onOpen: actions.openAssistant
+            )
+            .scaleEffect(btnScale)
+            .opacity(btnOpacity)
+            .frame(width: slotWidth, height: DCTheme.controlHeight)
+            .allowsHitTesting(sideButtonsHitTarget)
+        }
+    }
+
+    @ViewBuilder
+    private func collapsedPillInner(fontSize: CGFloat) -> some View {
+        HStack(spacing: 6) {
+            if isAgentWorking {
+                DCAgentRing(size: 16, lineWidth: 2.5, isTurning: true, isEnabled: true)
+            } else {
+                Image(systemName: isSecurePage ? "lock.fill" : "globe")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(DCTheme.inkMuted)
+                    .accessibilityHidden(true)
+            }
+            Text(domainText)
+                .font(.system(size: fontSize, weight: .semibold))
+                .foregroundStyle(DCTheme.ink)
+                .lineLimit(1)
+                .truncationMode(.middle)
+            if isAgentWorking, scriptBadge.isVisible {
+                CollapsedScriptsSeal(summary: scriptBadge)
+            }
+        }
+        .padding(.horizontal, 9)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .overlay(alignment: .bottom) {
+            LoadingLine(progress: browser.estimatedProgress, isLoading: browser.isLoading)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 1)
+        }
+    }
+
+    private var collapsedAccessibilityLabel: Text {
+        let host = BrowserAddress.host(browser.currentURL)
+        if isAgentWorking {
+            if host.isEmpty {
+                return Text("Show browser bar, Agent working", comment: "Collapsed browser pill accessibility label while the Agent is working and no host is shown")
+            }
+            return Text("Show browser bar, \(host), Agent working", comment: "Collapsed browser pill accessibility label while the Agent is working; placeholder is the website domain")
+        }
+        if host.isEmpty {
+            return Text("Show browser bar")
+        }
+        return Text("Show browser bar, \(host)", comment: "Collapsed browser pill accessibility label; placeholder is the website domain")
+    }
+}
+
+/// Glass capsule material: Liquid Glass on iOS 26+, `.bar` material below, solid `surface` + `borderStrong`
+/// when Reduce Transparency or Increase Contrast is enabled.
+private struct PhoneBarGlassSurface: ViewModifier {
+    let reduceTransparency: Bool
+    let increasedContrast: Bool
+
+    func body(content: Content) -> some View {
+        if reduceTransparency || increasedContrast {
+            content
+                .background(DCTheme.surface, in: Capsule())
+                .overlay {
+                    Capsule().strokeBorder(DCTheme.borderStrong, lineWidth: 1)
+                }
+        } else if #available(iOS 26.0, *) {
+            content
+                .background {
+                    Capsule()
+                        .fill(.clear)
+                        .glassEffect(.regular, in: .capsule)
+                        .allowsHitTesting(false)
+                }
+        } else {
+            content
+                .background(.bar, in: Capsule())
+                .overlay {
+                    Capsule().strokeBorder(Color.primary.opacity(0.14), lineWidth: DCTheme.hairlineWidth)
+                }
+                .shadow(color: .black.opacity(0.18), radius: 14, y: 6)
+        }
+    }
+}
+
+private struct PhoneBackButton: View {
+    @ObservedObject var browser: ForumBrowserModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Button {
+            withAnimation(DCMotion.respecting(reduceMotion)) {
+                browser.navigateBack()
+            }
+        } label: {
+            Image(systemName: "chevron.backward")
+                .font(.body.weight(.semibold))
+                .foregroundStyle(browser.canNavigateBack ? DCTheme.ink : DCTheme.inkFaint)
+                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!browser.canNavigateBack)
+        .accessibilityLabel("Back")
+        .accessibilityIdentifier("browserBack")
+    }
+}
+
+private struct CollapsedScriptsSeal: View {
+    let summary: ToolbarScriptBadgeSummary
+
+    private var fill: Color {
+        if !summary.isGlobalEnabled { return DCTheme.inkMuted }
+        return summary.errorCount > 0 ? DCTheme.cinnabar : DCTheme.ink
+    }
+
+    private var foreground: Color {
+        summary.errorCount > 0 && summary.isGlobalEnabled ? DCTheme.onCinnabar : DCTheme.ground
+    }
+
+    var body: some View {
+        Text(verbatim: "\(summary.count)")
+            .font(.system(size: 11, weight: .bold).monospacedDigit())
+            .foregroundStyle(foreground)
+            .padding(.horizontal, 5)
+            .frame(minWidth: 18, minHeight: 18)
+            .background(fill, in: RoundedRectangle(cornerRadius: 5, style: .continuous))
+            .accessibilityHidden(true)
+    }
+}
+
+/// UIKit-backed domain control inside the iPhone morphing bar: a direct `UITapGestureRecognizer`
+/// handles short taps without `UIContextMenuInteraction` delay/swallowing, while `UIContextMenuInteraction`
+/// presents back/forward history on touch-and-hold.
+private struct PhoneAddressTitleButton: UIViewRepresentable {
+    let domainText: String
+    let fontSize: CGFloat
+    let minHeight: CGFloat
+    let isActive: Bool
+    let accessibilityLabelText: String
+    let accessibilityHintText: String
+    let browser: ForumBrowserModel
+    let onEdit: () -> Void
+
+    func makeUIView(context: Context) -> ControlView {
+        let view = ControlView()
+        configure(view)
+        return view
+    }
+
+    func updateUIView(_ uiView: ControlView, context: Context) {
+        configure(uiView)
+    }
+
+    func sizeThatFits(_ proposal: ProposedViewSize, uiView: ControlView, context: Context) -> CGSize {
+        let intrinsic = uiView.label.intrinsicContentSize
+        let width = proposal.width ?? max(60, intrinsic.width + 8)
+        let height = max(minHeight, proposal.height ?? minHeight)
+        return CGSize(width: max(0, width), height: max(0, height))
+    }
+
+    private func configure(_ view: ControlView) {
+        view.browser = browser
+        view.onEdit = onEdit
+        view.isHidden = !isActive
+        view.isUserInteractionEnabled = isActive
+        view.isAccessibilityElement = isActive
+        view.accessibilityElementsHidden = !isActive
+        view.label.text = domainText
+        view.label.font = .systemFont(ofSize: fontSize, weight: .semibold)
+        view.label.textColor = UIColor(DCTheme.ink)
+        view.accessibilityLabel = accessibilityLabelText
+        view.accessibilityHint = accessibilityHintText
+    }
+
+    final class ControlView: UIControl, UIGestureRecognizerDelegate {
+        let label = UILabel()
+        weak var browser: ForumBrowserModel?
+        var onEdit: (() -> Void)?
+        private var isTapCandidate = false
+        private var didTriggerForActiveTouch = false
+
+        override init(frame: CGRect) {
+            super.init(frame: frame)
+            backgroundColor = .clear
+            isUserInteractionEnabled = true
+            isAccessibilityElement = true
+            accessibilityTraits = .button
+            accessibilityIdentifier = "browserTitle"
+
+            label.translatesAutoresizingMaskIntoConstraints = false
+            label.textAlignment = .center
+            label.lineBreakMode = .byTruncatingMiddle
+            label.numberOfLines = 1
+            label.isUserInteractionEnabled = false
+            label.isAccessibilityElement = false
+            label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            label.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            addSubview(label)
+
+            NSLayoutConstraint.activate([
+                label.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 4),
+                label.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -4),
+                label.centerXAnchor.constraint(equalTo: centerXAnchor),
+                label.centerYAnchor.constraint(equalTo: centerYAnchor),
+            ])
+
+            let tapRecognizer = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+            tapRecognizer.cancelsTouchesInView = false
+            tapRecognizer.delaysTouchesBegan = false
+            tapRecognizer.delaysTouchesEnded = false
+            tapRecognizer.delegate = self
+            addGestureRecognizer(tapRecognizer)
+
+            let menuInteraction = UIContextMenuInteraction(delegate: self)
+            addInteraction(menuInteraction)
+        }
+
+        @available(*, unavailable)
+        required init?(coder: NSCoder) { fatalError() }
+
+        @objc private func handleTap(_ recognizer: UITapGestureRecognizer) {
+            guard recognizer.state == .ended, !didTriggerForActiveTouch else { return }
+            didTriggerForActiveTouch = true
+            isTapCandidate = false
+            onEdit?()
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            true
+        }
+
+        override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+            super.touchesBegan(touches, with: event)
+            isTapCandidate = touches.count == 1
+            didTriggerForActiveTouch = false
+        }
+
+        override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+            super.touchesMoved(touches, with: event)
+            guard isTapCandidate, let touch = touches.first else { return }
+            if !bounds.insetBy(dx: -16, dy: -16).contains(touch.location(in: self)) {
+                isTapCandidate = false
+            }
+        }
+
+        override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
+            isTapCandidate = false
+            super.touchesCancelled(touches, with: event)
+        }
+
+        override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+            let shouldTrigger = !didTriggerForActiveTouch
+                && isTapCandidate
+                && (touches.first.map { bounds.insetBy(dx: -16, dy: -16).contains($0.location(in: self)) } ?? false)
+            isTapCandidate = false
+            super.touchesEnded(touches, with: event)
+            if shouldTrigger {
+                didTriggerForActiveTouch = true
+                onEdit?()
+            }
+        }
+
+        override func accessibilityActivate() -> Bool {
+            onEdit?()
+            return true
+        }
+
+        override func contextMenuInteraction(
+            _ interaction: UIContextMenuInteraction,
+            configurationForMenuAtLocation location: CGPoint
+        ) -> UIContextMenuConfiguration? {
+            UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { [weak self] _ in
+                self?.makeHistoryMenu()
+            }
+        }
+
+        override func contextMenuInteraction(
+            _ interaction: UIContextMenuInteraction,
+            willDisplayMenuFor configuration: UIContextMenuConfiguration,
+            animator: (any UIContextMenuInteractionAnimating)?
+        ) {
+            isTapCandidate = false
+            didTriggerForActiveTouch = true
+            super.contextMenuInteraction(interaction, willDisplayMenuFor: configuration, animator: animator)
+        }
+
+        @MainActor
+        private func makeHistoryMenu() -> UIMenu {
+            guard let browser else {
+                return UIMenu(children: [])
+            }
+            let back = Array(browser.backHistory.prefix(12))
+            let forward = Array(browser.forwardHistory.prefix(12))
+            var children: [UIMenuElement] = []
+            if !forward.isEmpty {
+                children.append(
+                    UIMenu(
+                        title: String(localized: "Forward"),
+                        options: .displayInline,
+                        children: forward.reversed().map { historyAction($0, browser: browser) }
+                    )
+                )
+            }
+            if !back.isEmpty {
+                children.append(
+                    UIMenu(
+                        title: String(localized: "Back"),
+                        options: .displayInline,
+                        children: back.map { historyAction($0, browser: browser) }
+                    )
+                )
+            }
+            if children.isEmpty {
+                children.append(
+                    UIAction(
+                        title: String(
+                            localized: "No history yet",
+                            comment: "iPhone bar title's history menu with no pages to go back or forward to"
+                        ),
+                        attributes: .disabled
+                    ) { _ in }
+                )
+            }
+            return UIMenu(children: children)
+        }
+
+        @MainActor
+        private func historyAction(_ item: WKBackForwardListItem, browser: ForumBrowserModel) -> UIAction {
+            let title = (item.title?.isEmpty == false) ? (item.title ?? "") : BrowserAddress.host(item.url)
+            let subtitle = BrowserAddress.display(item.url)
+            return UIAction(title: title, subtitle: subtitle) { [weak browser] _ in
+                browser?.go(to: item)
+            }
+        }
+    }
+}
+
+private struct SolvedAnswerChip: View {
+    let postNumber: Int
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 3) {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.caption.weight(.semibold))
+                Text(verbatim: "#\(postNumber)")
+                    .font(.caption.weight(.semibold).monospacedDigit())
+            }
+            .fixedSize()
+            .foregroundStyle(DCTheme.success)
+            .padding(.horizontal, 8)
+            .frame(minHeight: 30)
+            .background(DCTheme.success.opacity(0.12), in: Capsule())
+            .frame(minHeight: DCTheme.controlHeight)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text("Solved · answer at #\(postNumber)", comment: "iPhone bar hint: the topic has an accepted answer; the placeholder is its post number"))
+        .accessibilityHint(Text("Jumps to the answer", comment: "Accessibility hint of the solved hint in the iPhone bar"))
+        .accessibilityIdentifier("acceptedAnswerHint")
     }
 }
 

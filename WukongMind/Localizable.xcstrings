@@ -18055,6 +18055,57 @@
         }
       }
     },
+    "Show browser bar, %@" : {
+      "comment" : "Collapsed browser pill accessibility label; placeholder is the website domain",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示浏览器栏，%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示瀏覽器列，%@"
+          }
+        }
+      }
+    },
+    "Show browser bar, %@, Agent working" : {
+      "comment" : "Collapsed browser pill accessibility label while the Agent is working; placeholder is the website domain",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示浏览器栏，%@，代理运行中"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示瀏覽器列，%@，代理執行中"
+          }
+        }
+      }
+    },
+    "Show browser bar, Agent working" : {
+      "comment" : "Collapsed browser pill accessibility label while the Agent is working and no host is shown",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示浏览器栏，代理运行中"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示瀏覽器列，代理執行中"
+          }
+        }
+      }
+    },
     "Show first and last 50 lines" : {
       "localizations" : {
         "zh-Hans" : {
