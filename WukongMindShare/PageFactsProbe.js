@@ -33,6 +33,43 @@ PageFactsProbe.prototype = {
     if (!cache.has(cacheKey)) cache.set(cacheKey, walk(raw, path.split(".")));
     return cache.get(cacheKey);
   };
+  const looksLikeThread = () => {
+  try {
+    const forumType = /DiscussionForumPosting|"@type"\s*:\s*"Comment"/;
+    for (const node of document.querySelectorAll('script[type="application/ld+json"]')) {
+      if (forumType.test((node.textContent || "").slice(0, 200000))) return true;
+    }
+    if (document.querySelector(
+      '[itemtype*="DiscussionForumPosting"], [itemtype$="schema.org/Comment"]'
+    )) return true;
+    const generator = document.querySelector('meta[name="generator"]');
+    if (generator && /phpbb|vbulletin|xenforo|discourse|flarum|mybb|invision|simple machines|fluxbb|nodebb|vanilla|discuz|punbb/i
+      .test(generator.getAttribute("content") || "")) return true;
+    const profile = 'a[href*="/user"], a[href*="/member"], a[href*="/profile"], a[href*="/u/"], a[href*="/users/"], a[href*="memberlist"]';
+    const parents = new Map();
+    const blocks = document.body ? document.body.querySelectorAll("article, li, div, tr, section") : [];
+    const limit = Math.min(blocks.length, 3000);
+    for (let index = 0; index < limit; index++) {
+      const block = blocks[index];
+      if (!block.parentElement) continue;
+      if (!block.querySelector(profile) || !block.querySelector("time, [datetime]")) continue;
+      if ((block.textContent || "").trim().length < 30) continue;
+      const key = block.parentElement;
+      const kin = parents.get(key) || new Set();
+      kin.add(block.tagName);
+      parents.set(key, kin);
+      if (kin.size === 1) {
+        let count = 0;
+        for (const sibling of key.children) {
+          if (sibling.tagName === block.tagName && sibling.querySelector(profile)
+            && sibling.querySelector("time, [datetime]")) count++;
+        }
+        if (count >= 3) return true;
+      }
+    }
+  } catch (error) {}
+  return false;
+};
   return () => {
     const meta = {};
     for (const name of keys.meta) {
@@ -69,7 +106,8 @@ PageFactsProbe.prototype = {
       matches: matches,
       htmlClass: clip(document.documentElement?.className, 2000),
       bodyClass: clip(document.body?.className, 2000),
-      iconURL: icon?.href || ""
+      iconURL: icon?.href || "",
+      looksLikeThread: looksLikeThread()
     };
   };
 })())();
