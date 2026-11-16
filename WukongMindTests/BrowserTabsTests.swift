@@ -21,6 +21,8 @@ final class BrowserTabsTests: XCTestCase {
     private final class LoopbackTabsServer: @unchecked Sendable {
         private let listener: NWListener
         private let queue = DispatchQueue(label: "BrowserTabsTests.LoopbackServer")
+        private let logLock = NSLock()
+        private var loggedPaths: [String] = []
         private(set) var port: UInt16 = 0
 
         init() throws {
@@ -30,6 +32,14 @@ final class BrowserTabsTests: XCTestCase {
         }
 
         var baseURL: URL { URL(string: "http://127.0.0.1:\(port)")! }
+
+        var requestedPaths: [String] {
+            logLock.withLock { loggedPaths }
+        }
+
+        func resetRequestLog() {
+            logLock.withLock { loggedPaths.removeAll() }
+        }
 
         func url(_ path: String) -> URL {
             URL(string: path, relativeTo: baseURL)!.absoluteURL
@@ -78,6 +88,9 @@ final class BrowserTabsTests: XCTestCase {
                     .first { $0.lowercased().hasPrefix("cookie:") }
                     .map { String($0.dropFirst("cookie:".count)).trimmingCharacters(in: .whitespaces) }
                     ?? ""
+                if path != "/favicon.ico" {
+                    self.logLock.withLock { self.loggedPaths.append(path) }
+                }
                 self.respond(path: path, cookieHeader: cookieHeader, on: connection)
             }
         }
@@ -191,6 +204,50 @@ final class BrowserTabsTests: XCTestCase {
                 <html>
                 <head><meta charset="utf-8"><title>Auto Popup</title></head>
                 <body><h1>Should Be Blocked</h1></body>
+                </html>
+                """
+            case "/timers":
+                body = """
+                <!doctype html>
+                <html>
+                <head><meta charset="utf-8"><title>Timer Page</title></head>
+                <body>
+                  <h1>Timer Page</h1>
+                  <div id="ticks">0</div>
+                  <script>
+                    window.__intervalTicks = 0;
+                    window.__timeoutTicks = 0;
+                    setInterval(() => {
+                      window.__intervalTicks += 1;
+                      document.getElementById('ticks').textContent = String(window.__intervalTicks);
+                    }, 40);
+                    function scheduleNext() {
+                      setTimeout(() => {
+                        window.__timeoutTicks += 1;
+                        scheduleNext();
+                      }, 40);
+                    }
+                    scheduleNext();
+                  </script>
+                </body>
+                </html>
+                """
+            case let p where p.hasPrefix("/tall/"):
+                let suffix = String(p.dropFirst("/tall/".count))
+                body = """
+                <!doctype html>
+                <html>
+                <head>
+                  <meta charset="utf-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1">
+                  <title>Tall Tab \(suffix)</title>
+                </head>
+                <body style="margin:0;">
+                  <div style="height:3600px;background:linear-gradient(#e2e8f0,#94a3b8);padding:24px;">
+                    <h1 id="heading">Tall Tab \(suffix)</h1>
+                    <div id="target">content-\(suffix)</div>
+                  </div>
+                </body>
                 </html>
                 """
             default:
@@ -315,6 +372,7 @@ final class BrowserTabsTests: XCTestCase {
     private var server: LoopbackTabsServer!
     private var tempDir: URL!
     private var hostWindow: UIWindow!
+    private var webHostView: BrowserTabsWebHostView!
     private var app: AppModel!
     private var cancellables: Set<AnyCancellable> = []
 
@@ -370,28 +428,17 @@ final class BrowserTabsTests: XCTestCase {
         app.settings.setConfiguration(anthropic, for: .anthropic)
         app.settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .browserAgent)
 
-        mountActiveWebView()
-        app.objectWillChange
-            .sink { [weak self] in
-                Task { @MainActor in self?.mountActiveWebView() }
-            }
-            .store(in: &cancellables)
+        mountTabsWebHost(for: app)
     }
 
     override func tearDown() async throws {
         cancellables.removeAll()
         if let app {
-            for tab in app.tabs.tabs {
-                tab.agentSession.stop()
-                tab.browser.stopLoading()
-                tab.browser.detachCallbacks()
-                tab.scriptWebController.detach()
-                tab.browser.webView.removeFromSuperview()
-            }
-            app.pauseDigest()
-            app.podcast.pauseGeneration()
+            tearDownApp(app)
         }
         app = nil
+        webHostView?.removeFromSuperview()
+        webHostView = nil
         if let hostWindow {
             hostWindow.isHidden = true
             hostWindow.rootViewController = nil
@@ -407,14 +454,26 @@ final class BrowserTabsTests: XCTestCase {
         try await super.tearDown()
     }
 
-    private func mountActiveWebView() {
-        guard let rootView = hostWindow?.rootViewController?.view, let activeWebView = app?.browser.webView else { return }
-        if activeWebView.superview !== rootView {
-            rootView.subviews.forEach { $0.removeFromSuperview() }
-            activeWebView.frame = rootView.bounds
-            rootView.addSubview(activeWebView)
-            rootView.layoutIfNeeded()
+    private func tearDownApp(_ targetApp: AppModel) {
+        for tab in targetApp.tabs.tabs {
+            tab.agentSession.stop()
+            tab.browser.stopLoading()
+            tab.browser.detachCallbacks()
+            tab.scriptWebController.detach()
+            tab.browser.existingWebView?.removeFromSuperview()
         }
+        targetApp.pauseDigest()
+        targetApp.podcast.pauseGeneration()
+    }
+
+    private func mountTabsWebHost(for targetApp: AppModel) {
+        guard let rootView = hostWindow?.rootViewController?.view else { return }
+        rootView.subviews.forEach { $0.removeFromSuperview() }
+        let host = BrowserTabsWebHostView(tabs: targetApp.tabs, frame: rootView.bounds)
+        host.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        rootView.addSubview(host)
+        rootView.layoutIfNeeded()
+        webHostView = host
     }
 
     private func waitUntil(
@@ -460,7 +519,7 @@ final class BrowserTabsTests: XCTestCase {
         // Open t2 in front on a plain web page: AppModel.browser, AppModel.browserAgent,
         // currentTopic, and pageUpdates all switch to t2 while t1 keeps its state.
         let betaURL = server.url("/tab-b")
-        let tab2 = app.tabs.openTab(url: betaURL)
+        let tab2 = try XCTUnwrap(app.tabs.openTab(url: betaURL))
         XCTAssertEqual(app.tabs.tabs.map(\.id), ["t1", "t2"])
         XCTAssertEqual(app.tabs.currentTabID, "t2")
         XCTAssertTrue(app.browser === tab2.browser)
@@ -505,7 +564,7 @@ final class BrowserTabsTests: XCTestCase {
         }
 
         // Open tab 2 to /whoami: both HttpOnly request cookies and document.cookie carry over.
-        let tab2 = app.tabs.openTab(url: server.url("/whoami"))
+        let tab2 = try XCTUnwrap(app.tabs.openTab(url: server.url("/whoami")))
         try await waitUntil(description: "t2 /whoami finished") {
             tab2.browser.pageTitle == "Who Am I" && !tab2.browser.isLoading
         }
@@ -529,7 +588,7 @@ final class BrowserTabsTests: XCTestCase {
             tabA.browser.pageTitle == "Alpha Page" && !tabA.browser.isLoading
         }
 
-        let tabB = app.tabs.openTab(url: server.url("/tab-b"), inFront: false)
+        let tabB = try XCTUnwrap(app.tabs.openTab(url: server.url("/tab-b"), inFront: false))
         try await waitUntil(description: "tab B loaded in background") {
             tabB.browser.pageTitle == "Beta Page" && !tabB.browser.isLoading
         }
@@ -591,7 +650,7 @@ final class BrowserTabsTests: XCTestCase {
 
     func testTargetBlankOpensNewFrontTabAfterCurrentTabAndBlocksAutoWindowOpen() async throws {
         let tab1 = app.tabs.currentTab
-        let trailingTab = app.tabs.openTab(url: server.url("/tab-b"), inFront: false)
+        let trailingTab = try XCTUnwrap(app.tabs.openTab(url: server.url("/tab-b"), inFront: false))
         XCTAssertEqual(app.tabs.tabs.map(\.id), [tab1.id, trailingTab.id])
         XCTAssertEqual(app.tabs.currentTabID, tab1.id)
 
@@ -636,7 +695,7 @@ final class BrowserTabsTests: XCTestCase {
             tab1.browser.pageTitle == "Alpha Page" && !tab1.browser.isLoading
         }
 
-        let tab2 = app.tabs.openTab(url: server.url("/tab-b"))
+        let tab2 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tab-b")))
         try await waitUntil(description: "tab 2 loaded") {
             tab2.browser.pageTitle == "Beta Page" && !tab2.browser.isLoading
         }
@@ -665,5 +724,479 @@ final class BrowserTabsTests: XCTestCase {
         XCTAssertFalse(app.isHandingOff)
         XCTAssertEqual(tab2.agentSession.runs.count, 1)
         XCTAssertTrue(tab1.agentSession.runs.isEmpty)
+    }
+
+    // MARK: - T2: Saved Tabs, Limits, Memory Unload, and Window Host
+
+    private func makeSolidImage(color: UIColor) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 48, height: 64))
+        return renderer.image { ctx in
+            color.setFill()
+            ctx.fill(CGRect(x: 0, y: 0, width: 48, height: 64))
+        }
+    }
+
+    private func makeRestorableApp(store: PersistentStore) -> AppModel {
+        let created = AppModel(
+            store: store,
+            browser: nil,
+            websiteDataStore: Self.sharedDataStore,
+            cloudSync: CloudSyncController(transport: nil, files: nil, defaults: nil, schedulesAutomatically: false),
+            podcastDirectory: tempDir.appendingPathComponent("Podcasts", isDirectory: true),
+            workspaceDirectory: tempDir.appendingPathComponent("Workspace", isDirectory: true),
+            spotlightIndex: FakeSpotlightIndex(),
+            topicActivityDonor: FakeTopicActivityDonor(),
+            backgroundGrace: NoOpBackgroundGrace()
+        )
+        created.usesDirectForumRequests = true
+        var anthropic = created.settings.configuration(for: .anthropic)
+        anthropic.apiKey = "test-key"
+        anthropic.model = "claude-haiku-5-5"
+        created.settings.setConfiguration(anthropic, for: .anthropic)
+        created.settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .browserAgent)
+        return created
+    }
+
+    func testSavedSetOfFiveTabsRestoresOrderCurrentTabAndLoadsOnlyCurrentTabLazily() async throws {
+        let persistenceDir = tempDir.appendingPathComponent("RestoreSuite", isDirectory: true)
+        try FileManager.default.createDirectory(at: persistenceDir, withIntermediateDirectories: true)
+        let sharedStore = PersistentStore(
+            fileURL: persistenceDir.appendingPathComponent("state.json"),
+            keys: InMemoryProviderKeyStore()
+        )
+
+        var app1: AppModel? = makeRestorableApp(store: sharedStore)
+        let first = try XCTUnwrap(app1)
+        mountTabsWebHost(for: first)
+
+        // Tab 1: tall page 1, scrolled to y=320, snapshot + finished conversation.
+        let t1 = first.tabs.currentTab
+        t1.browser.load(server.url("/tall/1"))
+        try await waitUntil(description: "t1 loaded /tall/1") {
+            t1.browser.pageTitle == "Tall Tab 1" && !t1.browser.isLoading
+        }
+        _ = try await t1.browser.webView.evaluateJavaScript("window.scrollTo(0, 320);")
+        t1.browser.setSavedScrollPosition(CGPoint(x: 0, y: 320))
+        t1.snapshot = makeSolidImage(color: .systemBlue)
+        t1.agentSession.configureDebugModelClient(
+            RecordedModelClient([.success(AgentModelTurnResponse(text: "Reply on Tab 1."))])
+        )
+        await t1.agentSession.sendAndWait("Question on Tab 1")
+
+        // Tab 2: Home tab (nil URL), voice turn in conversation.
+        let t2 = try XCTUnwrap(first.tabs.openTab(url: nil, inFront: true))
+        XCTAssertTrue(t2.showsHome)
+        t2.agentSession.appendVoiceTurn(.voiceUser, text: "Hello from Home tab")
+
+        // Tab 3: tall page 3, scrolled to y=460, active run in flight when the app quits.
+        let t3 = try XCTUnwrap(first.tabs.openTab(url: server.url("/tall/3"), inFront: true))
+        try await waitUntil(description: "t3 loaded /tall/3") {
+            t3.browser.pageTitle == "Tall Tab 3" && !t3.browser.isLoading
+        }
+        _ = try await t3.browser.webView.evaluateJavaScript("window.scrollTo(0, 460);")
+        t3.browser.setSavedScrollPosition(CGPoint(x: 0, y: 460))
+        t3.snapshot = makeSolidImage(color: .systemGreen)
+
+        // Tab 4: tall page 4, scrolled to y=610, snapshot + finished conversation.
+        let t4 = try XCTUnwrap(first.tabs.openTab(url: server.url("/tall/4"), inFront: true))
+        try await waitUntil(description: "t4 loaded /tall/4") {
+            t4.browser.pageTitle == "Tall Tab 4" && !t4.browser.isLoading
+        }
+        _ = try await t4.browser.webView.evaluateJavaScript("window.scrollTo(0, 610);")
+        t4.browser.setSavedScrollPosition(CGPoint(x: 0, y: 610))
+        t4.snapshot = makeSolidImage(color: .systemOrange)
+        t4.agentSession.configureDebugModelClient(
+            RecordedModelClient([.success(AgentModelTurnResponse(text: "Reply on Tab 4."))])
+        )
+        await t4.agentSession.sendAndWait("Question on Tab 4")
+
+        // Tab 5: tall page 5, snapshot + finished conversation.
+        let t5 = try XCTUnwrap(first.tabs.openTab(url: server.url("/tall/5"), inFront: true))
+        try await waitUntil(description: "t5 loaded /tall/5") {
+            t5.browser.pageTitle == "Tall Tab 5" && !t5.browser.isLoading
+        }
+        t5.snapshot = makeSolidImage(color: .systemPurple)
+        t5.agentSession.configureDebugModelClient(
+            RecordedModelClient([.success(AgentModelTurnResponse(text: "Reply on Tab 5."))])
+        )
+        await t5.agentSession.sendAndWait("Question on Tab 5")
+
+        // Switch back to Tab 3 so Tab 3 is the current tab, and start a run that stays running at quit.
+        XCTAssertTrue(first.tabs.switchToTab(id: t3.id))
+        t3.browser.setSavedScrollPosition(CGPoint(x: 0, y: 460))
+        let inFlightClient = TabBoundAgentClient(step2DestinationURL: server.url("/tab-a-step2").absoluteString)
+        t3.agentSession.configureDebugModelClient(inFlightClient)
+        t3.agentSession.send("Keep running across quit")
+        await inFlightClient.step1Started.wait()
+        try await waitUntil(description: "t3 step 1 tool row recorded") {
+            !t3.agentSession.toolCalls.isEmpty && t3.agentSession.isRunning
+        }
+
+        let expectedIDs = [t1.id, t2.id, t3.id, t4.id, t5.id]
+        let expectedConversationIDs = first.tabs.tabs.map(\.conversationID)
+        first.flushPendingSaves()
+
+        // Simulate app termination without calling user stop() before saving: tear down old instance
+        // after detaching persistence so the on-disk state keeps the in-flight `.running` state!
+        first.suppressesPersistence = true
+        tearDownApp(first)
+        app1 = nil
+        server.resetRequestLog()
+
+        // Relaunch from the same store.
+        let app2 = makeRestorableApp(store: sharedStore)
+        addTeardownBlock { @MainActor [weak self] in
+            self?.tearDownApp(app2)
+        }
+        mountTabsWebHost(for: app2)
+
+        XCTAssertEqual(app2.tabs.tabs.map(\.id), expectedIDs, "All 5 tabs restore in exact saved order")
+        XCTAssertEqual(app2.tabs.currentTabID, "t3", "Saved front tab restores as currentTab")
+        XCTAssertEqual(app2.tabs.tabs.map(\.conversationID), expectedConversationIDs, "Conversation IDs restore 1:1")
+
+        let r1 = try XCTUnwrap(app2.tabs.tab(id: "t1"))
+        let r2 = try XCTUnwrap(app2.tabs.tab(id: "t2"))
+        let r3 = try XCTUnwrap(app2.tabs.tab(id: "t3"))
+        let r4 = try XCTUnwrap(app2.tabs.tab(id: "t4"))
+        let r5 = try XCTUnwrap(app2.tabs.tab(id: "t5"))
+
+        // Only the current tab (r3) allocated a WKWebView and loaded over the network.
+        XCTAssertTrue(r3.isWebViewLoaded)
+        XCTAssertFalse(r1.isWebViewLoaded)
+        XCTAssertNil(r1.browser.existingWebView)
+        XCTAssertFalse(r2.isWebViewLoaded)
+        XCTAssertNil(r2.browser.existingWebView)
+        XCTAssertFalse(r4.isWebViewLoaded)
+        XCTAssertNil(r4.browser.existingWebView)
+        XCTAssertFalse(r5.isWebViewLoaded)
+        XCTAssertNil(r5.browser.existingWebView)
+
+        try await waitUntil(description: "restored current tab r3 finished loading /tall/3") {
+            r3.browser.pageTitle == "Tall Tab 3" && !r3.browser.isLoading
+        }
+        try await waitUntil(description: "restored current tab r3 restored scroll y=460") {
+            let y = (try? await r3.browser.webView.evaluateJavaScript("window.scrollY")) as? Double ?? 0
+            return abs(y - 460) < 5
+        }
+        XCTAssertEqual(
+            Set(server.requestedPaths),
+            ["/tall/3"],
+            "Only the restored current tab loaded over HTTP; background tabs made zero requests"
+        )
+
+        // Unloaded background tabs still expose their saved URL, title, snapshot, scroll, and conversation.
+        XCTAssertEqual(r1.url, server.url("/tall/1"))
+        XCTAssertEqual(r1.title, "Tall Tab 1")
+        XCTAssertEqual(r1.scrollPosition.y, 320, accuracy: 1)
+        XCTAssertNotNil(r1.snapshot)
+        XCTAssertEqual(r1.agentSession.runs.first?.assistantText, "Reply on Tab 1.")
+
+        XCTAssertNil(r2.url)
+        XCTAssertTrue(r2.showsHome)
+        XCTAssertEqual(r2.agentSession.voiceTurns.first?.text, "Hello from Home tab")
+
+        XCTAssertEqual(r4.url, server.url("/tall/4"))
+        XCTAssertEqual(r4.title, "Tall Tab 4")
+        XCTAssertEqual(r4.scrollPosition.y, 610, accuracy: 1)
+        XCTAssertNotNil(r4.snapshot)
+        XCTAssertEqual(r4.agentSession.runs.first?.assistantText, "Reply on Tab 4.")
+
+        XCTAssertEqual(r5.url, server.url("/tall/5"))
+        XCTAssertEqual(r5.title, "Tall Tab 5")
+        XCTAssertNotNil(r5.snapshot)
+        XCTAssertEqual(r5.agentSession.runs.first?.assistantText, "Reply on Tab 5.")
+
+        // The run that was going in r3 when the app quit came back stopped.
+        XCTAssertFalse(r3.agentSession.isRunning)
+        if case .stopped = r3.agentSession.runState {
+            // expected
+        } else {
+            XCTFail("Expected in-flight run to restore as .stopped, got \(r3.agentSession.runState)")
+        }
+        if case .stopped = r3.agentSession.runs.last?.state {
+            // expected
+        } else {
+            XCTFail("Expected last run record to restore as .stopped, got \(String(describing: r3.agentSession.runs.last?.state))")
+        }
+        XCTAssertTrue(r3.agentSession.toolCalls.allSatisfy { !$0.isRunning })
+
+        // Switching to unloaded r4 loads its page lazily and restores its saved scroll position.
+        XCTAssertTrue(app2.tabs.switchToTab(id: "t4"))
+        XCTAssertTrue(r4.isWebViewLoaded)
+        XCTAssertFalse(r1.isWebViewLoaded, "Other background tabs stay unloaded")
+        XCTAssertFalse(r5.isWebViewLoaded, "Other background tabs stay unloaded")
+        try await waitUntil(description: "r4 lazily loaded /tall/4 and restored scroll y=610") {
+            guard r4.browser.pageTitle == "Tall Tab 4", !r4.browser.isLoading else { return false }
+            let y = (try? await r4.browser.webView.evaluateJavaScript("window.scrollY")) as? Double ?? 0
+            return abs(y - 610) < 5
+        }
+
+        // Starting a "New conversation" in r4 rotates its conversationID and clears saved turns.
+        let oldConvID = r4.conversationID
+        r4.agentSession.resetConversation()
+        XCTAssertNotEqual(r4.conversationID, oldConvID)
+        app2.flushPendingSaves()
+        XCTAssertNil(app2.tabStateStore.loadConversation(id: oldConvID))
+    }
+
+    func testThirtyFirstOpenIsRefusedForBothPersonAndTool() async throws {
+        XCTAssertEqual(app.tabs.tabs.count, 1)
+        let openerTab = app.tabs.currentTab
+        openerTab.browser.load(server.url("/opener"))
+        try await waitUntil(description: "opener loaded") {
+            openerTab.browser.pageTitle == "Opener Page" && !openerTab.browser.isLoading
+        }
+
+        for _ in 2...BrowserTabs.maxTabs {
+            XCTAssertNotNil(app.tabs.openTab(inFront: false))
+        }
+        XCTAssertEqual(app.tabs.tabs.count, 30)
+        XCTAssertFalse(app.tabs.canOpenTab)
+        XCTAssertEqual(BrowserTabs.personTabLimitMessage, "30 tabs open. Close one to open another")
+
+        server.resetRequestLog()
+
+        // 1. Person open via New Tab (`openTab`): refused at 30 tabs.
+        XCTAssertNil(app.tabs.openTab(url: server.url("/tab-b"), inFront: true))
+        XCTAssertEqual(app.tabs.tabs.count, 30)
+        XCTAssertTrue(server.requestedPaths.isEmpty)
+
+        // 2. Person open via `<a target="_blank">` in the active opener tab: refused at 30 tabs.
+        XCTAssertEqual(app.tabs.currentTabID, openerTab.id)
+        _ = try await openerTab.browser.webView.evaluateJavaScript("document.getElementById('blank-link').click();")
+        try await Task.sleep(for: .milliseconds(300))
+        XCTAssertEqual(app.tabs.tabs.count, 30, "target=_blank opens nothing at 30 tabs")
+        XCTAssertFalse(server.requestedPaths.contains("/opened-blank"))
+
+        // 3. Tool open (`openTabForTool`): fails with exact error "Tab limit reached: 30 open".
+        let toolAttempt = app.tabs.openTabForTool(url: server.url("/tab-b"))
+        switch toolAttempt {
+        case .success(let unexpected):
+            XCTFail("Expected 31st tool open to fail, got tab \(unexpected.id)")
+        case .failure(let error):
+            XCTAssertEqual(error.localizedDescription, "Tab limit reached: 30 open")
+        }
+        XCTAssertEqual(app.tabs.tabs.count, 30)
+        XCTAssertTrue(server.requestedPaths.isEmpty)
+
+        // Closing one tab frees a slot so the tool can open a 30th tab in the background.
+        let closedID = app.tabs.tabs.last!.id
+        XCTAssertTrue(app.tabs.closeTab(id: closedID))
+        XCTAssertEqual(app.tabs.tabs.count, 29)
+        XCTAssertTrue(app.tabs.canOpenTab)
+
+        let reopened = try app.tabs.openTabForTool(url: server.url("/tab-b")).get()
+        XCTAssertEqual(app.tabs.tabs.count, 30)
+        XCTAssertEqual(app.tabs.currentTabID, openerTab.id, "Tool-opened tab opens in background by default")
+        try await waitUntil(description: "tool-opened 30th tab loaded /tab-b") {
+            reopened.browser.pageTitle == "Beta Page" && !reopened.browser.isLoading
+        }
+    }
+
+    func testSimulatedMemoryWarningUnloadsIdleBackgroundTabsButNotRunningAgentTab() async throws {
+        // Tab 1: idle background tab with scroll position, snapshot, and conversation.
+        let tab1 = app.tabs.currentTab
+        tab1.browser.load(server.url("/tall/1"))
+        try await waitUntil(description: "tab 1 loaded") {
+            tab1.browser.pageTitle == "Tall Tab 1" && !tab1.browser.isLoading
+        }
+        _ = try await tab1.browser.webView.evaluateJavaScript("window.scrollTo(0, 380);")
+        tab1.browser.setSavedScrollPosition(CGPoint(x: 0, y: 380))
+        tab1.snapshot = makeSolidImage(color: .systemTeal)
+        tab1.agentSession.configureDebugModelClient(
+            RecordedModelClient([.success(AgentModelTurnResponse(text: "Tab 1 memory reply."))])
+        )
+        await tab1.agentSession.sendAndWait("Remember Tab 1")
+
+        // Tab 2: background tab with an active Agent run.
+        let tab2 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tab-a"), inFront: true))
+        try await waitUntil(description: "tab 2 loaded") {
+            tab2.browser.pageTitle == "Alpha Page" && !tab2.browser.isLoading
+        }
+
+        // Tab 3: another idle background tab.
+        let tab3 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tall/3"), inFront: true))
+        try await waitUntil(description: "tab 3 loaded") {
+            tab3.browser.pageTitle == "Tall Tab 3" && !tab3.browser.isLoading
+        }
+
+        // Tab 4: current front tab.
+        let tab4 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tab-b"), inFront: true))
+        try await waitUntil(description: "tab 4 loaded") {
+            tab4.browser.pageTitle == "Beta Page" && !tab4.browser.isLoading
+        }
+        XCTAssertEqual(app.tabs.currentTabID, tab4.id)
+
+        // Start an Agent run in background Tab 2.
+        let runningClient = TabBoundAgentClient(step2DestinationURL: server.url("/tab-a-step2").absoluteString)
+        tab2.agentSession.configureDebugModelClient(runningClient)
+        tab2.agentSession.send("Modify Alpha while in background")
+        await runningClient.step1Started.wait()
+        XCTAssertTrue(tab2.agentSession.isRunning)
+
+        // Post UIKit's real memory warning notification.
+        NotificationCenter.default.post(
+            name: UIApplication.didReceiveMemoryWarningNotification,
+            object: UIApplication.shared
+        )
+
+        // Idle background tabs (tab1, tab3) dropped their WKWebView while keeping metadata & conversation.
+        XCTAssertFalse(tab1.isWebViewLoaded)
+        XCTAssertNil(tab1.browser.existingWebView)
+        XCTAssertEqual(tab1.url, server.url("/tall/1"))
+        XCTAssertEqual(tab1.title, "Tall Tab 1")
+        XCTAssertEqual(tab1.scrollPosition.y, 380, accuracy: 1)
+        XCTAssertNotNil(tab1.snapshot)
+        XCTAssertEqual(tab1.agentSession.runs.first?.assistantText, "Tab 1 memory reply.")
+
+        XCTAssertFalse(tab3.isWebViewLoaded)
+        XCTAssertNil(tab3.browser.existingWebView)
+        XCTAssertEqual(tab3.url, server.url("/tall/3"))
+        XCTAssertEqual(tab3.title, "Tall Tab 3")
+
+        // Running background tab (tab2) and current tab (tab4) were NOT unloaded!
+        XCTAssertTrue(tab2.isWebViewLoaded, "Running background tab must never unload under memory pressure")
+        XCTAssertNotNil(tab2.browser.existingWebView)
+        XCTAssertTrue(tab2.agentSession.isRunning)
+        XCTAssertTrue(tab4.isWebViewLoaded, "Current front tab must not unload")
+
+        // Let tab2 finish its background Agent run and verify its DOM/navigation succeeded.
+        await runningClient.allowStep2.open()
+        await tab2.agentSession.waitForActiveRun()
+        XCTAssertEqual(tab2.agentSession.runs.last?.assistantText, "Completed work on Tab A.")
+        XCTAssertEqual(tab2.browser.currentURL, server.url("/tab-a-step2"))
+
+        // Switching back to unloaded tab1 reloads its page, restores scroll, and reattaches AgentBridge.
+        XCTAssertTrue(app.tabs.switchToTab(id: tab1.id))
+        XCTAssertTrue(tab1.isWebViewLoaded)
+        try await waitUntil(description: "tab1 reloaded /tall/1 and restored scroll y=380") {
+            guard tab1.browser.pageTitle == "Tall Tab 1", !tab1.browser.isLoading else { return false }
+            let y = (try? await tab1.browser.webView.evaluateJavaScript("window.scrollY")) as? Double ?? 0
+            return abs(y - 380) < 5
+        }
+        let bridgeCheck = try await tab1.browser.agentBridge.runJS(
+            code: "return document.getElementById('target').textContent;",
+            environment: .isolated
+        )
+        XCTAssertEqual(bridgeCheck.valueJSON, #""content-1""#)
+    }
+
+    func testFourthConcurrentRunIsRefusedUntilARunningTabStopsOrCompletes() async throws {
+        let tab1 = app.tabs.currentTab
+        let tab2 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tab-a"), inFront: false))
+        let tab3 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tab-b"), inFront: false))
+        let tab4 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tall/4"), inFront: true))
+
+        tab1.browser.load(server.url("/tall/1"))
+        try await waitUntil(description: "all 4 tabs settled") {
+            !tab1.browser.isLoading && !tab2.browser.isLoading && !tab3.browser.isLoading && !tab4.browser.isLoading
+        }
+
+        let client1 = TabBoundAgentClient(step2DestinationURL: server.url("/tab-a-step2").absoluteString)
+        let client2 = TabBoundAgentClient(step2DestinationURL: server.url("/tab-a-step2").absoluteString)
+        let client3 = TabBoundAgentClient(step2DestinationURL: server.url("/tab-a-step2").absoluteString)
+        tab1.agentSession.configureDebugModelClient(client1)
+        tab2.agentSession.configureDebugModelClient(client2)
+        tab3.agentSession.configureDebugModelClient(client3)
+        tab4.agentSession.configureDebugModelClient(
+            RecordedModelClient([.success(AgentModelTurnResponse(text: "Tab 4 ran once a slot freed."))])
+        )
+
+        tab1.agentSession.send("Run 1")
+        tab2.agentSession.send("Run 2")
+        tab3.agentSession.send("Run 3")
+        await client1.step1Started.wait()
+        await client2.step1Started.wait()
+        await client3.step1Started.wait()
+
+        XCTAssertEqual(app.tabs.runningTabCount, 3)
+        XCTAssertFalse(app.tabs.canStartRun(forTabID: tab4.id))
+
+        // Attempt a 4th run in tab4 (both typed send and voice hand-off): refused!
+        tab4.agentSession.send("Run 4 should be refused")
+        XCTAssertFalse(tab4.agentSession.isRunning)
+        XCTAssertTrue(tab4.agentSession.runs.isEmpty)
+        XCTAssertTrue(tab4.agentSession.messages.isEmpty)
+        XCTAssertEqual(tab4.agentSession.runLimitNotice, "3 runs are going. Wait for one or stop it")
+
+        let voiceRefusal = app.startHandOff("Voice run 4")
+        XCTAssertEqual(voiceRefusal, "3 runs are going. Wait for one or stop it")
+        XCTAssertFalse(tab4.agentSession.isRunning)
+
+        // Stop tab1's run: runningTabCount drops to 2, tab4's notice clears, and tab4 can now run.
+        tab1.agentSession.stop()
+        XCTAssertEqual(app.tabs.runningTabCount, 2)
+        XCTAssertNil(tab4.agentSession.runLimitNotice)
+
+        await tab4.agentSession.sendAndWait("Run 4 after slot opened")
+        XCTAssertEqual(tab4.agentSession.runs.first?.assistantText, "Tab 4 ran once a slot freed.")
+
+        tab2.agentSession.stop()
+        tab3.agentSession.stop()
+    }
+
+    func testAlphaZeroBackgroundRunningTabKeepsTimersAndJSRunningInWindow() async throws {
+        let tab1 = app.tabs.currentTab
+        tab1.browser.load(server.url("/timers"))
+        try await waitUntil(description: "timer page loaded in tab 1") {
+            tab1.browser.pageTitle == "Timer Page" && !tab1.browser.isLoading
+        }
+
+        let tab2 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tab-b"), inFront: false))
+        try await waitUntil(description: "tab 2 loaded") {
+            tab2.browser.pageTitle == "Beta Page" && !tab2.browser.isLoading
+        }
+
+        // Start a run in tab1 so BrowserTabsWebHostView keeps tab1's WKWebView in the UIWindow
+        // with alpha = 0, isHidden = false, isUserInteractionEnabled = false when tab2 is in front.
+        let client1 = TabBoundAgentClient(step2DestinationURL: server.url("/tab-a-step2").absoluteString)
+        tab1.agentSession.configureDebugModelClient(client1)
+        tab1.agentSession.send("Keep tab 1 running while tab 2 is in front")
+        await client1.step1Started.wait()
+
+        XCTAssertTrue(app.tabs.switchToTab(id: tab2.id))
+        XCTAssertEqual(app.tabs.currentTabID, tab2.id)
+
+        // Verify window attachment & styling of both web views.
+        let bgWebView = try XCTUnwrap(tab1.browser.existingWebView)
+        let frontWebView = try XCTUnwrap(tab2.browser.existingWebView)
+        XCTAssertNotNil(bgWebView.window, "Running background tab's WKWebView must remain attached to UIWindow")
+        XCTAssertFalse(bgWebView.isHidden, "Running background tab's WKWebView must keep isHidden = false")
+        XCTAssertEqual(bgWebView.alpha, 0, accuracy: 0.001, "Running background tab's WKWebView must have alpha = 0")
+        XCTAssertFalse(bgWebView.isUserInteractionEnabled, "Running background tab's WKWebView must disable user interaction")
+        XCTAssertNotNil(frontWebView.window)
+        XCTAssertEqual(frontWebView.alpha, 1, accuracy: 0.001)
+        XCTAssertEqual(webHostView.subviews.last, frontWebView, "Current tab's WKWebView stays in front")
+
+        let baselineRaw = try await bgWebView.evaluateJavaScript("({ i: window.__intervalTicks, t: window.__timeoutTicks })") as? [String: Int]
+        let startInterval = try XCTUnwrap(baselineRaw?["i"])
+        let startTimeout = try XCTUnwrap(baselineRaw?["t"])
+
+        // Keep tab2 in front for 1.5s and verify setInterval, setTimeout, and async JS keep running unthrottled in tab1.
+        try await Task.sleep(for: .milliseconds(1500))
+
+        let afterRaw = try await bgWebView.evaluateJavaScript("({ i: window.__intervalTicks, t: window.__timeoutTicks })") as? [String: Int]
+        let endInterval = try XCTUnwrap(afterRaw?["i"])
+        let endTimeout = try XCTUnwrap(afterRaw?["t"])
+        XCTAssertGreaterThanOrEqual(
+            endInterval - startInterval,
+            12,
+            "alpha=0 windowed background tab kept setInterval ticking (\(startInterval) -> \(endInterval))"
+        )
+        XCTAssertGreaterThanOrEqual(
+            endTimeout - startTimeout,
+            12,
+            "alpha=0 windowed background tab kept setTimeout ticking (\(startTimeout) -> \(endTimeout))"
+        )
+
+        let jsTimerProbe = try await tab1.browser.agentBridge.runJS(
+            code: "await new Promise(r => setTimeout(r, 80)); return window.__intervalTicks;",
+            environment: .page
+        )
+        XCTAssertNotNil(jsTimerProbe.valueJSON)
+
+        // Once tab1's run ends, BrowserTabsWebHostView detaches tab1's WKWebView from the window.
+        tab1.agentSession.stop()
+        XCTAssertNil(bgWebView.window, "Once the background run stops, its WKWebView is removed from the window")
     }
 }
