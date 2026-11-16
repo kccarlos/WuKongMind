@@ -274,7 +274,8 @@ extension ToolRegistry {
             guard learned.pageToolBridge.isEnabled else {
                 return (ToolExecutionOutput(content: forumToolRefusal(slot.rawValue, forum: nil), summary: "Not a forum", isError: true), nil)
             }
-            let slotState = learned.state.slot(slot)
+            let liveState = learned.stateStore?.state(forHost: learned.host) ?? learned.state
+            let slotState = liveState.slot(slot)
             let script = slotState.scriptID.flatMap { context.scriptStore.script(id: $0) }
             if slotState.scriptID != nil && script == nil {
                 return (ToolExecutionOutput(content: forumToolRefusal(slot.rawValue, forum: nil), summary: "Not a forum", isError: true), nil)
