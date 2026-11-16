@@ -2296,6 +2296,7 @@ final class ScriptStore {
                 Task { @MainActor in await controller.removeLiveScript(id: id) }
             }
         }
+        notifySyncedScriptsChanged()
         return updated
     }
 

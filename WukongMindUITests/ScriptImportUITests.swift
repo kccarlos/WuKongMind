@@ -19,6 +19,7 @@ final class ScriptImportUITests: DCUITestCase {
 
         let addApp = launch(["-dc-m4-import-preview", "add"])
         XCTAssertTrue(waitOrDump(any(addApp, "scriptImportSheet"), timeout: 15, in: addApp))
+        XCTAssertTrue(any(addApp, "scriptImportDuplicateBanner").exists)
         let keepOff = addApp.buttons["scriptImportAddKeepOff"].firstMatch
         XCTAssertTrue(waitOrDump(keepOff, timeout: 5, in: addApp))
         keepOff.tap()
@@ -32,6 +33,13 @@ final class ScriptImportUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(updateButton, timeout: 5, in: updateApp))
         updateButton.tap()
         XCTAssertTrue(waitForGone(any(updateApp, "scriptImportSheet"), timeout: 5))
+
+        let failedApp = launch(["-dc-m4-import-preview", "failed"])
+        XCTAssertTrue(waitOrDump(any(failedApp, "scriptImportFailed"), timeout: 15, in: failedApp))
+        let closeButton = failedApp.buttons["scriptImportDismiss"].firstMatch
+        XCTAssertTrue(waitOrDump(closeButton, timeout: 5, in: failedApp))
+        closeButton.tap()
+        XCTAssertTrue(waitForGone(any(failedApp, "scriptImportSheet"), timeout: 5))
     }
 
     func testCaptureM4ImportProofScreenshots() throws {

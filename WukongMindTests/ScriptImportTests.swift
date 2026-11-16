@@ -605,7 +605,10 @@ final class ScriptImportTests: XCTestCase {
             if case .ready = importer.phase { break }
             try await Task.sleep(nanoseconds: 20_000_000)
         }
+        var syncNotifications = 0
+        store.onSyncedScriptsChanged = { syncNotifications += 1 }
         let updated = try XCTUnwrap(try importer.confirmImport(turnOn: true))
+        XCTAssertEqual(syncNotifications, 1, "An applied update must reach iCloud sync")
         XCTAssertNil(importer.availableUpdate(for: savedV1.id))
         XCTAssertEqual(updated.versionOrigin, .updated)
         XCTAssertEqual(updated.metadata.authorVersion, "1.10.0")
@@ -637,6 +640,69 @@ final class ScriptImportTests: XCTestCase {
         XCTAssertNotEqual(mirrorSaved.id, savedV1.id)
         XCTAssertTrue(store.valuesStore.values(for: mirrorSaved.id).isEmpty)
         XCTAssertEqual(store.valuesStore.values(for: savedV1.id)["theme"], .string("dark"))
+    }
+
+    // MARK: - Update link rules
+
+    func testUpdateChecksUseOnlyHTTPSUpdateLinks() async throws {
+        func header(_ extra: String) -> String {
+            """
+            // ==UserScript==
+            // @name        Link Rules
+            // @namespace   https://example.org/ns
+            // @version     1.0.0
+            // @match       https://talk.example.org/*
+            \(extra)
+            // ==/UserScript==
+            console.log('x');
+            """
+        }
+        ImportStubProtocol.install { req in
+            StubResponse(body: Data(header("").utf8))
+        }
+
+        func importScript(extra: String, installURL: String) async throws -> UserScript {
+            let installURL = URL(string: installURL)!
+            ImportStubProtocol.install { req in StubResponse(body: Data(header(extra).utf8)) }
+            let review = try await importer.fetchReview(from: installURL, httpClient: httpClient).get()
+            return try store.saveImportedScript(
+                review.candidate, installURL: review.installURL,
+                upstreamHash: review.upstreamHash, libraries: [], turnOn: true
+            )
+        }
+
+        // An http @updateURL is skipped: the https @downloadURL is checked instead.
+        let a = try await importScript(
+            extra: "// @updateURL http://insecure.example.org/a.meta.js\n// @downloadURL https://dl.example.org/a.user.js",
+            installURL: "https://example.org/a.user.js"
+        )
+        XCTAssertEqual(ScriptImporter.preferredCheckURL(for: a)?.absoluteString, "https://dl.example.org/a.user.js")
+
+        // An https @updateURL is the one fetched, and the download link is kept for applying.
+        let b = try await importScript(
+            extra: "// @updateURL https://meta.example.org/b.meta.js\n// @downloadURL https://dl.example.org/b.user.js",
+            installURL: "https://example.org/b.user.js"
+        )
+        ImportStubProtocol.install { req in StubResponse(body: Data(header("// @version 2.0.0").utf8)) }
+        let before = ImportStubProtocol.seenRequests.count
+        _ = await importer.checkForUpdate(script: b, httpClient: httpClient)
+        let fetched = ImportStubProtocol.seenRequests.dropFirst(before).compactMap { $0.url?.absoluteString }
+        XCTAssertEqual(fetched, ["https://meta.example.org/b.meta.js"])
+
+        // Both links http: falls back to the https install URL.
+        let c = try await importScript(
+            extra: "// @updateURL http://insecure.example.org/c.meta.js\n// @downloadURL http://insecure.example.org/c.user.js",
+            installURL: "https://example.org/c.user.js"
+        )
+        XCTAssertEqual(ScriptImporter.preferredCheckURL(for: c)?.absoluteString, "https://example.org/c.user.js")
+
+        // No https link at all: the check says so and makes no request.
+        var d = c
+        d.metadata.installURL = nil
+        let seen = ImportStubProtocol.seenRequests.count
+        let outcome = await importer.checkForUpdate(script: d, httpClient: httpClient)
+        XCTAssertEqual(outcome, .failed("This script has no HTTPS update link."))
+        XCTAssertEqual(ImportStubProtocol.seenRequests.count, seen)
     }
 
     // MARK: - Failure Cases & Library Hash Verification
@@ -723,18 +789,6 @@ final class ScriptImportTests: XCTestCase {
                 )
             }
             XCTAssertTrue(store.scripts.isEmpty)
-        }
-
-        // Expected hash mismatch (e.g. changed upstream library during sync fetch) fails cleanly.
-        do {
-            _ = try await ScriptImporter.fetchLibraries(
-                urls: ["https://cdn.example.net/good.js"],
-                expectedHashes: ["https://cdn.example.net/good.js": "ffffffff"],
-                httpClient: httpClient
-            )
-            XCTFail("Expected library hash mismatch to throw")
-        } catch let failure as ScriptImportFailure {
-            XCTAssertTrue(failure.reason.localizedCaseInsensitiveContains("hash changed"))
         }
 
         // Tampered on-disk library disables the script with reason instead of injecting tampered code.

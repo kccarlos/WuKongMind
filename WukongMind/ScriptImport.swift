@@ -223,7 +223,7 @@ final class ScriptImporter: ObservableObject {
             activeLoadTask?.cancel()
             presentsInSettings = inSettings
             retryTarget = nil
-            phase = .failed(ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Enter a full HTTPS link to a .user.js file.")), isUpdate: false)
+            phase = .failed(ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Enter a full HTTPS link to a .user.js file.", comment: "Validation error when the user submits a blank or malformed link in Import from link")), isUpdate: false)
             activeSessionID = UUID()
             return
         }
@@ -296,23 +296,23 @@ final class ScriptImporter: ObservableObject {
     ) async -> Result<ScriptImportReview, ScriptImportFailure> {
         let linkText = url.absoluteString
         guard url.scheme?.lowercased() == "https", let host = url.host, !host.isEmpty else {
-            return .failure(ScriptImportFailure(linkURL: linkText, reason: String(localized: "Only HTTPS links can be imported.")))
+            return .failure(ScriptImportFailure(linkURL: linkText, reason: String(localized: "Only HTTPS links can be imported.", comment: "Import error when a .user.js link uses http:// or another non-HTTPS scheme")))
         }
         let client = httpClient ?? httpClientProvider()
         let response: AgentHTTPResponse
         do {
             response = try await client.send(AgentHTTPRequest(url: url, sendCookies: false, httpsOnly: true, maxBytes: Self.maxScriptBytes, timeout: 30))
         } catch {
-            return .failure(ScriptImportFailure(linkURL: linkText, reason: String(localized: "Couldn’t fetch the file: \(error.localizedDescription)")))
+            return .failure(ScriptImportFailure(linkURL: linkText, reason: String(localized: "Couldn’t fetch the file: \(error.localizedDescription)", comment: "Import error when downloading the .user.js file fails with a network or redirect error")))
         }
         if !(200..<300).contains(response.status) {
-            return .failure(ScriptImportFailure(linkURL: linkText, reason: String(localized: "Couldn’t fetch the file: the server answered \(Self.httpStatusText(response.status)).")))
+            return .failure(ScriptImportFailure(linkURL: linkText, reason: String(localized: "Couldn’t fetch the file: the server answered \(Self.httpStatusText(response.status)).", comment: "Import error when the server returns a non-2xx HTTP status for a .user.js file")))
         }
         if response.truncated {
-            return .failure(ScriptImportFailure(linkURL: linkText, reason: String(localized: "The script file is larger than 2 MB.")))
+            return .failure(ScriptImportFailure(linkURL: linkText, reason: String(localized: "The script file is larger than 2 MB.", comment: "Import error when a .user.js file exceeds the 2 MB size cap")))
         }
         guard let rawSource = response.text, !rawSource.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return .failure(ScriptImportFailure(linkURL: linkText, reason: String(localized: "The file isn’t readable UTF-8 text.")))
+            return .failure(ScriptImportFailure(linkURL: linkText, reason: String(localized: "The file isn’t readable UTF-8 text.", comment: "Import error when the downloaded .user.js body is empty or not valid UTF-8")))
         }
         let parsed: (script: UserScript, author: String?, unsupported: [ScriptUnsupportedItem])
         let libraries: [ScriptLoadedLibrary]
@@ -340,7 +340,7 @@ final class ScriptImporter: ObservableObject {
         }
         let duplicateHost = scriptStore.scripts.first {
             $0.name.caseInsensitiveCompare(parsed.script.name) == .orderedSame
-        }.map { $0.metadata.sourceHost ?? $0.metadata.installURL.flatMap { URL(string: $0)?.host } ?? String(localized: "this device") }
+        }.map { $0.metadata.sourceHost ?? $0.metadata.installURL.flatMap { URL(string: $0)?.host } ?? String(localized: "this device", comment: "Fallback host label when a duplicate-named script was created locally on this device") }
         return .success(ScriptImportReview(
             mode: .create(duplicateNameHost: duplicateHost), candidate: parsed.script, rawSource: rawSource,
             installURL: Self.canonicalURLString(url), finalHost: finalHost, upstreamHash: upstreamHash,
@@ -350,7 +350,6 @@ final class ScriptImporter: ObservableObject {
 
     static func fetchLibraries(
         urls: [String],
-        expectedHashes: [String: String] = [:],
         httpClient: AgentHTTPClient
     ) async throws -> [ScriptLoadedLibrary] {
         var totalBytes = 0
@@ -358,7 +357,7 @@ final class ScriptImporter: ObservableObject {
         for rawURL in urls {
             let trimmed = rawURL.trimmingCharacters(in: .whitespacesAndNewlines)
             guard let url = URL(string: trimmed), url.scheme?.lowercased() == "https", let host = url.host, !host.isEmpty else {
-                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Required library isn’t an HTTPS link (\(trimmed))."))
+                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Required library isn’t an HTTPS link (\(trimmed)).", comment: "Import error when a @require URL does not use HTTPS"))
             }
             var fetchParts = URLComponents(url: url, resolvingAgainstBaseURL: true)
             let fragment = fetchParts?.fragment
@@ -367,28 +366,25 @@ final class ScriptImporter: ObservableObject {
             do {
                 response = try await httpClient.send(AgentHTTPRequest(url: fetchParts?.url ?? url, sendCookies: false, httpsOnly: true, maxBytes: maxRequireBytes, timeout: 30))
             } catch {
-                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Couldn’t fetch required library from \(host): \(error.localizedDescription)"))
+                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Couldn’t fetch required library from \(host): \(error.localizedDescription)", comment: "Import error when fetching a @require JavaScript library fails"))
             }
             if !(200..<300).contains(response.status) {
-                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Couldn’t fetch required library from \(host): the server answered \(httpStatusText(response.status))."))
+                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Couldn’t fetch required library from \(host): the server answered \(httpStatusText(response.status)).", comment: "Import error when a @require library server returns a non-2xx HTTP status"))
             }
             if response.truncated {
-                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Required library from \(host) is larger than 2 MB."))
+                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Required library from \(host) is larger than 2 MB.", comment: "Import error when a single @require library exceeds the 2 MB size cap"))
             }
             totalBytes += response.data.count
             if totalBytes > maxTotalRequireBytes {
-                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "The script’s @require libraries exceed 5 MB in total."))
+                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "The script’s @require libraries exceed 5 MB in total.", comment: "Import error when all @require libraries combined exceed 5 MB"))
             }
             guard let code = response.text else {
-                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Required library from \(host) isn’t UTF-8 text."))
+                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Required library from \(host) isn’t UTF-8 text.", comment: "Import error when a @require library is not valid UTF-8 text"))
             }
             let actualHex = ScriptStore.sha256Hex(response.data).lowercased()
             let actualB64 = Data(SHA256.hash(data: response.data)).base64EncodedString()
-            if let expected = expectedHashes[rawURL]?.lowercased(), expected != actualHex {
-                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Required library hash changed for \(host)."))
-            }
             if let sri = extractSRIHash(fragment: fragment), sri.lowercased() != actualHex && sri != actualB64 {
-                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Required library hash didn’t match for \(host)."))
+                throw ScriptImportFailure(linkURL: trimmed, reason: String(localized: "Required library hash didn’t match for \(host).", comment: "Import error when a @require library fails its #sha256 integrity hash check"))
             }
             loaded.append(ScriptLoadedLibrary(meta: ScriptRequiredLibrary(url: rawURL, sha256: actualHex, sizeBytes: response.data.count), code: code))
         }
@@ -408,7 +404,7 @@ final class ScriptImporter: ObservableObject {
     static func parseExternalUserScript(_ rawSource: String) throws -> (script: UserScript, author: String?, unsupported: [ScriptUnsupportedItem]) {
         let normalized = rawSource.replacingOccurrences(of: "\r\n", with: "\n")
         guard normalized.contains(UserScript.headerStartMarker), normalized.contains(UserScript.headerEndMarker) else {
-            throw ScriptImportFailure(linkURL: "", reason: String(localized: "The file has no // ==UserScript== header."))
+            throw ScriptImportFailure(linkURL: "", reason: String(localized: "The file has no // ==UserScript== header.", comment: "Import error when a .user.js file lacks the Userscript metadata block"))
         }
         let sanitized = stripUntrustedWukongLines(from: normalized)
         let rawVersion = extractFirstHeaderValue("@version", in: sanitized)
@@ -417,11 +413,11 @@ final class ScriptImporter: ObservableObject {
         do {
             parsed = try UserScript.parseUserScriptFile(sanitized)
         } catch ScriptStoreError.emptyMatchRules {
-            throw ScriptImportFailure(linkURL: "", reason: String(localized: "The script has no usable @match or @include rules."))
+            throw ScriptImportFailure(linkURL: "", reason: String(localized: "The script has no usable @match or @include rules.", comment: "Import error when a userscript declares no valid match patterns"))
         } catch ScriptStoreError.invalidMatchRule(let rule, _) {
-            throw ScriptImportFailure(linkURL: "", reason: String(localized: "The script has an invalid @match rule (\(rule))."))
+            throw ScriptImportFailure(linkURL: "", reason: String(localized: "The script has an invalid @match rule (\(rule)).", comment: "Import error when one of the script's @match patterns is malformed"))
         } catch ScriptStoreError.emptyBody {
-            throw ScriptImportFailure(linkURL: "", reason: String(localized: "The script has no JavaScript code."))
+            throw ScriptImportFailure(linkURL: "", reason: String(localized: "The script has no JavaScript code.", comment: "Import error when a userscript has an empty body"))
         } catch {
             throw ScriptImportFailure(linkURL: "", reason: error.localizedDescription)
         }
@@ -468,20 +464,20 @@ final class ScriptImporter: ObservableObject {
         let unsupportedGrants = script.metadata.grants.filter { !supported.contains($0) }
         if !unsupportedGrants.isEmpty {
             let detail = unsupportedGrants.count == 2
-                ? String(localized: "A call to either fails; the rest of the script runs.")
-                : String(localized: "A call to any of these fails; the rest of the script runs.")
+                ? String(localized: "A call to either fails; the rest of the script runs.", comment: "Explanation in Not supported here when two unsupported GM_* grants are declared")
+                : String(localized: "A call to any of these fails; the rest of the script runs.", comment: "Explanation in Not supported here when unsupported GM_* grants are declared")
             items.append(.init(title: unsupportedGrants.joined(separator: ", "), isMonospaced: false, detail: detail, style: .blocked))
         }
         for inc in script.metadata.values(for: "@include") where !inc.isEmpty && !MatchPattern.isValid(inc) {
             let isRegex = inc.hasPrefix("/") && inc.hasSuffix("/") && inc.count >= 2
-            let detail = isRegex ? String(localized: "A regular-expression @include can’t be used.") : String(localized: "This @include pattern can’t be used.")
+            let detail = isRegex ? String(localized: "A regular-expression @include can’t be used.", comment: "Explanation in Not supported here when a script uses a regex @include rule") : String(localized: "This @include pattern can’t be used.", comment: "Explanation in Not supported here when a script uses a glob @include rule")
             items.append(.init(title: "@include \(inc)", isMonospaced: true, detail: detail, style: .blocked))
         }
         for exc in script.metadata.unusableExcludePatterns {
-            items.append(.init(title: "@exclude \(exc)", isMonospaced: true, detail: String(localized: "This exclude rule can’t be used, so the script isn’t excluded there."), style: .blocked))
+            items.append(.init(title: "@exclude \(exc)", isMonospaced: true, detail: String(localized: "This exclude rule can’t be used, so the script isn’t excluded there.", comment: "Explanation in Not supported here when an @exclude rule cannot be applied"), style: .blocked))
         }
         if let runAt = script.metadata.runAtText, !runAt.isEmpty {
-            items.append(.init(title: "@run-at \(runAt)", isMonospaced: true, detail: String(localized: "Runs at document end."), style: .note))
+            items.append(.init(title: "@run-at \(runAt)", isMonospaced: true, detail: String(localized: "Runs at document end.", comment: "Explanation in Not supported here when an unknown @run-at value falls back to document-end"), style: .note))
         }
         return items
     }
@@ -495,26 +491,26 @@ final class ScriptImporter: ObservableObject {
         let grants = Set(script.metadata.grants)
         var rows: [ScriptCapabilitySummary] = []
         if !grants.isDisjoint(with: ["GM_getValue", "GM_setValue", "GM_deleteValue", "GM_listValues", "GM.getValue", "GM.setValue", "GM.deleteValue", "GM.listValues"]) {
-            rows.append(.init(id: "storage", icon: .storage, title: String(localized: "Keeps its own settings"), subtitle: valueSummary, isDanger: false))
+            rows.append(.init(id: "storage", icon: .storage, title: String(localized: "Keeps its own settings", comment: "Capability row for GM_getValue / GM_setValue storage grants"), subtitle: valueSummary, isDanger: false))
         }
         if grants.contains("GM_xmlhttpRequest") || grants.contains("GM.xmlHttpRequest") {
             let hosts = script.metadata.connectHosts
             let isWild = hosts.contains("*")
-            let title = isWild ? String(localized: "Sends requests to any site")
-                : (hosts.isEmpty ? String(localized: "Sends requests to the page’s own site") : String(localized: "Sends requests to \(hosts.joined(separator: ", "))"))
+            let title = isWild ? String(localized: "Sends requests to any site", comment: "Capability row when @connect * allows requests to any domain")
+                : (hosts.isEmpty ? String(localized: "Sends requests to the page’s own site", comment: "Capability row when GM_xmlhttpRequest has no @connect hosts and is restricted to same-site") : String(localized: "Sends requests to \(hosts.joined(separator: ", "))", comment: "Capability row showing which hosts GM_xmlhttpRequest can reach"))
             rows.append(.init(id: "requests", icon: .requests, title: title, subtitle: nil, isDanger: forImportSheet && isWild))
         }
         if grants.contains("GM_ai") {
             let title = forImportSheet
-                ? String(localized: "Sends text from the page to your Scripts model (\(scriptsModelName))")
-                : String(localized: "Uses AI: sends page text to \(scriptsModelName)")
+                ? String(localized: "Sends text from the page to your Scripts model (\(scriptsModelName))", comment: "Danger-highlighted capability row in import review when a script requests GM_ai")
+                : String(localized: "Uses AI: sends page text to \(scriptsModelName)", comment: "Capability row in Script detail when a script has the GM_ai grant")
             rows.append(.init(id: "ai", icon: .ai, title: title, subtitle: nil, isDanger: forImportSheet))
         }
         if grants.contains("GM_addStyle") || grants.contains("GM.addStyle") {
-            rows.append(.init(id: "style", icon: .style, title: String(localized: "Adds custom styles to the page"), subtitle: nil, isDanger: false))
+            rows.append(.init(id: "style", icon: .style, title: String(localized: "Adds custom styles to the page", comment: "Capability row for GM_addStyle grant"), subtitle: nil, isDanger: false))
         }
         if grants.contains("GM_registerMenuCommand") {
-            rows.append(.init(id: "menu", icon: .menu, title: String(localized: "Adds commands to This page"), subtitle: nil, isDanger: false))
+            rows.append(.init(id: "menu", icon: .menu, title: String(localized: "Adds commands to This page", comment: "Capability row for GM_registerMenuCommand grant"), subtitle: nil, isDanger: false))
         }
         return rows
     }
