@@ -372,6 +372,11 @@ final class AppModel: ObservableObject {
     /// The agent's on-disk audit log and task records (`AuditLog.swift`, `TaskRecord.swift`).
     let auditLog: AuditLog
     let taskRecordStore: TaskRecordStore
+    /// Per-tab conversation and page-thumbnail sidecar store (`TabConversations/`, `TabSnapshots/`).
+    let tabStateStore: TabStateStore
+    /// True when open tabs were restored from `AppSnapshot.browserTabs` at launch.
+    private(set) var restoredTabsFromSnapshot = false
+    private var lastPersistedTabsState: SavedBrowserTabsState?
     /// Set to open the audit log (optionally at one task and step) from the panel.
     @Published var auditLogRequest: AuditLogRequest?
 
@@ -388,6 +393,8 @@ final class AppModel: ObservableObject {
 
     private static func makeBrowserTab(
         id: String,
+        conversationID: UUID,
+        snapshot: UIImage?,
         tabBrowser: ForumBrowserModel,
         appBox: WeakBox<AppModel>,
         agentWorkspace: AgentWorkspace,
@@ -400,15 +407,21 @@ final class AppModel: ObservableObject {
     ) -> BrowserTab {
         tabBrowser.agentBridge.workspace = agentWorkspace
         let pageToolBridge = PageToolBridge(
-            webView: tabBrowser.webView,
+            webView: tabBrowser.existingWebView,
             isEnabled: appBox.value?.settings.agentPageToolsEnabled ?? initialPageToolsEnabled
         )
         let scriptWebController = ScriptWebController(
-            webView: tabBrowser.webView,
+            webView: tabBrowser.existingWebView,
             store: scriptStore,
             agentBridge: tabBrowser.agentBridge,
             pageToolBridge: pageToolBridge
         )
+        tabBrowser.onWebViewAttached = { [weak scriptWebController] attachedWebView in
+            scriptWebController?.attach(to: attachedWebView)
+        }
+        tabBrowser.onWebViewDetached = { [weak scriptWebController] in
+            scriptWebController?.detachWebView()
+        }
         let sessionBox = WeakBox<BrowserAgentSession>()
         let confirmations = AgentConfirmationGate()
         confirmations.onAsk = { [weak appBox, weak tabBrowser] _ in
@@ -424,11 +437,14 @@ final class AppModel: ObservableObject {
             environment: AgentNetworkEnvironment(
                 cookies: { [weak tabBrowser] in
                     guard let tabBrowser else { return [] }
-                    return await tabBrowser.webView.configuration.websiteDataStore.httpCookieStore.allCookies()
+                    return await tabBrowser.configuredWebsiteDataStore.httpCookieStore.allCookies()
                 },
                 currentPageURL: { [weak tabBrowser] in
                     guard let tabBrowser else { return nil }
-                    return await tabBrowser.webView.url
+                    if let webViewURL = await tabBrowser.existingWebView?.url {
+                        return webViewURL
+                    }
+                    return await tabBrowser.currentURL
                 },
                 confirmBeforeWrites: { [weak appBox] in
                     await appBox?.value?.settings.agentConfirmBeforeWrites ?? false
@@ -555,8 +571,10 @@ final class AppModel: ObservableObject {
             tabBrowser.linkSettings = app.linkSettings
         }
 
-        return BrowserTab(
+        let tab = BrowserTab(
             id: id,
+            conversationID: conversationID,
+            snapshot: snapshot,
             browser: tabBrowser,
             pageToolBridge: pageToolBridge,
             scriptWebController: scriptWebController,
@@ -565,6 +583,15 @@ final class AppModel: ObservableObject {
             agentSession: agentSession,
             sessionBox: sessionBox
         )
+        agentSession.onConversationChanged = { [weak appBox, weak tab] in
+            guard let app = appBox?.value, let tab else { return }
+            app.persistTabConversation(tab)
+        }
+        agentSession.onConversationReset = { [weak appBox, weak tab] in
+            guard let app = appBox?.value, let tab else { return }
+            app.handleTabConversationReset(tab)
+        }
+        return tab
     }
     /// Where podcast audio is cached (`Caches/Podcasts`; tests pass their own).
     let podcastDirectory: URL
@@ -627,8 +654,10 @@ final class AppModel: ObservableObject {
             resultsRoot: workspaceRoot.appendingPathComponent(AgentWorkspace.resultsFolder, isDirectory: true),
             cookieSource: WebKitTaskCookieSource()
         )
+        let tabStateStore = TabStateStore(baseDirectory: store.directoryURL)
         self.auditLog = auditLog
         self.taskRecordStore = taskRecordStore
+        self.tabStateStore = tabStateStore
         // Retention runs at launch: the oldest audit days and task records go.
         DispatchQueue.global(qos: .utility).async { auditLog.prune() }
         Task.detached(priority: .utility) { await taskRecordStore.prune() }
@@ -738,13 +767,30 @@ final class AppModel: ObservableObject {
         self.scriptImporter = resolvedImporter
         let workspace = self.agentWorkspace
         let initialPageToolsEnabled = loadedSettings.agentPageToolsEnabled
+        var allowsTabRestore = browser == nil && !Self.loadsOnlySamplePage
+        #if DEBUG
+        if AssistantDebug.has("-dc-fresh-tabs") {
+            allowsTabRestore = false
+        }
+        #endif
+        let restoredTabsState = allowsTabRestore ? snapshot.browserTabs : nil
+        self.restoredTabsFromSnapshot = (restoredTabsState?.tabs.isEmpty == false)
         self.tabs = BrowserTabs(
             initialBrowser: browser,
+            restoredState: restoredTabsState,
+            loadRestoredConversation: { conversationID in
+                tabStateStore.loadConversation(id: conversationID)
+            },
+            loadRestoredSnapshot: { tabID in
+                tabStateStore.loadSnapshot(tabID: tabID)
+            },
             sites: sites,
             websiteDataStore: websiteDataStore
-        ) { tabID, tabBrowser in
+        ) { tabID, conversationID, tabSnapshot, tabBrowser in
             Self.makeBrowserTab(
                 id: tabID,
+                conversationID: conversationID,
+                snapshot: tabSnapshot,
                 tabBrowser: tabBrowser,
                 appBox: box,
                 agentWorkspace: workspace,
@@ -813,6 +859,15 @@ final class AppModel: ObservableObject {
         self.tabs.onActiveTabChanged = { [weak self] newTab, oldTab in
             self?.handleActiveTabChanged(to: newTab, from: oldTab)
         }
+        self.tabs.onTabsMutated = { [weak self] in
+            self?.saveSettings()
+        }
+        self.tabs.onTabClosed = { [weak self] closedTab in
+            self?.handleTabClosed(closedTab)
+        }
+        self.tabs.onTabSnapshotUpdated = { [weak self] updatedTab in
+            self?.persistTabSnapshot(updatedTab)
+        }
         self.scriptStore.onGlobalEnabledChanged = { [weak self] isEnabled in
             guard let self, self.settings.browserScriptsEnabled != isEnabled else { return }
             self.settings.browserScriptsEnabled = isEnabled
@@ -836,13 +891,28 @@ final class AppModel: ObservableObject {
         // Start on the most recently visited forum (or the first pinned one);
         // with none, the browser stays empty and the UI shows the Forums home.
         currentSiteURL = Self.startForum(in: forums)?.siteURL
-        self.browser.homeSiteURL = currentSiteURL
         // Ad/tracker blocking starts before the first page load.
         configureContentBlocking()
-        self.browser.linkSettings = linkSettings
+        for tab in self.tabs.tabs {
+            tab.browser.homeSiteURL = currentSiteURL
+            tab.browser.linkSettings = linkSettings
+            if restoredTabsFromSnapshot {
+                tab.browser.refreshPageContext()
+            }
+        }
+        if restoredTabsFromSnapshot {
+            // Persist normalized conversation states (e.g. runs stopped on quit).
+            for tab in self.tabs.tabs where tab.agentSession.hasConversation {
+                persistTabConversation(tab)
+            }
+        }
+        self.lastPersistedTabsState = self.tabs.exportState()
         // (DEBUG samples load only their own page: a restored forum's load
         // failing late would replace it with the Forums home.)
-        if self.browser.webView.url == nil, !Self.loadsOnlySamplePage, !Self.isRunningTests {
+        if !restoredTabsFromSnapshot,
+           self.browser.existingWebView?.url == nil,
+           !Self.loadsOnlySamplePage,
+           !Self.isRunningTests {
             self.loadHome(silentOnFailure: true)
         }
         openURLObserver = NotificationCenter.default.addObserver(
@@ -1156,6 +1226,41 @@ final class AppModel: ObservableObject {
     /// browser reports a scroll position.
     private(set) var seededPageContext: PageContext?
     #endif
+
+    func handleMemoryWarning() {
+        tabs.handleMemoryWarning()
+    }
+
+    private func persistTabConversation(_ tab: BrowserTab) {
+        #if DEBUG
+        if suppressesPersistence { return }
+        #endif
+        tabStateStore.saveConversation(tab.agentSession.exportConversation(), id: tab.conversationID)
+    }
+
+    private func persistTabSnapshot(_ tab: BrowserTab) {
+        #if DEBUG
+        if suppressesPersistence { return }
+        #endif
+        tabStateStore.saveSnapshot(tab.snapshot, tabID: tab.id)
+    }
+
+    private func handleTabClosed(_ tab: BrowserTab) {
+        #if DEBUG
+        if suppressesPersistence { return }
+        #endif
+        tabStateStore.removeSnapshot(tabID: tab.id)
+        tabStateStore.removeConversation(id: tab.conversationID)
+    }
+
+    private func handleTabConversationReset(_ tab: BrowserTab) {
+        let oldID = tab.assignNewConversationID()
+        #if DEBUG
+        if suppressesPersistence { return }
+        #endif
+        tabStateStore.removeConversation(id: oldID)
+        saveSettings()
+    }
 
     private func handleActiveTabChanged(to newTab: BrowserTab, from oldTab: BrowserTab?) {
         #if DEBUG
@@ -2327,8 +2432,12 @@ final class AppModel: ObservableObject {
     /// Writes coalesced settings edits and waits until the snapshot is on
     /// disk (scene inactive/background, background tasks, tests).
     func flushPendingSaves() {
-        if settingsSaveTask != nil { save() }
+        let currentTabsState = tabs.exportState()
+        if settingsSaveTask != nil || currentTabsState != lastPersistedTabsState {
+            save()
+        }
         store.flush()
+        tabStateStore.flush()
     }
 
     /// Writes API keys that changed since the last write; returns false (and
@@ -3329,13 +3438,16 @@ final class AppModel: ObservableObject {
         #endif
         cloudSync.localDataDidChange()
         persistChangedAPIKeys()
+        let tabsState = tabs.exportState()
+        lastPersistedTabsState = tabsState
         let snapshot = AppSnapshot(
             settings: settings.persistable,
             sessions: Array(sessions.values),
             activities: activities,
             agentRuns: agentRuns,
             watchedTopics: watchedTopics,
-            forums: forums
+            forums: forums,
+            browserTabs: tabsState
         )
         // Encoded and written off the main actor; rapid saves coalesce.
         store.scheduleSave(snapshot) { [weak self] error in

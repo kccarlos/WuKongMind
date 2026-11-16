@@ -259,7 +259,8 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// `overPendingLoad`: keep Home up while a load issued earlier (the
     /// restored forum) starts.
     func showForumsHome(overPendingLoad: Bool = false) {
-        if overPendingLoad, deferredLoad != nil || webView.isLoading || (currentURL != nil && webView.url == nil) {
+        if overPendingLoad,
+           deferredLoad != nil || allocatedWebView?.isLoading == true || (currentURL != nil && allocatedWebView?.url == nil) {
             holdsHomeOverLoad = true
         }
         if !isForumsHomeRequested { isForumsHomeRequested = true }
@@ -308,12 +309,41 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         syncPageKeyboardFreeze()
     }
 
-    let webView: WKWebView
+    private let contentRulesLibrary: ContentRuleLibrary
+    private let explicitWebsiteDataStore: WKWebsiteDataStore?
+    private var contentBlockingPolicy = ContentBlockingPolicy()
+    private var allocatedWebView: WKWebView?
+    private var allocatedContentBlocker: ContentBlocker?
+
+    /// Whether this tab currently has an allocated `WKWebView` (false for lazy-restored
+    /// background tabs and idle tabs unloaded under memory pressure).
+    @Published private(set) var isWebViewLoaded: Bool
+    /// Last known scroll offset of the page (preserved across lazy restore and memory-pressure unload).
+    @Published private(set) var scrollPosition: CGPoint = .zero
+    private var pendingScrollRestore: CGPoint?
+
+    /// Existing `WKWebView` without allocating one when unloaded.
+    var existingWebView: WKWebView? { allocatedWebView }
+    var contentRules: ContentRuleLibrary { contentRulesLibrary }
+    var configuredWebsiteDataStore: WKWebsiteDataStore {
+        allocatedWebView?.configuration.websiteDataStore ?? explicitWebsiteDataStore ?? .default()
+    }
+
+    var webView: WKWebView { ensureWebView() }
     /// Page-tool bridge (`read_page`, `run_js`, `inject_css`, `wait_for`) and
     /// isolated-world reply channel for the browser agent.
     let agentBridge: AgentBridge
     /// Ad and tracker blocking for this web view.
-    let contentBlocker: ContentBlocker
+    var contentBlocker: ContentBlocker {
+        _ = ensureWebView()
+        return allocatedContentBlocker!
+    }
+    /// Called when a `WKWebView` is created after a lazy start or memory-pressure unload.
+    var onWebViewAttached: ((WKWebView) -> Void)?
+    /// Called right before `unloadWebView()` tears down the `WKWebView`.
+    var onWebViewDetached: (() -> Void)?
+    /// Called when a main-frame load finishes so tab snapshots/scroll state can refresh.
+    var onDidFinishPageLoad: (() -> Void)?
     /// A load issued while the compiled rule lists are still being looked up
     /// (launch); it starts when they are attached, or after a short cap.
     private var deferredLoad: URL?
@@ -361,6 +391,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// across its routes, dropped when a navigation commits.
     private var lastFacts: PageFacts?
     private let routeMessageHandler = ForumRouteMessageHandler()
+    private var scrollObservation: NSKeyValueObservation?
     private var progressObservation: NSKeyValueObservation?
     /// Fires when the user starts scrolling the page (once per drag), so the
     /// workspace knows the page is where they are working.
@@ -371,12 +402,59 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         contentRules: ContentRuleLibrary? = nil,
         sites: SiteRegistry = .standard,
         websiteDataStore: WKWebsiteDataStore? = nil,
-        popupConfiguration: WKWebViewConfiguration? = nil
+        popupConfiguration: WKWebViewConfiguration? = nil,
+        startsUnloaded: Bool = false,
+        restoredURL: URL? = nil,
+        restoredTitle: String = "",
+        restoredScrollPosition: CGPoint = .zero
     ) {
         let contentRules = contentRules ?? .shared
         let probeExpression = sites.probeExpression
         self.sites = sites
         self.probeExpression = probeExpression
+        self.contentRulesLibrary = contentRules
+        self.explicitWebsiteDataStore = popupConfiguration?.websiteDataStore ?? websiteDataStore
+        self.isWebViewLoaded = !startsUnloaded
+        self.agentBridge = AgentBridge(webView: nil)
+        super.init()
+        agentBridge.navigator = self
+        routeMessageHandler.browser = self
+        browseMessageHandler.browser = self
+
+        let trimmedRestoredTitle = restoredTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let restoredURL, Self.isBrowsableURL(restoredURL) {
+            self.currentURL = restoredURL
+            self.pageTitle = trimmedRestoredTitle.nonEmpty ?? Self.defaultPageTitle
+            self.scrollPosition = CGPoint(x: max(0, restoredScrollPosition.x), y: max(0, restoredScrollPosition.y))
+            self.isForumsHomeRequested = false
+            self.pageContext = PageContext.make(
+                url: restoredURL,
+                title: trimmedRestoredTitle.nonEmpty,
+                facts: nil,
+                knownForum: nil,
+                registry: sites
+            )
+            if let siteURL = self.pageContext.siteURL {
+                self.homeSiteURL = siteURL
+            }
+        }
+
+        if !startsUnloaded {
+            _ = buildAndAttachWebView(popupConfiguration: popupConfiguration)
+        }
+    }
+
+    @discardableResult
+    private func ensureWebView() -> WKWebView {
+        if let existing = allocatedWebView {
+            return existing
+        }
+        let created = buildAndAttachWebView(popupConfiguration: nil)
+        onWebViewAttached?(created)
+        return created
+    }
+
+    private func buildAndAttachWebView(popupConfiguration: WKWebViewConfiguration?) -> WKWebView {
         let configuration: WKWebViewConfiguration
         if let popupConfiguration {
             // Keep WebKit's popup configuration (process pool, related web view,
@@ -385,7 +463,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
             configuration = popupConfiguration
         } else {
             configuration = WKWebViewConfiguration()
-            configuration.websiteDataStore = websiteDataStore ?? .default()
+            configuration.websiteDataStore = explicitWebsiteDataStore ?? .default()
         }
         configuration.defaultWebpagePreferences.allowsContentJavaScript = true
         configuration.preferences.javaScriptCanOpenWindowsAutomatically = false
@@ -423,39 +501,45 @@ final class ForumBrowserModel: NSObject, ObservableObject {
             )
         }
 
-        webView = WKWebView(frame: .zero, configuration: configuration)
-        webView.customUserAgent = LinkPolicy.userAgent(isPad: UIDevice.current.userInterfaceIdiom == .pad)
-        agentBridge = AgentBridge(webView: webView)
-        contentBlocker = ContentBlocker(
+        let createdWebView = WKWebView(frame: .zero, configuration: configuration)
+        createdWebView.customUserAgent = LinkPolicy.userAgent(isPad: UIDevice.current.userInterfaceIdiom == .pad)
+        let blocker = ContentBlocker(
             controller: configuration.userContentController,
-            library: contentRules
+            library: contentRulesLibrary
         )
-        super.init()
-        agentBridge.navigator = self
-        routeMessageHandler.browser = self
+        blocker.policy = contentBlockingPolicy
+        allocatedWebView = createdWebView
+        allocatedContentBlocker = blocker
+        isWebViewLoaded = true
+        agentBridge.attach(to: createdWebView)
         configuration.userContentController.add(
             routeMessageHandler,
             name: Self.routeMessageName
         )
-        browseMessageHandler.browser = self
         configuration.userContentController.add(
             browseMessageHandler,
             contentWorld: BrowseScript.world,
             name: BrowseScript.messageName
         )
-        webView.navigationDelegate = self
-        webView.uiDelegate = self
-        webView.allowsBackForwardNavigationGestures = true
-        webView.allowsLinkPreview = true
-        webView.scrollView.keyboardDismissMode = .interactive
+        createdWebView.navigationDelegate = self
+        createdWebView.uiDelegate = self
+        createdWebView.allowsBackForwardNavigationGestures = true
+        createdWebView.allowsLinkPreview = true
+        createdWebView.scrollView.keyboardDismissMode = .interactive
         barMorph.onUserScrollBegan = { [weak self] in
             self?.userInteraction.send()
         }
         barMorph.onChange = { [weak self] state, transition in
             self?.applyBarMorphChange(state, transition: transition)
         }
-        barMorph.attach(to: webView.scrollView)
-        progressObservation = webView.observe(\.estimatedProgress, options: [.new]) {
+        barMorph.attach(to: createdWebView.scrollView)
+        scrollObservation = createdWebView.scrollView.observe(\.contentOffset, options: [.new]) {
+            [weak self] scrollView, _ in
+            Task { @MainActor [weak self] in
+                self?.recordScrollPosition(from: scrollView)
+            }
+        }
+        progressObservation = createdWebView.observe(\.estimatedProgress, options: [.new]) {
             [weak self] webView, _ in
             let progress = webView.estimatedProgress
             Task { @MainActor [weak self] in
@@ -466,10 +550,93 @@ final class ForumBrowserModel: NSObject, ObservableObject {
                 }
             }
         }
+        return createdWebView
+    }
+
+    /// Allocates the `WKWebView` when this tab was lazy-restored or unloaded under
+    /// memory pressure, and loads its saved page + scroll position.
+    func loadIfNeeded() {
+        guard !isWebViewLoaded else { return }
+        _ = ensureWebView()
+        if let url = currentURL, !isForumsHomeRequested, Self.isBrowsableURL(url) {
+            load(url, silentOnFailure: true, restoringScroll: scrollPosition)
+        }
+    }
+
+    /// Updates `scrollPosition` (for tests or before saving when scrolled via JS).
+    func setSavedScrollPosition(_ position: CGPoint) {
+        scrollPosition = CGPoint(x: max(0, position.x), y: max(0, position.y))
+    }
+
+    /// Reads the live scroll position from the `WKWebView` when loaded.
+    func refreshScrollPositionFromWebView() {
+        guard pendingScrollRestore == nil, let webView = allocatedWebView, webView.url != nil else { return }
+        let inset = webView.scrollView.adjustedContentInset
+        let offsetX = max(0, webView.scrollView.contentOffset.x + inset.left)
+        let offsetY = max(0, webView.scrollView.contentOffset.y + inset.top)
+        scrollPosition = CGPoint(x: offsetX, y: offsetY)
+    }
+
+    /// Drops the underlying `WKWebView` under memory pressure while keeping `currentURL`,
+    /// `pageTitle`, `scrollPosition`, and `pageContext` so the tab reloads cleanly when shown.
+    func unloadWebView() {
+        guard let oldWebView = allocatedWebView else { return }
+        refreshScrollPositionFromWebView()
+        deferredLoad = nil
+        activeNavigation = nil
+        activeNavigationStarted = false
+        finishAgentNavigation(.failed("Tab was unloaded."))
+        scrollObservation?.invalidate()
+        scrollObservation = nil
+        progressObservation?.invalidate()
+        progressObservation = nil
+        onWebViewDetached?()
+        agentBridge.detachWebView()
+        oldWebView.stopLoading()
+        oldWebView.scrollView.delegate = nil
+        oldWebView.navigationDelegate = nil
+        oldWebView.uiDelegate = nil
+        let controller = oldWebView.configuration.userContentController
+        controller.removeScriptMessageHandler(forName: Self.routeMessageName)
+        controller.removeScriptMessageHandler(forName: BrowseScript.messageName, contentWorld: BrowseScript.world)
+        controller.removeAllUserScripts()
+        controller.removeAllContentRuleLists()
+        oldWebView.removeFromSuperview()
+        allocatedContentBlocker = nil
+        allocatedWebView = nil
+        isWebViewLoaded = false
+        isLoading = false
+        barMorph.setLoading(false)
+        estimatedProgress = 0
+        canGoBack = false
+        canGoForward = false
+        showsCrashNotice = false
+        appOpenPrompt = nil
+    }
+
+    /// Captures a lightweight thumbnail snapshot of the loaded page when available.
+    func captureTabSnapshot(width: CGFloat = 360) async -> UIImage? {
+        guard let webView = allocatedWebView,
+              !showsForumsHome,
+              currentURL != nil,
+              webView.bounds.width > 1,
+              webView.bounds.height > 1 else {
+            return nil
+        }
+        let config = WKSnapshotConfiguration()
+        config.snapshotWidth = NSNumber(value: Double(width))
+        return try? await webView.takeSnapshot(configuration: config)
     }
 
     func expandChrome(deferIfTracking: Bool = false) {
         barMorph.requestExpand(deferIfTracking: deferIfTracking)
+    }
+
+    private func recordScrollPosition(from scrollView: UIScrollView) {
+        guard pendingScrollRestore == nil, !isLoading, allocatedWebView?.url != nil else { return }
+        let offsetX = scrollView.contentOffset.x + scrollView.adjustedContentInset.left
+        let offsetY = scrollView.contentOffset.y + scrollView.adjustedContentInset.top
+        scrollPosition = CGPoint(x: max(0, offsetX), y: max(0, offsetY))
     }
 
     private func applyBarMorphChange(_ state: BrowserBarMorphState, transition: BrowserBarTransitionKind?) {
@@ -547,7 +714,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         return true
     }
 
-    func load(_ url: URL, silentOnFailure: Bool = false) {
+    func load(_ url: URL, silentOnFailure: Bool = false, restoringScroll: CGPoint? = nil) {
         guard Self.isBrowsableURL(url) else { return }
         if ScriptImporter.isUserScriptURL(url) {
             onUserScriptNavigation?(url)
@@ -556,6 +723,13 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         #if DEBUG
         activeSamplePage = nil
         #endif
+        if let restoringScroll, restoringScroll.x > 0 || restoringScroll.y > 0 {
+            pendingScrollRestore = CGPoint(x: max(0, restoringScroll.x), y: max(0, restoringScroll.y))
+            scrollPosition = pendingScrollRestore!
+        } else {
+            pendingScrollRestore = nil
+            scrollPosition = .zero
+        }
         let startedFromHome = showsForumsHome || loadStartedFromForumsHome
         hideForumsHome()
         expandChrome(deferIfTracking: true)
@@ -593,6 +767,8 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// `-dc-sample`: shows the sample's own topic page at `url` (no network).
     func loadSamplePage(_ html: String, at url: URL) {
         deferredLoad = nil
+        pendingScrollRestore = nil
+        scrollPosition = .zero
         hideForumsHome()
         currentURL = url
         activeSamplePage = (html, url)
@@ -608,7 +784,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// topic opened at a post right after launch), so the page never lands.
     func waitUntilSettled(timeout: Duration = .seconds(15)) async {
         let deadline = ContinuousClock.now + timeout
-        while deferredLoad != nil || webView.isLoading, ContinuousClock.now < deadline, !Task.isCancelled {
+        while deferredLoad != nil || allocatedWebView?.isLoading == true, ContinuousClock.now < deadline, !Task.isCancelled {
             try? await Task.sleep(for: .milliseconds(50))
         }
     }
@@ -669,7 +845,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     }
 
     func goBack() {
-        guard webView.canGoBack else { return }
+        guard let webView = allocatedWebView, webView.canGoBack else { return }
         suppressLoadError = false
         activeNavigation = webView.goBack()
         activeNavigationStarted = false
@@ -690,8 +866,8 @@ final class ForumBrowserModel: NSObject, ObservableObject {
 
     /// Pages behind the current one, most recent first (the title's
     /// long-press history menu).
-    var backHistory: [WKBackForwardListItem] { webView.backForwardList.backList.reversed() }
-    var forwardHistory: [WKBackForwardListItem] { webView.backForwardList.forwardList }
+    var backHistory: [WKBackForwardListItem] { allocatedWebView?.backForwardList.backList.reversed() ?? [] }
+    var forwardHistory: [WKBackForwardListItem] { allocatedWebView?.backForwardList.forwardList ?? [] }
 
     func go(to item: WKBackForwardListItem) {
         let startedFromHome = showsForumsHome || loadStartedFromForumsHome
@@ -704,7 +880,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     }
 
     func goForward() {
-        guard webView.canGoForward else { return }
+        guard let webView = allocatedWebView, webView.canGoForward else { return }
         suppressLoadError = false
         activeNavigation = webView.goForward()
         activeNavigationStarted = false
@@ -713,12 +889,16 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     func reload() {
         suppressLoadError = false
         #if DEBUG
-        if let sample = activeSamplePage, (webView.url ?? currentURL) == sample.url {
+        if let sample = activeSamplePage, (allocatedWebView?.url ?? currentURL) == sample.url {
             activeNavigation = webView.loadHTMLString(sample.html, baseURL: sample.url)
             activeNavigationStarted = false
             return
         }
         #endif
+        if !isWebViewLoaded {
+            loadIfNeeded()
+            return
+        }
         activeNavigation = webView.reload()
         activeNavigationStarted = false
     }
@@ -739,6 +919,9 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         onNavigationFailed = nil
         onUserScriptNavigation = nil
         onCreatePopupWebView = nil
+        onWebViewAttached = nil
+        onWebViewDetached = nil
+        onDidFinishPageLoad = nil
         knownForumLookup = nil
         topicFactsLookup = nil
     }
@@ -747,7 +930,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         deferredLoad = nil
         activeNavigation = nil
         activeNavigationStarted = false
-        webView.stopLoading()
+        allocatedWebView?.stopLoading()
         if isLoading { isLoading = false }
         barMorph.setLoading(false)
         finishAgentNavigation(.failed("Loading was stopped."))
@@ -757,16 +940,20 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// changes what is blocked on the page shown now (the caller reloads it).
     @discardableResult
     func applyContentBlocking(_ policy: ContentBlockingPolicy) -> Bool {
-        let pageURL = webView.url ?? currentURL
-        let before = contentBlocker.policy.activeCategories(forTopURL: pageURL)
-        contentBlocker.policy = policy
+        contentBlockingPolicy = policy
+        guard let blocker = allocatedContentBlocker else {
+            return false
+        }
+        let pageURL = allocatedWebView?.url ?? currentURL
+        let before = blocker.policy.activeCategories(forTopURL: pageURL)
+        blocker.policy = policy
         let after = policy.activeCategories(forTopURL: pageURL)
         return before != after && pageURL.map(Self.isBrowsableURL) == true
     }
 
     /// Cookie header for one forum host (never another site's cookies).
     func cookieHeader(forHost host: String) async -> String? {
-        let cookies = await webView.configuration.websiteDataStore.httpCookieStore.allCookies()
+        let cookies = await configuredWebsiteDataStore.httpCookieStore.allCookies()
         let forumCookies = ForumSite.cookies(cookies, forHost: host)
         guard !forumCookies.isEmpty else { return nil }
         return HTTPCookie.requestHeaderFields(with: forumCookies)["Cookie"]
@@ -794,8 +981,9 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         // Wait while it is still loading a page of the requested site.
         for _ in 0..<120 {
             try Task.checkCancellation()
-            guard webView.isLoading,
-                  webView.url.map({ ForumSite.origin(of: $0)?.origin == requestOrigin.origin }) ?? true
+            guard let liveWebView = allocatedWebView,
+                  liveWebView.isLoading,
+                  liveWebView.url.map({ ForumSite.origin(of: $0)?.origin == requestOrigin.origin }) ?? true
             else {
                 break
             }
@@ -803,8 +991,9 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         }
 
         if let siteURL = pageContext.siteURL,
-           !webView.isLoading,
-           let current = webView.url,
+           let liveWebView = allocatedWebView,
+           !liveWebView.isLoading,
+           let current = liveWebView.url,
            ForumSite.isSameForum(url: current, siteURL: siteURL),
            ForumSite.isSameForum(url: url, siteURL: siteURL) {
             return try await fetchInPage(url)
@@ -972,7 +1161,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// Runs the probe once a load finishes, so every page settles into a
     /// state even if the route observer did not report it.
     private func probeCurrentPage() async {
-        guard let url = webView.url, Self.isBrowsableURL(url) else { return }
+        guard let webView = allocatedWebView, let url = webView.url, Self.isBrowsableURL(url) else { return }
         do {
             let value = try await webView.callAsyncJavaScript(
                 "return (\(probeExpression))();",
@@ -1049,15 +1238,25 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         url: URL? = nil,
         title: String? = nil
     ) {
-        let resolvedURL = url ?? webView.url
-        let resolvedTitle = title ?? webView.title
+        let resolvedURL: URL?
+        let resolvedTitle: String?
+        if let liveWebView = allocatedWebView {
+            resolvedURL = url ?? liveWebView.url
+            resolvedTitle = title ?? liveWebView.title
+            canGoBack = liveWebView.canGoBack
+            canGoForward = liveWebView.canGoForward
+            isLoading = liveWebView.isLoading
+        } else {
+            resolvedURL = url ?? currentURL
+            resolvedTitle = title ?? pageTitle.nonEmpty
+            canGoBack = false
+            canGoForward = false
+            isLoading = false
+        }
         currentURL = resolvedURL
         pageTitle = resolvedTitle?.trimmingCharacters(in: .whitespacesAndNewlines)
             .nonEmpty ?? Self.defaultPageTitle
-        canGoBack = webView.canGoBack
-        canGoForward = webView.canGoForward
-        isLoading = webView.isLoading
-        barMorph.setLoading(webView.isLoading)
+        barMorph.setLoading(isLoading)
 
         let made = PageContext.make(
             url: resolvedURL,
@@ -1336,13 +1535,18 @@ extension ForumBrowserModel: WKNavigationDelegate {
         loadStartedFromForumsHome = false
         suppressLoadError = false
         if showsCrashNotice { showsCrashNotice = false }
+        let restoreOffset = pendingScrollRestore
         updateNavigationState()
         finishAgentNavigation(.finished)
         Task { @MainActor in
             guard self.deferredLoad == nil, self.activeNavigation == nil else { return }
+            if let restoreOffset {
+                await self.restoreScrollPosition(restoreOffset, in: webView)
+            }
             // A full load starts a fresh bridge: mark the landing post again.
             await self.probeCurrentPage()
             self.applyPendingHighlight(afterLoad: true)
+            self.onDidFinishPageLoad?()
             #if DEBUG
             // `-dc-scroll-page <points>`: scrolls each loaded page (screenshots).
             if let value = OnboardingDebug.value(after: "-dc-scroll-page"), let offset = Double(value) {
@@ -1351,6 +1555,25 @@ extension ForumBrowserModel: WKNavigationDelegate {
             }
             #endif
         }
+    }
+
+    private func restoreScrollPosition(_ point: CGPoint, in webView: WKWebView) async {
+        let x = Double(max(0, point.x))
+        let y = Double(max(0, point.y))
+        _ = try? await webView.evaluateJavaScript("window.scrollTo(\(x), \(y));")
+        let inset = webView.scrollView.adjustedContentInset
+        let targetX = CGFloat(x) - inset.left
+        let targetY = CGFloat(y) - inset.top
+        if webView.scrollView.contentSize.height > 0 {
+            let maxX = max(-inset.left, webView.scrollView.contentSize.width - webView.scrollView.bounds.width + inset.right)
+            let maxY = max(-inset.top, webView.scrollView.contentSize.height - webView.scrollView.bounds.height + inset.bottom)
+            webView.scrollView.setContentOffset(
+                CGPoint(x: min(targetX, maxX), y: min(targetY, maxY)),
+                animated: false
+            )
+        }
+        scrollPosition = CGPoint(x: max(0, point.x), y: max(0, point.y))
+        pendingScrollRestore = nil
     }
 
     func webView(
@@ -1519,6 +1742,168 @@ struct ForumWebView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: WKWebView, context: Context) {}
+}
+
+/// Hosts the active tab's `WKWebView` in front while keeping any background tab
+/// whose Agent run is active attached to the `UIWindow` behind it (`isHidden = false`,
+/// `alpha = 0`, `isUserInteractionEnabled = false`, `accessibilityElementsHidden = true`)
+/// so WebKit does not throttle its timers or JavaScript (`design-browser-bar-tabs-models.md` §2).
+@MainActor
+final class BrowserTabsWebHostView: UIView {
+    private weak var tabs: BrowserTabs?
+    private weak var observedBrowser: ForumBrowserModel?
+    private var showsCurrentWebViewOverride: Bool?
+    private var cancellables: Set<AnyCancellable> = []
+    private var currentBrowserHomeCancellable: AnyCancellable?
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .clear
+        clipsToBounds = true
+    }
+
+    convenience init(tabs: BrowserTabs, frame: CGRect = .zero) {
+        self.init(frame: frame)
+        bind(tabs: tabs)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    func bind(tabs: BrowserTabs, showsCurrentWebView: Bool? = nil) {
+        let tabsChanged = self.tabs !== tabs
+        self.tabs = tabs
+        self.showsCurrentWebViewOverride = showsCurrentWebView
+        if tabsChanged {
+            cancellables.removeAll()
+            currentBrowserHomeCancellable = nil
+            observedBrowser = nil
+            Publishers.CombineLatest3(tabs.$tabs, tabs.$currentTabID, tabs.$runningTabIDs)
+                .sink { [weak self] allTabs, currentID, runningIDs in
+                    self?.reconcileSubviews(
+                        allTabs: allTabs,
+                        currentTabID: currentID,
+                        runningTabIDs: runningIDs
+                    )
+                }
+                .store(in: &cancellables)
+        } else {
+            reconcileFromCurrentState()
+        }
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        guard bounds.width > 0, bounds.height > 0 else { return }
+        for subview in subviews where subview.frame != bounds {
+            subview.frame = bounds
+        }
+    }
+
+    private func reconcileFromCurrentState() {
+        guard let tabs else { return }
+        reconcileSubviews(
+            allTabs: tabs.tabs,
+            currentTabID: tabs.currentTabID,
+            runningTabIDs: tabs.runningTabIDs
+        )
+    }
+
+    private func reconcileSubviews(
+        allTabs: [BrowserTab],
+        currentTabID: String,
+        runningTabIDs: Set<String>
+    ) {
+        guard let currentTab = allTabs.first(where: { $0.id == currentTabID }) ?? allTabs.first else {
+            currentBrowserHomeCancellable = nil
+            observedBrowser = nil
+            for subview in subviews { subview.removeFromSuperview() }
+            return
+        }
+
+        if observedBrowser !== currentTab.browser {
+            observedBrowser = currentTab.browser
+            currentBrowserHomeCancellable = Publishers.CombineLatest(
+                currentTab.browser.$isForumsHomeRequested,
+                currentTab.browser.$currentURL
+            )
+            .dropFirst()
+            .sink { [weak self, weak currentTab] isHomeRequested, currentURL in
+                guard let self, let currentTab, self.observedBrowser === currentTab.browser else { return }
+                let isHome = isHomeRequested || currentURL == nil
+                let visible = self.showsCurrentWebViewOverride ?? !isHome
+                if let webView = currentTab.browser.existingWebView, webView.superview === self {
+                    webView.isHidden = false
+                    webView.alpha = visible ? 1 : 0
+                    webView.isUserInteractionEnabled = visible
+                    webView.accessibilityElementsHidden = !visible
+                }
+            }
+        }
+
+        let isCurrentVisible = showsCurrentWebViewOverride ?? !currentTab.showsHome
+        let currentWebView = currentTab.browser.webView
+        var backgroundRunningWebViews: [WKWebView] = []
+        for tab in allTabs where tab.id != currentTab.id && runningTabIDs.contains(tab.id) {
+            backgroundRunningWebViews.append(tab.browser.webView)
+        }
+
+        let keptIDs = Set(([currentWebView] + backgroundRunningWebViews).map(ObjectIdentifier.init))
+        for subview in subviews where !keptIDs.contains(ObjectIdentifier(subview)) {
+            if let webView = subview as? WKWebView {
+                webView.alpha = 1
+                webView.isUserInteractionEnabled = true
+                webView.accessibilityElementsHidden = false
+            }
+            subview.removeFromSuperview()
+        }
+
+        for bgWebView in backgroundRunningWebViews {
+            attachIfNeeded(bgWebView)
+            bgWebView.isHidden = false
+            bgWebView.alpha = 0
+            bgWebView.isUserInteractionEnabled = false
+            bgWebView.accessibilityElementsHidden = true
+            sendSubviewToBack(bgWebView)
+        }
+
+        attachIfNeeded(currentWebView)
+        currentWebView.isHidden = false
+        currentWebView.alpha = isCurrentVisible ? 1 : 0
+        currentWebView.isUserInteractionEnabled = isCurrentVisible
+        currentWebView.accessibilityElementsHidden = !isCurrentVisible
+        bringSubviewToFront(currentWebView)
+    }
+
+    private func attachIfNeeded(_ webView: WKWebView) {
+        if webView.superview !== self {
+            webView.removeFromSuperview()
+            if bounds.width > 0, bounds.height > 0 {
+                webView.frame = bounds
+            }
+            webView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            addSubview(webView)
+        } else if bounds.width > 0, bounds.height > 0, webView.frame != bounds {
+            webView.frame = bounds
+        }
+    }
+}
+
+struct BrowserTabsWebHost: UIViewRepresentable {
+    @ObservedObject var tabs: BrowserTabs
+    var showsCurrentWebView: Bool? = nil
+
+    func makeUIView(context: Context) -> BrowserTabsWebHostView {
+        let view = BrowserTabsWebHostView()
+        view.bind(tabs: tabs, showsCurrentWebView: showsCurrentWebView)
+        return view
+    }
+
+    func updateUIView(_ uiView: BrowserTabsWebHostView, context: Context) {
+        uiView.bind(tabs: tabs, showsCurrentWebView: showsCurrentWebView)
+    }
 }
 
 private extension String {

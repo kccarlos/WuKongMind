@@ -479,7 +479,7 @@ enum AgentHistoryPruner {
 
 // MARK: - Observable Session Models
 
-enum BrowserAgentRunState: Equatable, Sendable {
+enum BrowserAgentRunState: Codable, Equatable, Sendable {
     case idle
     case running(step: Int, maxSteps: Int)
     case completed(steps: Int, duration: TimeInterval)
@@ -493,7 +493,7 @@ enum BrowserAgentRunState: Equatable, Sendable {
     }
 }
 
-struct BrowserAgentToolCallRow: Identifiable, Equatable, Sendable {
+struct BrowserAgentToolCallRow: Codable, Identifiable, Equatable, Sendable {
     var id: UUID
     var callID: String
     var runID: UUID
@@ -558,7 +558,7 @@ struct BrowserAgentToolCallRow: Identifiable, Equatable, Sendable {
     }
 }
 
-struct BrowserAgentMessage: Identifiable, Equatable, Sendable {
+struct BrowserAgentMessage: Codable, Identifiable, Equatable, Sendable {
     enum Role: String, Codable, Equatable, Sendable {
         case user
         case assistant
@@ -597,14 +597,14 @@ struct BrowserAgentMessage: Identifiable, Equatable, Sendable {
 
 /// One model turn's number, model and tokens. The rows of one turn share it; `isFirstOfTurn` marks
 /// the row that shows the line.
-struct AgentTurnInfo: Equatable, Sendable {
+struct AgentTurnInfo: Codable, Equatable, Sendable {
     var turn: Int
     var model: String
     var usage: AgentTokenUsage
     var isFirstOfTurn = true
 }
 
-struct BrowserAgentRun: Identifiable, Equatable, Sendable {
+struct BrowserAgentRun: Codable, Identifiable, Equatable, Sendable {
     var id: UUID
     var prompt: String
     var toolCalls: [BrowserAgentToolCallRow]
@@ -623,6 +623,25 @@ struct BrowserAgentRun: Identifiable, Equatable, Sendable {
     var stepCount: Int { toolCalls.count }
     var errorCount: Int { toolCalls.filter(\.isError).count }
     var toolNames: [String] { toolCalls.map(\.toolName) }
+}
+
+/// On-disk snapshot of one tab's Agent conversation (`design-browser-bar-tabs-models.md` §2).
+struct SavedAgentConversation: Codable, Equatable, Sendable {
+    var messages: [BrowserAgentMessage]
+    var runs: [BrowserAgentRun]
+    var toolCalls: [BrowserAgentToolCallRow]
+    var runState: BrowserAgentRunState
+    var tokenUsage: AgentTokenUsage
+    var history: [AgentModelTurn]
+    var lastUserPrompt: String?
+    var lastDisplayPrompt: String?
+    var lastModelPrompt: String?
+    var lastRepairTarget: ScriptRepairTarget?
+    var lastContextURL: String?
+
+    var isEmpty: Bool {
+        messages.isEmpty && runs.isEmpty && toolCalls.isEmpty && history.isEmpty
+    }
 }
 
 // MARK: - Pure Agent Loop Engine
@@ -1085,6 +1104,9 @@ final class BrowserAgentSession {
     private(set) var toolCalls: [BrowserAgentToolCallRow] = []
     private(set) var runState: BrowserAgentRunState = .idle {
         didSet {
+            if oldValue.isRunning != runState.isRunning {
+                onRunStateChanged?(runState.isRunning)
+            }
             guard oldValue.isRunning else { return }
             switch runState {
             case .completed, .stepLimitReached, .failed:
@@ -1100,6 +1122,8 @@ final class BrowserAgentSession {
     private(set) var history: [AgentModelTurn] = []
     /// Raw request and response sizes in bytes per model turn, keyed by `wireKey(taskID:turn:)`.
     private(set) var wireSizes: [String: (request: Int, response: Int)] = [:]
+    /// Shown under the composer when starting a run is refused (for example when 3 runs are going).
+    private(set) var runLimitNotice: String?
 
     var isRunning: Bool { runState.isRunning }
 
@@ -1125,6 +1149,14 @@ final class BrowserAgentSession {
     @ObservationIgnored var onAnswer: (@MainActor (BrowserAgentAnswer) -> Void)?
     /// Called whenever a run transitions out of `.running` on its own (`.completed`, `.stepLimitReached`, `.failed`).
     @ObservationIgnored var onRunFinished: (@MainActor () -> Void)?
+    /// Checked before starting a turn; returns a user-facing refusal message when disallowed, or `nil` when allowed.
+    @ObservationIgnored var runStartGate: (@MainActor () -> String?)?
+    /// Fired whenever `isRunning` changes (`true` on start, `false` when finished, stopped or failed).
+    @ObservationIgnored var onRunStateChanged: (@MainActor (Bool) -> Void)?
+    /// Fired when persisted conversation state changes.
+    @ObservationIgnored var onConversationChanged: (@MainActor () -> Void)?
+    /// Fired when `resetConversation()` starts a fresh conversation on the tab.
+    @ObservationIgnored var onConversationReset: (@MainActor () -> Void)?
     /// The task ID of the latest run (the run's UUID string).
     private(set) var currentTaskID: String?
     private(set) var lastUserPrompt: String?
@@ -1231,6 +1263,7 @@ final class BrowserAgentSession {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard role.isVoice, !trimmed.isEmpty else { return }
         messages.append(BrowserAgentMessage(role: role, text: trimmed, createdAt: date))
+        onConversationChanged?()
     }
 
     /// The voice exchange since the last run started, for the model only;
@@ -1258,6 +1291,103 @@ final class BrowserAgentSession {
             id: UUID(), prompt: prompt, toolCalls: [], assistantText: reply,
             state: .completed(steps: 0, duration: 0), tokenUsage: .zero, startedAt: Date(), duration: 0
         ))
+        onConversationChanged?()
+    }
+
+    /// Evaluates `runStartGate`, recording `runLimitNotice` when refused or clearing it when allowed.
+    @discardableResult
+    func checkRunStartGate() -> Bool {
+        if let reason = runStartGate?() {
+            runLimitNotice = reason
+            return false
+        }
+        runLimitNotice = nil
+        return true
+    }
+
+    func clearRunLimitNotice() {
+        if runLimitNotice != nil {
+            runLimitNotice = nil
+        }
+    }
+
+    func exportConversation() -> SavedAgentConversation {
+        SavedAgentConversation(
+            messages: messages,
+            runs: runs,
+            toolCalls: toolCalls,
+            runState: runState,
+            tokenUsage: tokenUsage,
+            history: history,
+            lastUserPrompt: lastUserPrompt,
+            lastDisplayPrompt: lastDisplayPrompt,
+            lastModelPrompt: lastModelPrompt,
+            lastRepairTarget: lastRepairTarget,
+            lastContextURL: lastContextURL
+        )
+    }
+
+    /// Restores a saved conversation onto this tab's session. A run that was active
+    /// when the app quit comes back stopped.
+    func restoreConversation(_ saved: SavedAgentConversation) {
+        if isRunning {
+            stop()
+        }
+        var normalizedToolCalls = saved.toolCalls
+        for idx in normalizedToolCalls.indices where normalizedToolCalls[idx].isRunning {
+            normalizedToolCalls[idx].isRunning = false
+            normalizedToolCalls[idx].isError = true
+            normalizedToolCalls[idx].resultSummary = "Stopped"
+            if normalizedToolCalls[idx].resultText.isEmpty {
+                normalizedToolCalls[idx].resultText = "Stopped by user."
+            }
+        }
+        var normalizedRuns = saved.runs
+        for runIdx in normalizedRuns.indices {
+            for rowIdx in normalizedRuns[runIdx].toolCalls.indices where normalizedRuns[runIdx].toolCalls[rowIdx].isRunning {
+                normalizedRuns[runIdx].toolCalls[rowIdx].isRunning = false
+                normalizedRuns[runIdx].toolCalls[rowIdx].isError = true
+                normalizedRuns[runIdx].toolCalls[rowIdx].resultSummary = "Stopped"
+                if normalizedRuns[runIdx].toolCalls[rowIdx].resultText.isEmpty {
+                    normalizedRuns[runIdx].toolCalls[rowIdx].resultText = "Stopped by user."
+                }
+            }
+            if case .running(let step, _) = normalizedRuns[runIdx].state {
+                normalizedRuns[runIdx].state = .stopped(step: step)
+            }
+        }
+        let normalizedState: BrowserAgentRunState
+        switch saved.runState {
+        case .running(let step, _):
+            normalizedState = .stopped(step: step)
+        default:
+            if let lastRun = normalizedRuns.last,
+               case .stopped(let step) = lastRun.state,
+               saved.runs.last?.state.isRunning == true {
+                normalizedState = .stopped(step: step)
+            } else {
+                normalizedState = saved.runState
+            }
+        }
+
+        messages = saved.messages
+        runs = normalizedRuns
+        toolCalls = normalizedToolCalls
+        tokenUsage = saved.tokenUsage
+        history = saved.history
+        lastUserPrompt = saved.lastUserPrompt
+        lastDisplayPrompt = saved.lastDisplayPrompt
+        lastModelPrompt = saved.lastModelPrompt
+        lastRepairTarget = saved.lastRepairTarget
+        lastContextURL = saved.lastContextURL
+        currentStep = normalizedRuns.last?.stepCount ?? 0
+        activeRepairState = nil
+        pageBaseline = nil
+        pageBaselineImage = nil
+        wireSizes = [:]
+        runLimitNotice = nil
+        healDanglingToolCallsInHistory()
+        runState = normalizedState
     }
 
     /// Grants another `maxSteps` budget after hitting `.stepLimitReached`.
@@ -1331,6 +1461,7 @@ final class BrowserAgentSession {
         }
         healDanglingToolCallsInHistory()
         runState = .stopped(step: stoppedStep)
+        onConversationChanged?()
     }
 
     /// Clears the conversation, step rows, and cumulative token totals.
@@ -1353,7 +1484,9 @@ final class BrowserAgentSession {
         lastContextURL = nil
         wireSizes = [:]
         pageBaselineImage = nil
+        runLimitNotice = nil
         runState = .idle
+        onConversationReset?()
     }
 
     // MARK: - Private Turn Execution
@@ -1367,6 +1500,7 @@ final class BrowserAgentSession {
         origin: AgentRunOrigin = .typed,
         repairTarget: ScriptRepairTarget? = nil
     ) {
+        guard checkRunStartGate() else { return }
         let runtime = configProvider()
         maxSteps = BrowserAgentLimits.clampSteps(runtime.maxSteps)
         currentStep = 0
@@ -1394,16 +1528,18 @@ final class BrowserAgentSession {
               selection.supportsToolCalling,
               let configuration = runtime.configuration else {
             let message = "Choose a tool-calling model for the browser agent in Settings."
-            runState = .failed(message: message)
             messages.append(BrowserAgentMessage(role: .statusNotice, text: message, isError: true))
+            runState = .failed(message: message)
+            onConversationChanged?()
             return
         }
 
         if selection.provider.requiresAPIKey,
            configuration.apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let message = "\(selection.provider.displayName) API key is required. Add it in Settings."
-            runState = .failed(message: message)
             messages.append(BrowserAgentMessage(role: .statusNotice, text: message, isError: true))
+            runState = .failed(message: message)
+            onConversationChanged?()
             return
         }
 
@@ -1429,6 +1565,7 @@ final class BrowserAgentSession {
         runRecord.repairTarget = repairTarget
         runs.append(runRecord)
         runState = .running(step: 0, maxSteps: maxSteps)
+        onConversationChanged?()
 
         activeGeneration &+= 1
         let generation = activeGeneration
@@ -1546,6 +1683,7 @@ final class BrowserAgentSession {
                        let rowIdx = self.runs[runIdx].toolCalls.firstIndex(where: { $0.id == updatedRow.id }) {
                         self.runs[runIdx].toolCalls[rowIdx] = updatedRow
                     }
+                    self.onConversationChanged?()
                 },
                 onAssistantText: { @MainActor [weak self] text in
                     guard let self, self.activeGeneration == generation else { return }
@@ -1555,6 +1693,7 @@ final class BrowserAgentSession {
                     if let runIdx = self.runs.firstIndex(where: { $0.id == runID }) {
                         self.runs[runIdx].assistantText = text
                     }
+                    self.onConversationChanged?()
                 },
                 onTokenUsage: { @MainActor [weak self] delta in
                     guard let self, self.activeGeneration == generation else { return }
@@ -1632,11 +1771,12 @@ final class BrowserAgentSession {
                 case .completed(let text, let steps, let duration):
                     let finalState = BrowserAgentRunState.completed(steps: steps, duration: duration)
                     self.closeTask(taskID: taskID, runID: runID, outcome: "completed", duration: duration)
-                    self.runState = finalState
                     if let runIdx = self.runs.firstIndex(where: { $0.id == runID }) {
                         self.runs[runIdx].state = finalState
                         self.runs[runIdx].duration = duration
                     }
+                    self.runState = finalState
+                    self.onConversationChanged?()
                     let answerText = text.trimmingCharacters(in: .whitespacesAndNewlines)
                     if !answerText.isEmpty {
                         self.onAnswer?(BrowserAgentAnswer(
@@ -1654,7 +1794,6 @@ final class BrowserAgentSession {
                 case .stepLimitReached(let limit, let notice, let duration):
                     let finalState = BrowserAgentRunState.stepLimitReached(limit: limit)
                     self.closeTask(taskID: taskID, runID: runID, outcome: "step_limit", duration: duration)
-                    self.runState = finalState
                     self.messages.append(
                         BrowserAgentMessage(
                             role: .statusNotice,
@@ -1667,15 +1806,18 @@ final class BrowserAgentSession {
                         self.runs[runIdx].state = finalState
                         self.runs[runIdx].duration = duration
                     }
+                    self.runState = finalState
+                    self.onConversationChanged?()
 
                 case .stopped(let step, let duration):
                     let finalState = BrowserAgentRunState.stopped(step: step)
                     self.closeTask(taskID: taskID, runID: runID, outcome: "stopped", duration: duration)
-                    self.runState = finalState
                     if let runIdx = self.runs.firstIndex(where: { $0.id == runID }) {
                         self.runs[runIdx].state = finalState
                         self.runs[runIdx].duration = duration
                     }
+                    self.runState = finalState
+                    self.onConversationChanged?()
                 }
             } catch {
                 guard self.activeGeneration == generation else { return }
@@ -1690,7 +1832,6 @@ final class BrowserAgentSession {
                     taskID: taskID, runID: runID, outcome: "failed",
                     duration: Date().timeIntervalSince(runRecord.startedAt)
                 )
-                self.runState = failedState
                 self.messages.append(
                     BrowserAgentMessage(
                         role: .statusNotice,
@@ -1702,6 +1843,8 @@ final class BrowserAgentSession {
                 if let runIdx = self.runs.firstIndex(where: { $0.id == runID }) {
                     self.runs[runIdx].state = failedState
                 }
+                self.runState = failedState
+                self.onConversationChanged?()
             }
         }
     }

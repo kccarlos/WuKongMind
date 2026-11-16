@@ -111,18 +111,32 @@ final class PageToolBridge {
         return result
     }
 
-    init(webView: WKWebView, isEnabled: Bool = true, scriptWorlds: [WKContentWorld] = [AgentBridge.isolatedWorld]) {
+    init(webView: WKWebView?, isEnabled: Bool = true, scriptWorlds: [WKContentWorld] = [AgentBridge.isolatedWorld]) {
         self.webView = webView
         self.isEnabled = isEnabled
         self.scriptWorlds = scriptWorlds
+        if webView != nil {
+            syncUserScripts()
+        }
+    }
+
+    func attach(to webView: WKWebView) {
+        self.webView = webView
+        managedScripts.removeAll()
         syncUserScripts()
     }
 
-    func detach() {
+    func detachWebView() {
         syncManagedScripts(installing: false)
+        managedScripts.removeAll()
         ownedScriptWorlds.removeAll()
-        onEnabledChanged = nil
+        scriptWorlds = [AgentBridge.isolatedWorld]
         webView = nil
+    }
+
+    func detach() {
+        detachWebView()
+        onEnabledChanged = nil
     }
 
     func registerScriptWorld(_ world: WKContentWorld) {

@@ -356,6 +356,9 @@ extension AppModel {
             clearSavedData(forSiteURL: siteURL)
         }
         deleteAllDigests()
+        tabs.resetToSingleHomeTab()
+        tabStateStore.removeAll()
+        save()
     }
 }
 

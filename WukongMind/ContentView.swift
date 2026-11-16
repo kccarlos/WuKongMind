@@ -268,11 +268,9 @@ struct BrowserContent: View {
     var body: some View {
         let showsHome = browser.showsForumsHome
         ZStack {
-            ForumWebView(browser: browser)
-                .id(ObjectIdentifier(browser))
+            BrowserTabsWebHost(tabs: app.tabs)
                 .background(Color(uiColor: .systemBackground))
                 .ignoresSafeArea(.container, edges: webViewIgnoresBottomSafeArea ? .bottom : [])
-                .opacity(showsHome ? 0 : 1)
                 .allowsHitTesting(!showsHome)
                 .accessibilityHidden(showsHome)
             if showsHome {

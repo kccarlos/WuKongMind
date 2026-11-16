@@ -254,10 +254,17 @@ final class AgentBridge: NSObject, AgentPageDriving {
     private let replyMessageHandler = AgentReplyMessageHandler()
     private var nextGeneratedSheetIndex = 0
 
-    init(webView: WKWebView) {
+    init(webView: WKWebView?) {
         self.webView = webView
         super.init()
         replyMessageHandler.bridge = self
+        if let webView {
+            attach(to: webView)
+        }
+    }
+
+    func attach(to webView: WKWebView) {
+        self.webView = webView
         let controller = webView.configuration.userContentController
         controller.removeScriptMessageHandler(
             forName: Self.messageHandlerName,
@@ -285,6 +292,17 @@ final class AgentBridge: NSObject, AgentPageDriving {
                 in: .page
             )
         )
+    }
+
+    func detachWebView() {
+        activeCallTokens.removeAll()
+        if let controller = webView?.configuration.userContentController {
+            controller.removeScriptMessageHandler(
+                forName: Self.messageHandlerName,
+                contentWorld: Self.isolatedWorld
+            )
+        }
+        webView = nil
     }
 
     // MARK: - Screenshot, network log, and console log

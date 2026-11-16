@@ -741,6 +741,16 @@ struct AssistantPanel: View {
                 isTalking: voice.isActive,
                 onTalk: { voice.toggle() }
             )
+
+            if let runLimitNotice = browserAgent.runLimitNotice {
+                Text(runLimitNotice)
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 4)
+                    .transition(.opacity)
+                    .accessibilityIdentifier("agentRunLimitNotice")
+            }
         }
         .onChange(of: dictation.transcript) { applyDictation() }
         .onChange(of: dictation.phase) { _, phase in
@@ -777,6 +787,7 @@ struct AssistantPanel: View {
         .padding(.bottom, 10 + (isKeyboardVisible ? 0 : bottomInset))
         .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: showsFooterStatusLine)
         .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: showsSuggestionRow)
+        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: browserAgent.runLimitNotice)
         .dcStickyFooter()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("askBox")
@@ -890,6 +901,11 @@ struct AssistantPanel: View {
         }
     }
 
+    private func announceRunLimitNoticeIfPresent() {
+        guard let notice = browserAgent.runLimitNotice else { return }
+        UIAccessibility.post(notification: .announcement, argument: notice)
+    }
+
     private func sendFixScriptRequest(for script: UserScript) {
         guard !browserAgent.isRunning else { return }
         stopDictation(keepingText: false)
@@ -899,6 +915,10 @@ struct AssistantPanel: View {
             return
         }
         requestedProviderSetup = false
+        guard browserAgent.checkRunStartGate() else {
+            announceRunLimitNoticeIfPresent()
+            return
+        }
         DCHaptics.tap()
         agentDraft = ""
         composerFocused = false
@@ -922,6 +942,10 @@ struct AssistantPanel: View {
             return
         }
         requestedProviderSetup = false
+        guard browserAgent.checkRunStartGate() else {
+            announceRunLimitNoticeIfPresent()
+            return
+        }
         DCHaptics.tap()
         agentDraft = ""
         composerFocused = false
