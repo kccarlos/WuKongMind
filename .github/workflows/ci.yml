@@ -63,53 +63,14 @@ jobs:
         # entry in scripts/ci/site-layering-allowlist.txt.
         run: scripts/ci/check-site-layering.sh
 
-  # Build once; the unit and UI jobs below reuse the products on two runners.
-  # Measured on run 43820992301 (30m of test work): build 4.6m, unit tests
-  # 12.4m (one retry), UI tests 11.8m. Timeouts are measured time + ~50%;
-  # shared runners vary a lot (one unit run took 31m), so unit gets 45m.
-  build-for-testing:
-    name: Build for testing
-    runs-on: ${{ vars.CI_MACOS_RUNNER || 'xcode-27' }}
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@v7
-      - name: Select Xcode
-        run: scripts/ci/select-xcode.sh
-      - name: Pick simulator
-        id: sim
-        env:
-          SIM_PREFER: iPhone 17 Pro,iPhone 18 Pro,iPhone 17,iPhone Air
-        run: scripts/ci/pick-simulator.sh
-      - name: Build for testing
-        env:
-          DESTINATION: ${{ steps.sim.outputs.destination }}
-        run: |
-          set -o pipefail
-          formatter=(cat)
-          if command -v xcbeautify >/dev/null; then formatter=(xcbeautify --renderer github-actions); fi
-          xcodebuild build-for-testing \
-            -project "$PROJECT" \
-            -scheme "$SCHEME" \
-            -destination "$DESTINATION" \
-            -derivedDataPath DerivedData \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            | "${formatter[@]}"
-      - name: Package build products
-        run: ditto -c -k --keepParent DerivedData/Build/Products products.zip
-      - uses: actions/upload-artifact@v7
-        with:
-          name: test-products-${{ github.run_id }}-${{ github.run_attempt }}
-          path: products.zip
-          retention-days: 1
-          compression-level: 0
-
-  # Required check name stays "Build & unit tests".
+  # Unit and UI tests run as two parallel jobs, each building in place (a
+  # shared build-for-testing artifact was tried and failed: simulator UDIDs
+  # differ per runner and the products handoff stalled). Required check name
+  # stays "Build & unit tests"; add "UI tests" as a required check too.
   build-test:
     name: Build & unit tests
-    needs: build-for-testing
     runs-on: ${{ vars.CI_MACOS_RUNNER || 'xcode-27' }}
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
       - name: Select Xcode
@@ -119,14 +80,7 @@ jobs:
         env:
           SIM_PREFER: iPhone 17 Pro,iPhone 18 Pro,iPhone 17,iPhone Air
         run: scripts/ci/pick-simulator.sh
-      - name: Boot simulator
-        # The old single job ran UI tests on a simulator the unit tests had
-        # warmed up; a cold first launch made the 15s page-seal wait flaky.
-        run: xcrun simctl bootstatus "${{ steps.sim.outputs.udid }}" -b
-      - uses: actions/download-artifact@v7
-        with:
-          name: test-products-${{ github.run_id }}-${{ github.run_attempt }}
-      - name: Unit tests
+      - name: & unit tests
         env:
           DESTINATION: ${{ steps.sim.outputs.destination }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
@@ -135,9 +89,8 @@ jobs:
           set -o pipefail
           formatter=(cat)
           if command -v xcbeautify >/dev/null; then formatter=(xcbeautify --renderer github-actions); fi
-          ditto -x -k products.zip DerivedData/Build
-          # One retry only: the unit suite has a known rare flake; UI tests get 3.
-          xcodebuild test-without-building \
+          # One retry only: the unit suite has a rare flake; UI tests get 3.
+          xcodebuild test \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -destination "$DESTINATION" \
@@ -149,6 +102,8 @@ jobs:
             -maximum-test-execution-time-allowance 300 \
             -derivedDataPath DerivedData \
             -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
             | "${formatter[@]}"
       - name: Flaky tests (passed on retry)
         # Never fails the job: a missing or unreadable result only gets a note.
@@ -165,7 +120,6 @@ jobs:
 
   ui-tests:
     name: UI tests
-    needs: build-for-testing
     runs-on: ${{ vars.CI_MACOS_RUNNER || 'xcode-27' }}
     timeout-minutes: 30
     steps:
@@ -177,13 +131,6 @@ jobs:
         env:
           SIM_PREFER: iPhone 17 Pro,iPhone 18 Pro,iPhone 17,iPhone Air
         run: scripts/ci/pick-simulator.sh
-      - name: Boot simulator
-        # The old single job ran UI tests on a simulator the unit tests had
-        # warmed up; a cold first launch made the 15s page-seal wait flaky.
-        run: xcrun simctl bootstatus "${{ steps.sim.outputs.udid }}" -b
-      - uses: actions/download-artifact@v7
-        with:
-          name: test-products-${{ github.run_id }}-${{ github.run_attempt }}
       - name: UI tests
         env:
           DESTINATION: ${{ steps.sim.outputs.destination }}
@@ -191,10 +138,9 @@ jobs:
           set -o pipefail
           formatter=(cat)
           if command -v xcbeautify >/dev/null; then formatter=(xcbeautify --renderer github-actions); fi
-          ditto -x -k products.zip DerivedData/Build
           # Fast offline UI suites; 6-11m multi-launch suites, xctrace perf
           # loops and live meta.discourse.org suites stay manual.
-          xcodebuild test-without-building \
+          xcodebuild test \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -destination "$DESTINATION" \
@@ -207,8 +153,11 @@ jobs:
             -maximum-test-execution-time-allowance 300 \
             -derivedDataPath DerivedData \
             -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
             | "${formatter[@]}"
       - name: Flaky tests (passed on retry)
+        # Never fails the job: a missing or unreadable result only gets a note.
         if: always()
         run: scripts/ci/flaky-summary.sh TestResults.xcresult >> "$GITHUB_STEP_SUMMARY" || true
       - name: Upload test results
