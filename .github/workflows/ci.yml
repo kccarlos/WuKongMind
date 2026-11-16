@@ -121,7 +121,7 @@ jobs:
   ui-tests:
     name: UI tests
     runs-on: ${{ vars.CI_MACOS_RUNNER || 'xcode-27' }}
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
       - name: Select Xcode
@@ -145,7 +145,6 @@ jobs:
           # Fast offline UI suites; 6-11m multi-launch suites, xctrace perf
           # loops and live meta.discourse.org suites stay manual.
           run_ui() {
-            : > ui.log; rm -f ui.stalled
             xcodebuild test \
               -project "$PROJECT" \
               -scheme "$SCHEME" \
@@ -161,22 +160,14 @@ jobs:
               -resultBundlePath TestResults.xcresult \
               CODE_SIGNING_ALLOWED=NO \
               CODE_SIGNING_REQUIRED=NO \
-              2>&1 | tee ui.log | "${formatter[@]}" &
-            pid=$!
-            # Watchdog: xcodebuild has hung after the build with no output
-            # (runs 43860157515, 43838760004); kill it after 8 silent minutes.
-            while kill -0 "$pid" 2>/dev/null; do
-              sleep 20
-              if [ $(( $(date +%s) - $(stat -f %m ui.log) )) -gt 480 ]; then
-                echo "::warning::UI tests printed nothing for 8 minutes; killing xcodebuild"
-                echo "STALLED" > ui.stalled
-                pkill -f "xcodebuild test" || true
-              fi
-            done
-            wait "$pid"
+              2>&1 | tee ui.log | "${formatter[@]}"
           }
-          # Retry the whole step once, only when the runner never launched or hung.
-          run_ui || { { [ -f ui.stalled ] || grep -q "Lost pending connection to the test runner" ui.log; } && rm -rf TestResults.xcresult && run_ui; }
+          # Retry the whole step once, only when the runner never launched.
+          if ! run_ui; then
+            grep -q "Lost pending connection to the test runner" ui.log || exit 1
+            rm -rf TestResults.xcresult
+            run_ui
+          fi
       - name: Raw xcodebuild tail
         # The beautifier hides why xcodebuild exited early; show the raw end.
         if: failure()
