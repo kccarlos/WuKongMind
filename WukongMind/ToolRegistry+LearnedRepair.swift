@@ -174,6 +174,10 @@ extension ToolRegistry {
             pageToolBridge: learned.pageToolBridge, scriptStore: context.scriptStore
         )
         guard report.passed else {
+            // Step 1 failing means the reader isn't registered on the open page: the page's doing, not the reader's.
+            if report.failedStep == 1 {
+                return ToolExecutionOutput(content: "Error: \(report.reason ?? "the reading tool is not on this page")", summary: bridgeFailureSummary, isError: true)
+            }
             return await learnedFailure(
                 slot: report.failedSlot ?? slot, message: report.reason ?? "the full check failed", scriptID: script.id,
                 learned: learned, context: context, callContext: callContext

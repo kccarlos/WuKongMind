@@ -320,6 +320,8 @@ extension ToolRegistry {
             return failure
         }
         func fail(_ call: (error: ToolExecutionOutput?, thrownCode: String?), requested: URL? = nil, message: String? = nil) async -> ToolExecutionOutput {
+            // The page can't run the reader (another page is open, still loading, bridge off): neither the reader's nor the site's fault.
+            if let error = call.error, error.summary == bridgeFailureSummary { return error }
             let text = message ?? call.error.map { String($0.content.dropFirst("Error: ".count)) } ?? "The reading tool failed."
             return await learnedFailure(
                 slot: slot, message: text, scriptID: scriptID, requested: requested, readerSaidService: call.thrownCode == "service",
@@ -425,6 +427,9 @@ extension ToolRegistry {
         return page
     }
 
+    /// The summary of a reader call the page couldn't run: no state changes, no recorded error.
+    static let bridgeFailureSummary = "Reading tool not run"
+
     static func callLearnedReader<Shape: Codable & Equatable & Sendable>(
         slot: SiteToolSlot, scriptID: String, payload: [String: JSONValue] = [:],
         learned: LearnedSiteContext, shapeNoun: String, as _: Shape.Type
@@ -434,7 +439,10 @@ extension ToolRegistry {
         )
         guard case .success(let callResult) = outcome else {
             if case .failure(let failure) = outcome {
-                return (nil, ToolExecutionOutput(content: "Error: \(failure.message)", isError: true), failure.thrownCode)
+                let pageSide = [PageToolCallFailureCode.disabled, .detached, .invalidName, .notFound, .timedOut].contains(failure.code)
+                return (nil, ToolExecutionOutput(
+                    content: "Error: \(failure.message)", summary: pageSide ? bridgeFailureSummary : nil, isError: true
+                ), failure.thrownCode)
             }
             return (nil, ToolExecutionOutput(content: "Error: Tool call failed.", isError: true), nil)
         }

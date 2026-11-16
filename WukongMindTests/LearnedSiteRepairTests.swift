@@ -508,6 +508,22 @@ final class LearnedSiteRepairWebTests: XCTestCase {
         XCTAssertEqual(slot(h, .listLatest).status, .broken)
     }
 
+    /// The page can't run the reader (another page is open): neither the reader's nor the site's fault.
+    func testReaderNotRunnableOnTheOpenPageLeavesTheSlotLearned() async throws {
+        let h = try await makeHarness(), script = try await learn(h)
+        defer { h.controller.detach(); h.pageToolBridge.detach() }
+        let learned = h.makeLearned()
+        try await h.waiter.load(h.webView, url: URL(string: "data:text/html,<html><body>elsewhere</body></html>")!)
+        for (tool, args) in [("read_topic", ["url": JSONValue.string(h.u1)]), ("list_latest", [:])] {
+            let result = try await h.registry(learned).dispatch(toolName: tool, arguments: args)
+            XCTAssertTrue(result.isError && result.notes.isEmpty, result.output)
+            XCTAssertFalse(result.output.contains("Script repair context"))
+        }
+        XCTAssertEqual(slot(h, .readTopic).status, .learned); XCTAssertEqual(slot(h, .listLatest).status, .learned)
+        XCTAssertTrue(h.scriptStore.errors(for: script.id).isEmpty)
+        XCTAssertTrue(learned.scope.brokenSlots.isEmpty)
+    }
+
     /// A reader edited by hand fails its next call (the full check on a changed hash), once.
     func testChangedHashRunsTheFullCheckOnce() async throws {
         let h = try await makeHarness(), script = try await learn(h)
