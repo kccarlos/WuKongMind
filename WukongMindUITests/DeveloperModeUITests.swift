@@ -3,9 +3,9 @@ import XCTest
 /// Developer mode part 1 (design-m3.md task 7): no developer entry while the switch is off; with
 /// it on, a step shows its model line, raw request and response, and ⋯ › Export task shows its alert.
 final class DeveloperModeUITests: DCUITestCase {
-    private func launchDemo(developer: Bool) -> XCUIApplication {
+    private func launchDemo(developer: Bool, extra: [String] = []) -> XCUIApplication {
         let args = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US", "-dc-browser-agent-fixture-page",
-                    "-dc-browser-agent-demo", "recorded", "-dc-drawer-detent", "large"]
+                    "-dc-browser-agent-demo", "recorded", "-dc-drawer-detent", "large"] + extra
         let app = launch(args + (developer ? ["-dc-developer-mode"] : []), orientation: isPhone ? .portrait : .landscapeLeft)
         showAssistant(in: app)
         let status = any(app, "agentStatusLine")
@@ -35,10 +35,35 @@ final class DeveloperModeUITests: DCUITestCase {
         app.buttons["pageCapabilitiesSeal"].firstMatch.tap()
         XCTAssertTrue(any(app, "pageScriptsPopover").waitForExistence(timeout: 8))
         XCTAssertFalse(any(app, "thisPageConsole").exists)
+        XCTAssertFalse(any(app, "thisPageSiteInspector").exists, "The site inspector is a developer-mode entry.")
         dismissPopover(app)
         openMenu(app)
         XCTAssertTrue(app.buttons["Audit log"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["Export task"].exists, "Export task is a developer-mode entry.")
+    }
+
+    func testSiteInspectorOpensFromThisPage() throws { try openSiteInspector(dark: false) }
+
+    func testSiteInspectorOpensInDarkMode() throws { try openSiteInspector(dark: true) }
+
+    private func openSiteInspector(dark: Bool) throws {
+        let suffix = dark ? "-dark" : ""
+        let app = launchDemo(developer: true, extra: ["-dc-site-inspector-seed"] + (dark ? ["-AppleInterfaceStyle", "Dark"] : []))
+        app.buttons["pageCapabilitiesSeal"].firstMatch.tap()
+        let row = any(app, "thisPageSiteInspector")
+        XCTAssertTrue(row.waitForExistence(timeout: 8))
+        row.tap()
+        XCTAssertTrue(any(app, "siteInspector").waitForExistence(timeout: 8), "The site inspector sheet did not open.")
+        XCTAssertTrue(any(app, "siteInspectorSlotPicker").waitForExistence(timeout: 5))
+        let slot = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Read a thread'")).firstMatch
+        XCTAssertTrue(slot.waitForExistence(timeout: 10), "The seeded Reading section did not show.")
+        capture("site-inspector\(suffix)")
+        app.swipeUp()
+        capture("site-inspector-scrolled\(suffix)")
+        app.swipeUp()
+        capture("site-inspector-bottom\(suffix)")
+        app.buttons["Done"].firstMatch.tap()
+        XCTAssertTrue(wait(timeout: 5) { !self.any(app, "siteInspector").exists })
     }
 
     func testDeveloperModeShowsRawStepAndExportAlert() throws {

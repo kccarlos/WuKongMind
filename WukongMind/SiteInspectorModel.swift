@@ -143,3 +143,30 @@ enum SiteInspectorState {
         try? store.save(fresh)
     }
 }
+
+#if DEBUG
+extension SiteToolState {
+    /// `-dc-site-inspector-seed`: a learned site for the screenshots and the UI test of the inspector
+    /// (a learned thread reader, a broken list reader, a failed search), as in the artboards.
+    static func inspectorSeed(host: String, now: Date = Date()) -> SiteToolState {
+        let steps: [SiteVerificationStepResult] = [
+            .init(step: 1, name: "Registered", status: .passed), .init(step: 2, name: "Real arguments", status: .passed, detail: "2 threads"),
+            .init(step: 3, name: "Strict shape", status: .passed), .init(step: 4, name: "Thread sanity", status: .passed, detail: "46, 12 posts"),
+            .init(step: 5, name: "List sanity", status: .skipped, detail: "thread only"), .init(step: 6, name: "Not constant", status: .passed),
+            .init(step: 7, name: "Faithful", status: .passed, detail: "#2, #5 on page"), .init(step: 8, name: "Bounded", status: .passed, detail: "1.9 s, 41 KB"),
+            .init(step: 9, name: "Stays home", status: .passed, detail: "no other host")
+        ]
+        var state = SiteToolState(host: host)
+        let check = SiteSlotCheck(date: now, url: "https://\(host)/thread-48211-1.html", result: "verified on 2 threads: 46 and 12 posts", counts: [46, 12], durationMs: 2_400, steps: steps)
+        state.setSlot(SiteSlotState(status: .learned, scriptID: "seed.reader", verifiedAt: now, lastCheck: check), for: .readTopic)
+        state.setSlot(SiteSlotState(status: .broken, scriptID: "seed.reader", repairFailures: 1,
+                                    failure: SiteSlotFailure(code: .shape, date: now)), for: .listLatest)
+        state.setSlot(SiteSlotState(status: .failed, failure: SiteSlotFailure(code: .gaveUp, date: now,
+                                    agentReason: "The search form posts to /search.php and returns the login page for guests.")), for: .searchForum)
+        state.appendLog(SiteLogEntry(kind: .failed, slot: .searchForum, date: now.addingTimeInterval(-3_000)))
+        state.appendLog(SiteLogEntry(kind: .learned, slot: .readTopic, date: now.addingTimeInterval(-2_000)))
+        state.appendLog(SiteLogEntry(kind: .broken, slot: .listLatest, date: now.addingTimeInterval(-1_000)))
+        return state
+    }
+}
+#endif
