@@ -80,7 +80,7 @@ jobs:
         env:
           SIM_PREFER: iPhone 17 Pro,iPhone 18 Pro,iPhone 17,iPhone Air
         run: scripts/ci/pick-simulator.sh
-      - name: & unit tests
+      - name: Unit tests
         env:
           DESTINATION: ${{ steps.sim.outputs.destination }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
