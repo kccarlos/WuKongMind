@@ -131,6 +131,10 @@ jobs:
         env:
           SIM_PREFER: iPhone 17 Pro,iPhone 18 Pro,iPhone 17,iPhone Air
         run: scripts/ci/pick-simulator.sh
+      - name: Boot simulator
+        # A cold simulator made the UI runner fail to launch ("Lost pending
+        # connection to the test runner before launch").
+        run: xcrun simctl bootstatus "${{ steps.sim.outputs.udid }}" -b
       - name: UI tests
         env:
           DESTINATION: ${{ steps.sim.outputs.destination }}
@@ -140,22 +144,26 @@ jobs:
           if command -v xcbeautify >/dev/null; then formatter=(xcbeautify --renderer github-actions); fi
           # Fast offline UI suites; 6-11m multi-launch suites, xctrace perf
           # loops and live meta.discourse.org suites stay manual.
-          xcodebuild test \
-            -project "$PROJECT" \
-            -scheme "$SCHEME" \
-            -destination "$DESTINATION" \
-            -only-testing:WukongMindUITests/SuggestionRowUITests \
-            -only-testing:WukongMindUITests/ScriptManagerUITests \
-            -parallel-testing-enabled NO \
-            -retry-tests-on-failure \
-            -test-iterations 3 \
-            -test-timeouts-enabled YES \
-            -maximum-test-execution-time-allowance 300 \
-            -derivedDataPath DerivedData \
-            -resultBundlePath TestResults.xcresult \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            | "${formatter[@]}"
+          run_ui() {
+            xcodebuild test \
+              -project "$PROJECT" \
+              -scheme "$SCHEME" \
+              -destination "$DESTINATION" \
+              -only-testing:WukongMindUITests/SuggestionRowUITests \
+              -only-testing:WukongMindUITests/ScriptManagerUITests \
+              -parallel-testing-enabled NO \
+              -retry-tests-on-failure \
+              -test-iterations 3 \
+              -test-timeouts-enabled YES \
+              -maximum-test-execution-time-allowance 300 \
+              -derivedDataPath DerivedData \
+              -resultBundlePath TestResults.xcresult \
+              CODE_SIGNING_ALLOWED=NO \
+              CODE_SIGNING_REQUIRED=NO \
+              2>&1 | tee ui.log | "${formatter[@]}"
+          }
+          # Retry the whole step once, only when the runner never launched.
+          run_ui || { grep -q "Lost pending connection to the test runner" ui.log && rm -rf TestResults.xcresult && run_ui; }
       - name: Flaky tests (passed on retry)
         # Never fails the job: a missing or unreadable result only gets a note.
         if: always()
