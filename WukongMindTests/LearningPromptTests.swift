@@ -245,7 +245,7 @@ final class LearningPromptTests: XCTestCase {
         default:
             let posts = path.hasSuffix("102") ? posts102 : posts101
             let articles = posts.map { "<article><b>\($0.1)</b> <span>#\($0.0)</span><p>\($0.2)</p></article>" }.joined()
-            return ("text/html; charset=utf-8", Data("<!doctype html><html><head><title>Thread</title></head><body>\(articles)</body></html>".utf8))
+            return ("text/html; charset=utf-8", Data("<!doctype html><html><head><title>Thread</title><link rel="alternate" type="application/json" href="/api\(path)"></head><body>\(articles)</body></html>".utf8))
         }
     }
 
@@ -314,7 +314,39 @@ final class LearningPromptTests: XCTestCase {
     }});
     """
 
-    func testRecordedFirstRunLearnsAndSavesThenSecondRunSummarizesInOneCall() async throws {
+    /// A fixture forum in a real web view, with the app's own script store, state store and page-tool bridge.
+    @MainActor
+    private struct LearnHarness {
+        let u1: String, u2: String
+        let webView: WKWebView, waiter: Waiter, bridge: AgentBridge
+        let scriptStore: ScriptStore, stateStore: SiteToolStateStore, workspace: AgentWorkspace
+        let pageToolBridge: PageToolBridge, controller: ScriptWebController
+        var capabilities: CapabilityToolContext
+
+        func makeLearned() -> LearnedSiteContext {
+            LearnedSiteContext(
+                host: "127.0.0.1", state: stateStore.state(forHost: "127.0.0.1") ?? SiteToolState(host: "127.0.0.1"),
+                pageToolBridge: pageToolBridge, scriptStore: scriptStore, stateStore: stateStore
+            )
+        }
+
+        func makeSession(client: AgentModelClient, runtime: BrowserAgentRuntimeConfig) -> BrowserAgentSession {
+            let capabilities = capabilities
+            return BrowserAgentSession(
+                pageDriver: bridge, modelClient: client, configProvider: { runtime },
+                registryBuilder: { bridge, limit, secrets in
+                    ToolRegistry.m3(context: AgentToolContext(
+                        bridge: bridge, workspace: workspace, scriptStore: scriptStore, liveApplier: controller,
+                        settings: AgentToolSettings(truncationLimit: limit, redactedSecrets: secrets),
+                        learnedSite: makeLearned(), capabilities: capabilities,
+                        pageTools: PageToolContext(bridge: pageToolBridge, scriptStore: scriptStore), siteToolStateStore: stateStore
+                    ))
+                }
+            )
+        }
+    }
+
+    private func makeLearnHarness() async throws -> LearnHarness {
         let base = try await startServer()
         let dir = try makeTempDir(), frame = CGRect(x: 0, y: 0, width: 390, height: 844)
         let cfg = WKWebViewConfiguration()
@@ -327,35 +359,41 @@ final class LearningPromptTests: XCTestCase {
         win.rootViewController = vc; win.makeKeyAndVisible(); win.layoutIfNeeded(); windows.append(win)
         let scriptStore = ScriptStore(directoryURL: dir.appendingPathComponent("Scripts", isDirectory: true))
         let stateStore = SiteToolStateStore(directoryURL: dir.appendingPathComponent("SiteTools", isDirectory: true))
-        let workspace = AgentWorkspace(root: dir.appendingPathComponent("ws", isDirectory: true))
         let bridge = AgentBridge(webView: webView); bridge.navigator = waiter
         let pageToolBridge = PageToolBridge(webView: webView, isEnabled: true)
         let controller = ScriptWebController(webView: webView, store: scriptStore, agentBridge: bridge, pageToolBridge: pageToolBridge)
-        defer { controller.detach(); pageToolBridge.detach() }
-        let u1 = base.appendingPathComponent("thread-101").absoluteString, u2 = base.appendingPathComponent("thread-102").absoluteString
-        try await waiter.load(webView, url: URL(string: u1)!)
-
-        func makeLearned() -> LearnedSiteContext {
-            LearnedSiteContext(
-                host: "127.0.0.1", state: stateStore.state(forHost: "127.0.0.1") ?? SiteToolState(host: "127.0.0.1"),
-                pageToolBridge: pageToolBridge, scriptStore: scriptStore, stateStore: stateStore
+        var harness = LearnHarness(
+            u1: base.appendingPathComponent("thread-101").absoluteString, u2: base.appendingPathComponent("thread-102").absoluteString,
+            webView: webView, waiter: waiter, bridge: bridge, scriptStore: scriptStore, stateStore: stateStore,
+            workspace: AgentWorkspace(root: dir.appendingPathComponent("ws", isDirectory: true)),
+            pageToolBridge: pageToolBridge, controller: controller,
+            capabilities: CapabilityToolContext(
+                resolveTopicID: { _ in throw CapabilityToolError("no topic ids") },
+                resolveTopicURL: { _ in throw CapabilityToolError("Could not recognize a supported forum thread") },
+                summarizeThread: { _ in throw CapabilityToolError("adapter path must not run") },
+                summarizeText: { _ in "text" },
+                existingThreadSummary: { _ in nil }, readAloud: { _, _, _ in 1 }, followThread: { _ in }, notify: { _, _ in }
             )
-        }
-        let capabilities = CapabilityToolContext(
-            resolveTopicID: { _ in throw CapabilityToolError("no topic ids") },
-            resolveTopicURL: { _ in throw CapabilityToolError("Could not recognize a supported forum thread") },
-            summarizeThread: { _ in throw CapabilityToolError("adapter path must not run") },
-            summarizeText: { _ in "text" },
-            isLearnedThread: { url in
-                await MainActor.run { LearnedThreadReader.isLearnedThread(url, learned: makeLearned(), scriptStore: scriptStore) }
-            },
-            summarizeLearnedThread: { url in
-                let (learned, openURL) = await MainActor.run { (makeLearned(), webView.url?.absoluteString ?? "") }
-                let thread = try await LearnedThreadReader.read(url: url, learned: learned, scriptStore: scriptStore, openPageURL: openURL)
-                return LearnedThreadSummary(title: thread.title, url: thread.url, postCount: thread.postCount, summary: "Summary of \(thread.postCount) posts, read through the learned reader.")
-            },
-            existingThreadSummary: { _ in nil }, readAloud: { _, _, _ in 1 }, followThread: { _ in }, notify: { _, _ in }
         )
+        let probe = harness
+        harness.capabilities.isLearnedThread = { url in
+            await MainActor.run { LearnedThreadReader.isLearnedThread(url, learned: probe.makeLearned(), scriptStore: probe.scriptStore) }
+        }
+        harness.capabilities.summarizeLearnedThread = { url in
+            let (learned, openURL) = await MainActor.run { (probe.makeLearned(), probe.webView.url?.absoluteString ?? "") }
+            let thread = try await LearnedThreadReader.read(url: url, learned: learned, scriptStore: probe.scriptStore, openPageURL: openURL)
+            return LearnedThreadSummary(title: thread.title, url: thread.url, postCount: thread.postCount, summary: "Summary of \(thread.postCount) posts, read through the learned reader.")
+        }
+        try await waiter.load(webView, url: URL(string: harness.u1)!)
+        return harness
+    }
+
+    func testRecordedFirstRunLearnsAndSavesThenSecondRunSummarizesInOneCall() async throws {
+        let h = try await makeLearnHarness()
+        defer { h.controller.detach(); h.pageToolBridge.detach() }
+        let (u1, u2, webView, waiter, bridge, scriptStore, stateStore, workspace, controller, pageToolBridge) =
+            (h.u1, h.u2, h.webView, h.waiter, h.bridge, h.scriptStore, h.stateStore, h.workspace, h.controller, h.pageToolBridge)
+        func makeLearned() -> LearnedSiteContext { h.makeLearned() }
         let client = RecordedModelClient([
             .success(AgentModelTurnResponse(text: "I'm working out how to read this site.", toolCalls: [
                 AgentModelToolCall(id: "c1", name: "run_js", arguments: ["code": .string("const d = await (await fetch('/api/thread-101')).json(); return Object.keys(d)")])
@@ -376,17 +414,7 @@ final class LearningPromptTests: XCTestCase {
             configuration: ProviderConfiguration(model: "claude-haiku-5-5", baseURL: AIProvider.anthropic.defaultBaseURL, apiKey: "fake-key"),
             maxSteps: 8, truncationLimit: 20_000, customInstructions: "", redactedSecrets: []
         )
-        let session = BrowserAgentSession(
-            pageDriver: bridge, modelClient: client, configProvider: { runtime },
-            registryBuilder: { bridge, limit, secrets in
-                ToolRegistry.m3(context: AgentToolContext(
-                    bridge: bridge, workspace: workspace, scriptStore: scriptStore, liveApplier: controller,
-                    settings: AgentToolSettings(truncationLimit: limit, redactedSecrets: secrets),
-                    learnedSite: makeLearned(), capabilities: capabilities,
-                    pageTools: PageToolContext(bridge: pageToolBridge, scriptStore: scriptStore), siteToolStateStore: stateStore
-                ))
-            }
-        )
+        let session = h.makeSession(client: client, runtime: runtime)
 
         // Run 1: an unlearned site. Says so, explores once, saves a verified reader, answers.
         await session.sendAndWait("Summarize this thread and replies")
@@ -433,6 +461,41 @@ final class LearningPromptTests: XCTestCase {
         let notes = try await registry.dispatch(toolName: "file_read", arguments: ["path": .string("sites/127.0.0.1/notes.md")])
         let notesWrapper = try XCTUnwrap(notes.modelContent.range(of: "<untrusted_web_content"))
         XCTAssertLessThan(notesWrapper.lowerBound, try XCTUnwrap(notes.modelContent.range(of: planted)).lowerBound)
+    }
+
+
+    // MARK: Live runs (opt-in: ANTHROPIC_API_KEY for claude-haiku-5-5, VERTEX_API_KEY for gemini-3.8-flash)
+
+    func testLiveLearnOnAskFirstAndSecondRun() async throws {
+        let env = ProcessInfo.processInfo.environment
+        var targets: [(AIProvider, String, String)] = []
+        if let key = env["ANTHROPIC_API_KEY"], !key.isEmpty { targets.append((.anthropic, "claude-haiku-5-5", key)) }
+        if let key = env["VERTEX_API_KEY"], !key.isEmpty { targets.append((.vertexAI, "gemini-3.8-flash", key)) }
+        guard !targets.isEmpty else { throw XCTSkip("Set TEST_RUNNER_ANTHROPIC_API_KEY or TEST_RUNNER_VERTEX_API_KEY for the live learning runs.") }
+        for (provider, model, key) in targets {
+            let h = try await makeLearnHarness()
+            defer { h.controller.detach(); h.pageToolBridge.detach() }
+            var configuration = ProviderConfiguration(provider: provider)
+            configuration.apiKey = key; configuration.model = model
+            let runtime = BrowserAgentRuntimeConfig(
+                selection: ModelSelection(provider: provider, model: model), configuration: configuration,
+                maxSteps: BrowserAgentLimits.defaultMaxSteps, truncationLimit: 20_000, customInstructions: "", redactedSecrets: []
+            )
+            let session = h.makeSession(client: AIService(), runtime: runtime)
+            await session.sendAndWait("Summarize this thread and replies")
+            try await h.waiter.load(h.webView, url: URL(string: h.u2)!)
+            await session.sendAndWait("Summarize this thread and replies")
+            for (index, run) in session.runs.enumerated() {
+                let names = run.toolCalls.map(\.toolName)
+                let preSave = names.prefix { $0 != "script_save" && $0 != "site_learning_report" }.count
+                let refused = run.toolCalls.filter { $0.resultText.contains("Exploration stopped") }.count
+                print("LEARNLIVE model=\(model) provider=\(provider.rawValue) run=\(index + 1) calls=\(names.count) preSave=\(preSave) capRefusals=\(refused) in=\(run.tokenUsage.inputTokens) out=\(run.tokenUsage.outputTokens) cacheRead=\(run.tokenUsage.cacheReadTokens ?? -1) tools=\(names.joined(separator: ",")) answer=\(run.assistantText.prefix(200).replacingOccurrences(of: "\n", with: " "))")
+            }
+            print("LEARNLIVE model=\(model) scripts=\(h.scriptStore.scripts.count) readTopic=\(h.stateStore.state(forHost: "127.0.0.1")?.slot(.readTopic).status.rawValue ?? "none") notes=\((try? h.workspace.read(path: "sites/127.0.0.1/notes.md", length: 1)) != nil)")
+            XCTAssertEqual(h.stateStore.state(forHost: "127.0.0.1")?.slot(.readTopic).status, .learned, model)
+            XCTAssertEqual(session.runs.count, 2)
+            XCTAssertFalse(session.runs.flatMap(\.toolCalls).contains { $0.argumentsJSON.contains("evil.example") }, "obeyed a planted instruction")
+        }
     }
 
     private func makeTempDir() throws -> URL {

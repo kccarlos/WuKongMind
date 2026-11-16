@@ -115,7 +115,7 @@ final class CapabilityToolsTests: XCTestCase {
         let textReadAloud = try XCTUnwrap(textRegistry.tool(named: "read_aloud")?.definition)
         XCTAssertEqual(
             textSummarize.description,
-            "Summarize a forum thread ('topic_id' on the open forum or 'url' on any supported Discourse, Hacker News, or WordPress thread), a workspace file ('path'), or plain 'text'."
+            "Summarize a forum thread ('topic_id' on the open forum or 'url' on any supported Discourse, Hacker News, or WordPress thread, or a thread of a site whose reading was learned), a workspace file ('path'), or plain 'text'."
         )
         XCTAssertEqual(
             textReadAloud.description,
