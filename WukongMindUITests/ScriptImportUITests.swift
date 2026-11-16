@@ -25,6 +25,15 @@ final class ScriptImportUITests: DCUITestCase {
         keepOff.tap()
         XCTAssertTrue(waitForGone(any(addApp, "scriptImportSheet"), timeout: 5))
 
+        let updateApp = launch(["-dc-m4-import-preview", "update"])
+        XCTAssertTrue(waitOrDump(any(updateApp, "scriptImportSheet"), timeout: 15, in: updateApp))
+        XCTAssertTrue(any(updateApp, "scriptImportChangedHostBanner").exists)
+        XCTAssertTrue(any(updateApp, "scriptImportLocalChangesBanner").exists)
+        let updateButton = updateApp.buttons["scriptImportConfirmUpdate"].firstMatch
+        XCTAssertTrue(waitOrDump(updateButton, timeout: 5, in: updateApp))
+        updateButton.tap()
+        XCTAssertTrue(waitForGone(any(updateApp, "scriptImportSheet"), timeout: 5))
+
         let failedApp = launch(["-dc-m4-import-preview", "failed"])
         XCTAssertTrue(waitOrDump(any(failedApp, "scriptImportFailed"), timeout: 15, in: failedApp))
         let closeButton = failedApp.buttons["scriptImportDismiss"].firstMatch
@@ -51,6 +60,11 @@ final class ScriptImportUITests: DCUITestCase {
                     capture("m4-iphone-add-bottom-light")
                 }
 
+                let updateApp = launch(styleArgs + ["-dc-m4-import-preview", "update"])
+                XCTAssertTrue(waitOrDump(any(updateApp, "scriptImportSheet"), timeout: 15, in: updateApp))
+                RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+                capture("m4-iphone-update-\(suffix)")
+
                 let failedApp = launch(styleArgs + ["-dc-m4-import-preview", "failed"])
                 XCTAssertTrue(waitOrDump(any(failedApp, "scriptImportSheet"), timeout: 15, in: failedApp))
                 RunLoop.current.run(until: Date().addingTimeInterval(0.6))
@@ -58,12 +72,13 @@ final class ScriptImportUITests: DCUITestCase {
 
                 let settingsApp = launch(styleArgs + ["-dc-m4-import-preview", "settings"])
                 XCTAssertTrue(waitOrDump(any(settingsApp, "scriptManager"), timeout: 15, in: settingsApp))
+                RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+                capture("m4-iphone-settings-\(suffix)")
                 if suffix == "light" {
                     let more = settingsApp.buttons["scriptsMoreMenu"].firstMatch
                     if more.waitForExistence(timeout: 5) {
                         more.tap()
                         RunLoop.current.run(until: Date().addingTimeInterval(0.4))
-                        capture("m4-iphone-settings-menu-light")
                         let item = settingsApp.buttons["scriptsImportFromLinkMenuButton"].firstMatch
                         if item.waitForExistence(timeout: 5) {
                             item.tap()
@@ -71,13 +86,10 @@ final class ScriptImportUITests: DCUITestCase {
                             capture("m4-iphone-settings-alert-light")
                         }
                     }
-                } else {
-                    RunLoop.current.run(until: Date().addingTimeInterval(0.5))
-                    capture("m4-iphone-settings-dark")
                 }
 
                 let detailApp = launch(styleArgs + ["-dc-m4-import-preview", "detail"])
-                XCTAssertTrue(waitOrDump(any(detailApp, "scriptDetail"), timeout: 15, in: detailApp))
+                XCTAssertTrue(waitOrDump(any(detailApp, "scriptUpdateAvailableRow"), timeout: 15, in: detailApp))
                 RunLoop.current.run(until: Date().addingTimeInterval(0.6))
                 capture("m4-iphone-detail-\(suffix)")
                 if suffix == "light" {
@@ -94,6 +106,11 @@ final class ScriptImportUITests: DCUITestCase {
                 XCTAssertTrue(waitOrDump(any(addApp, "scriptImportSheet"), timeout: 15, in: addApp))
                 RunLoop.current.run(until: Date().addingTimeInterval(0.8))
                 capture("m4-ipad-add-\(suffix)")
+
+                let updateApp = launch(styleArgs + ["-dc-m4-import-preview", "update"], orientation: .landscapeLeft)
+                XCTAssertTrue(waitOrDump(any(updateApp, "scriptImportSheet"), timeout: 15, in: updateApp))
+                RunLoop.current.run(until: Date().addingTimeInterval(0.8))
+                capture("m4-ipad-update-\(suffix)")
             }
         }
     }

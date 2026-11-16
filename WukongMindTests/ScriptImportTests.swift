@@ -199,6 +199,7 @@ final class ScriptImportTests: XCTestCase {
         )
         importer = ScriptImporter(
             scriptStore: store,
+            stateDirectoryURL: tempRoot,
             httpClientProvider: { [unowned self] in self.httpClient }
         )
     }
@@ -482,14 +483,15 @@ final class ScriptImportTests: XCTestCase {
         XCTAssertEqual(interceptedURLs.last?.absoluteString, "https://greasyfork.example.org/scripts/agent-pick.user.js")
     }
 
-    // MARK: - Install URL, Source Host Persistence & Duplicate-Name Isolation
+    // MARK: - Check 7: Updates, Changed-Host Diff, History Rollback & Duplicate Name Isolation
 
-    func testInstallURLAndSourceHostPersistenceSameLinkGuardAndDuplicateNameIsolation() async throws {
+    func testUpdateCheckDiffConfirmHistoryRollbackAndDuplicateNameIsolation() async throws {
         let installURL = URL(string: "https://greasyfork.example.org/scripts/99/reader.user.js")!
-        let cdnFinalURL = URL(string: "https://update.greasyfork.example.org/scripts/99/reader.user.js")!
-        let mirrorURL = URL(string: "https://mirror.example.com/clean-reader.user.js")!
+        let redirectHostURL = URL(string: "https://raw.example.net/scripts/99/reader.user.js")!
+        let libV1URL = "https://cdn.example.net/libs/v1.js"
+        let libV2URL = "https://cdn.example.net/libs/v2.js"
 
-        let scriptBody = """
+        let scriptV1 = """
         // ==UserScript==
         // @name        Clean Reader
         // @namespace   https://greasyfork.example.org/users/kai
@@ -497,70 +499,207 @@ final class ScriptImportTests: XCTestCase {
         // @match       https://talk.example.org/*
         // @grant       GM_getValue
         // @grant       GM_setValue
+        // @grant       GM_xmlhttpRequest
+        // @connect     api.example.org
+        // @require     \(libV1URL)
         // ==/UserScript==
         console.log('v1');
         """
 
+        let scriptV2 = """
+        // ==UserScript==
+        // @name        Clean Reader
+        // @namespace   https://greasyfork.example.org/users/kai
+        // @version     1.10.0
+        // @match       https://talk.example.org/*
+        // @match       https://forum.example.com/*
+        // @grant       GM_getValue
+        // @grant       GM_setValue
+        // @grant       GM_xmlhttpRequest
+        // @connect     api.example.org
+        // @connect     stats.example.io
+        // @require     \(libV2URL)
+        // ==/UserScript==
+        console.log('v2');
+        """
+
+        let serveV2 = OSAllocatedUnfairLock(initialState: false)
+        let redirectToNewHost = OSAllocatedUnfairLock(initialState: false)
+
         ImportStubProtocol.install { req in
             switch req.url?.absoluteString {
             case installURL.absoluteString:
-                return StubResponse(status: 302, headers: ["Location": cdnFinalURL.absoluteString])
-            case cdnFinalURL.absoluteString, mirrorURL.absoluteString:
-                return StubResponse(body: Data(scriptBody.utf8))
+                if redirectToNewHost.withLock({ $0 }) {
+                    return StubResponse(
+                        status: 302,
+                        headers: ["Location": redirectHostURL.absoluteString]
+                    )
+                }
+                let body = serveV2.withLock { $0 } ? scriptV2 : scriptV1
+                return StubResponse(body: Data(body.utf8))
+            case redirectHostURL.absoluteString:
+                return StubResponse(body: Data(scriptV2.utf8))
+            case libV1URL:
+                return StubResponse(body: Data("window.__libVer = 1;".utf8))
+            case libV2URL:
+                return StubResponse(body: Data("window.__libVer = 2;".utf8))
+            case "https://mirror.example.com/clean-reader.user.js":
+                return StubResponse(body: Data(scriptV1.utf8))
             default:
                 return StubResponse(status: 404)
             }
         }
 
-        // 1. Import via redirecting HTTPS link: stores canonical installURL AND final sourceHost.
+        // 1. Import v1 (1.2.0) and store a GM value + make a local edit.
         let initialReview = try await importer.fetchReview(from: installURL, httpClient: httpClient).get()
-        XCTAssertNil(initialReview.duplicateNameHost)
-        XCTAssertEqual(initialReview.installURL, installURL.absoluteString)
-        XCTAssertEqual(initialReview.finalHost, "update.greasyfork.example.org")
-
-        let saved = try store.saveImportedScript(
+        let savedV1 = try store.saveImportedScript(
             initialReview.candidate,
             installURL: initialReview.installURL,
-            sourceHost: initialReview.finalHost,
             upstreamHash: initialReview.upstreamHash,
             libraries: initialReview.libraries,
             turnOn: true
         )
-        XCTAssertEqual(saved.metadata.installURL, "https://greasyfork.example.org/scripts/99/reader.user.js")
-        XCTAssertEqual(saved.metadata.sourceHost, "update.greasyfork.example.org")
+        try store.valuesStore.setValue(rawJSON: "\"dark\"", forKey: "theme", scriptID: savedV1.id)
+        let locallyEdited = try store.update(
+            id: savedV1.id,
+            patch: ScriptUpdatePatch(js: "console.log('v1-local');"),
+            origin: .editedByUser
+        )
+        XCTAssertTrue(locallyEdited.metadata.locallyChanged)
 
-        let reparsed = try UserScript.parseUserScriptFile(saved.toUserScriptFileContent())
-        XCTAssertEqual(reparsed.metadata.installURL, "https://greasyfork.example.org/scripts/99/reader.user.js")
-        XCTAssertEqual(reparsed.metadata.sourceHost, "update.greasyfork.example.org")
+        // 2. Upstream moves to 1.10.0 (`1.10.0` > `1.2.0`). Foreground check marks Update available
+        //    WITHOUT modifying the installed script!
+        serveV2.withLock { $0 = true }
+        let day0 = Date(timeIntervalSince1970: 1_700_000_000)
+        await importer.checkForegroundUpdatesIfDue(enabled: true, now: day0)
 
-        try store.valuesStore.setValue(rawJSON: "\"dark\"", forKey: "theme", scriptID: saved.id)
+        let badge = try XCTUnwrap(importer.availableUpdate(for: savedV1.id))
+        XCTAssertEqual(badge.newVersion, "1.10.0")
+        XCTAssertEqual(store.script(id: savedV1.id)?.js, "console.log('v1-local');")
 
-        // 2. Importing the exact same installURL (even with :443 and #fragment) never creates a duplicate copy.
-        let canonicalVariant = URL(string: "https://GREASYFORK.example.org:443/scripts/99/reader.user.js#readme")!
-        let sameLinkOutcome = await importer.fetchReview(from: canonicalVariant, httpClient: httpClient)
-        switch sameLinkOutcome {
-        case .success:
-            XCTFail("Expected already-installed URL not to create a duplicate copy")
-        case .failure(let failure):
-            XCTAssertTrue(failure.reason.localizedCaseInsensitiveContains("already installed"))
+        // Daily throttle: calling again 1 hour later makes no network requests.
+        let seenBeforeThrottle = ImportStubProtocol.seenRequests.count
+        await importer.checkForegroundUpdatesIfDue(enabled: true, now: day0.addingTimeInterval(3600))
+        XCTAssertEqual(ImportStubProtocol.seenRequests.count, seenBeforeThrottle)
+
+        // 3. Importing the same installURL twice opens the update review (and redirected host surfaces danger diff).
+        redirectToNewHost.withLock { $0 = true }
+        let secondImportReview = try await importer.fetchReview(from: installURL, httpClient: httpClient).get()
+        guard case .update(let existingTarget, let diff) = secondImportReview.mode else {
+            return XCTFail("Expected same installURL to open update mode")
         }
-        XCTAssertEqual(store.scripts.count, 1)
+        XCTAssertEqual(existingTarget.id, savedV1.id)
+        XCTAssertEqual(diff.oldVersion, "1.2.0")
+        XCTAssertEqual(diff.newVersion, "1.10.0")
+        XCTAssertEqual(diff.changedHost?.oldHost, "greasyfork.example.org")
+        XCTAssertEqual(diff.changedHost?.newHost, "raw.example.net")
+        XCTAssertTrue(diff.locallyChanged)
+        XCTAssertEqual(diff.addedConnects, ["stats.example.io"])
+        XCTAssertEqual(diff.addedMatches, ["https://forum.example.com/*"])
+        XCTAssertEqual(diff.addedLibraries, [libV2URL])
+        XCTAssertEqual(diff.removedLibraries, [libV1URL])
 
-        // 3. Same @namespace + @name from another URL imports as a separate script with isolated GM storage.
+        // 4. Confirm update: archives previous version in History, clears locallyChanged, keeps GM values, updates libraries.
+        importer.openImport(from: installURL, targetScriptID: savedV1.id)
+        for _ in 0..<50 {
+            if case .ready = importer.phase { break }
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        var syncNotifications = 0
+        store.onSyncedScriptsChanged = { syncNotifications += 1 }
+        let updated = try XCTUnwrap(try importer.confirmImport(turnOn: true))
+        XCTAssertEqual(syncNotifications, 1, "An applied update must reach iCloud sync")
+        XCTAssertNil(importer.availableUpdate(for: savedV1.id))
+        XCTAssertEqual(updated.versionOrigin, .updated)
+        XCTAssertEqual(updated.metadata.authorVersion, "1.10.0")
+        XCTAssertFalse(updated.metadata.locallyChanged)
+        XCTAssertEqual(updated.js, "console.log('v2');")
+        XCTAssertEqual(store.valuesStore.values(for: savedV1.id)["theme"], .string("dark"))
+        XCTAssertEqual(store.readStoredRequiredLibraries(for: savedV1.id).map(\.meta.url), [libV2URL])
+
+        // 5. Restoring v1 from History restores v1 code AND v1 @require library!
+        let rolledBack = try store.rollback(id: savedV1.id, toVersion: 1)
+        XCTAssertEqual(rolledBack.js, "console.log('v1');")
+        XCTAssertEqual(store.readStoredRequiredLibraries(for: savedV1.id).map(\.meta.url), [libV1URL])
+        XCTAssertEqual(store.loadVerifiedRequiredCode(for: rolledBack), .success(["window.__libVer = 1;"]))
+
+        // 6. Same @namespace + @name from another URL imports as a separate script with isolated GM storage.
+        let mirrorURL = URL(string: "https://mirror.example.com/clean-reader.user.js")!
         let mirrorReview = try await importer.fetchReview(from: mirrorURL, httpClient: httpClient).get()
-        XCTAssertEqual(mirrorReview.duplicateNameHost, "update.greasyfork.example.org")
+        guard case .create(let duplicateHost) = mirrorReview.mode else {
+            return XCTFail("Expected separate create mode for different installURL")
+        }
+        XCTAssertEqual(duplicateHost, "greasyfork.example.org")
         let mirrorSaved = try store.saveImportedScript(
             mirrorReview.candidate,
             installURL: mirrorReview.installURL,
-            sourceHost: mirrorReview.finalHost,
             upstreamHash: mirrorReview.upstreamHash,
             libraries: mirrorReview.libraries,
             turnOn: true
         )
-        XCTAssertNotEqual(mirrorSaved.id, saved.id)
-        XCTAssertEqual(mirrorSaved.metadata.sourceHost, "mirror.example.com")
+        XCTAssertNotEqual(mirrorSaved.id, savedV1.id)
         XCTAssertTrue(store.valuesStore.values(for: mirrorSaved.id).isEmpty)
-        XCTAssertEqual(store.valuesStore.values(for: saved.id)["theme"], .string("dark"))
+        XCTAssertEqual(store.valuesStore.values(for: savedV1.id)["theme"], .string("dark"))
+    }
+
+    // MARK: - Update link rules
+
+    nonisolated static func linkRulesHeader(_ extra: String) -> String {
+        """
+        // ==UserScript==
+        // @name        Link Rules
+        // @namespace   https://example.org/ns
+        // @version     1.0.0
+        // @match       https://talk.example.org/*
+        \(extra)
+        // ==/UserScript==
+        console.log('x');
+        """
+    }
+
+    func testUpdateChecksUseOnlyHTTPSUpdateLinks() async throws {
+        func importScript(extra: String, installURL: String) async throws -> UserScript {
+            let installURL = URL(string: installURL)!
+            ImportStubProtocol.install { req in StubResponse(body: Data(Self.linkRulesHeader(extra).utf8)) }
+            let review = try await importer.fetchReview(from: installURL, httpClient: httpClient).get()
+            return try store.saveImportedScript(
+                review.candidate, installURL: review.installURL,
+                upstreamHash: review.upstreamHash, libraries: [], turnOn: true
+            )
+        }
+
+        // An http @updateURL is skipped: the https @downloadURL is checked instead.
+        let a = try await importScript(
+            extra: "// @updateURL http://insecure.example.org/a.meta.js\n// @downloadURL https://dl.example.org/a.user.js",
+            installURL: "https://example.org/a.user.js"
+        )
+        XCTAssertEqual(ScriptImporter.preferredCheckURL(for: a)?.absoluteString, "https://dl.example.org/a.user.js")
+
+        // An https @updateURL is the one fetched, and the download link is kept for applying.
+        let b = try await importScript(
+            extra: "// @updateURL https://meta.example.org/b.meta.js\n// @downloadURL https://dl.example.org/b.user.js",
+            installURL: "https://example.org/b.user.js"
+        )
+        ImportStubProtocol.install { req in StubResponse(body: Data(Self.linkRulesHeader("// @version 2.0.0").utf8)) }
+        let before = ImportStubProtocol.seenRequests.count
+        _ = await importer.checkForUpdate(script: b, httpClient: httpClient)
+        let fetched = ImportStubProtocol.seenRequests.dropFirst(before).compactMap { $0.url?.absoluteString }
+        XCTAssertEqual(fetched, ["https://meta.example.org/b.meta.js"])
+
+        // Both links http: falls back to the https install URL.
+        let c = try await importScript(
+            extra: "// @updateURL http://insecure.example.org/c.meta.js\n// @downloadURL http://insecure.example.org/c.user.js",
+            installURL: "https://example.org/c.user.js"
+        )
+        XCTAssertEqual(ScriptImporter.preferredCheckURL(for: c)?.absoluteString, "https://example.org/c.user.js")
+
+        // No https link at all: the check says so and makes no request.
+        var d = c
+        d.metadata.installURL = nil
+        let seen = ImportStubProtocol.seenRequests.count
+        let outcome = await importer.checkForUpdate(script: d, httpClient: httpClient)
+        XCTAssertEqual(outcome, .failed("This script has no HTTPS update link."))
+        XCTAssertEqual(ImportStubProtocol.seenRequests.count, seen)
     }
 
     // MARK: - Failure Cases & Library Hash Verification
@@ -669,7 +808,6 @@ final class ScriptImportTests: XCTestCase {
         let saved = try store.saveImportedScript(
             parsed.script,
             installURL: "https://example.org/tamper.user.js",
-            sourceHost: "example.org",
             upstreamHash: "abc",
             libraries: [validLib],
             turnOn: true
@@ -707,6 +845,13 @@ final class ScriptImportTests: XCTestCase {
         )
     }
 
+    func testVersionComparisonHandlesMultiPartAndPrerelease() {
+        XCTAssertEqual(ScriptImporter.compareVersions("1.10.0", "1.2.0"), .orderedDescending)
+        XCTAssertEqual(ScriptImporter.compareVersions("2.0", "2.0.0"), .orderedSame)
+        XCTAssertEqual(ScriptImporter.compareVersions("2.0.0", "2.0.0-beta.1"), .orderedDescending)
+        XCTAssertEqual(ScriptImporter.compareVersions("1.0.0-alpha.2", "1.0.0-alpha.10"), .orderedAscending)
+    }
+
     func testAskAgentReviewBlockWrapsUntrustedSourceAndRedactsSecrets() throws {
         let maliciousRaw = """
         // ==UserScript==
@@ -718,7 +863,7 @@ final class ScriptImportTests: XCTestCase {
         """
         let parsed = try ScriptImporter.parseExternalUserScript(maliciousRaw)
         let review = ScriptImportReview(
-            duplicateNameHost: nil,
+            mode: .create(duplicateNameHost: nil),
             candidate: parsed.script,
             rawSource: maliciousRaw,
             installURL: "https://evil-host.example.org/sneaky-sk-secret-12345.user.js",
@@ -881,7 +1026,7 @@ final class ScriptImportTests: XCTestCase {
         // Mismatched expectedReview is rejected by confirmImport; matching reviewAlpha installs Alpha only.
         let parsedEvil = try ScriptImporter.parseExternalUserScript(evilRaw)
         let forgedEvilReview = ScriptImportReview(
-            duplicateNameHost: nil,
+            mode: .create(duplicateNameHost: nil),
             candidate: parsedEvil.script,
             rawSource: evilRaw,
             installURL: evilNavURL.absoluteString,

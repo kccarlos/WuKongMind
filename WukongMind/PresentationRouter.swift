@@ -47,7 +47,7 @@ enum RootPresentation: Identifiable, Equatable {
     case shareHowTo
     /// The Today podcast's player (NowPlaying.swift).
     case nowPlaying
-    /// M4 userscript import review sheet (`ScriptImportViews.swift`).
+    /// M4 userscript import & update review sheet (`ScriptImportViews.swift`).
     case scriptImport
     #if DEBUG
     /// `-dc-show-settings <page>`: Settings as a cover (screenshots).

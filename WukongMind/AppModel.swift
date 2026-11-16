@@ -758,6 +758,7 @@ final class AppModel: ObservableObject {
         let box = self.appBox
         let resolvedImporter = ScriptImporter(
             scriptStore: resolvedScriptStore,
+            stateDirectoryURL: resolvedScriptStore.directoryURL.deletingLastPathComponent(),
             httpClientProvider: {
                 box.value?.agentHTTPClient ?? AgentHTTPClient()
             }
@@ -866,6 +867,7 @@ final class AppModel: ObservableObject {
             self.settings.browserScriptsEnabled = isEnabled
         }
         self.scriptStore.onStoreChanged = { [weak self] in
+            self?.scriptImporter.pruneDeletedScripts()
             self?.objectWillChange.send()
         }
         self.scriptStore.onSyncedScriptsChanged = { [weak self] in
@@ -1156,7 +1158,7 @@ final class AppModel: ObservableObject {
             secrets: redactedSecrets
         )
         return """
-        The person is reviewing a third-party userscript before deciding whether to install it.
+        The person is reviewing a third-party userscript before deciding whether to install or update it.
         Do NOT call script_save, script_delete, navigate, or any page-modifying tool. Explain in plain words what the script does, which sites and hosts it reaches, and any privacy or security risks.
 
         \(wrapped)
@@ -2225,6 +2227,14 @@ final class AppModel: ObservableObject {
             workEnteredForeground()
             // After the inbox and the digest have started: where the launch lands.
             applyLaunchRuleIfNeeded()
+            if !Self.loadsOnlySamplePage, !Self.isRunningTests {
+                Task { [weak self] in
+                    guard let self else { return }
+                    await self.scriptImporter.checkForegroundUpdatesIfDue(
+                        enabled: self.settings.checkScriptUpdatesEnabled
+                    )
+                }
+            }
         case .inactive:
             // Coalesced edits must not be lost if the app is closed next.
             flushPendingSaves()

@@ -818,7 +818,7 @@ extension AppModel {
         switch mode {
         case "add":
             let review = ScriptImportReview(
-                duplicateNameHost: "scripts.example.com",
+                mode: .create(duplicateNameHost: "scripts.example.com"),
                 candidate: parsedV1.script,
                 rawSource: rawV1,
                 installURL: installURL,
@@ -833,6 +833,61 @@ extension AppModel {
                 self?.scriptImporter.presentDebugPhase(.ready(review))
             }
 
+        case "update":
+            guard var saved = try? scriptStore.saveImportedScript(
+                parsedV1.script,
+                installURL: installURL,
+                upstreamHash: ScriptStore.sha256Hex(Data(rawV1.utf8)),
+                libraries: [libMeta],
+                turnOn: true
+            ) else { return }
+            saved = (try? scriptStore.update(
+                id: saved.id,
+                patch: ScriptUpdatePatch(js: saved.js + "\nconsole.log('local');"),
+                origin: .editedByUser
+            )) ?? saved
+
+            let rawV2 = """
+            // ==UserScript==
+            // @name        Tidy Threads
+            // @version     2.5.0
+            // @author      mira
+            // @match       *://*/*
+            // @match       https://talk.example.org/threads/*
+            // @match       https://forum.example.com/*
+            // @grant       GM_getValue
+            // @grant       GM_setValue
+            // @grant       GM_xmlhttpRequest
+            // @grant       GM_ai
+            // @connect     api.example.org
+            // @connect     cdn.example.net
+            // @connect     stats.example.io
+            // ==/UserScript==
+            document.querySelectorAll('.noise, .promo').forEach(el => el.remove());
+            """
+            guard let parsedV2 = try? ScriptImporter.parseExternalUserScript(rawV2) else { return }
+            let diff = ScriptImporter.computeDiff(
+                existing: saved,
+                candidate: parsedV2.script,
+                newRawSource: rawV2,
+                changedHost: (oldHost: "greasyfork.example.org", newHost: "raw.example.net")
+            )
+            let review = ScriptImportReview(
+                mode: .update(existing: saved, diff: diff),
+                candidate: parsedV2.script,
+                rawSource: rawV2,
+                installURL: installURL,
+                finalHost: "raw.example.net",
+                upstreamHash: ScriptStore.sha256Hex(Data(rawV2.utf8)),
+                author: parsedV2.author,
+                libraries: [],
+                unsupportedItems: parsedV2.unsupported
+            )
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(350))
+                self?.scriptImporter.presentDebugPhase(.ready(review))
+            }
+
         case "failed":
             let failure = ScriptImportFailure(
                 linkURL: installURL,
@@ -840,7 +895,7 @@ extension AppModel {
             )
             Task { @MainActor [weak self] in
                 try? await Task.sleep(for: .milliseconds(350))
-                self?.scriptImporter.presentDebugPhase(.failed(failure))
+                self?.scriptImporter.presentDebugPhase(.failed(failure, isUpdate: false))
             }
 
         case "settings", "detail":
@@ -851,7 +906,6 @@ extension AppModel {
             guard let saved = try? scriptStore.saveImportedScript(
                 specificV1,
                 installURL: installURL,
-                sourceHost: "greasyfork.example.org",
                 upstreamHash: ScriptStore.sha256Hex(Data(rawV1.utf8)),
                 libraries: [libMeta],
                 turnOn: true
@@ -859,6 +913,13 @@ extension AppModel {
             try? scriptStore.valuesStore.setValue(rawJSON: "\"compact\"", forKey: "density", scriptID: saved.id)
             try? scriptStore.valuesStore.setValue(rawJSON: "true", forKey: "hidePromo", scriptID: saved.id)
             try? scriptStore.valuesStore.setValue(rawJSON: "2", forKey: "schema", scriptID: saved.id)
+            scriptImporter.setDebugAvailableUpdate(ScriptAvailableUpdate(
+                scriptID: saved.id,
+                fetchURL: installURL,
+                newVersion: "2.5.0",
+                checkedAt: Date().addingTimeInterval(-600),
+                upstreamHash: "deadbeef"
+            ))
             if mode == "detail" {
                 requestedScriptID = saved.id
             }
