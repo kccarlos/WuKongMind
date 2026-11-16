@@ -558,6 +558,11 @@ final class SiteLearningRunState: @unchecked Sendable {
     }
     /// Arms the hard cap: a forum tool was refused in this run for want of a reading tool, so the run is after a learned reader.
     func armLearning() { lock.withLock { learningArmed = true } }
+    /// Step 1 of "Learning a site" is a fixed line in the assistant's text: seeing it shows the run is learning.
+    func noteAssistantText(_ text: String) {
+        if text.lowercased().contains(Self.learningAnnouncement) { armLearning() }
+    }
+    static let learningAnnouncement = "how to read this site"
     var isLearningArmed: Bool { lock.withLock { learningArmed } }
     /// A reader save was attempted: fixing a refusal may need more probes, so the cap ends.
     func closeProbing() { lock.withLock { probingClosed = true } }
@@ -653,6 +658,8 @@ struct ToolRegistry: Sendable {
     var siteReadingPrompt: SiteReadingPromptState = .none
     /// WebMCP page-tool dispatcher context, for the page context's count line.
     var pageTools: PageToolContext?
+    /// The run's learning state, so the session can tell it what the assistant said.
+    var learningRunState: SiteLearningRunState?
 
     init(
         tools: [AgentTool] = [],
@@ -3107,6 +3114,7 @@ extension ToolRegistry {
                 maxTopicReads: $0.maxTopicReads, openTopicID: $0.openTopicID, openTopicURL: $0.openTopicURL
             )
         }
+        registry.learningRunState = context.learningRunState
         registry.siteReadingPrompt = context.forum == nil ? (context.learnedSite?.promptState ?? .none) : .none
         if surface == .text, let pageTools = context.pageTools, pageTools.isEnabled {
             registry.pageTools = pageTools

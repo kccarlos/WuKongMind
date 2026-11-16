@@ -382,7 +382,7 @@ enum BrowserAgentPrompt {
     static let learningSection = """
     Learning a site:
     When the user asks about a thread with its replies, or a list of threads, and the page context says there is no reading tool for this site yet, learn and save a reader for it before answering. This is the exception to rule 4: save it without being asked to always apply it. Do not answer from `read_page` or a `wukong.fetch` crawl, and do not call `summarize_topic`. A single page with no replies needs only `read_page`. Learn only the tool the request needs.
-    1. Say in one line that you are working out how to read this site.
+    1. Say exactly this line first: "Working out how to read this site."
     2. Read the site's notes file with `file_read` only if the page context says it exists.
     3. Find where the data comes from, in this order: the site's JSON API (`network_log` filtered to JSON, and `rel="alternate"` links), data the page preloads (JSON-LD, JSON script tags, framework state), then the page's own markup (`fetch` the thread and parse it with `DOMParser`). For markup, look at one post's outer HTML, the author, date and number selectors, the pagination links and another thread link together in one `run_js` call. Keep exploration before saving to at most 4 calls: the app refuses more. If you can't find a source, call `site_learning_report` and answer from `read_page`.
     4. Write the reader as a userscript that registers `read_topic` with `modelContext.registerTool`, read-only, taking `url` and `page`. Use standard `fetch`: saved scripts have no `wukong` object. It returns `shape` with `title`, `url`, `total_posts` and `posts` (each with `number`, `author`, `body` and `date`), plus `page` and `total_pages`. Numbers rise, `author` is an empty string when missing and `body` is plain text. A list reader (`list_latest`, `search_forum`) returns `shape` with `items` (each with `title` and an absolute `url`). Try it on this thread (pages 1 and 2) and on a second thread in one `run_js` call before saving.
@@ -1685,6 +1685,7 @@ final class BrowserAgentSession {
         let siteReading = includesForumTools ? registry.siteReadingPrompt : .none
         let pageTools = registry.pageTools
         let includesLearning = registry.tool(named: "site_learning_report") != nil
+        let learningState = registry.learningRunState
         let systemPrompt = BrowserAgentPrompt.system(
             customInstructions: runtime.customInstructions,
             includesWorkspace: includesWorkspace,
@@ -1792,6 +1793,7 @@ final class BrowserAgentSession {
                 },
                 onAssistantText: { @MainActor [weak self] text in
                     guard let self, self.activeGeneration == generation else { return }
+                    learningState?.noteAssistantText(text)
                     self.messages.append(
                         BrowserAgentMessage(role: .assistant, text: text, runID: runID)
                     )

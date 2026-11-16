@@ -5,8 +5,9 @@ import Foundation
 // runs). The app counts only what it can see for certain: a `network_log` call, or a `run_js`
 // call whose code fetches or parses markup, on a site with no learned reader, before the run's
 // first `script_save` or `script_update` with `provides`. Past 4 the result carries a trusted
-// nudge; the call is refused only once the run has shown it is learning (a forum tool was
-// refused for want of a reading tool). Other work on an ordinary page is never refused.
+// nudge; the call is refused once the run has shown it is learning: it said the step 1 line
+// ("Working out how to read this site."), wrote a `registerTool` reader, or a forum tool was
+// refused for want of a reading tool. Other work on an ordinary page is never refused.
 
 extension ToolRegistry {
     static let maxPreSaveProbes = 4
@@ -38,6 +39,7 @@ extension ToolRegistry {
                 state.closeProbing()
                 return (nil, false)
             }
+            if name == "run_js", args["code"]?.stringValue?.contains("registerTool") == true { state.armLearning() }
             guard isDataSourceProbe(toolName: name, arguments: args), !hasLearnedReader(),
                   let count = state.noteProbe(), count > maxPreSaveProbes else { return (nil, false) }
             guard state.isLearningArmed else { return (nil, true) }

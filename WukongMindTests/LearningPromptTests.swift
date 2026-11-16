@@ -31,7 +31,7 @@ final class LearningPromptTests: XCTestCase {
         let section = BrowserAgentPrompt.learningSection
         XCTAssertFalse(section.contains("```") || section.contains("=>") || section.contains("{ "))
         XCTAssertLessThanOrEqual(section.split(separator: "\n").count, 16)
-        XCTAssertTrue(section.contains("at most 4 calls"))
+        XCTAssertTrue(section.contains("at most 4 calls") && section.contains("Working out how to read this site."))
         XCTAssertTrue(on.contains("unsupported forum page with no replies to read") && !on.contains("On an unsupported forum or an ordinary page"))
         XCTAssertTrue(off.contains("On an unsupported forum or an ordinary page"))
         // The page never changes the bytes: same call, same string.
@@ -125,6 +125,28 @@ final class LearningPromptTests: XCTestCase {
             XCTAssertFalse(out.isError, "probe \(i)")
             XCTAssertEqual(out.notes.isEmpty, i <= 4, "probe \(i)")
         }
+    }
+
+    /// The spike's Gemini order: no forum call, run_js probes with fetch and DOMParser, the step 1 line said first.
+    func testAnnouncedLearningRunsFifthProbeIsRefusedWithoutAForumCall() async throws {
+        let (context, _) = try makeCapContext()
+        let tools = ToolRegistry.capPreSaveExploration(stubTools(), context: context)
+        context.learningRunState.noteAssistantText("Working out how to read this site.")
+        for i in 1...4 {
+            let code = i % 2 == 0 ? "return new DOMParser().parseFromString(await (await fetch('/t')).text(), 'text/html').title" : "return (await fetch('/api/t')).status"
+            let out = try await call(tools, "run_js", ["code": .string(code)])
+            XCTAssertFalse(out.isError, "probe \(i)")
+        }
+        let fifth = try await call(tools, "run_js", ["code": .string("return (await fetch('/api/t2')).status")])
+        XCTAssertTrue(fifth.isError && fifth.content.contains("script_save"), fifth.content)
+
+        // Without the line, a `registerTool` reader under test arms it too.
+        let (other, _) = try makeCapContext()
+        let otherTools = ToolRegistry.capPreSaveExploration(stubTools(), context: other)
+        for _ in 1...3 { _ = try await call(otherTools, "network_log", [:]) }
+        _ = try await call(otherTools, "run_js", ["code": .string("await modelContext.registerTool({ name: 'read_topic' }); return await fetch('/x')")])
+        let refused = try await call(otherTools, "network_log", [:])
+        XCTAssertTrue(refused.isError)
     }
 
     func testLearningRunsFifthProbeIsTurnedAroundAndSavingEndsTheCap() async throws {
