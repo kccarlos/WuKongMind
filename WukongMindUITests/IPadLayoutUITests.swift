@@ -110,6 +110,8 @@ final class IPadLayoutUITests: DCUITestCase {
         summarize.tap()
         let citation = app.buttons["citation-12"].firstMatch
         XCTAssertTrue(waitOrDump(citation, timeout: 30, in: app), "The summary has no #12 citation.")
+        XCTAssertTrue(any(app, "capabilityThreadSummaryCard").waitForExistence(timeout: 15),
+                      "The summary did not finish.")
         XCTAssertTrue(waitForHittable(citation))
         citation.tap()
         let browse = any(app, "browseDebugState")
@@ -312,7 +314,7 @@ final class IPadLayoutUITests: DCUITestCase {
         // Same check for InstructionsSheet in the split assistant panel.
         let continueRow = app.descendants(matching: .any)
             .matching(NSPredicate(format: "identifier BEGINSWITH 'continueReading-'")).firstMatch
-        XCTAssertTrue(waitForHittable(continueRow, timeout: 5))
+        XCTAssertTrue(reveal(continueRow, in: app))
         continueRow.tap()
 
         let summaryMenu = app.buttons["assistantMoreMenu"].firstMatch

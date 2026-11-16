@@ -470,6 +470,108 @@ final class BrowserBarMorphTests: XCTestCase {
         XCTAssertEqual(scrollView.contentInset, .zero)
     }
 
+    func testIPadSplitBarGeometryMatchesDesignArtboards() {
+        // Panel closed on 1194 pt iPad canvas (`IPadBar.dc.html` frames 1–5).
+        let fullExpandedW = BrowserBarMorphMetrics.expandedWidth(containerWidth: 1194, isSplit: true)
+        let splitCollapsedW = BrowserBarMorphMetrics.collapsedWidth(
+            domainWidth: 112,
+            isAgentWorking: false,
+            scriptCount: 0,
+            isSplit: true
+        )
+        let splitExpandedH = BrowserBarMorphMetrics.expandedHeight(isSplit: true, isLandscape: true)
+        let splitCollapsedH = BrowserBarMorphMetrics.collapsedHeight()
+
+        XCTAssertEqual(fullExpandedW, 1170)
+        XCTAssertEqual(splitCollapsedW, 200)
+        XCTAssertEqual(splitExpandedH, 52)
+        XCTAssertEqual(splitCollapsedH, 34)
+        XCTAssertEqual(BrowserBarMorphMetrics.topEdgeFromSafeArea(progress: 0, isSplit: true), 6)
+        XCTAssertEqual(BrowserBarMorphMetrics.topEdgeFromSafeArea(progress: 1, isSplit: true), 2)
+        XCTAssertEqual(BrowserBarMorphMetrics.expandedWebViewTopInset(isSplit: true, isLandscape: true), 58)
+
+        // Intermediate morph checkpoints (`p = 0.25, 0.5, 0.75`).
+        XCTAssertEqual(BrowserBarMorphMetrics.lerp(fullExpandedW, splitCollapsedW, 0.25), 927.5, accuracy: 0.01)
+        XCTAssertEqual(BrowserBarMorphMetrics.lerp(splitExpandedH, splitCollapsedH, 0.25), 47.5, accuracy: 0.01)
+        XCTAssertEqual(BrowserBarMorphMetrics.topEdgeFromSafeArea(progress: 0.25, isSplit: true), 5, accuracy: 0.01)
+
+        XCTAssertEqual(BrowserBarMorphMetrics.lerp(fullExpandedW, splitCollapsedW, 0.5), 685.0, accuracy: 0.01)
+        XCTAssertEqual(BrowserBarMorphMetrics.lerp(splitExpandedH, splitCollapsedH, 0.5), 43.0, accuracy: 0.01)
+        XCTAssertEqual(BrowserBarMorphMetrics.topEdgeFromSafeArea(progress: 0.5, isSplit: true), 4, accuracy: 0.01)
+
+        XCTAssertEqual(BrowserBarMorphMetrics.lerp(fullExpandedW, splitCollapsedW, 0.75), 442.5, accuracy: 0.01)
+        XCTAssertEqual(BrowserBarMorphMetrics.lerp(splitExpandedH, splitCollapsedH, 0.75), 38.5, accuracy: 0.01)
+        XCTAssertEqual(BrowserBarMorphMetrics.topEdgeFromSafeArea(progress: 0.75, isSplit: true), 3, accuracy: 0.01)
+
+        // Panel open (`814 pt` page column alongside `380 pt` panel, `IPadBar.dc.html` frame 6).
+        XCTAssertEqual(BrowserBarMorphMetrics.expandedWidth(containerWidth: 814, isSplit: true), 790)
+        XCTAssertEqual(
+            BrowserBarMorphMetrics.collapsedWidth(domainWidth: 140, isAgentWorking: true, scriptCount: 2, isSplit: true),
+            200
+        )
+    }
+
+    func testIPadSplitCoordinatorManagesTopInsetKeepsBottomZeroAndShortPageStaysExpanded() {
+        let coordinator = BrowserBarScrollCoordinator()
+        let scrollView = MockTrackingScrollView(frame: CGRect(x: 0, y: 0, width: 814, height: 800))
+        scrollView.contentSize = CGSize(width: 814, height: 800.33)
+        coordinator.attach(to: scrollView)
+        coordinator.updateLayoutConfiguration(
+            managesInsets: true,
+            isSplit: true,
+            position: .top,
+            safeAreaBottom: 20,
+            isLandscape: true,
+            isLockedExpanded: false,
+            reduceMotion: false
+        )
+
+        XCTAssertEqual(scrollView.contentInset.top, 58, accuracy: 0.5)
+        XCTAssertEqual(scrollView.contentInset.bottom, 0, accuracy: 0.5)
+        XCTAssertEqual(scrollView.contentInsetAdjustmentBehavior, .automatic)
+        XCTAssertEqual(scrollView.contentOffset.y, -58, accuracy: 0.5, "Initial top inset shifts at-top contentOffset to -58 so header sits below the bar.")
+
+        // 1. Short page where WebKit floors `contentSize.height == bounds.height` (`800.33` vs `viewportHeight = 742`) must stay expanded.
+        scrollView.mockIsTracking = true
+        coordinator.scrollViewWillBeginDragging(scrollView)
+        scrollView.contentOffset = CGPoint(x: 0, y: 0)
+        coordinator.scrollViewDidScroll(scrollView)
+        var shortTarget = CGPoint.zero
+        coordinator.scrollViewWillEndDragging(scrollView, withVelocity: .zero, targetContentOffset: &shortTarget)
+        scrollView.mockIsTracking = false
+        coordinator.scrollViewDidEndDragging(scrollView, willDecelerate: false)
+        XCTAssertEqual(coordinator.state.progress, 0, accuracy: 1e-6, "Short page in iPad split must never collapse.")
+
+        // 2. Long page integrates user scroll over 64 pt while keeping top inset 58 and bottom inset 0.
+        scrollView.contentSize = CGSize(width: 814, height: 2600)
+        scrollView.contentOffset = CGPoint(x: 0, y: -58)
+        scrollView.mockIsTracking = true
+        coordinator.scrollViewWillBeginDragging(scrollView)
+
+        scrollView.contentOffset = CGPoint(x: 0, y: -26) // +32 pt -> p = 0.5
+        coordinator.scrollViewDidScroll(scrollView)
+        XCTAssertEqual(coordinator.state.progress, 0.5, accuracy: 0.001)
+
+        scrollView.contentOffset = CGPoint(x: 0, y: 22) // +80 pt -> p = 1.0
+        coordinator.scrollViewDidScroll(scrollView)
+        XCTAssertEqual(coordinator.state.progress, 1.0, accuracy: 0.001)
+        XCTAssertTrue(coordinator.state.isChromeMinimized)
+        XCTAssertEqual(scrollView.contentInset.top, 58, accuracy: 0.5)
+        XCTAssertEqual(scrollView.contentInset.bottom, 0, accuracy: 0.5)
+
+        var collapseTarget = CGPoint(x: 0, y: 22)
+        coordinator.scrollViewWillEndDragging(scrollView, withVelocity: .zero, targetContentOffset: &collapseTarget)
+        scrollView.mockIsTracking = false
+        coordinator.scrollViewDidEndDragging(scrollView, willDecelerate: false)
+        XCTAssertTrue(coordinator.state.isAtRest)
+        XCTAssertEqual(scrollView.contentInset.top, 58, accuracy: 0.5)
+        XCTAssertEqual(scrollView.contentInset.bottom, 0, accuracy: 0.5)
+
+        coordinator.requestExpand(deferIfTracking: false)
+        XCTAssertEqual(coordinator.state.progress, 0, accuracy: 0.001)
+        XCTAssertFalse(coordinator.state.isChromeMinimized)
+    }
+
     func testStopLoadingClearsLoadingWithoutLatchingStaleWebViewState() async {
         let browser = ForumBrowserModel()
         // Wait for content-blocker rule lookups so `load(_:)` dispatches straight into `webView.load(_:)`.

@@ -1,24 +1,26 @@
 import SwiftUI
 import WebKit
 
-// MARK: - Browser bar (iPhone morphing glass capsule + iPad split top bar)
+// MARK: - Browser bar (shared morphing glass capsule on iPhone & iPad split)
 //
-// On iPhone (`split == nil`), the page sits in a NavigationStack (no navigation
-// bar) with one floating glass capsule driven continuously by scroll progress
-// `p ∈ [0, 1]` (`BrowserBarMorph.swift`):
-// - Expanded (`p = 0`): Back (tap goes back, long press opens history with
-//   Forward), address field (page menu at leading edge, middle-truncated
-//   domain, reload at trailing edge), and the Agent ring (tabs slot stays
-//   empty until T3). On Home, the address field gives way to Home's own field
-//   and the bar stays expanded (`p = 0`).
-// - Collapsed (`p = 1`): centred pill (`120…240 × 34 pt`, `44 pt` hit target)
-//   with lock (or 16 pt turning Agent ring + scripts seal while Agent works)
-//   and domain; tapping springs back to `p = 0`.
-// - While editing the address, `addressRow` rides on the keyboard. While a page
+// The page sits in a NavigationStack (no navigation bar) with one floating glass
+// capsule driven continuously by scroll progress `p ∈ [0, 1]` (`BrowserBarMorph.swift`):
+// - Expanded (`p = 0`):
+//   - iPhone / narrow iPad (`split == nil`): Back (tap goes back, long press opens
+//     history with Forward), address field (Page menu at leading edge, middle-truncated
+//     domain, Reload at trailing edge), Tabs, and the Agent ring. On Home, the address
+//     field gives way to Home's own field and the bar stays expanded (`p = 0`).
+//   - iPad split (`split != nil`): `pageColumnWidth - 24 × 52 pt` across the top
+//     of the page column (`top safe area + 6 pt`), holding Back, Forward, centred
+//     address field (Page menu, domain, Reload, max 520 pt), Tabs, Mic (when available),
+//     and `SplitPanelToggle`.
+// - Collapsed (`p = 1`): centred pill (`120…240 × 34 pt` on iPhone, `200 × 34 pt`
+//   centred over the page column at `top safe area + 2 pt` on iPad split, `44 pt`
+//   hit target) with lock (or 16 pt turning Agent ring + scripts seal while Agent
+//   works) and domain; tapping springs back to `p = 0`.
+// - While editing the address, `AddressEditBar` replaces the bar. While a page
 //   form field raises the keyboard, `p` freezes and the bottom bar hides under
 //   the keyboard (top bar stays in place, frozen).
-// In the iPad split layout (`split != nil`), the top bar stays above the page
-// and panel until B3 adds split-bar collapse.
 
 struct PhoneBrowser<Page: View>: View {
     @ObservedObject var app: AppModel
@@ -33,8 +35,7 @@ struct PhoneBrowser<Page: View>: View {
     var addressFocusRequest = 0
     /// The window width.
     var width: CGFloat = 0
-    /// iPad split layout: the top bar's three groups, with the AI panel's
-    /// toggle. nil: the iPhone morphing bar.
+    /// iPad split layout: the page column width and AI panel toggle; nil on iPhone / narrow iPad.
     var split: SplitBarContext?
     @ViewBuilder let page: (CGFloat) -> Page
 
@@ -67,214 +68,107 @@ struct PhoneBrowser<Page: View>: View {
         self.page = page
     }
 
-    private var usesMorphingPhoneBar: Bool {
-        router.splitLayout == false || split == nil
+    private var isSplit: Bool {
+        let liveWidth = router.windowWidth > 0 ? router.windowWidth : width
+        return router.splitLayout ?? (liveWidth > 0 ? ContentView.usesSplitLayout(width: liveWidth) : split != nil)
     }
 
     private var isLandscape: Bool {
         verticalSizeClass == .compact
     }
 
-    /// States where the bar must stay expanded (`p = 0`).
-    /// Note: iPad split (`!usesMorphingPhoneBar`) is intentionally NOT locked here so
-    /// `isChromeMinimized` still shrinks `ResultCardsOverlay` to a chip on scroll while
-    /// `managesWebViewInsets == false` keeps `scrollView.contentInset` at `.zero`.
-    private var isBarLockedExpanded: Bool {
-        browser.showsForumsHome
-            || voice.showsBar
-            || dynamicTypeSize.isAccessibilitySize
-    }
-
-    fileprivate static func normalSceneWindow() -> UIWindow? {
-        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
-        if let window = scenes
-            .flatMap(\.windows)
-            .first(where: { !$0.isHidden && $0.windowLevel == .normal }) {
-            return window
-        }
-        return scenes.first?.windows.first(where: { $0.windowLevel == .normal })
-    }
-
     /// Hardware/container bottom safe area excluding software keyboards so focusing a page
     /// form field or address bar never inflates `expandedBottomInset`.
     private var resolvedSafeAreaBottom: CGFloat {
-        Self.normalSceneWindow()?.safeAreaInsets.bottom ?? 0
+        BrowserBarFontMetrics.normalSceneSafeAreaBottom()
     }
 
     private var resolvedContainerWidth: CGFloat {
+        if router.windowWidth > 0 { return router.windowWidth }
         if width > 0 { return width }
-        return Self.normalSceneWindow()?.bounds.width ?? 390
-    }
-
-    /// Whether the floating morphing bar reserves clearance below `DockLayer`.
-    private var showsMorphingBar: Bool {
-        guard usesMorphingPhoneBar, app.homePath.isEmpty, !browser.isEditingAddress else {
-            return false
-        }
-        if position == .bottom {
-            if voice.showsBar || browser.isPageFormInputFocused {
-                return false
-            }
-            if browser.isSystemKeyboardVisible && !app.isAIViewShown && app.rootPresentation == nil {
-                return false
-            }
-        }
-        return true
+        return BrowserBarFontMetrics.normalSceneWindow()?.bounds.width ?? 390
     }
 
     var body: some View {
         let safeAreaBottom = resolvedSafeAreaBottom
         let containerWidth = resolvedContainerWidth
-        let dockClearance = bottomDockClearance(safeAreaBottom: safeAreaBottom)
+        let resolvedPosition = isSplit ? BrowserBarPosition.top : app.settings.browserBarPosition.resolved(isSplit: false)
+        let dockClearance = BrowserBarFontMetrics.bottomDockClearance(
+            app: app,
+            browser: browser,
+            voice: voice,
+            isSplit: isSplit,
+            position: resolvedPosition,
+            safeAreaBottom: safeAreaBottom,
+            isLandscape: isLandscape,
+            dynamicTypeSize: dynamicTypeSize
+        )
 
-        Group {
+        NavigationStack(path: $app.homePath) {
+            page(dockClearance)
+                .toolbar(.hidden, for: .navigationBar)
+                .modifier(HomeDestinations(app: app, onOpenDigestLink: actions.openDigestLink))
+        }
+        .background {
+            PhoneBarObserverHost(
+                app: app,
+                browser: browser,
+                voice: voice,
+                router: router,
+                fallbackWidth: containerWidth,
+                fallbackSplit: split,
+                addressFocusRequest: addressFocusRequest,
+                safeAreaBottom: safeAreaBottom,
+                isLandscape: isLandscape,
+                reduceMotion: reduceMotion
+            )
+        }
+        .overlay {
             if UIDevice.current.userInterfaceIdiom == .phone {
-                let _ = router.splitPanelMode
-                NavigationStack(path: $app.homePath) {
-                    page(dockClearance)
-                        .toolbar(.hidden, for: .navigationBar)
-                        .modifier(HomeDestinations(app: app, onOpenDigestLink: actions.openDigestLink))
-                }
-                .background {
-                    PhoneBarObserverHost(
-                        app: app,
-                        browser: browser,
-                        voice: voice,
-                        router: router,
-                        hasSplitContext: false,
-                        addressFocusRequest: addressFocusRequest,
-                        safeAreaBottom: safeAreaBottom,
-                        isLandscape: isLandscape,
-                        reduceMotion: reduceMotion
-                    )
-                }
-                .overlay {
-                    PhoneOnlyMorphingBarHost(
-                        app: app,
-                        browser: browser,
-                        progressModel: browser.barProgressModel,
-                        browserAgent: app.browserAgent,
-                        scriptStore: app.scriptStore,
-                        voice: voice,
-                        actions: actions,
-                        addressFocusRequest: addressFocusRequest,
-                        containerWidth: containerWidth,
-                        safeAreaBottom: safeAreaBottom,
-                        isLandscape: isLandscape,
-                        reduceMotion: reduceMotion,
-                        reduceTransparency: reduceTransparency,
-                        increasedContrast: colorSchemeContrast == .increased
-                    )
-                }
+                PhoneOnlyMorphingBarHost(
+                    app: app,
+                    browser: browser,
+                    progressModel: browser.barProgressModel,
+                    browserAgent: app.browserAgent,
+                    scriptStore: app.scriptStore,
+                    voice: voice,
+                    actions: actions,
+                    addressFocusRequest: addressFocusRequest,
+                    containerWidth: containerWidth,
+                    safeAreaBottom: safeAreaBottom,
+                    isLandscape: isLandscape,
+                    reduceMotion: reduceMotion,
+                    reduceTransparency: reduceTransparency,
+                    increasedContrast: colorSchemeContrast == .increased
+                )
             } else {
-                let _ = router.splitLayout
-                let _ = router.splitPanelMode
-                ZStack {
-                    VStack(spacing: 0) {
-                        SplitTopBarHost(
-                            app: app,
-                            browser: browser,
-                            router: router,
-                            actions: actions,
-                            split: split,
-                            width: containerWidth,
-                            addressFocusRequest: addressFocusRequest
-                        )
-                        NavigationStack(path: $app.homePath) {
-                            page(dockClearance)
-                                .toolbar(.hidden, for: .navigationBar)
-                                .modifier(HomeDestinations(app: app, onOpenDigestLink: actions.openDigestLink))
-                        }
-                    }
-                    PhoneBarObserverHost(
-                        app: app,
-                        browser: browser,
-                        voice: voice,
-                        router: router,
-                        hasSplitContext: split != nil,
-                        addressFocusRequest: addressFocusRequest,
-                        safeAreaBottom: safeAreaBottom,
-                        isLandscape: isLandscape,
-                        reduceMotion: reduceMotion
-                    )
-                    PhoneMorphingBarHost(
-                        app: app,
-                        browser: browser,
-                        progressModel: browser.barProgressModel,
-                        browserAgent: app.browserAgent,
-                        scriptStore: app.scriptStore,
-                        voice: voice,
-                        router: router,
-                        hasSplitContext: split != nil,
-                        actions: actions,
-                        addressFocusRequest: addressFocusRequest,
-                        containerWidth: containerWidth,
-                        safeAreaBottom: safeAreaBottom,
-                        isLandscape: isLandscape,
-                        reduceMotion: reduceMotion,
-                        reduceTransparency: reduceTransparency,
-                        increasedContrast: colorSchemeContrast == .increased
-                    )
-                }
+                PhoneMorphingBarHost(
+                    app: app,
+                    browser: browser,
+                    progressModel: browser.barProgressModel,
+                    router: router,
+                    browserAgent: app.browserAgent,
+                    scriptStore: app.scriptStore,
+                    voice: voice,
+                    actions: actions,
+                    fallbackSplit: split,
+                    addressFocusRequest: addressFocusRequest,
+                    fallbackWidth: containerWidth,
+                    safeAreaBottom: safeAreaBottom,
+                    isLandscape: isLandscape,
+                    reduceMotion: reduceMotion,
+                    reduceTransparency: reduceTransparency,
+                    increasedContrast: colorSchemeContrast == .increased
+                )
             }
         }
         .onAppear {
             app.barShowsTopicFacts = true
-            if !usesMorphingPhoneBar {
-                syncSplitFallbackConfiguration()
-            }
         }
-        .onChange(of: usesMorphingPhoneBar) { _, morphing in
-            if !morphing {
-                syncSplitFallbackConfiguration()
-            }
-        }
-        .onChange(of: isBarLockedExpanded) { _, _ in
-            if !usesMorphingPhoneBar {
-                syncSplitFallbackConfiguration()
-            }
-        }
-        .onChange(of: reduceMotion) { _, _ in
-            if !usesMorphingPhoneBar {
-                syncSplitFallbackConfiguration()
-            }
-        }
-    }
-
-    /// Extra bottom clearance inside safe area so `DockLayer` cards/rows sit above the floating bottom bar.
-    /// Driven by `isChromeMinimized` (0.6 / 0.4 hysteresis) so `BrowserContent` does not re-layout per scroll frame.
-    private func bottomDockClearance(safeAreaBottom: CGFloat) -> CGFloat {
-        guard usesMorphingPhoneBar, position == .bottom, showsMorphingBar else {
-            return 0
-        }
-        let effectiveP: CGFloat = browser.isChromeMinimized ? 1 : 0
-        let collapsedFont = BrowserBarFontMetrics.collapsedFontSize(for: dynamicTypeSize)
-        let barHeight = BrowserBarMorphMetrics.lerp(
-            BrowserBarMorphMetrics.expandedHeight(isLandscape: isLandscape),
-            BrowserBarMorphMetrics.collapsedHeight(collapsedFontSize: collapsedFont),
-            effectiveP
-        )
-        let bottomEdge = BrowserBarMorphMetrics.bottomEdgeFromScreen(
-            safeAreaBottom: safeAreaBottom,
-            progress: effectiveP
-        )
-        return max(0, barHeight + bottomEdge - safeAreaBottom)
-    }
-
-    private func syncSplitFallbackConfiguration() {
-        browser.barMorph.updateLayoutConfiguration(
-            managesInsets: false,
-            position: .top,
-            safeAreaBottom: 0,
-            isLandscape: true,
-            isLockedExpanded: isBarLockedExpanded,
-            reduceMotion: reduceMotion
-        )
-        browser.setExternalKeyboardFrozen(false)
     }
 }
 
-/// Always-mounted zero-size observer leaf for the iPhone morphing bar.
+/// Always-mounted zero-size observer leaf for the morphing bar.
 /// Hanging `.onChange` and `UIResponder.keyboard*Notification` publishers on a dedicated
 /// concrete view (never on a `Group` that can become `EmptyView` while the bar is hidden
 /// under a page keyboard, Voice Dock, or pushed Settings screen) keeps keyboard-hide and
@@ -284,7 +178,8 @@ private struct PhoneBarObserverHost: View {
     @ObservedObject var browser: ForumBrowserModel
     @ObservedObject var voice: VoiceController
     @ObservedObject var router: PresentationRouter
-    let hasSplitContext: Bool
+    let fallbackWidth: CGFloat
+    let fallbackSplit: SplitBarContext?
     let addressFocusRequest: Int
     let safeAreaBottom: CGFloat
     let isLandscape: Bool
@@ -294,15 +189,16 @@ private struct PhoneBarObserverHost: View {
     @State private var lastReadyAnswerID: UUID?
     @State private var hasActiveKeyboardSession = false
 
-    private var isActiveMorphingBar: Bool {
-        if let splitLayout = router.splitLayout {
-            return !splitLayout
-        }
-        return !hasSplitContext
+    private var liveWidth: CGFloat {
+        router.windowWidth > 0 ? router.windowWidth : fallbackWidth
+    }
+
+    private var isSplit: Bool {
+        router.splitLayout ?? (liveWidth > 0 ? ContentView.usesSplitLayout(width: liveWidth) : fallbackSplit != nil)
     }
 
     private var resolvedPosition: BrowserBarPosition {
-        app.settings.browserBarPosition.resolved(isSplit: false)
+        isSplit ? .top : app.settings.browserBarPosition.resolved(isSplit: false)
     }
 
     private var isBarLockedExpanded: Bool {
@@ -340,16 +236,13 @@ private struct PhoneBarObserverHost: View {
                 browser.setSystemKeyboardVisible(false)
                 browser.setExternalKeyboardFrozen(false)
             }
-            .onChange(of: isActiveMorphingBar) { _, active in
-                if !active {
-                    hasActiveKeyboardSession = false
-                    browser.setSystemKeyboardVisible(false)
-                    browser.setExternalKeyboardFrozen(false)
-                } else {
-                    syncMorphConfiguration()
-                }
-            }
             .onChange(of: ObjectIdentifier(browser)) { _, _ in
+                syncMorphConfiguration()
+            }
+            .onChange(of: isSplit) { _, _ in
+                hasActiveKeyboardSession = false
+                browser.setSystemKeyboardVisible(false)
+                browser.setExternalKeyboardFrozen(false)
                 syncMorphConfiguration()
             }
             .onChange(of: safeAreaBottom) { _, _ in
@@ -381,17 +274,15 @@ private struct PhoneBarObserverHost: View {
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { note in
-                guard isActiveMorphingBar else { return }
                 hasActiveKeyboardSession = true
                 updateSystemKeyboardVisibility(from: note, isHideNotification: false)
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)) { note in
-                guard isActiveMorphingBar else { return }
                 hasActiveKeyboardSession = true
                 updateSystemKeyboardVisibility(from: note, isHideNotification: false)
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillChangeFrameNotification)) { note in
-                guard isActiveMorphingBar, hasActiveKeyboardSession else { return }
+                guard hasActiveKeyboardSession else { return }
                 updateSystemKeyboardVisibility(from: note, isHideNotification: false)
             }
             .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { note in
@@ -405,12 +296,12 @@ private struct PhoneBarObserverHost: View {
     }
 
     private func syncMorphConfiguration() {
-        guard isActiveMorphingBar else { return }
-        let liveSafeBottom = PhoneBrowser<EmptyView>.normalSceneWindow()?.safeAreaInsets.bottom ?? safeAreaBottom
+        let liveSafeBottom = BrowserBarFontMetrics.normalSceneSafeAreaBottom()
         browser.barMorph.updateLayoutConfiguration(
             managesInsets: true,
+            isSplit: isSplit,
             position: resolvedPosition,
-            safeAreaBottom: liveSafeBottom,
+            safeAreaBottom: liveSafeBottom > 0 ? liveSafeBottom : safeAreaBottom,
             isLandscape: isLandscape,
             isLockedExpanded: isBarLockedExpanded,
             reduceMotion: reduceMotion
@@ -426,7 +317,7 @@ private struct PhoneBarObserverHost: View {
         guard let frame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect else {
             return
         }
-        if let window = PhoneBrowser<EmptyView>.normalSceneWindow() {
+        if let window = BrowserBarFontMetrics.normalSceneWindow() {
             let localFrame = window.convert(frame, from: window.screen.coordinateSpace)
             let windowBounds = window.bounds
             let intersection = windowBounds.intersection(localFrame)
@@ -458,6 +349,7 @@ private struct AddressEditBar: View {
     @State private var addressDraft: String
     @State private var addressError: AddressError?
     @State private var didGainFocus = false
+    @State private var openedAt = Date()
     @FocusState private var addressFocused: Bool
 
     init(app: AppModel, browser: ForumBrowserModel, addressFocusRequest: Int) {
@@ -485,13 +377,27 @@ private struct AddressEditBar: View {
                     .onSubmit(commitAddress)
                     .accessibilityIdentifier("addressField")
                     // Select the whole address so typing replaces it, like Safari.
+                    // Only mark `didGainFocus` once UIKit confirms the text field
+                    // actually became first responder (never prematurely on `@FocusState`
+                    // write while a hardware shortcut key-up or mount is still settling).
                     .onReceive(
                         NotificationCenter.default.publisher(for: UITextField.textDidBeginEditingNotification)
                     ) { notification in
-                        (notification.object as? UITextField)?.selectAll(nil)
+                        guard let textField = notification.object as? UITextField else { return }
+                        didGainFocus = true
+                        textField.selectAll(nil)
                     }
-                    .onAppear {
-                        DispatchQueue.main.async { addressFocused = true }
+                    .task(id: browser.addressFocusRequest) {
+                        openedAt = Date()
+                        for delayMs in [0, 50, 150, 350] {
+                            if delayMs > 0 {
+                                try? await Task.sleep(for: .milliseconds(delayMs))
+                            }
+                            guard !Task.isCancelled, browser.isEditingAddress else { return }
+                            if !addressFocused {
+                                addressFocused = true
+                            }
+                        }
                     }
                 if !addressDraft.isEmpty {
                     Button {
@@ -518,8 +424,7 @@ private struct AddressEditBar: View {
 
             // Esc / ⌘. too, like Safari.
             Button("Cancel") {
-                addressFocused = false
-                browser.setEditingAddress(false)
+                closeAddressBar()
             }
             .fixedSize(horizontal: true, vertical: false)
             .keyboardShortcut(.cancelAction)
@@ -530,13 +435,24 @@ private struct AddressEditBar: View {
         .padding(.horizontal, DCTheme.spacingM)
         .padding(.vertical, 6)
         .onChange(of: addressFocused) { _, isFocused in
-            if isFocused {
-                didGainFocus = true
-            } else if didGainFocus, addressError == nil {
-                browser.setEditingAddress(false)
+            if !isFocused, didGainFocus, addressError == nil {
+                // Ignore transient responder blips while a hardware shortcut key-up
+                // or keyboard bar transition is still settling right after opening.
+                if Date().timeIntervalSince(openedAt) < 0.6 {
+                    DispatchQueue.main.async {
+                        if browser.isEditingAddress {
+                            addressFocused = true
+                        }
+                    }
+                } else {
+                    closeAddressBar()
+                }
             }
         }
         .onChange(of: addressFocusRequest) {
+            addressFocused = true
+        }
+        .onChange(of: browser.addressFocusRequest) {
             addressFocused = true
         }
         .alert(
@@ -555,144 +471,82 @@ private struct AddressEditBar: View {
         }
     }
 
+    private func closeAddressBar() {
+        didGainFocus = false
+        addressFocused = false
+        browser.setEditingAddress(false)
+        app.router.addressEditRevision &+= 1
+    }
+
     /// An address opens; other words search the current forum.
     private func commitAddress() {
         let query = addressDraft.trimmingCharacters(in: .whitespacesAndNewlines)
         if browser.open(address: addressDraft) {
-            addressFocused = false
-            browser.setEditingAddress(false)
+            closeAddressBar()
         } else if !query.isEmpty, let url = app.searchPageURL(query: query) ?? app.webSearchURL(query: query) {
             browser.load(url)
-            addressFocused = false
-            browser.setEditingAddress(false)
+            closeAddressBar()
         } else {
             addressError = AddressError(address: addressDraft, hasForum: browser.homeSiteURL != nil)
         }
     }
 }
 
-private struct SplitTopBarHost: View {
-    @ObservedObject var app: AppModel
-    @ObservedObject var browser: ForumBrowserModel
-    @ObservedObject var router: PresentationRouter
-    let actions: BrowserActions
-    let split: SplitBarContext?
-    let width: CGFloat
-    let addressFocusRequest: Int
-
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var lastReadyAnswerID: UUID?
-
-    private var isBarLockedExpanded: Bool {
-        browser.showsForumsHome
-            || app.voice.showsBar
-            || dynamicTypeSize.isAccessibilitySize
-    }
-
-    private var isActiveSplit: Bool {
-        if let splitLayout = router.splitLayout {
-            return splitLayout
-        }
-        return split != nil
-    }
-
-    var body: some View {
-        let _ = router.splitLayout
-        let _ = router.splitPanelMode
-        let showsSplitBar = isActiveSplit && app.homePath.isEmpty
-        let activeSplit = split ?? SplitBarContext(panelShown: app.showsSplitPanel(), togglePanel: app.toggleAIView)
-        VStack(spacing: 0) {
-            if showsSplitBar {
-                VStack(spacing: 0) {
-                    if browser.isEditingAddress {
-                        AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
-                    } else {
-                        HStack(spacing: DCTheme.spacingS) { splitItems(activeSplit) }
-                            .padding(.horizontal, DCTheme.spacingM)
-                            .padding(.vertical, 6)
-                    }
-                    Divider()
-                }
-                .background(.bar)
-            }
-        }
-        .frame(height: showsSplitBar ? nil : 0)
-        .clipped()
-        .allowsHitTesting(showsSplitBar)
-        .accessibilityHidden(!showsSplitBar)
-        .onAppear {
-            lastReadyAnswerID = app.readyAnswer?.id
-            if showsSplitBar { syncSplitMorphConfiguration() }
-        }
-        .onChange(of: showsSplitBar) { _, active in
-            if active { syncSplitMorphConfiguration() }
-        }
-        .onChange(of: ObjectIdentifier(browser)) { _, _ in
-            if showsSplitBar { syncSplitMorphConfiguration() }
-        }
-        .onChange(of: isBarLockedExpanded) { _, _ in
-            if showsSplitBar { syncSplitMorphConfiguration() }
-        }
-        .onChange(of: reduceMotion) { _, _ in
-            if showsSplitBar { syncSplitMorphConfiguration() }
-        }
-        .onChange(of: addressFocusRequest) {
-            guard showsSplitBar else { return }
-            browser.expandChrome(deferIfTracking: false)
-            browser.setEditingAddress(true)
-        }
-        .onChange(of: app.readyAnswer?.id) { _, nextID in
-            defer { lastReadyAnswerID = nextID }
-            if showsSplitBar, let nextID, nextID != lastReadyAnswerID, !app.isAIViewShown {
-                browser.expandChrome(deferIfTracking: true)
-            }
-        }
-    }
-
-    private func syncSplitMorphConfiguration() {
-        browser.barMorph.updateLayoutConfiguration(
-            managesInsets: false,
-            position: .top,
-            safeAreaBottom: 0,
-            isLandscape: true,
-            isLockedExpanded: isBarLockedExpanded,
-            reduceMotion: reduceMotion
-        )
-    }
-
-    /// Forum avatar, back, forward | address capsule | mic, ···, AI panel. Home
-    /// has its own address field, so the bar hides its capsule while it shows.
-    @ViewBuilder
-    private func splitItems(_ split: SplitBarContext) -> some View {
-        ForumMenuButton(app: app, browser: browser, actions: actions)
-        SplitNavigationButtons(browser: browser)
-        if browser.showsForumsHome {
-            Spacer(minLength: 0)
-        } else {
-            PhoneTitleCapsule(
-                app: app,
-                browser: browser,
-                filled: true,
-                width: 0,
-                onEdit: {
-                    browser.setEditingAddress(true)
-                }
-            )
-        }
-        BrowserTabsButton(app: app)
-            .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-        if app.showsVoiceButton {
-            VoiceBarButton(voice: app.voice)
-        }
-        SplitMoreMenu(app: app, browser: browser, actions: actions)
-        SplitPanelToggle(app: app, isShown: app.showsSplitPanel(forWidth: width), action: split.togglePanel)
-    }
-}
-
-// MARK: - Single Morphing Glass Bar (iPhone)
+// MARK: - Single Morphing Glass Bar (iPhone & iPad Split)
 
 enum BrowserBarFontMetrics {
+    @MainActor
+    static func normalSceneWindow() -> UIWindow? {
+        let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+        if let window = scenes
+            .flatMap(\.windows)
+            .first(where: { !$0.isHidden && $0.windowLevel == .normal }) {
+            return window
+        }
+        return scenes.first?.windows.first(where: { $0.windowLevel == .normal })
+    }
+
+    @MainActor
+    static func normalSceneSafeAreaBottom() -> CGFloat {
+        normalSceneWindow()?.safeAreaInsets.bottom ?? 0
+    }
+
+    /// Extra bottom clearance inside safe area so `DockLayer` cards/rows sit above the floating bottom bar.
+    /// Driven by `isChromeMinimized` (0.6 / 0.4 hysteresis) so `BrowserContent` does not re-layout per scroll frame.
+    @MainActor
+    static func bottomDockClearance(
+        app: AppModel,
+        browser: ForumBrowserModel,
+        voice: VoiceController,
+        isSplit: Bool,
+        position: BrowserBarPosition,
+        safeAreaBottom: CGFloat,
+        isLandscape: Bool,
+        dynamicTypeSize: DynamicTypeSize
+    ) -> CGFloat {
+        guard !isSplit, position == .bottom, app.homePath.isEmpty, !browser.isEditingAddress else {
+            return 0
+        }
+        if voice.showsBar || browser.isPageFormInputFocused {
+            return 0
+        }
+        if browser.isSystemKeyboardVisible && !app.isAIViewShown && app.rootPresentation == nil {
+            return 0
+        }
+        let effectiveP: CGFloat = browser.isChromeMinimized ? 1 : 0
+        let collapsedFont = collapsedFontSize(for: dynamicTypeSize)
+        let barHeight = BrowserBarMorphMetrics.lerp(
+            BrowserBarMorphMetrics.expandedHeight(isLandscape: isLandscape),
+            BrowserBarMorphMetrics.collapsedHeight(collapsedFontSize: collapsedFont),
+            effectiveP
+        )
+        let bottomEdge = BrowserBarMorphMetrics.bottomEdgeFromScreen(
+            safeAreaBottom: safeAreaBottom,
+            progress: effectiveP
+        )
+        return max(0, barHeight + bottomEdge - safeAreaBottom)
+    }
+
     private static func cappedCategory(for dynamicTypeSize: DynamicTypeSize) -> UIContentSizeCategory {
         switch dynamicTypeSize {
         case .xSmall: .extraSmall
@@ -807,35 +661,57 @@ private struct PhoneOnlyMorphingBarHost: View {
     }
 }
 
-/// Isolates 120 Hz scroll-progress observation to the floating bar overlay on iPad narrow/portrait
-/// windows while keeping `PhoneMorphingBar` mounted across 850 pt split-layout rotations.
+/// Isolates 120 Hz scroll-progress observation to the floating bar overlay on iPad (both split
+/// `width >= 850` and narrow/portrait `width < 850`) while keeping `PhoneMorphingBar` mounted
+/// across 850 pt split-layout rotations and centering the bar over the page column in split mode.
 private struct PhoneMorphingBarHost: View {
     @ObservedObject var app: AppModel
     @ObservedObject var browser: ForumBrowserModel
     @ObservedObject var progressModel: BrowserBarProgressModel
+    @ObservedObject var router: PresentationRouter
     var browserAgent: BrowserAgentSession
     var scriptStore: ScriptStore
     @ObservedObject var voice: VoiceController
-    @ObservedObject var router: PresentationRouter
-    let hasSplitContext: Bool
     let actions: BrowserActions
+    let fallbackSplit: SplitBarContext?
     let addressFocusRequest: Int
-    let containerWidth: CGFloat
+    let fallbackWidth: CGFloat
     let safeAreaBottom: CGFloat
     let isLandscape: Bool
     let reduceMotion: Bool
     let reduceTransparency: Bool
     let increasedContrast: Bool
+    @AppStorage("dc.assistantPanelWidth") private var storedPanelWidth: Double = 0
 
-    private var isActiveMorphingBar: Bool {
-        if let splitLayout = router.splitLayout {
-            return !splitLayout
-        }
-        return !hasSplitContext
+    private var liveWidth: CGFloat {
+        if router.windowWidth > 0 { return router.windowWidth }
+        if let w = BrowserBarFontMetrics.normalSceneWindow()?.bounds.width, w > 0 { return w }
+        return fallbackWidth
+    }
+
+    private var isSplit: Bool {
+        router.splitLayout ?? (liveWidth > 0 ? ContentView.usesSplitLayout(width: liveWidth) : fallbackSplit != nil)
     }
 
     private var resolvedPosition: BrowserBarPosition {
-        app.settings.browserBarPosition.resolved(isSplit: false)
+        isSplit ? .top : app.settings.browserBarPosition.resolved(isSplit: false)
+    }
+
+    private var resolvedSplit: SplitBarContext? {
+        guard isSplit else { return nil }
+        let panelShown = app.showsSplitPanel(forWidth: liveWidth)
+        let currentPanelWidth = WorkspaceMetrics.panelWidth(
+            preferred: router.splitPanelDragWidth ?? (storedPanelWidth > 0 ? CGFloat(storedPanelWidth) : nil),
+            containerWidth: liveWidth
+        )
+        let columnWidth = panelShown
+            ? max(0, liveWidth - currentPanelWidth - WorkspaceMetrics.handleHitWidth)
+            : liveWidth
+        return SplitBarContext(
+            panelShown: panelShown,
+            pageColumnWidth: columnWidth,
+            togglePanel: fallbackSplit?.togglePanel ?? app.toggleAIView
+        )
     }
 
     private var isAnyKeyboardVisible: Bool {
@@ -843,64 +719,57 @@ private struct PhoneMorphingBarHost: View {
     }
 
     private var hidesBottomBar: Bool {
-        guard resolvedPosition == .bottom else { return false }
+        guard resolvedPosition == .bottom, !browser.isEditingAddress else { return false }
         if voice.showsBar || browser.isPageFormInputFocused {
             return true
         }
         return isAnyKeyboardVisible && !app.isAIViewShown && app.rootPresentation == nil
     }
 
+    @ViewBuilder
     var body: some View {
         let _ = router.splitLayout
+        let _ = router.splitPanelMode
+        let _ = router.addressEditRevision
+        let split = resolvedSplit
         let position = resolvedPosition
-        let isEligible = isActiveMorphingBar && app.homePath.isEmpty
-        let showsEditBar = isEligible && browser.isEditingAddress
-        let showsMorphBar = isEligible && !browser.isEditingAddress && !hidesBottomBar
-        let liveWidth = PhoneBrowser<EmptyView>.normalSceneWindow()?.bounds.width ?? containerWidth
-        let liveSafeBottom = PhoneBrowser<EmptyView>.normalSceneWindow()?.safeAreaInsets.bottom ?? safeAreaBottom
-
-        Group {
-            if showsEditBar {
-                Group {
-                    if position == .top {
-                        VStack(spacing: 0) {
-                            AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
-                            Divider()
-                        }
-                        .background(.bar)
-                    } else {
-                        AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
-                            .background(.bar)
-                    }
+        let columnWidth = split?.pageColumnWidth ?? liveWidth
+        let liveSafeBottom = BrowserBarFontMetrics.normalSceneSafeAreaBottom()
+        let isEditing = browser.isEditingAddress
+        let hostAlignment: Alignment = split != nil
+            ? .topLeading
+            : (position == .top ? .top : .bottom)
+        if !app.homePath.isEmpty || hidesBottomBar {
+            EmptyView()
+        } else {
+            PhoneMorphingBar(
+                app: app,
+                browser: browser,
+                browserAgent: browserAgent,
+                scriptStore: scriptStore,
+                voice: voice,
+                actions: actions,
+                position: position,
+                split: split,
+                showsInlineAddressEdit: true,
+                addressEditRevision: router.addressEditRevision,
+                addressFocusRequest: addressFocusRequest,
+                containerWidth: columnWidth,
+                safeAreaBottom: liveSafeBottom > 0 ? liveSafeBottom : safeAreaBottom,
+                isLandscape: isLandscape,
+                progress: browser.showsForumsHome ? 0 : min(1, max(0, progressModel.progress)),
+                reduceMotion: reduceMotion,
+                reduceTransparency: reduceTransparency,
+                increasedContrast: increasedContrast,
+                onEdit: {
+                    browser.expandChrome(deferIfTracking: false)
+                    browser.setEditingAddress(true)
+                    router.addressEditRevision &+= 1
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: position == .top ? .top : .bottom)
-            } else {
-                PhoneMorphingBar(
-                    app: app,
-                    browser: browser,
-                    browserAgent: browserAgent,
-                    scriptStore: scriptStore,
-                    voice: voice,
-                    actions: actions,
-                    position: position,
-                    containerWidth: liveWidth,
-                    safeAreaBottom: liveSafeBottom,
-                    isLandscape: isLandscape,
-                    progress: browser.showsForumsHome ? 0 : min(1, max(0, progressModel.progress)),
-                    reduceMotion: reduceMotion,
-                    reduceTransparency: reduceTransparency,
-                    increasedContrast: increasedContrast,
-                    onEdit: {
-                        browser.expandChrome(deferIfTracking: false)
-                        browser.setEditingAddress(true)
-                    }
-                )
-                .opacity(showsMorphBar ? 1 : 0)
-                .allowsHitTesting(showsMorphBar)
-                .accessibilityHidden(!showsMorphBar)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: position == .top ? .top : .bottom)
-                .ignoresSafeArea([.container, .keyboard], edges: position == .bottom ? .bottom : [])
-            }
+            )
+            .frame(width: split != nil ? columnWidth : nil)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: hostAlignment)
+            .ignoresSafeArea([.container, .keyboard], edges: (!isEditing && position == .bottom) ? .bottom : [])
         }
     }
 }
@@ -917,6 +786,10 @@ struct PhoneMorphingBar: View {
     @ObservedObject var voice: VoiceController
     let actions: BrowserActions
     let position: BrowserBarPosition
+    var split: SplitBarContext? = nil
+    var showsInlineAddressEdit = false
+    var addressEditRevision = 0
+    var addressFocusRequest = 0
     let containerWidth: CGFloat
     let safeAreaBottom: CGFloat
     let isLandscape: Bool
@@ -928,6 +801,10 @@ struct PhoneMorphingBar: View {
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    private var isSplit: Bool {
+        split != nil
+    }
 
     private var isAgentWorking: Bool {
         browserAgent.isRunning || app.activeResearch != nil
@@ -954,6 +831,8 @@ struct PhoneMorphingBar: View {
     }
 
     var body: some View {
+        let _ = addressEditRevision
+        let isEditing = showsInlineAddressEdit && browser.isEditingAddress
         let effectiveP: CGFloat = if browser.showsForumsHome {
             0
         } else if reduceMotion {
@@ -961,9 +840,22 @@ struct PhoneMorphingBar: View {
         } else {
             min(1, max(0, progress))
         }
-        morphingCapsule(at: effectiveP, snapsGeometry: reduceMotion)
-            .frame(maxWidth: .infinity, alignment: .center)
-            .ignoresSafeArea(.container, edges: position == .bottom ? .bottom : [])
+        if isEditing {
+            if position == .top {
+                VStack(spacing: 0) {
+                    AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
+                    Divider()
+                }
+                .background(.bar)
+            } else {
+                AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
+                    .background(.bar)
+            }
+        } else {
+            morphingCapsule(at: effectiveP, snapsGeometry: reduceMotion)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .ignoresSafeArea(.container, edges: position == .bottom ? .bottom : [])
+        }
     }
 
     @ViewBuilder
@@ -972,13 +864,14 @@ struct PhoneMorphingBar: View {
         let collapsedFont = BrowserBarFontMetrics.collapsedFontSize(for: dynamicTypeSize)
         let domainWidth = BrowserBarFontMetrics.measuredWidth(of: domainText, fontSize: collapsedFont)
 
-        let expandedW = BrowserBarMorphMetrics.expandedWidth(containerWidth: containerWidth)
+        let expandedW = BrowserBarMorphMetrics.expandedWidth(containerWidth: containerWidth, isSplit: isSplit)
         let collapsedW = BrowserBarMorphMetrics.collapsedWidth(
             domainWidth: domainWidth,
             isAgentWorking: isAgentWorking,
-            scriptCount: scriptBadge.count
+            scriptCount: scriptBadge.count,
+            isSplit: isSplit
         )
-        let expandedH = BrowserBarMorphMetrics.expandedHeight(isLandscape: isLandscape)
+        let expandedH = BrowserBarMorphMetrics.expandedHeight(isSplit: isSplit, isLandscape: isLandscape)
         let collapsedH = BrowserBarMorphMetrics.collapsedHeight(collapsedFontSize: collapsedFont)
 
         let barWidth = BrowserBarMorphMetrics.lerp(expandedW, collapsedW, p)
@@ -988,7 +881,7 @@ struct PhoneMorphingBar: View {
         let fontSize = BrowserBarMorphMetrics.lerp(expandedFont, collapsedFont, p)
 
         let bottomOffset = BrowserBarMorphMetrics.bottomEdgeFromScreen(safeAreaBottom: safeAreaBottom, progress: p)
-        let topOffset = BrowserBarMorphMetrics.topEdgeFromSafeArea(progress: p)
+        let topOffset = BrowserBarMorphMetrics.topEdgeFromSafeArea(progress: p, isSplit: isSplit)
         let isCollapsedHalf = !browser.showsForumsHome && p >= 0.5
         let extraHit = isCollapsedHalf ? max(0, BrowserBarMorphMetrics.minHitTargetHeight - barHeight) : 0
         let capsuleAlignment: Alignment = position == .bottom ? .bottom : .top
@@ -1011,6 +904,7 @@ struct PhoneMorphingBar: View {
                     expandedMorphItems(
                         p: snapsGeometry ? 0 : p,
                         barHeight: barHeight,
+                        collapsedW: collapsedW,
                         fontSize: snapsGeometry ? expandedFont : fontSize,
                         isExpandedHalf: !isCollapsedHalf,
                         sideButtonsHitTarget: !isCollapsedHalf && (snapsGeometry || p < 0.35)
@@ -1062,28 +956,43 @@ struct PhoneMorphingBar: View {
 
     @ViewBuilder
     private var homeItems: some View {
-        PhoneBackButton(browser: browser, isActive: true)
-            .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-        ForumMenuButton(app: app, browser: browser, actions: actions)
-            .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-        Spacer(minLength: 0)
-        BrowserTabsButton(app: app)
-            .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-        if app.showsVoiceButton {
-            VoiceBarButton(voice: app.voice)
-        }
-        if browser.currentURL != nil {
-            PhoneAIButton(
-                app: app,
-                voice: app.voice,
-                router: app.router,
-                podcast: app.podcast,
-                isAvailable: app.isDrawerAvailable,
-                onOpen: {
-                    browser.hideForumsHome()
-                    actions.openAssistant()
-                }
-            )
+        if let split {
+            PhoneBackButton(browser: browser, isActive: true)
+                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+            PhoneForwardButton(browser: browser)
+            ForumMenuButton(app: app, browser: browser, actions: actions)
+                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+            Spacer(minLength: 0)
+            BrowserTabsButton(app: app)
+                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+            if app.showsVoiceButton {
+                VoiceBarButton(voice: voice)
+            }
+            SplitPanelToggle(app: app, isShown: split.panelShown, action: split.togglePanel)
+        } else {
+            PhoneBackButton(browser: browser, isActive: true)
+                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+            ForumMenuButton(app: app, browser: browser, actions: actions)
+                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+            Spacer(minLength: 0)
+            BrowserTabsButton(app: app)
+                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+            if app.showsVoiceButton {
+                VoiceBarButton(voice: app.voice)
+            }
+            if browser.currentURL != nil {
+                PhoneAIButton(
+                    app: app,
+                    voice: app.voice,
+                    router: app.router,
+                    podcast: app.podcast,
+                    isAvailable: app.isDrawerAvailable,
+                    onOpen: {
+                        browser.hideForumsHome()
+                        actions.openAssistant()
+                    }
+                )
+            }
         }
     }
 
@@ -1091,6 +1000,7 @@ struct PhoneMorphingBar: View {
     private func expandedMorphItems(
         p: CGFloat,
         barHeight: CGFloat,
+        collapsedW: CGFloat,
         fontSize: CGFloat,
         isExpandedHalf: Bool,
         sideButtonsHitTarget: Bool
@@ -1102,8 +1012,11 @@ struct PhoneMorphingBar: View {
             progress: p,
             isDark: colorScheme == .dark
         )
-        let visualFieldHeight = max(30, barHeight - BrowserBarMorphMetrics.lerp(isLandscape ? 12 : 14, 2, p))
+        let visualFieldHeight = max(30, barHeight - BrowserBarMorphMetrics.lerp((!isSplit && isLandscape) ? 12 : 14, 2, p))
         let rowHeight = isExpandedHalf ? max(DCTheme.controlHeight, visualFieldHeight) : visualFieldHeight
+        let maxFieldWidth: CGFloat = isSplit
+            ? BrowserBarMorphMetrics.lerp(BrowserBarMorphMetrics.maxBarWidth, collapsedW, p)
+            : .infinity
 
         if isExpandedHalf {
             PhoneBackButton(browser: browser, isActive: isExpandedHalf)
@@ -1111,6 +1024,14 @@ struct PhoneMorphingBar: View {
                 .opacity(btnOpacity)
                 .frame(width: slotWidth, height: DCTheme.controlHeight)
                 .allowsHitTesting(sideButtonsHitTarget)
+
+            if isSplit {
+                PhoneForwardButton(browser: browser)
+                    .scaleEffect(btnScale)
+                    .opacity(btnOpacity)
+                    .frame(width: slotWidth, height: DCTheme.controlHeight)
+                    .allowsHitTesting(sideButtonsHitTarget)
+            }
         }
 
         HStack(spacing: 0) {
@@ -1119,7 +1040,7 @@ struct PhoneMorphingBar: View {
                     app: app,
                     browser: browser,
                     actions: actions,
-                    avatarSize: isLandscape ? 22 : 26
+                    avatarSize: (!isSplit && isLandscape) ? 22 : 26
                 )
                 .scaleEffect(btnScale)
                 .opacity(btnOpacity)
@@ -1155,7 +1076,7 @@ struct PhoneMorphingBar: View {
                     .allowsHitTesting(sideButtonsHitTarget)
             }
         }
-        .frame(maxWidth: .infinity, minHeight: rowHeight, maxHeight: rowHeight)
+        .frame(maxWidth: maxFieldWidth, minHeight: rowHeight, maxHeight: rowHeight)
         .background {
             if isExpandedHalf, fieldFill > 0.001 {
                 Capsule()
@@ -1171,6 +1092,7 @@ struct PhoneMorphingBar: View {
             }
         }
         .contentShape(Capsule())
+        .frame(maxWidth: .infinity, minHeight: rowHeight, maxHeight: rowHeight)
 
         if isExpandedHalf {
             BrowserTabsButton(app: app, isActive: isExpandedHalf && sideButtonsHitTarget)
@@ -1179,18 +1101,33 @@ struct PhoneMorphingBar: View {
                 .opacity(btnOpacity)
                 .allowsHitTesting(sideButtonsHitTarget)
 
-            PhoneAIButton(
-                app: app,
-                voice: app.voice,
-                router: app.router,
-                podcast: app.podcast,
-                isAvailable: app.isDrawerAvailable && browser.currentURL != nil,
-                onOpen: actions.openAssistant
-            )
-            .scaleEffect(btnScale)
-            .opacity(btnOpacity)
-            .frame(width: slotWidth, height: DCTheme.controlHeight)
-            .allowsHitTesting(sideButtonsHitTarget)
+            if let split {
+                if app.showsVoiceButton {
+                    VoiceBarButton(voice: voice)
+                        .scaleEffect(btnScale)
+                        .opacity(btnOpacity)
+                        .frame(width: slotWidth, height: DCTheme.controlHeight)
+                        .allowsHitTesting(sideButtonsHitTarget)
+                }
+                SplitPanelToggle(app: app, isShown: split.panelShown, action: split.togglePanel)
+                    .scaleEffect(btnScale)
+                    .opacity(btnOpacity)
+                    .frame(width: slotWidth, height: DCTheme.controlHeight)
+                    .allowsHitTesting(sideButtonsHitTarget)
+            } else {
+                PhoneAIButton(
+                    app: app,
+                    voice: app.voice,
+                    router: app.router,
+                    podcast: app.podcast,
+                    isAvailable: app.isDrawerAvailable && browser.currentURL != nil,
+                    onOpen: actions.openAssistant
+                )
+                .scaleEffect(btnScale)
+                .opacity(btnOpacity)
+                .frame(width: slotWidth, height: DCTheme.controlHeight)
+                .allowsHitTesting(sideButtonsHitTarget)
+            }
         }
     }
 
@@ -1576,6 +1513,34 @@ private struct PhoneBackButton: UIViewRepresentable {
     }
 }
 
+private struct PhoneForwardButton: View {
+    @ObservedObject var browser: ForumBrowserModel
+
+    private var isEnabled: Bool {
+        browser.canGoForward && !browser.showsForumsHome
+    }
+
+    var body: some View {
+        Button {
+            DCHaptics.tap()
+            browser.goForward()
+        } label: {
+            Image(systemName: "chevron.forward")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(isEnabled ? DCTheme.ink : DCTheme.inkFaint)
+                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .accessibilityLabel("Forward")
+        .accessibilityShowsLargeContentViewer {
+            Label("Forward", systemImage: "chevron.forward")
+        }
+        .accessibilityIdentifier("browserForward")
+    }
+}
+
 private struct PhoneReloadButton: View {
     @ObservedObject var browser: ForumBrowserModel
 
@@ -1720,191 +1685,6 @@ private struct SolvedAnswerChip: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel(Text("Solved · answer at #\(postNumber)", comment: "iPhone bar hint: the topic has an accepted answer; the placeholder is its post number"))
-        .accessibilityHint(Text("Jumps to the answer", comment: "Accessibility hint of the solved hint in the iPhone bar"))
-        .accessibilityIdentifier("acceptedAnswerHint")
-    }
-}
-
-// MARK: - Title capsule
-
-/// Page title over the host; on Home "Search or enter a forum address". Tap
-/// edits the address; long press lists the history. The not-a-forum icon,
-/// the solved hint and the ad shield sit inside.
-struct PhoneTitleCapsule: View {
-    @ObservedObject var app: AppModel
-    @ObservedObject var browser: ForumBrowserModel
-    /// A fill of its own (top bar, and before Liquid Glass).
-    var filled = true
-    /// The capsule's width. A menu label in a toolbar takes its ideal width,
-    /// so the title is given the room explicitly to truncate in.
-    var width: CGFloat = 0
-    let onEdit: () -> Void
-
-    private var showsHome: Bool { browser.showsForumsHome }
-
-    private var answerPost: Int? {
-        guard !showsHome, app.pageContext.state == .topic else { return nil }
-        return app.pageContext.acceptedAnswerPost
-    }
-
-    var body: some View {
-        HStack(spacing: 4) {
-            Menu {
-                historyMenu
-            } label: {
-                titleLabel
-            } primaryAction: {
-                onEdit()
-            }
-            .menuOrder(.fixed)
-            .tint(.primary)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .accessibilityLabel(accessibilityTitle)
-            .accessibilityHint(accessibilityHint)
-            .accessibilityIdentifier("browserTitle")
-
-            if let answerPost {
-                answerChip(answerPost)
-            }
-        }
-        .padding(.leading, 12)
-        .padding(.trailing, 4)
-        .frame(maxWidth: .infinity, minHeight: DCTheme.controlHeight)
-        .background {
-            if filled { Capsule().fill(Color(uiColor: .tertiarySystemFill)) }
-        }
-        .overlay(alignment: .bottom) {
-            if !showsHome {
-                LoadingLine(progress: browser.estimatedProgress, isLoading: browser.isLoading)
-                    .padding(.horizontal, 14)
-                    .padding(.bottom, 2)
-            }
-        }
-        .contentShape(Capsule())
-    }
-
-    private var canSearch: Bool { app.searchPageURL(query: "a") != nil }
-
-    private var homePrompt: Text {
-        canSearch
-            ? Text("Search or enter address", comment: "iPhone bar on Home: placeholder of the search and address field")
-            : Text("Enter an address")
-    }
-
-    @ViewBuilder
-    private var titleLabel: some View {
-        if showsHome {
-            HStack(spacing: 8) {
-                Image(systemName: canSearch ? "magnifyingglass" : "globe")
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                homePrompt
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-                Spacer(minLength: 0)
-            }
-            .frame(width: titleWidth, alignment: .leading)
-            .frame(maxWidth: .infinity, minHeight: DCTheme.controlHeight, alignment: .leading)
-            .contentShape(Rectangle())
-        } else {
-            pageTitleLabel
-        }
-    }
-
-    private var pageTitleLabel: some View {
-        HStack(spacing: 6) {
-            VStack(alignment: .leading, spacing: 1) {
-                Text(browser.pageTitle)
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                HStack(spacing: 4) {
-                    Text(subtitle)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-            }
-            Spacer(minLength: 0)
-        }
-        .frame(width: titleWidth, alignment: .leading)
-        .frame(maxWidth: .infinity, minHeight: DCTheme.controlHeight, alignment: .leading)
-        .contentShape(Rectangle())
-    }
-
-    /// What the solved-answer chip leaves of the capsule (nil: no limit).
-    private var titleWidth: CGFloat? {
-        guard width > 0 else { return nil }
-        var reserved: CGFloat = 16
-        if answerPost != nil { reserved += 64 }
-        return max(60, width - reserved)
-    }
-
-    private var subtitle: String {
-        BrowserAddress.host(browser.currentURL)
-    }
-
-    private var accessibilityTitle: Text {
-        if showsHome { return homePrompt }
-        return Text(verbatim: "\(browser.pageTitle), \(BrowserAddress.display(browser.currentURL))")
-    }
-
-    private var accessibilityHint: Text {
-        Text("Tap to enter an address. Touch and hold for history.", comment: "Accessibility hint of the iPhone bar title")
-    }
-
-    @ViewBuilder
-    private var historyMenu: some View {
-        let back = Array(browser.backHistory.prefix(12))
-        let forward = Array(browser.forwardHistory.prefix(12))
-        if !forward.isEmpty {
-            Section("Forward") {
-                ForEach(forward.reversed(), id: \.self) { historyItem($0) }
-            }
-        }
-        if !back.isEmpty {
-            Section("Back") {
-                ForEach(back, id: \.self) { historyItem($0) }
-            }
-        }
-        if back.isEmpty, forward.isEmpty {
-            Text("No history yet", comment: "iPhone bar title's history menu with no pages to go back or forward to")
-        }
-    }
-
-    private func historyItem(_ item: WKBackForwardListItem) -> some View {
-        Button {
-            browser.go(to: item)
-        } label: {
-            Text(item.title?.isEmpty == false ? item.title ?? "" : BrowserAddress.host(item.url))
-            Text(BrowserAddress.display(item.url))
-        }
-    }
-
-    /// "Solved · answer at #N": jumps to the accepted answer.
-    private func answerChip(_ number: Int) -> some View {
-        Button {
-            // The same jump as a citation in the drawer (§4.5).
-            app.jumpToCitation(number)
-        } label: {
-            HStack(spacing: 3) {
-                Image(systemName: "checkmark.seal.fill")
-                    .font(.caption.weight(.semibold))
-                Text(verbatim: "#\(number)")
-                    .font(.caption.weight(.semibold).monospacedDigit())
-            }
-            .fixedSize()
-            .foregroundStyle(DCTheme.success)
-            .padding(.horizontal, 8)
-            .frame(minHeight: 30)
-            .background(DCTheme.success.opacity(0.12), in: Capsule())
-            .frame(minHeight: DCTheme.controlHeight)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel(Text("Solved · answer at #\(number)", comment: "iPhone bar hint: the topic has an accepted answer; the placeholder is its post number"))
         .accessibilityHint(Text("Jumps to the answer", comment: "Accessibility hint of the solved hint in the iPhone bar"))
         .accessibilityIdentifier("acceptedAnswerHint")
     }

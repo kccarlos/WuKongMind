@@ -274,11 +274,32 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         syncPageKeyboardFreeze()
     }
 
+    /// Incremented by `focusAddressBar()` (⌘L) so `AddressEditBar` focuses its
+    /// field directly even inside a `NavigationStack` overlay.
+    @Published private(set) var addressFocusRequest = 0
+
     func setEditingAddress(_ editing: Bool) {
+        if editing {
+            allocatedWebView?.endEditing(true)
+            _ = allocatedWebView?.resignFirstResponder()
+        } else if isEditingAddress {
+            UIApplication.shared.sendAction(
+                #selector(UIResponder.resignFirstResponder),
+                to: nil,
+                from: nil,
+                for: nil
+            )
+        }
         if isEditingAddress != editing {
             isEditingAddress = editing
         }
         syncPageKeyboardFreeze()
+    }
+
+    func focusAddressBar() {
+        expandChrome(deferIfTracking: false)
+        setEditingAddress(true)
+        addressFocusRequest &+= 1
     }
 
     func setPageFormInputFocused(_ focused: Bool) {

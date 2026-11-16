@@ -194,8 +194,15 @@ final class PresentationRouter: ObservableObject {
     /// window width (`WorkspaceMetrics.nextIsSplit`, with hysteresis). nil
     /// until the first size is known.
     @Published var splitLayout: Bool?
+    /// Live window width from `ContentView` so views inside `NavigationStack`
+    /// track rotation and Split View / Stage Manager resizes without stale closures.
+    @Published var windowWidth: CGFloat = 0
     /// Whether the split layout's AI panel shows.
     @Published var splitPanelMode: SplitPanelMode = .auto
+    /// Live AI panel width while dragging `PanelResizeHandle` (`nil` at rest).
+    @Published var splitPanelDragWidth: CGFloat?
+    /// Incremented when ⌘L requests address bar editing so the bar host updates immediately.
+    @Published var addressEditRevision = 0
     /// Whether a narrow-window drawer is wide enough for a two-column medium summary.
     @Published var usesWideDrawerSummary = false
 
