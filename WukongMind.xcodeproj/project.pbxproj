@@ -329,6 +329,7 @@
 		6D0B6B531CDD42B8283FD9DA8C8DCF45 /* ToolRegistry+PageTools.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7CA0E74BEEC6949A6CF2E274A0DE8F7D /* ToolRegistry+PageTools.swift */; };
 		6E706316C6F8A7B62626295DFDF734DA /* AppModel+Browse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00AC43F30AEF01C5FBF6A680B4FA91E7 /* AppModel+Browse.swift */; };
 		6E94B534288B01B82FAB41427BF26DF2 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6FC9136704F2E9CD66931862BC78FEF0 /* ShareViewController.swift */; };
+		6EF5CDE64150A29112577BF5BAD17DA3 /* LearnedSiteRepairTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB03948E38A179797FB3E4FB64200C33 /* LearnedSiteRepairTests.swift */; };
 		6F3498BA66C97282E166082364C1681D /* run-D5.json in Resources */ = {isa = PBXBuildFile; fileRef = 59FAD3D5D15489903D83D5B615AA8882 /* run-D5.json */; };
 		6F3AC8A69851ACFFEE173EEAC1D73D70 /* AppIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40E310E63E3A1E56048C2CDB4ADB8461 /* AppIdentityTests.swift */; };
 		6FB212E9E646E3A769E43E46FAF73A4B /* ReplayToolDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4C46F8663159759D69BB2BA6E2F6DD /* ReplayToolDispatcher.swift */; };
@@ -579,6 +580,7 @@
 		C26C86708491CCABB0452CC83CA4A2BC /* VoiceDebug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62FBA0B25EEE7BD656B87D3522AE88F6 /* VoiceDebug.swift */; };
 		C2A9294232D641DDDDC928208E95AFED /* BrandMark.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6ED1AAAF513023410772C0B62F46BD93 /* BrandMark.swift */; };
 		C2B07219C2836B90015BB2D691DD0053 /* ToolRegistry+Capture.swift in Sources */ = {isa = PBXBuildFile; fileRef = F29DD93ECE0A31AA8F8ED6BA0DFC891D /* ToolRegistry+Capture.swift */; };
+		C2B07EB60AEA33F77DA7FCE0F84FD8DC /* ToolRegistry+LearnedRepair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B068299D889D3813AD7993F73440DCA /* ToolRegistry+LearnedRepair.swift */; };
 		C2D449D43C545C75BDF7B54699D59B9D /* PageToolsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC56E18BAA1E0FB36E5FBBE3758BC05E /* PageToolsTests.swift */; };
 		C2F5CB132171C3CE90FD21C76F05C8ED /* run-D4.json in Resources */ = {isa = PBXBuildFile; fileRef = A9D1AC73F24BAFC269C6CF37D2404892 /* run-D4.json */; };
 		C34AA209589E4507294444B476123BA8 /* discourse-meta-appinn-net-raw-95682-3c1d858d3157.json in Resources */ = {isa = PBXBuildFile; fileRef = BF0082746A160111BF2A307F8E9CFEC7 /* discourse-meta-appinn-net-raw-95682-3c1d858d3157.json */; };
@@ -662,6 +664,7 @@
 		D81994DE82541B9484AB011C89BA15E5 /* HackerNewsJobTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2B6A266C1739A7427BDA7091E6054628 /* HackerNewsJobTests.swift */; };
 		D830376B7C9B70568C1778E12BB593F0 /* CloudSyncTransport.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF873830D2247F33AEC0B18972EA868F /* CloudSyncTransport.swift */; };
 		D845F1B8DCD2C22DACEF661E46222DBB /* discourse-meta-appinn-net-t-95798-json-1133e9489842.json in Resources */ = {isa = PBXBuildFile; fileRef = 8F6120BBF9370A860747F22CE4AEA8F8 /* discourse-meta-appinn-net-t-95798-json-1133e9489842.json */; };
+		D8BEF6AB93B6C8CCEBEF9BB18A1AE38A /* SiteFailureClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB32CC3ADF0210300ACDB7DA2B074239 /* SiteFailureClassifier.swift */; };
 		D8FE77C80C9F4C792106660676B28956 /* ForumShapes.swift in Sources */ = {isa = PBXBuildFile; fileRef = D40D79CBC33A838189898994F637B0B2 /* ForumShapes.swift */; };
 		D924902766EFE4D4F4B6E5DDBC521096 /* DiscourseRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5073585B13344F368D739E84D83A0937 /* DiscourseRecognizer.swift */; };
 		D97A7C5D775BC246F0E577E8980342F1 /* AgentPageCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D684E83D5E2AF7774033B51AB099CF73 /* AgentPageCaptureTests.swift */; };
@@ -871,6 +874,7 @@
 		196972F7081D784276E3A60B277902D2 /* SettingsDataHelpPages.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SettingsDataHelpPages.swift; sourceTree = "<group>"; };
 		1AE3260BD498F975159AFC3CE8605FA9 /* VoiceActivityDetectorTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoiceActivityDetectorTests.swift; sourceTree = "<group>"; };
 		1AF20B08A209A4BAF93CDF4FB41DF59D /* hackernews-hn-algolia-com-api-v1-items-50109715-0a0e72469410.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hackernews-hn-algolia-com-api-v1-items-50109715-0a0e72469410.json"; path = "Fixtures/Comparison/hackernews/hackernews-hn-algolia-com-api-v1-items-50109715-0a0e72469410.json"; sourceTree = "<group>"; };
+		1B068299D889D3813AD7993F73440DCA /* ToolRegistry+LearnedRepair.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = "ToolRegistry+LearnedRepair.swift"; sourceTree = "<group>"; };
 		1B955D21957DA673EDADDD9C700BE403 /* OneLoopLiveAcceptanceUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = OneLoopLiveAcceptanceUITests.swift; sourceTree = "<group>"; };
 		1BC8EE8612AC9C866B8CC91EDA6D2E7F /* discourse-meta-appinn-net-raw-47457-c92e9fb6252e.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-meta-appinn-net-raw-47457-c92e9fb6252e.json"; path = "Fixtures/Comparison/discourse/discourse-meta-appinn-net-raw-47457-c92e9fb6252e.json"; sourceTree = "<group>"; };
 		1C521A958120E0220D0B636CD511F842 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-b2e8fba0317d.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-b2e8fba0317d.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-b2e8fba0317d.json"; sourceTree = "<group>"; };
@@ -1356,6 +1360,7 @@
 		CA618A9FA7061005CE9952FE99C2C3B6 /* discourse-meta-appinn-net-raw-88526-8828c614ad81.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-meta-appinn-net-raw-88526-8828c614ad81.json"; path = "Fixtures/Comparison/discourse/discourse-meta-appinn-net-raw-88526-8828c614ad81.json"; sourceTree = "<group>"; };
 		CAD57139C6F4B7C59B38471FE7CA492F /* fold-empty-posts.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "fold-empty-posts.json"; path = "Fixtures/GMAiAcceptance/fold-empty-posts.json"; sourceTree = "<group>"; };
 		CAFABC04AE3F8E3725D4227B07D057DC /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-a6bf7e392bb6.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-a6bf7e392bb6.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-a6bf7e392bb6.json"; sourceTree = "<group>"; };
+		CB03948E38A179797FB3E4FB64200C33 /* LearnedSiteRepairTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LearnedSiteRepairTests.swift; sourceTree = "<group>"; };
 		CC0EC2278A97EB210B82FC9EC19E1382 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-4571f657427c.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-4571f657427c.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-4571f657427c.json"; sourceTree = "<group>"; };
 		CC17B40AB586A93C2E230196E4D4D669 /* ContentBlockerTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ContentBlockerTests.swift; sourceTree = "<group>"; };
 		CC181FA7B93BE98FE491F7F254A60FD4 /* Localizable.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; path = Localizable.xcstrings; sourceTree = "<group>"; };
@@ -1463,6 +1468,7 @@
 		EAD61918034B2AD21AB0BED8D045359F /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-84cb920f4f35.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-84cb920f4f35.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-84cb920f4f35.json"; sourceTree = "<group>"; };
 		EADF06994330A9A41057839C7E16C595 /* AgentAnswerHistoryTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentAnswerHistoryTests.swift; sourceTree = "<group>"; };
 		EAF5DDF9DF30237F043D7BDE1646076B /* IncomingLinkTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = IncomingLinkTests.swift; sourceTree = "<group>"; };
+		EB32CC3ADF0210300ACDB7DA2B074239 /* SiteFailureClassifier.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SiteFailureClassifier.swift; sourceTree = "<group>"; };
 		EB72B827E1E8586A4BEA7DE9CBCD9BEA /* page-12.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-12.html"; path = "Fixtures/CrawlForum/page-12.html"; sourceTree = "<group>"; };
 		EC6141B0F8F6F24609CD0E0D33090ADE /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-a6b8302626cb.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-a6b8302626cb.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-a6b8302626cb.json"; sourceTree = "<group>"; };
 		EC82CADDE415A1F2ABBF6D04FCAB0F73 /* WordPressPagePlan.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = WordPressPagePlan.swift; path = Sites/WordPress/WordPressPagePlan.swift; sourceTree = "<group>"; };
@@ -1759,6 +1765,7 @@
 				EE6EDC7420A93DC0F94B655EBDD766A8 /* SettingsProviderPage.swift */,
 				693A2BBBA5C4B13290A7C6E5CF5143AE /* SettingsSyncPage.swift */,
 				B870A37925CE8404FEEDECD6A666B8A5 /* SharedPage.swift */,
+				EB32CC3ADF0210300ACDB7DA2B074239 /* SiteFailureClassifier.swift */,
 				079C166229530938FF1BFC4388869394 /* SiteInspectorModel.swift */,
 				D1145E1C6B87B28BC702E15D8D4E2D3E /* SiteInspectorViews.swift */,
 				E45AECA8E410D4976291D7892109E65D /* SiteToolState.swift */,
@@ -1816,6 +1823,7 @@
 				FEDA3707A8EEA6013A5C95D0F16BCA53 /* ToolRegistry+Capabilities.swift */,
 				F29DD93ECE0A31AA8F8ED6BA0DFC891D /* ToolRegistry+Capture.swift */,
 				31546D10924EAA70ED8FD0788A65EF48 /* ToolRegistry+Forum.swift */,
+				1B068299D889D3813AD7993F73440DCA /* ToolRegistry+LearnedRepair.swift */,
 				41A3BEA53671D4C6A0FB46FC44280F0B /* ToolRegistry+LearningCap.swift */,
 				479C700D68ED1D64EABF400DA709B450 /* ToolRegistry+Navigation.swift */,
 				0935DA99F0BB835E406F25CBEC876C4D /* ToolRegistry+Network.swift */,
@@ -1931,6 +1939,7 @@
 				4BDA17EE0B24B071D63CA3AA13B40C08 /* IPadLayoutTests.swift */,
 				EAF5DDF9DF30237F043D7BDE1646076B /* IncomingLinkTests.swift */,
 				3387004FC0363D685551305BDE1D2EA5 /* KeychainSyncTests.swift */,
+				CB03948E38A179797FB3E4FB64200C33 /* LearnedSiteRepairTests.swift */,
 				1CA5F44A428E56B8791C0BFD74D9C24F /* LearnedSiteToolsTests.swift */,
 				F42A8107B554C6601ECDA87A478C4816 /* LearningPromptTests.swift */,
 				02A7BC31BF159410EE9863B6EAA47A0F /* LinkPolicyTests.swift */,
@@ -3024,6 +3033,7 @@
 				FF675C257CFBE930D866393A83D509CB /* IPadLayoutTests.swift in Sources */,
 				40FD63E7AE2B01F88527C6D6198573B7 /* IncomingLinkTests.swift in Sources */,
 				F736E541F4B674485FFECD3C8B0452D6 /* KeychainSyncTests.swift in Sources */,
+				6EF5CDE64150A29112577BF5BAD17DA3 /* LearnedSiteRepairTests.swift in Sources */,
 				DF35304E12EFB79959A7B15E02EA0F73 /* LearnedSiteToolsTests.swift in Sources */,
 				B0557F2FB4E24BD662FAFDF428296F63 /* LearningPromptTests.swift in Sources */,
 				06F3712668034BF66426C561F469DF0A /* LinkPolicyTests.swift in Sources */,
@@ -3216,6 +3226,7 @@
 				2CE9FD68FAEF8A4F3B4E274505E9A174 /* SettingsProviderPage.swift in Sources */,
 				98142E2BC4276D9AA3856C6BD6190975 /* SettingsSyncPage.swift in Sources */,
 				779E864DE4EB4F729D21175933D8BDA3 /* SharedPage.swift in Sources */,
+				D8BEF6AB93B6C8CCEBEF9BB18A1AE38A /* SiteFailureClassifier.swift in Sources */,
 				497F76F9B95EC5D380A4E273F28BE66B /* SiteInspectorModel.swift in Sources */,
 				11B37922438D63406ED04751DBEF7C31 /* SiteInspectorViews.swift in Sources */,
 				915DD2AC8B74423CB0B1D2DFCA381D64 /* SiteToolState.swift in Sources */,
@@ -3273,6 +3284,7 @@
 				DCA1FC26E6C9CBD10F79FA35F8B16097 /* ToolRegistry+Capabilities.swift in Sources */,
 				C2B07219C2836B90015BB2D691DD0053 /* ToolRegistry+Capture.swift in Sources */,
 				B8E05EFAE9C744A31CDF34298F0D1E33 /* ToolRegistry+Forum.swift in Sources */,
+				C2B07EB60AEA33F77DA7FCE0F84FD8DC /* ToolRegistry+LearnedRepair.swift in Sources */,
 				59BD599BD6CE95917A0CF303594303F7 /* ToolRegistry+LearningCap.swift in Sources */,
 				9939510049F93E2939D5B8E957D12709 /* ToolRegistry+Navigation.swift in Sources */,
 				173E02F7EC3B91CA34CFC392EDA55126 /* ToolRegistry+Network.swift in Sources */,

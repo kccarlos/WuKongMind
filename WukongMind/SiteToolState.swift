@@ -92,8 +92,11 @@ struct LearnedToolResult<Shape: Codable & Equatable & Sendable>: Codable, Equata
 
 /// One app-text-only `<page_context>` line for learned reading state on a site without an adapter.
 enum SiteReadingPromptLine: Equatable, Sendable {
+    enum Retry: Equatable, Sendable { case wait, learnAgain, updateScript }
     case noTool, turnedOff
-    case failed(date: Date, code: SiteFailureCode)
+    /// At least one slot's script is saved and `broken`; the line holds no script name or ID.
+    case broken
+    case failed(date: Date, code: SiteFailureCode, retry: Retry = .wait)
     case learned(slots: Set<SiteToolSlot>, listUntried: Bool = true, threadUntried: Bool = true)
 
     private static let utcCalendar: Calendar = {
@@ -106,10 +109,19 @@ enum SiteReadingPromptLine: Equatable, Sendable {
             return "- No reading tool for this site yet."
         case .turnedOff:
             return "- The reading tool for this site is turned off in This page. Don't learn it again or turn it on; use `read_page`."
-        case .failed(let date, let code):
+        case .broken:
+            return "- The saved reading tool for this site is broken. Repair it when the request needs it (the failing call returns the script); don't save a new one."
+        case .failed(let date, let code, let retry):
             let p = Self.utcCalendar.dateComponents([.year, .month, .day], from: date)
             let day = String(format: "%04d-%02d-%02d", p.year ?? 1970, p.month ?? 1, p.day ?? 1)
-            return "- Learning to read this site failed on \(day) (\(code.appSentence)). Don't try again unless the user asks; use `read_page`."
+            let head = "- Learning to read this site failed on \(day) (\(code.appSentence))."
+            switch retry {
+            case .wait: return head + " Don't try again unless the user asks; use `read_page`."
+            case .learnAgain: return head + " That was a while ago: if the request needs a thread or a list, learn it again."
+            case .updateScript:
+                return head + " That was a while ago. Its script is saved but off: if the request needs a thread or a list, "
+                    + "change that script with `script_update` (with `provides` and `enabled: true`); don't save a second one."
+            }
         case .learned(let slots, let listUntried, let threadUntried):
             let hasThread = slots.contains(.readTopic), hasList = slots.contains(.listLatest), hasSearch = slots.contains(.searchForum)
             guard hasThread || hasList || hasSearch else { return "- No reading tool for this site yet." }
@@ -130,7 +142,9 @@ enum SiteReadingPromptLine: Equatable, Sendable {
 struct SiteReadingPromptState: Equatable, Sendable {
     static let none = SiteReadingPromptState(entries: [.noTool])
     static let turnedOff = SiteReadingPromptState(entries: [.turnedOff])
-    static func failed(date: Date, code: SiteFailureCode) -> Self { .init(entries: [.failed(date: date, code: code)]) }
+    static func failed(date: Date, code: SiteFailureCode, retry: SiteReadingPromptLine.Retry = .wait) -> Self {
+        .init(entries: [.failed(date: date, code: code, retry: retry)])
+    }
     static func learned(slots: Set<SiteToolSlot>, listUntried: Bool = true, threadUntried: Bool = true) -> Self {
         .init(entries: [.learned(slots: slots, listUntried: listUntried, threadUntried: threadUntried)])
     }
@@ -160,6 +174,28 @@ struct SiteToolState: Codable, Equatable, Sendable {
     mutating func appendLog(_ entry: SiteLogEntry) {
         log.insert(entry, at: 0)
         if log.count > Self.maxLogEntries { log.removeSubrange(Self.maxLogEntries...) }
+    }
+
+    /// A script that arrives with no state here (synced from another device) and provides a slot is seeded
+    /// `learned` with an empty hash, so its first call runs the full check on the header's test URLs.
+    /// Returns whether the state changed. A script that is off is never adopted.
+    mutating func adoptSyncedReaders(from scripts: [UserScript]) -> Bool {
+        var changed = false
+        for script in scripts where script.isEnabled && script.matchesDomain(host) {
+            let thread = script.metadata.threadMatches.compactMap { try? MatchPattern.parse($0) }
+            let list = script.metadata.listMatches.compactMap { try? MatchPattern.parse($0) }
+            for slot in script.metadata.provides.compactMap(SiteToolSlot.init(rawValue:)) {
+                let current = self.slot(slot)
+                guard current.scriptID == nil, current.status == .untried else { continue }
+                let patterns = slot == .readTopic ? thread : list
+                let urls = script.metadata.testURLs.filter { raw in patterns.isEmpty || patterns.contains { $0.matches(urlString: raw) } }
+                setSlot(SiteSlotState(status: .learned, scriptID: script.id, scriptHash: "", testURLs: urls), for: slot)
+                if threadMatch.isEmpty { threadMatch = script.metadata.threadMatches }
+                if listMatch.isEmpty { listMatch = script.metadata.listMatches }
+                changed = true
+            }
+        }
+        return changed
     }
 
     static func normalizedHost(_ rawHost: String) -> String? {
@@ -225,11 +261,15 @@ struct SiteToolState: Codable, Equatable, Sendable {
     }
 
     private enum SlotOutcome: Equatable {
-        case untried, notApplicable, learned, failed(Date, SiteFailureCode), turnedOff
+        case untried, notApplicable, learned, broken, failed(Date, SiteFailureCode, SiteReadingPromptLine.Retry), turnedOff
     }
 
+    /// A failed site is not offered for learning again inside this many days (or until the app is
+    /// updated, the person asks, or Forget is tapped).
+    static let retryAfterDays = 14
+
     static func readingPromptState(
-        state: SiteToolState?, scripts: [UserScript] = [], pageToolsEnabled: Bool = true
+        state: SiteToolState?, scripts: [UserScript] = [], pageToolsEnabled: Bool = true, now: Date = Date()
     ) -> SiteReadingPromptState {
         guard pageToolsEnabled, let state else { return .none }
         let scriptsByID = Dictionary(uniqueKeysWithValues: scripts.map { ($0.id, $0) })
@@ -242,7 +282,13 @@ struct SiteToolState: Codable, Equatable, Sendable {
                 outcomes[slot] = .turnedOff
             } else if s.status == .failed || (script.map { !$0.isEnabled } ?? false) {
                 let date = s.failure?.date ?? script?.updatedAt ?? Date(timeIntervalSince1970: 0)
-                outcomes[slot] = .failed(date, s.failure?.code ?? SiteFailureCode.fromDisabledReason(script?.disabledReason))
+                let waited = now.timeIntervalSince(date) >= Double(retryAfterDays) * 86_400
+                outcomes[slot] = .failed(
+                    date, s.failure?.code ?? SiteFailureCode.fromDisabledReason(script?.disabledReason),
+                    !waited ? .wait : (script == nil ? .learnAgain : .updateScript)
+                )
+            } else if s.status == .broken {
+                outcomes[slot] = .broken
             } else if s.status == .learned {
                 outcomes[slot] = .learned
             } else {
@@ -251,10 +297,11 @@ struct SiteToolState: Codable, Equatable, Sendable {
         }
         var entries: [SiteReadingPromptLine] = []
         if SiteToolSlot.allCases.contains(where: { outcomes[$0] == .turnedOff }) { entries.append(.turnedOff) }
-        let failures: [(Date, SiteFailureCode)] = SiteToolSlot.allCases.compactMap {
-            if case .failed(let d, let c)? = outcomes[$0] { return (d, c) }; return nil
+        if SiteToolSlot.allCases.contains(where: { outcomes[$0] == .broken }) { entries.append(.broken) }
+        let failures: [(Date, SiteFailureCode, SiteReadingPromptLine.Retry)] = SiteToolSlot.allCases.compactMap {
+            if case .failed(let d, let c, let r)? = outcomes[$0] { return (d, c, r) }; return nil
         }
-        if let latest = failures.max(by: { $0.0 < $1.0 }) { entries.append(.failed(date: latest.0, code: latest.1)) }
+        if let latest = failures.max(by: { $0.0 < $1.0 }) { entries.append(.failed(date: latest.0, code: latest.1, retry: latest.2)) }
         let learned = Set(SiteToolSlot.allCases.filter { outcomes[$0] == .learned })
         if !learned.isEmpty {
             entries.append(.learned(slots: learned, listUntried: outcomes[.listLatest] == .untried, threadUntried: outcomes[.readTopic] == .untried))

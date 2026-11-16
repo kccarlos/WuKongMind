@@ -58,6 +58,10 @@ final class LearnedRunScope {
     var readURLs: [String]
     let readBudget: () -> Int
     var readLimit: Int
+    /// Slots found `broken` in this run: the run's end counts one failed repair each if they still are.
+    var brokenSlots: Set<SiteToolSlot> = []
+    /// Armed when a slot breaks, so a repair in this run follows M4's rules (no widening, three refusals).
+    var repairState: ScriptRepairRunState?
 
     init(
         readURLs: [String] = [],
