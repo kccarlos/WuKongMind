@@ -622,6 +622,41 @@ final class TabsToolTests: XCTestCase {
         XCTAssertEqual(try decodeTabList(closedT3.output).map { $0["tab_id"] as? String }, ["t1", "t2"])
     }
 
+    /// WUKO-126: a route message the page queued just before a memory-warning
+    /// unload used to rebuild a blank web view, so the tab looked loaded and a
+    /// lazy `tabs` read returned an empty page (or "on Home").
+    func testLateRouteMessageAfterUnloadKeepsTabUnloadedAndLazyReadLoadsPage() async throws {
+        let tab1 = app.tabs.currentTab
+        let bikesURL = server.url("/bikes")
+        _ = try await tab1.browser.agentLoad(bikesURL, wait: true, timeout: 10)
+        let unloadedWebView = try XCTUnwrap(tab1.browser.existingWebView)
+
+        tab1.unloadWebView()
+        tab1.browser.handleRouteMessage(
+            urlString: bikesURL.absoluteString,
+            title: "Bikes",
+            probe: nil,
+            from: unloadedWebView
+        )
+
+        XCTAssertNil(tab1.browser.existingWebView, "A late route message must not rebuild the web view")
+        XCTAssertFalse(tab1.isWebViewLoaded)
+        XCTAssertEqual(tab1.url, bikesURL, "The unloaded tab keeps its address")
+
+        let registry = ToolRegistry.m3(context: AgentToolContext(
+            bridge: tab1.browser.agentBridge,
+            workspace: app.agentWorkspace,
+            scriptStore: app.scriptStore,
+            tabs: TabsToolContext(tabs: app.tabs, sourceTabID: tab1.id, timeout: 10)
+        ))
+        let read = try await registry.dispatch(
+            toolName: "tabs",
+            arguments: ["action": .string("read"), "tab_id": .string(tab1.id), "mode": .string("text")]
+        )
+        XCTAssertFalse(read.isError, read.output)
+        XCTAssertTrue(read.output.contains("Bikes travel free on every night sailing"), read.output)
+    }
+
     func testRunJSOpeningWindowCreatesBackgroundTabReportedWithShow() async throws {
         let tab1 = app.tabs.currentTab
         _ = try await tab1.browser.agentLoad(server.url("/guide"), wait: true, timeout: 10)

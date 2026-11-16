@@ -1120,13 +1120,19 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         )
     }
 
-    fileprivate func handleRouteMessage(
+    func handleRouteMessage(
         urlString: String,
         title: String,
-        probe: [String: Any]?
+        probe: [String: Any]?,
+        from sender: WKWebView?
     ) {
-        guard let url = URL(string: urlString), Self.isBrowsableURL(url),
-              Self.isRouteMessage(from: url, forPageAt: webView.url)
+        // Only the web view this tab still shows may report. A message queued
+        // before a memory-warning unload must not touch `webView`: that would
+        // build a blank web view, the tab would look loaded and a lazy read
+        // would skip reloading its page.
+        guard let page = allocatedWebView, sender === page,
+              let url = URL(string: urlString), Self.isBrowsableURL(url),
+              Self.isRouteMessage(from: url, forPageAt: page.url)
         else {
             return
         }
@@ -1134,8 +1140,8 @@ final class ForumBrowserModel: NSObject, ObservableObject {
             // Facts a previous document posted just before it was replaced can
             // arrive while a new load is in flight or after didCommit cleared
             // them: only the shown page's own address may set them then.
-            if lastFacts == nil || webView.isLoading {
-                guard Self.isSamePage(url, webView.url, registry: sites) else { return }
+            if lastFacts == nil || page.isLoading {
+                guard Self.isSamePage(url, page.url, registry: sites) else { return }
             }
             lastFacts = PageFacts(probe: probe, fallbackURL: url)
         } else if lastFacts != nil {
@@ -1198,10 +1204,15 @@ final class ForumBrowserModel: NSObject, ObservableObject {
                 in: nil,
                 contentWorld: .defaultClient
             )
+            // Unloaded (or replaced) while the probe ran: its answer is about a
+            // page this tab no longer shows, and the state update would read a
+            // new blank web view's nil address over the saved one.
+            guard allocatedWebView === webView else { return }
             if let result = value as? [String: Any] {
                 lastFacts = PageFacts(probe: result, fallbackURL: url)
             }
         } catch {
+            guard allocatedWebView === webView else { return }
             // No document to inspect (error page, download): not a forum.
             lastFacts = PageFacts(url: url)
         }
@@ -1399,11 +1410,13 @@ private final class ForumRouteMessageHandler: NSObject, WKScriptMessageHandler {
         let title = body["title"] as? String ?? ""
         let probe = body["probe"] as? [String: Any]
         nonisolated(unsafe) let sendableProbe = probe
-        Task { @MainActor [weak browser] in
+        let sender = message.webView
+        Task { @MainActor [weak browser, weak sender] in
             browser?.handleRouteMessage(
                 urlString: urlString,
                 title: title,
-                probe: sendableProbe
+                probe: sendableProbe,
+                from: sender
             )
         }
     }
@@ -2081,9 +2094,11 @@ extension ForumBrowserModel: AgentPageNavigating {
         let elapsed = started.duration(to: .now)
         let loadMs = Int(elapsed.components.seconds * 1_000)
             + Int(elapsed.components.attoseconds / 1_000_000_000_000_000)
+        // `allocatedWebView`: an unload ends the wait, and `webView` would
+        // build a blank web view for the unloaded tab.
         var outcome = AgentNavigationOutcome(
-            url: webView.url?.absoluteString ?? currentURL?.absoluteString ?? "",
-            title: webView.title ?? "",
+            url: allocatedWebView?.url?.absoluteString ?? currentURL?.absoluteString ?? "",
+            title: allocatedWebView?.title ?? "",
             status: mainDocumentStatus,
             loadMs: loadMs
         )
