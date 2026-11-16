@@ -12,10 +12,25 @@ import UserNotifications
 /// background prefetch, and receives notification taps; all must be wired
 /// before launch finishes. In CloudKit builds it
 /// also registers for the silent pushes that announce iCloud changes.
-final class AppDelegate: NSObject, UIApplicationDelegate {
+final class AppDelegate: UIResponder, UIApplicationDelegate {
     /// Called for each remote (CloudKit) notification. The sync engine sets
     /// it; without a handler the push is acknowledged with `.noData`.
     @MainActor static var remoteNotificationHandler: (([AnyHashable: Any]) async -> UIBackgroundFetchResult)?
+
+    override var keyCommands: [UIKeyCommand]? {
+        guard !AppModel.isRunningTests else { return nil }
+        let openLocation = UIKeyCommand(
+            input: "l",
+            modifierFlags: .command,
+            action: #selector(handleOpenLocationKeyCommand)
+        )
+        openLocation.wantsPriorityOverSystemBehavior = true
+        return [openLocation]
+    }
+
+    @objc private func handleOpenLocationKeyCommand() {
+        WorkspaceCommand.focusAddress.post()
+    }
 
     func application(
         _ application: UIApplication,

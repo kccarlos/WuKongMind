@@ -23,8 +23,12 @@ enum BrowserBarMorphMetrics {
     static let horizontalMargin: CGFloat = 12
     static let minCollapsedWidth: CGFloat = 120
     static let maxCollapsedWidth: CGFloat = 240
+    static let splitCollapsedWidth: CGFloat = 200
     static let portraitExpandedHeight: CGFloat = 56
     static let landscapeExpandedHeight: CGFloat = 48
+    static let splitExpandedHeight: CGFloat = 52
+    static let splitExpandedTopOffset: CGFloat = 6
+    static let splitCollapsedTopOffset: CGFloat = 2
     static let baseCollapsedHeight: CGFloat = 34
     static let minimumBottomClearance: CGFloat = 8
     static let minHitTargetHeight: CGFloat = 44
@@ -34,8 +38,9 @@ enum BrowserBarMorphMetrics {
         return a + (b - a) * clamped
     }
 
-    static func expandedHeight(isLandscape: Bool) -> CGFloat {
-        isLandscape ? landscapeExpandedHeight : portraitExpandedHeight
+    static func expandedHeight(isSplit: Bool = false, isLandscape: Bool) -> CGFloat {
+        if isSplit { return splitExpandedHeight }
+        return isLandscape ? landscapeExpandedHeight : portraitExpandedHeight
     }
 
     /// Collapsed pill height: 34 pt at default Dynamic Type, growing with `.footnote` up to XXXL.
@@ -43,17 +48,26 @@ enum BrowserBarMorphMetrics {
         baseCollapsedHeight + max(0, collapsedFontSize - 13) * 1.4
     }
 
-    static func expandedWidth(containerWidth: CGFloat) -> CGFloat {
+    static func expandedWidth(containerWidth: CGFloat, isSplit: Bool = false) -> CGFloat {
+        if isSplit {
+            guard containerWidth > 0 else { return 1170 }
+            return max(splitCollapsedWidth, containerWidth - 2 * horizontalMargin)
+        }
         guard containerWidth > 0 else { return 366 }
         return min(maxBarWidth, max(minCollapsedWidth, containerWidth - 2 * horizontalMargin))
     }
 
-    /// Fits the leading lock/ring, domain text, and optional trailing scripts seal inside 120...240 pt.
+    /// Fits the leading lock/ring, domain text, and optional trailing scripts seal inside 120...240 pt on iPhone,
+    /// or 200 pt on the iPad split page column (`design-browser-bar-tabs-models.md` §1).
     static func collapsedWidth(
         domainWidth: CGFloat,
         isAgentWorking: Bool,
-        scriptCount: Int
+        scriptCount: Int,
+        isSplit: Bool = false
     ) -> CGFloat {
+        if isSplit {
+            return splitCollapsedWidth
+        }
         let leadingWidth: CGFloat = isAgentWorking ? 16 : 13
         let leadingGap: CGFloat = 6
         let sealWidth: CGFloat
@@ -83,13 +97,18 @@ enum BrowserBarMorphMetrics {
         return height + bottomEdge
     }
 
-    /// Top bar distance below the top safe area (`+4` expanded -> `+0` collapsed).
-    static func topEdgeFromSafeArea(progress: CGFloat) -> CGFloat {
-        lerp(4, 0, progress)
+    /// Top bar distance below the top safe area (`+4` -> `+0` on iPhone, `+6` -> `+2` on iPad split).
+    static func topEdgeFromSafeArea(progress: CGFloat, isSplit: Bool = false) -> CGFloat {
+        isSplit
+            ? lerp(splitExpandedTopOffset, splitCollapsedTopOffset, progress)
+            : lerp(4, 0, progress)
     }
 
-    static func expandedWebViewTopInset(isLandscape: Bool) -> CGFloat {
-        expandedHeight(isLandscape: isLandscape) + 4
+    static func expandedWebViewTopInset(isSplit: Bool = false, isLandscape: Bool = false) -> CGFloat {
+        if isSplit {
+            return splitExpandedHeight + splitExpandedTopOffset
+        }
+        return expandedHeight(isLandscape: isLandscape) + 4
     }
 
     /// Side buttons fade over the first half of the gesture (`max(0, 1 - 2p)`).
@@ -139,15 +158,18 @@ struct BrowserScrollSample: Equatable {
     /// Visible height below the top inset (`bounds.height - adjustedContentInset.top`).
     var viewportHeight: CGFloat
     var bottomInset: CGFloat
+    var boundsHeight: CGFloat? = nil
     var isTracking: Bool = false
     var isDecelerating: Bool = false
     var isZooming: Bool = false
     var zoomScale: CGFloat = 1.0
 
     var isShortPage: Bool {
-        // WKWebView floors `contentSize.height` at `bounds.height` even on 1-line documents;
+        // WKWebView floors `contentSize.height` at `bounds.height` even on 1-line documents
+        // (including when `adjustedContentInset.top > 0` reduces `viewportHeight` below `bounds.height`);
         // 1 pt tolerance absorbs fractional Retina pixel rounding (`812.33` vs `812.0`).
-        viewportHeight <= 0 || contentHeight <= viewportHeight + 1
+        let effectiveFloor = max(viewportHeight, boundsHeight ?? viewportHeight)
+        return viewportHeight <= 0 || contentHeight <= effectiveFloor + 1
     }
 
     var maxOffsetY: CGFloat {
@@ -553,8 +575,9 @@ final class BrowserBarScrollCoordinator: NSObject, UIScrollViewDelegate {
     var onChange: ((BrowserBarMorphState, BrowserBarTransitionKind?) -> Void)?
     var onUserScrollBegan: (() -> Void)?
 
-    /// Whether the floating iPhone morphing bar owns `scrollView.contentInset` (`false` in iPad split layout).
+    /// Whether the floating morphing bar owns `scrollView.contentInset`.
     private(set) var managesWebViewInsets = false
+    private(set) var isSplitLayout = false
     private(set) var barPosition: BrowserBarPosition = .bottom
     private(set) var safeAreaBottom: CGFloat = 34
     private(set) var isLandscape = false
@@ -567,25 +590,41 @@ final class BrowserBarScrollCoordinator: NSObject, UIScrollViewDelegate {
     func attach(to scrollView: UIScrollView) {
         self.scrollView = scrollView
         scrollView.delegate = self
+        if managesWebViewInsets {
+            let targetBehavior: UIScrollView.ContentInsetAdjustmentBehavior = isSplitLayout ? .automatic : .never
+            if scrollView.contentInsetAdjustmentBehavior != targetBehavior {
+                applyScrollViewMutation {
+                    scrollView.contentInsetAdjustmentBehavior = targetBehavior
+                }
+            }
+            syncScrollViewInsets()
+        }
     }
 
     func updateLayoutConfiguration(
         managesInsets: Bool,
+        isSplit: Bool = false,
         position: BrowserBarPosition,
         safeAreaBottom: CGFloat,
         isLandscape: Bool,
         isLockedExpanded: Bool,
         reduceMotion: Bool
     ) {
-        let changedMode = managesWebViewInsets != managesInsets || barPosition != position
+        let changedMode = managesWebViewInsets != managesInsets
+            || isSplitLayout != isSplit
+            || barPosition != position
         managesWebViewInsets = managesInsets
+        isSplitLayout = isSplit
         barPosition = position
         self.safeAreaBottom = safeAreaBottom
         self.isLandscape = isLandscape
         self.reduceMotion = reduceMotion
 
         if let scrollView {
-            let targetBehavior: UIScrollView.ContentInsetAdjustmentBehavior = managesInsets ? .never : .automatic
+            // In iPad split layout the morphing bar floats at `.top` while UIKit's
+            // `.automatic` safe-area adjustment handles the home indicator at `.bottom`,
+            // keeping `scrollView.contentInset.bottom == 0`.
+            let targetBehavior: UIScrollView.ContentInsetAdjustmentBehavior = (managesInsets && !isSplit) ? .never : .automatic
             if scrollView.contentInsetAdjustmentBehavior != targetBehavior {
                 applyScrollViewMutation {
                     scrollView.contentInsetAdjustmentBehavior = targetBehavior
@@ -726,6 +765,7 @@ final class BrowserBarScrollCoordinator: NSObject, UIScrollViewDelegate {
             contentHeight: scrollView.contentSize.height,
             viewportHeight: scrollView.bounds.height - topInset,
             bottomInset: scrollView.adjustedContentInset.bottom,
+            boundsHeight: scrollView.bounds.height,
             isTracking: scrollView.isTracking,
             isDecelerating: scrollView.isDecelerating,
             isZooming: scrollView.isZooming || scrollView.isZoomBouncing,
@@ -776,6 +816,9 @@ final class BrowserBarScrollCoordinator: NSObject, UIScrollViewDelegate {
         if !managesWebViewInsets {
             desiredTop = 0
             desiredBottom = 0
+        } else if isSplitLayout {
+            desiredTop = BrowserBarMorphMetrics.expandedWebViewTopInset(isSplit: true, isLandscape: true)
+            desiredBottom = 0
         } else if barPosition == .top {
             desiredTop = BrowserBarMorphMetrics.expandedWebViewTopInset(isLandscape: isLandscape)
             desiredBottom = max(0, safeAreaBottom)
@@ -789,9 +832,16 @@ final class BrowserBarScrollCoordinator: NSObject, UIScrollViewDelegate {
             return
         }
         applyScrollViewMutation {
+            let oldTop = scrollView.contentInset.top
+            let wasAtTop = !scrollView.isTracking
+                && !scrollView.isDecelerating
+                && scrollView.contentOffset.y <= -oldTop + 1
             let nextInsets = UIEdgeInsets(top: desiredTop, left: 0, bottom: desiredBottom, right: 0)
             scrollView.contentInset = nextInsets
             scrollView.verticalScrollIndicatorInsets = nextInsets
+            if abs(oldTop - desiredTop) > 0.5, wasAtTop {
+                scrollView.contentOffset = CGPoint(x: scrollView.contentOffset.x, y: -desiredTop)
+            }
         }
     }
 

@@ -1,88 +1,17 @@
 import SwiftUI
 
-// MARK: - iPad split layout (spec §10)
+// MARK: - iPad split layout (spec §10, design-browser-bar-tabs-models.md §1)
 //
-// Windows 850 pt and wider: the page on the left, the AI panel on the right
-// (360–560 pt, draggable), under one top bar (PhoneBrowser with a
-// `SplitBarContext`): forum avatar, back, forward | address capsule | mic,
-// ···, hide/show AI panel. The panel is the drawer's content (AssistantPanel),
-// so there is one implementation for both hosts.
+// Windows 850 pt and wider: the page column on the left with its floating
+// morphing top bar (`PhoneBrowser` + `SplitBarContext`), and the AI panel on
+// the right (360–560 pt, draggable). Scrolling collapses the top bar to a
+// 200 × 34 pill centred over the page column while the AI panel stays in place.
 
 /// The split top bar's extras.
 struct SplitBarContext {
     let panelShown: Bool
+    let pageColumnWidth: CGFloat
     let togglePanel: () -> Void
-}
-
-/// Back and forward in the split top bar.
-struct SplitNavigationButtons: View {
-    @ObservedObject var browser: ForumBrowserModel
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        Button {
-            withAnimation(DCMotion.respecting(reduceMotion)) { browser.navigateBack() }
-        } label: {
-            Image(systemName: "chevron.backward")
-        }
-        .buttonStyle(DCIconButtonStyle())
-        .disabled(!browser.canNavigateBack)
-        .accessibilityLabel("Back")
-        .accessibilityIdentifier("browserBack")
-        Button {
-            browser.goForward()
-        } label: {
-            Image(systemName: "chevron.forward")
-        }
-        .buttonStyle(DCIconButtonStyle())
-        .disabled(!browser.canGoForward || browser.showsForumsHome)
-        .accessibilityLabel("Forward")
-        .accessibilityIdentifier("browserForward")
-    }
-}
-
-/// The split top bar's `···`: what the forum menu leaves out (the forum
-/// home, account, reload and share live there).
-struct SplitMoreMenu: View {
-    @ObservedObject var app: AppModel
-    @ObservedObject var browser: ForumBrowserModel
-    let actions: BrowserActions
-
-    var body: some View {
-        Menu {
-            Section {
-                Button(action: actions.showForumsHome) {
-                    Label("Home", systemImage: "square.grid.2x2")
-                }
-                Button(action: actions.addForum) {
-                    Label("Add Site…", systemImage: "plus")
-                }
-            }
-            Section {
-                Button { actions.openPanel(.history) } label: {
-                    Label("History", systemImage: "clock.arrow.circlepath")
-                }
-                Button { actions.openPanel(.settings) } label: {
-                    Label("Settings", systemImage: "gearshape")
-                }
-            }
-            if browser.pageContext.topic != nil, !browser.showsForumsHome, browser.canTranslatePostsOnScreen {
-                Section {
-                    Button(action: actions.translatePosts) {
-                        Label("Translate Posts on Screen", systemImage: "translate")
-                    }
-                    .accessibilityIdentifier("menuTranslatePosts")
-                }
-            }
-        } label: {
-            Image(systemName: "ellipsis.circle")
-                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-                .contentShape(Rectangle())
-        }
-        .menuOrder(.fixed)
-        .accessibilityLabel("More browser actions")
-        .accessibilityIdentifier("browserMoreMenu")
-    }
 }
 
 /// Hide or show the AI panel (⌥⌘0), with the AI button's research ring and
@@ -194,18 +123,21 @@ struct WorkspaceView: View {
     @ObservedObject var router: PresentationRouter
     let width: CGFloat
     let actions: BrowserActions
-    let addressFocusRequest: Int
+    var addressFocusRequest = 0
     let onOpenURL: (URL) -> Void
 
-    private var isSplit: Bool { router.splitLayout ?? ContentView.usesSplitLayout(width: width) }
+    private var liveWidth: CGFloat {
+        router.windowWidth > 0 ? router.windowWidth : width
+    }
 
-    private var panelVisible: Bool {
-        app.showsSplitPanel(forWidth: width)
+    private var isSplit: Bool {
+        router.splitLayout ?? ContentView.usesSplitLayout(width: liveWidth)
     }
 
     var body: some View {
+        let currentWidth = liveWidth
         let split = isSplit
-        let showsPanel = panelVisible
+        let showsPanel = app.showsSplitPanel(forWidth: currentWidth)
         let resolvedPosition = split ? BrowserBarPosition.top : app.settings.browserBarPosition.resolved(isSplit: false)
         PhoneBrowser(
             app: app,
@@ -214,15 +146,21 @@ struct WorkspaceView: View {
             position: resolvedPosition,
             actions: actions,
             addressFocusRequest: addressFocusRequest,
-            width: width,
-            split: split ? SplitBarContext(panelShown: showsPanel, togglePanel: app.toggleAIView) : nil
+            width: currentWidth,
+            split: split
+                ? SplitBarContext(
+                    panelShown: showsPanel,
+                    pageColumnWidth: currentWidth,
+                    togglePanel: app.toggleAIView
+                )
+                : nil
         ) { dockClearance in
             WorkspaceSplitRow(
                 app: app,
                 browser: browser,
                 router: router,
-                width: width,
-                dockClearance: dockClearance,
+                width: currentWidth,
+                fallbackDockClearance: dockClearance,
                 actions: actions,
                 onOpenURL: onOpenURL
             )
@@ -235,26 +173,33 @@ private struct WorkspaceSplitRow: View {
     @ObservedObject var browser: ForumBrowserModel
     @ObservedObject var router: PresentationRouter
     let width: CGFloat
-    let dockClearance: CGFloat
+    let fallbackDockClearance: CGFloat
     let actions: BrowserActions
     let onOpenURL: (URL) -> Void
     /// The panel's width: what the reader chose with the handle (0 = 40% of
     /// the window).
     @AppStorage("dc.assistantPanelWidth") private var storedWidth: Double = 0
     @State private var dragStartWidth: CGFloat?
-    @State private var dragWidth: CGFloat?
     @State private var dropTargeted = false
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    private var isSplit: Bool { router.splitLayout ?? ContentView.usesSplitLayout(width: width) }
+    private var liveWidth: CGFloat {
+        router.windowWidth > 0 ? router.windowWidth : width
+    }
+
+    private var isSplit: Bool {
+        router.splitLayout ?? ContentView.usesSplitLayout(width: liveWidth)
+    }
 
     private var panelVisible: Bool {
-        app.showsSplitPanel(forWidth: width)
+        app.showsSplitPanel(forWidth: liveWidth)
     }
 
     private var panelWidth: CGFloat {
         WorkspaceMetrics.panelWidth(
-            preferred: dragWidth ?? (storedWidth > 0 ? CGFloat(storedWidth) : nil),
-            containerWidth: width
+            preferred: router.splitPanelDragWidth ?? (storedWidth > 0 ? CGFloat(storedWidth) : nil),
+            containerWidth: liveWidth
         )
     }
 
@@ -263,6 +208,16 @@ private struct WorkspaceSplitRow: View {
         let showsPanel = panelVisible
         let showsWebView = !browser.showsForumsHome
         let resolvedPosition = split ? BrowserBarPosition.top : app.settings.browserBarPosition.resolved(isSplit: false)
+        let dockClearance = BrowserBarFontMetrics.bottomDockClearance(
+            app: app,
+            browser: browser,
+            voice: app.voice,
+            isSplit: split,
+            position: resolvedPosition,
+            safeAreaBottom: BrowserBarFontMetrics.normalSceneSafeAreaBottom(),
+            isLandscape: verticalSizeClass == .compact,
+            dynamicTypeSize: dynamicTypeSize
+        )
         HStack(spacing: 0) {
             BrowserContent(
                 app: app,
@@ -270,7 +225,9 @@ private struct WorkspaceSplitRow: View {
                 voice: app.voice,
                 actions: actions,
                 cardsBottomInset: dockClearance,
-                floatingTopBarInset: (!split && resolvedPosition == .top) ? 64 : 0,
+                floatingTopBarInset: resolvedPosition == .top
+                    ? (split ? BrowserBarMorphMetrics.expandedWebViewTopInset(isSplit: true, isLandscape: verticalSizeClass == .compact) : 64)
+                    : 0,
                 webViewIgnoresBottomSafeArea: showsWebView,
                 dockFloatsTrailing: split && !showsPanel
             )
@@ -282,6 +239,7 @@ private struct WorkspaceSplitRow: View {
 
     @ViewBuilder
     private var panel: some View {
+        let containerWidth = liveWidth
         let current = panelWidth
         PanelResizeHandle(
             panelWidth: current,
@@ -289,18 +247,29 @@ private struct WorkspaceSplitRow: View {
                 let start = dragStartWidth ?? current
                 dragStartWidth = start
                 // The panel is on the right: dragging left widens it.
-                dragWidth = WorkspaceMetrics.panelWidth(preferred: start - translation, containerWidth: width)
+                router.splitPanelDragWidth = WorkspaceMetrics.panelWidth(
+                    preferred: start - translation,
+                    containerWidth: containerWidth
+                )
             },
             onDragEnded: {
-                if let dragWidth { storedWidth = Double(dragWidth) }
-                dragWidth = nil
+                if let dragWidth = router.splitPanelDragWidth {
+                    storedWidth = Double(dragWidth)
+                }
+                router.splitPanelDragWidth = nil
                 dragStartWidth = nil
             },
             // Width changes are not animated: animating a List's width (the
             // Forums home) can loop UICollectionView self-sizing.
             onReset: { storedWidth = 0 },
             onAdjust: { delta in
-                storedWidth = Double(WorkspaceMetrics.adjustedPanelWidth(current: current, delta: delta, containerWidth: width))
+                storedWidth = Double(
+                    WorkspaceMetrics.adjustedPanelWidth(
+                        current: current,
+                        delta: delta,
+                        containerWidth: containerWidth
+                    )
+                )
             }
         )
         AssistantPanel(
@@ -310,7 +279,7 @@ private struct WorkspaceSplitRow: View {
             onOpenURL: onOpenURL
         )
         .frame(width: current)
-        .background(DCTheme.pageBackground)
+        .background(DCTheme.surface.ignoresSafeArea())
         // A forum link dropped on the panel: summarize it.
         .dropDestination(for: URL.self) { urls, _ in
             guard let url = urls.first, ForumBrowserModel.isBrowsableURL(url) else { return false }

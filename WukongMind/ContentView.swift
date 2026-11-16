@@ -131,11 +131,14 @@ struct ContentView: View {
         #endif
         let next = forceSplit ? true : WorkspaceMetrics.nextIsSplit(current: router.splitLayout, width: width)
         let wideSummary = WorkspaceMetrics.usesTwoColumnSummary(windowWidth: width, isSplit: next)
-        guard next != router.splitLayout || wideSummary != router.usesWideDrawerSummary else { return }
+        guard next != router.splitLayout || wideSummary != router.usesWideDrawerSummary || router.windowWidth != width else { return }
         var transaction = Transaction(animation: nil)
         transaction.disablesAnimations = true
         let changedSplit = next != router.splitLayout
         withTransaction(transaction) {
+            if router.windowWidth != width {
+                router.windowWidth = width
+            }
             if router.usesWideDrawerSummary != wideSummary {
                 router.usesWideDrawerSummary = wideSummary
             }
@@ -211,6 +214,8 @@ struct ContentView: View {
             // The drawer covers the bar.
             if router.usesDrawer { router.closeDrawer() }
             addressFocusRequest += 1
+            browser.focusAddressBar()
+            router.addressEditRevision &+= 1
         case .newTab:
             _ = app.openNewTabFromUI(reduceMotion: reduceMotion)
         case .closeTab:
@@ -551,14 +556,16 @@ private struct BrowserBarDebugState: View {
             offsetY: scrollView.contentOffset.y + topInset,
             contentHeight: scrollView.contentSize.height,
             viewportHeight: scrollView.bounds.height - topInset,
-            bottomInset: scrollView.adjustedContentInset.bottom
+            bottomInset: scrollView.adjustedContentInset.bottom,
+            boundsHeight: scrollView.bounds.height
         )
         let offsetY = Int(sample.offsetY.rounded())
         let maxOffsetY = Int(sample.maxOffsetY.rounded())
+        let insetTop = Int(scrollView.contentInset.top.rounded())
         let insetBottom = Int(scrollView.contentInset.bottom.rounded())
         let adjustedBottom = Int(scrollView.adjustedContentInset.bottom.rounded())
         return String(
-            format: "p=%.3f displayP=%.3f minimized=%d atRest=%d insetBottom=%d adjustedBottom=%d offsetY=%d maxOffsetY=%d minCount=%d expCount=%d",
+            format: "p=%.3f displayP=%.3f minimized=%d atRest=%d insetBottom=%d adjustedBottom=%d offsetY=%d maxOffsetY=%d minCount=%d expCount=%d insetTop=%d",
             morph.progress,
             browser.barProgress,
             browser.isChromeMinimized ? 1 : 0,
@@ -568,7 +575,8 @@ private struct BrowserBarDebugState: View {
             offsetY,
             maxOffsetY,
             morph.minimizeCount,
-            morph.expandCount
+            morph.expandCount,
+            insetTop
         )
     }
 

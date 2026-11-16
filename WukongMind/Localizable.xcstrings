@@ -11958,22 +11958,6 @@
         }
       }
     },
-    "More browser actions" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更多浏览器操作"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "更多瀏覽器動作"
-          }
-        }
-      }
-    },
     "More: import from link" : {
       "comment" : "Accessibility label for the More menu button in Settings › Scripts",
       "localizations" : {
@@ -21058,23 +21042,6 @@
         }
       }
     },
-    "Tap to enter an address. Touch and hold for history." : {
-      "comment" : "Accessibility hint of the iPhone bar title",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "轻点以输入地址。按住以查看历史记录。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "輕點以輸入網址。按住以查看歷史記錄。"
-          }
-        }
-      }
-    },
     "Tap to resume" : {
       "localizations" : {
         "zh-Hans" : {
@@ -22914,22 +22881,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "翻譯"
-          }
-        }
-      }
-    },
-    "Translate Posts on Screen" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "翻译屏幕上的帖子"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "翻譯螢幕上的貼文"
           }
         }
       }

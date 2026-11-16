@@ -109,9 +109,7 @@ final class VoiceUITests: DCUITestCase {
         let mute = app.buttons["drawerVoiceMute"]
         XCTAssertTrue(waitOrDump(mute, timeout: 15, in: app), "No voice status row in the panel.")
 
-        let more = app.buttons["browserMoreMenu"]
-        XCTAssertTrue(waitForHittable(more))
-        more.tap()
+        openForumMenu(in: app)
         let history = app.buttons["History"].firstMatch
         XCTAssertTrue(history.waitForExistence(timeout: 5))
         history.tap()

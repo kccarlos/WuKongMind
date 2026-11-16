@@ -150,8 +150,13 @@ class DCUITestCase: XCTestCase {
     /// medium) or, in the split layout, the AI panel.
     func showAssistant(in app: XCUIApplication) {
         if !usesDrawerLayout(app) {
+            if any(app, "aiPanel").exists { return }
+            let pill = app.buttons["browserChromeStrip"]
+            if pill.exists {
+                tapBarItem(pill)
+            }
             let toggle = app.buttons["aiPanelToggle"]
-            if !any(app, "aiPanel").exists, toggle.waitForExistence(timeout: 5) { toggle.tap() }
+            if toggle.waitForExistence(timeout: 5) { toggle.tap() }
             return
         }
         let state = drawerState(in: app)

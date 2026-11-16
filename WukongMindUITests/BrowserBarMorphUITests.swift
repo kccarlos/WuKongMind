@@ -7,6 +7,7 @@ final class BrowserBarMorphUITests: DCUITestCase {
         var displayProgress: Double
         var isMinimized: Bool
         var isAtRest: Bool
+        var insetTop: Int
         var insetBottom: Int
         var adjustedBottom: Int
         var offsetY: Int
@@ -34,11 +35,13 @@ final class BrowserBarMorphUITests: DCUITestCase {
             else {
                 return nil
             }
+            let insetTop = values["insetTop"].flatMap(Int.init) ?? 0
             return BarDebugSnapshot(
                 progress: p,
                 displayProgress: displayP,
                 isMinimized: minimized == 1,
                 isAtRest: atRest == 1,
+                insetTop: insetTop,
                 insetBottom: insetBottom,
                 adjustedBottom: adjustedBottom,
                 offsetY: offsetY,
@@ -777,5 +780,217 @@ final class BrowserBarMorphUITests: DCUITestCase {
         XCTAssertEqual(forumMenu.value as? String, "Discourse Meta")
         XCTAssertEqual(forumTitle.label, "Address field: meta.discourse.org")
         capture("b2-phone-forum-avatar")
+    }
+
+    func testIPadSplitScrollingCollapsesTopBarToPillCentredOnPageColumnAndTapExpands() throws {
+        try skipUnlessPad("B3 covers the iPad split morphing bar.")
+
+        let app = launch(
+            [
+                "-dc-browse-debug",
+                "-dc-bar-morph-fixture", "long",
+                "-AppleInterfaceStyle", "Light"
+            ],
+            orientation: .landscapeLeft
+        )
+        let webView = app.webViews.firstMatch
+        XCTAssertTrue(webView.waitForExistence(timeout: 15))
+
+        let window = app.windows.firstMatch
+        let panel = any(app, "aiPanel")
+        let panelTitle = any(app, "drawerTitle")
+        let title = app.buttons["browserTitle"]
+        let pill = app.buttons["browserChromeStrip"]
+        let back = app.buttons["browserBack"]
+        let forward = app.buttons["browserForward"]
+        let menu = app.buttons["forumSwitcher"]
+        let reload = app.buttons["browserReload"]
+        let tabs = app.buttons["browserTabsButton"]
+        let toggle = app.buttons["aiPanelToggle"]
+
+        XCTAssertTrue(waitOrDump(panel, timeout: 15, in: app), "Landscape iPad starts with the side panel open.")
+        XCTAssertTrue(panelTitle.exists)
+        XCTAssertTrue(toggle.waitForExistence(timeout: 10))
+        XCTAssertFalse(app.buttons["aiButton"].exists, "iPad split uses aiPanelToggle, not aiButton.")
+
+        guard let initialOpen = waitForDebug(
+            in: app,
+            timeout: 15,
+            where: { $0.maxOffsetY > 1500 && $0.isAtRest && $0.progress <= 0.001 && $0.insetTop == 58 }
+        ) else {
+            attachTree(app)
+            XCTFail("iPad split long fixture did not settle expanded with insetTop == 58.")
+            return
+        }
+
+        XCTAssertEqual(initialOpen.insetTop, 58)
+        XCTAssertEqual(initialOpen.insetBottom, 0)
+        XCTAssertTrue(title.exists, "Expanded split bar shows browserTitle.")
+        XCTAssertTrue(back.exists)
+        XCTAssertTrue(forward.exists)
+        XCTAssertTrue(menu.exists)
+        XCTAssertTrue(reload.exists)
+        XCTAssertTrue(tabs.exists)
+        XCTAssertFalse(pill.exists, "Expanded split bar hides browserChromeStrip.")
+        XCTAssertLessThan(title.frame.minY, 90, "Expanded split bar sits at the top of the page column.")
+        XCTAssertLessThanOrEqual(
+            toggle.frame.maxX,
+            panel.frame.minX + 2,
+            "Expanded split bar stays inside the page column without overlapping the side panel."
+        )
+        capture("b3-ipad-light-panel-open-expanded")
+
+        // 1. Panel OPEN: scrolling down collapses the top bar to a 200 pt pill centred over the page column;
+        //    the Agent panel on the right stays uncollapsed.
+        controlledDrag(on: webView, fromNormalizedY: 0.65, toNormalizedY: 0.25)
+
+        guard let collapsedOpen = waitForDebug(
+            in: app,
+            timeout: 8,
+            where: { $0.isAtRest && $0.progress >= 0.999 && $0.isMinimized }
+        ) else {
+            attachTree(app)
+            XCTFail("Scrolling down with panel open did not rest collapsed.")
+            return
+        }
+
+        XCTAssertTrue(pill.waitForExistence(timeout: 3), "Collapsed pill appears at the top.")
+        XCTAssertTrue(pill.label.contains("news.example.org"), "Collapsed pill announces domain: \(pill.label)")
+        XCTAssertFalse(back.exists, "Back fades out and leaves layout past p >= 0.5.")
+        XCTAssertFalse(forward.exists, "Forward fades out and leaves layout past p >= 0.5.")
+        XCTAssertFalse(menu.exists, "Page menu fades out and leaves layout past p >= 0.5.")
+        XCTAssertFalse(reload.exists, "Reload fades out and leaves layout past p >= 0.5.")
+        XCTAssertFalse(tabs.exists, "Tabs button fades out and leaves layout past p >= 0.5.")
+        XCTAssertFalse(toggle.exists, "Agent ring leaves layout when collapsed.")
+        XCTAssertTrue(panel.exists, "Agent panel never collapses when the top bar collapses.")
+        XCTAssertTrue(panelTitle.exists, "Agent panel keeps its header while the bar is collapsed.")
+        XCTAssertEqual(collapsedOpen.insetTop, 58)
+        XCTAssertEqual(collapsedOpen.insetBottom, 0)
+        XCTAssertLessThan(pill.frame.minY, 80, "Collapsed pill sits just below the status bar.")
+        XCTAssertEqual(pill.frame.width, 200, accuracy: 3, "iPad collapsed pill width is 200 pt.")
+        XCTAssertEqual(
+            pill.frame.midX,
+            webView.frame.midX,
+            accuracy: 3,
+            "With panel open, collapsed pill is centred over the page column (webView.midX=\(webView.frame.midX)), not the full window (window.midX=\(window.frame.midX))."
+        )
+        XCTAssertLessThan(
+            pill.frame.midX,
+            window.frame.midX - 150,
+            "Open side panel shifts the page column centre well left of the window centre."
+        )
+        capture("b3-ipad-light-panel-open-collapsed")
+
+        // Tap the pill with the panel open: springs back to the expanded bar over the page column.
+        let offsetBeforeOpenTap = collapsedOpen.offsetY
+        tapBarItem(pill)
+
+        guard let expandedAfterOpenTap = waitForDebug(
+            in: app,
+            timeout: 8,
+            where: { $0.isAtRest && $0.progress <= 0.001 && !$0.isMinimized }
+        ) else {
+            attachTree(app)
+            XCTFail("Tapping collapsed pill with panel open did not expand the top bar.")
+            return
+        }
+        XCTAssertTrue(waitForBarItem(title, timeout: 5))
+        XCTAssertTrue(toggle.exists)
+        XCTAssertFalse(pill.exists)
+        XCTAssertLessThanOrEqual(abs(expandedAfterOpenTap.offsetY - offsetBeforeOpenTap), 1, "Expanding top bar does not jump scroll offset.")
+
+        // 2. Panel CLOSED: hide the side panel, verify full-width expanded bar, collapse to centred pill, and tap to expand.
+        toggle.tap()
+        XCTAssertTrue(waitForGone(panel, timeout: 5), "Tapping aiPanelToggle hides the side panel.")
+        XCTAssertEqual(webView.frame.midX, window.frame.midX, accuracy: 3, "With panel closed, page column spans the full window.")
+        capture("b3-ipad-light-panel-closed-expanded")
+
+        controlledDrag(on: webView, fromNormalizedY: 0.65, toNormalizedY: 0.25)
+
+        guard waitForDebug(
+            in: app,
+            timeout: 8,
+            where: { $0.isAtRest && $0.progress >= 0.999 && $0.isMinimized }
+        ) != nil else {
+            attachTree(app)
+            XCTFail("Scrolling down with panel closed did not rest collapsed.")
+            return
+        }
+
+        XCTAssertTrue(pill.waitForExistence(timeout: 3))
+        XCTAssertFalse(toggle.exists, "With panel hidden and bar collapsed, Agent ring is two taps away.")
+        XCTAssertEqual(pill.frame.width, 200, accuracy: 3)
+        XCTAssertEqual(
+            pill.frame.midX,
+            webView.frame.midX,
+            accuracy: 3,
+            "With panel closed, collapsed pill is centred over the full-width page column."
+        )
+        XCTAssertEqual(pill.frame.midX, window.frame.midX, accuracy: 3)
+        capture("b3-ipad-light-panel-closed-collapsed")
+
+        // First tap expands the bar; second tap on the ring re-opens the Agent panel.
+        tapBarItem(pill)
+        XCTAssertNotNil(waitForDebug(in: app, timeout: 8) { $0.isAtRest && $0.progress <= 0.001 && !$0.isMinimized })
+        XCTAssertTrue(waitForBarItem(toggle, timeout: 5))
+        XCTAssertFalse(pill.exists)
+
+        toggle.tap()
+        XCTAssertTrue(panel.waitForExistence(timeout: 5), "Second tap on the ring opens the Agent panel.")
+    }
+
+    func testIPadSplitShortPageNeverCollapsesAndDarkAgentWorkingPillShowsRing() throws {
+        try skipUnlessPad("B3 covers the iPad split morphing bar.")
+
+        // 1. Short page never collapses on iPad split.
+        let shortApp = launch(
+            ["-dc-browse-debug", "-dc-bar-morph-fixture", "short"],
+            orientation: .landscapeLeft
+        )
+        let shortWebView = shortApp.webViews.firstMatch
+        XCTAssertTrue(shortWebView.waitForExistence(timeout: 15))
+        XCTAssertTrue(shortWebView.staticTexts["Short Pinned Note"].waitForExistence(timeout: 10))
+        XCTAssertNotNil(waitForDebug(in: shortApp, timeout: 10) { $0.isAtRest && $0.maxOffsetY == 0 && $0.insetTop == 58 })
+
+        shortWebView.swipeUp()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        if let snap = debugSnapshot(in: shortApp) {
+            XCTAssertEqual(snap.progress, 0, accuracy: 0.001, "Short page on iPad split must never collapse.")
+            XCTAssertEqual(snap.minimizeCount, 0)
+        }
+        XCTAssertTrue(shortApp.buttons["browserTitle"].exists)
+        XCTAssertFalse(shortApp.buttons["browserChromeStrip"].exists)
+
+        // 2. Dark mode + Agent working in split: collapsed pill announces Agent working and centres on the page column.
+        let darkAgentApp = launch(
+            [
+                "-dc-browse-debug",
+                "-dc-bar-morph-fixture", "agent-running",
+                "-AppleInterfaceStyle", "Dark"
+            ],
+            orientation: .landscapeLeft
+        )
+        let agentWebView = darkAgentApp.webViews.firstMatch
+        XCTAssertTrue(agentWebView.waitForExistence(timeout: 15))
+        XCTAssertNotNil(waitForDebug(in: darkAgentApp, timeout: 15) { $0.maxOffsetY > 1500 && $0.isAtRest })
+
+        let toggle = darkAgentApp.buttons["aiPanelToggle"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 10))
+        RunLoop.current.run(until: Date().addingTimeInterval(0.8))
+        capture("b3-ipad-dark-panel-open-expanded")
+
+        // Hide panel and collapse while Agent works so collapsed pill shows turning ring + scripts seal.
+        if any(darkAgentApp, "aiPanel").exists {
+            toggle.tap()
+            XCTAssertTrue(waitForGone(any(darkAgentApp, "aiPanel"), timeout: 5))
+        }
+        controlledDrag(on: agentWebView, fromNormalizedY: 0.65, toNormalizedY: 0.25)
+
+        let pill = darkAgentApp.buttons["browserChromeStrip"]
+        XCTAssertTrue(pill.waitForExistence(timeout: 5))
+        XCTAssertTrue(pill.label.contains("Agent working"), "Collapsed iPad pill announces Agent working: \(pill.label)")
+        XCTAssertEqual(pill.frame.width, 200, accuracy: 3)
+        XCTAssertEqual(pill.frame.midX, agentWebView.frame.midX, accuracy: 3)
+        capture("b3-ipad-dark-panel-closed-collapsed-agent-working")
     }
 }
