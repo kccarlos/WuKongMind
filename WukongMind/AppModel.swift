@@ -374,8 +374,6 @@ final class AppModel: ObservableObject {
     let taskRecordStore: TaskRecordStore
     /// Per-tab conversation and page-thumbnail sidecar store (`TabConversations/`, `TabSnapshots/`).
     let tabStateStore: TabStateStore
-    /// True when open tabs were restored from `AppSnapshot.browserTabs` at launch.
-    private(set) var restoredTabsFromSnapshot = false
     private var lastPersistedTabsState: SavedBrowserTabsState?
     /// Set to open the audit log (optionally at one task and step) from the panel.
     @Published var auditLogRequest: AuditLogRequest?
@@ -767,14 +765,9 @@ final class AppModel: ObservableObject {
         self.scriptImporter = resolvedImporter
         let workspace = self.agentWorkspace
         let initialPageToolsEnabled = loadedSettings.agentPageToolsEnabled
-        var allowsTabRestore = browser == nil && !Self.loadsOnlySamplePage
-        #if DEBUG
-        if AssistantDebug.has("-dc-fresh-tabs") {
-            allowsTabRestore = false
-        }
-        #endif
+        let allowsTabRestore = browser == nil && !Self.loadsOnlySamplePage
         let restoredTabsState = allowsTabRestore ? snapshot.browserTabs : nil
-        self.restoredTabsFromSnapshot = (restoredTabsState?.tabs.isEmpty == false)
+        let restoredTabsFromSnapshot = (restoredTabsState?.tabs.isEmpty == false)
         self.tabs = BrowserTabs(
             initialBrowser: browser,
             restoredState: restoredTabsState,
@@ -901,10 +894,12 @@ final class AppModel: ObservableObject {
             }
         }
         if restoredTabsFromSnapshot {
-            // Persist normalized conversation states (e.g. runs stopped on quit).
+            // Persist normalized conversation states (e.g. runs stopped on quit)
+            // and prune any sidecar files not referenced by the restored tabs.
             for tab in self.tabs.tabs where tab.agentSession.hasConversation {
                 persistTabConversation(tab)
             }
+            pruneOrphanTabState()
         }
         self.lastPersistedTabsState = self.tabs.exportState()
         // (DEBUG samples load only their own page: a restored forum's load
@@ -1227,8 +1222,14 @@ final class AppModel: ObservableObject {
     private(set) var seededPageContext: PageContext?
     #endif
 
-    func handleMemoryWarning() {
-        tabs.handleMemoryWarning()
+    private func pruneOrphanTabState() {
+        #if DEBUG
+        if suppressesPersistence { return }
+        #endif
+        tabStateStore.pruneOrphans(
+            keepingTabIDs: Set(tabs.tabs.map(\.id)),
+            keepingConversationIDs: Set(tabs.tabs.map(\.conversationID))
+        )
     }
 
     private func persistTabConversation(_ tab: BrowserTab) {

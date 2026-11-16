@@ -1199,4 +1199,130 @@ final class BrowserTabsTests: XCTestCase {
         tab1.agentSession.stop()
         XCTAssertNil(bgWebView.window, "Once the background run stops, its WKWebView is removed from the window")
     }
+
+    func testScrollingUpdatesScrollPositionWithoutRepublishingBrowserModelEveryTick() async throws {
+        let tab1 = app.tabs.currentTab
+        tab1.browser.load(server.url("/tall/1"))
+        try await waitUntil(description: "tall page loaded and probed") {
+            tab1.browser.pageTitle == "Tall Tab 1"
+                && !tab1.browser.isLoading
+                && tab1.browser.pageContext.url == self.server.url("/tall/1")
+        }
+        let webView = try XCTUnwrap(tab1.browser.existingWebView)
+        try? await Task.sleep(for: .milliseconds(100))
+
+        var publishCount = 0
+        let sub = tab1.browser.objectWillChange.sink { _ in
+            publishCount += 1
+        }
+        defer { sub.cancel() }
+
+        // Scroll through several sub-threshold offsets (< chromeToggleTravel = 36):
+        // scrollPosition updates continuously, while objectWillChange stays silent.
+        for y in [4, 8, 12, 16, 20] {
+            _ = try await webView.evaluateJavaScript("window.scrollTo(0, \(y));")
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        try await waitUntil(description: "scrollPosition updated to 20") {
+            abs(tab1.browser.scrollPosition.y - 20) <= 2
+        }
+        XCTAssertEqual(
+            publishCount,
+            0,
+            "Sub-threshold scroll ticks must not fire ForumBrowserModel.objectWillChange"
+        )
+    }
+
+    func testRestoredTabsStillHonorAutomaticLaunchRuleAndPruneOrphanSidecars() async throws {
+        let defaults = UserDefaults.standard
+        let previousDayValue = defaults.object(forKey: LaunchRule.lastHomeAutoShownDayKey)
+        defer {
+            if let previousDayValue {
+                defaults.set(previousDayValue, forKey: LaunchRule.lastHomeAutoShownDayKey)
+            } else {
+                defaults.removeObject(forKey: LaunchRule.lastHomeAutoShownDayKey)
+            }
+        }
+
+        let tab1 = app.tabs.currentTab
+        tab1.browser.load(server.url("/tall/1"))
+        try await waitUntil(description: "tab 1 loaded") {
+            tab1.browser.pageTitle == "Tall Tab 1" && !tab1.browser.isLoading
+        }
+        let tab2 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tall/2"), inFront: true))
+        try await waitUntil(description: "tab 2 loaded") {
+            tab2.browser.pageTitle == "Tall Tab 2" && !tab2.browser.isLoading
+        }
+
+        var doneCard = DigestCard(
+            siteURL: "https://forum.example.com",
+            topicID: "42",
+            title: "Morning briefing",
+            slug: nil,
+            reason: .trending,
+            postCount: 8
+        )
+        doneCard.state = .done
+        doneCard.summary = "Ready summary."
+        app.digests = [DailyDigest(day: app.todayKey, cards: [doneCard])]
+        app.saveDigests()
+        app.settings.hasCompletedOnboarding = true
+        app.settings.launchDestination = .automatic
+
+        // Seed orphan sidecar files alongside the live tabs before relaunch.
+        let orphanConvID = UUID()
+        var orphanConv = tab1.agentSession.exportConversation()
+        orphanConv.messages = [BrowserAgentMessage(role: .user, text: "Orphan message")]
+        app.tabStateStore.saveConversation(orphanConv, id: orphanConvID)
+        let renderer = UIGraphicsImageRenderer(size: CGSize(width: 20, height: 20))
+        let orphanImage = renderer.image { ctx in
+            UIColor.systemRed.setFill()
+            ctx.fill(CGRect(x: 0, y: 0, width: 20, height: 20))
+        }
+        app.tabStateStore.saveSnapshot(orphanImage, tabID: "t99")
+
+        await app.flushPendingSaves()
+        XCTAssertNotNil(app.tabStateStore.loadConversation(id: orphanConvID))
+        XCTAssertNotNil(app.tabStateStore.loadSnapshot(tabID: "t99"))
+
+        tearDownApp(app)
+        app = nil
+
+        defaults.set("2020-01-01", forKey: LaunchRule.lastHomeAutoShownDayKey)
+
+        let relaunchStore = PersistentStore(
+            fileURL: tempDir.appendingPathComponent("state.json"),
+            keys: InMemoryProviderKeyStore([.anthropic: "test-key"])
+        )
+        let relaunched = AppModel(
+            store: relaunchStore,
+            websiteDataStore: Self.sharedDataStore,
+            cloudSync: CloudSyncController(transport: nil, files: nil, defaults: nil, schedulesAutomatically: false),
+            podcastDirectory: tempDir.appendingPathComponent("Podcasts", isDirectory: true),
+            workspaceDirectory: tempDir.appendingPathComponent("Workspace", isDirectory: true),
+            spotlightIndex: FakeSpotlightIndex(),
+            topicActivityDonor: FakeTopicActivityDonor(),
+            backgroundGrace: NoOpBackgroundGrace()
+        )
+        relaunched.usesDirectForumRequests = true
+        self.app = relaunched
+        mountTabsWebHost(for: relaunched)
+
+        // Orphan sidecar files were pruned on launch restore.
+        XCTAssertNil(relaunched.tabStateStore.loadConversation(id: orphanConvID))
+        XCTAssertNil(relaunched.tabStateStore.loadSnapshot(tabID: "t99"))
+
+        // Automatic launch rule still shows Home on the day's first launch over the restored current tab.
+        XCTAssertEqual(relaunched.tabs.tabs.map(\.id), ["t1", "t2"])
+        XCTAssertEqual(relaunched.tabs.currentTabID, "t2")
+        relaunched.applyLaunchRuleIfNeeded(now: Date())
+        XCTAssertTrue(
+            relaunched.browser.showsForumsHome,
+            "Automatic launch rule must still present Home on the day's first launch when tabs were restored"
+        )
+
+        // Saving while the launch Home overlay is up preserves t2's underlying page URL.
+        let exportedT2 = try XCTUnwrap(relaunched.tabs.exportState().tabs.first(where: { $0.id == "t2" }))
+        XCTAssertEqual(exportedT2.url, server.url("/tall/2"))
+    }
 }

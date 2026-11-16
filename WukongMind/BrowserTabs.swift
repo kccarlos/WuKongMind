@@ -141,8 +141,9 @@ final class BrowserTab: ObservableObject, Identifiable {
 
     func exportSavedTab() -> SavedBrowserTab {
         browser.refreshScrollPositionFromWebView()
-        let savedURL = showsHome ? nil : browser.currentURL
-        let rawTitle = showsHome ? "" : browser.pageTitle.trimmingCharacters(in: .whitespacesAndNewlines)
+        let isSavedHome = showsHome && !(browser.isLaunchHomeOverlay && browser.currentURL != nil)
+        let savedURL = isSavedHome ? nil : browser.currentURL
+        let rawTitle = isSavedHome ? "" : browser.pageTitle.trimmingCharacters(in: .whitespacesAndNewlines)
         let savedTitle = rawTitle == ForumBrowserModel.defaultPageTitle ? "" : rawTitle
         return SavedBrowserTab(
             id: id,

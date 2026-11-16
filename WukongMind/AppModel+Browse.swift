@@ -127,10 +127,8 @@ extension AppModel {
         let override = AssistantDebug.value("-dc-launch").flatMap(LaunchDestination.init(rawValue:))
         if override == nil, arguments.contains(where: { $0.hasPrefix("-dc-") || $0.hasPrefix("-ui-test-") }) { return }
         let setting = override ?? settings.launchDestination
-        if restoredTabsFromSnapshot, override == nil, setting != .home { return }
         #else
         let setting = settings.launchDestination
-        if restoredTabsFromSnapshot, setting != .home { return }
         #endif
         podcast.refresh()
         let defaults = UserDefaults.standard

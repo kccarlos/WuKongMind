@@ -252,6 +252,10 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     nonisolated static let crashReloadWindow: TimeInterval = 30
     private static let log = Logger(subsystem: AppIdentity.identifierPrefix, category: "browser")
 
+    /// True while Home is shown by the launch rule over a restored tab's page,
+    /// so saving tabs while viewing Today's launch screen keeps the tab's URL.
+    private(set) var isLaunchHomeOverlay = false
+
     /// The Forums home is shown instead of the web view: requested, or no
     /// page has been loaded yet.
     var showsForumsHome: Bool { isForumsHomeRequested || currentURL == nil }
@@ -259,6 +263,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// `overPendingLoad`: keep Home up while a load issued earlier (the
     /// restored forum) starts.
     func showForumsHome(overPendingLoad: Bool = false) {
+        isLaunchHomeOverlay = overPendingLoad
         if overPendingLoad,
            deferredLoad != nil || allocatedWebView?.isLoading == true || (currentURL != nil && allocatedWebView?.url == nil) {
             holdsHomeOverLoad = true
@@ -303,6 +308,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
 
     /// Returns to the page under Home (no-op without one).
     func hideForumsHome() {
+        isLaunchHomeOverlay = false
         holdsHomeOverLoad = false
         loadStartedFromForumsHome = false
         if isForumsHomeRequested { isForumsHomeRequested = false }
@@ -318,8 +324,9 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// Whether this tab currently has an allocated `WKWebView` (false for lazy-restored
     /// background tabs and idle tabs unloaded under memory pressure).
     @Published private(set) var isWebViewLoaded: Bool
-    /// Last known scroll offset of the page (preserved across lazy restore and memory-pressure unload).
-    @Published private(set) var scrollPosition: CGPoint = .zero
+    /// Last known scroll offset of the page (preserved across lazy restore and memory-pressure unload;
+    /// non-`@Published` so KVO scroll ticks do not republish `ForumBrowserModel` every frame).
+    private(set) var scrollPosition: CGPoint = .zero
     private var pendingScrollRestore: CGPoint?
 
     /// Existing `WKWebView` without allocating one when unloaded.
