@@ -227,6 +227,9 @@ extension AppModel {
             if ForumIconPolicy.loadsRemoteIcons {
                 for forum in forums { refreshForumInfo(siteURL: forum.siteURL) }
             }
+        } else if arguments.contains("-dc-seed-forums"), suppressesPersistence,
+                  !forums.contains(where: { $0.siteURL == HackerNewsRecognizer.siteURL }) {
+            pin(Forum(siteURL: HackerNewsRecognizer.siteURL, kind: .hackerNews, name: "Hacker News"))
         }
         if let index = arguments.firstIndex(of: "-dc-fixture-model"), index + 1 < arguments.count {
             var configuration = settings.configuration(for: .ollama)
@@ -417,6 +420,38 @@ extension AppModel {
             settings.setConfiguration(config, for: .anthropic)
             settings.setModel(ModelSelection(provider: .anthropic, model: modelID), for: .assistant)
             settings.setModel(ModelSelection(provider: .anthropic, model: modelID), for: .browserAgent)
+
+            let vertexKey = (env["VERTEX_API_KEY"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let vertexBase = (env["VERTEX_BASE_URL"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let vertexProject = (env["VERTEX_PROJECT"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            let geminiKey = (env["GEMINI_LIVE_KEY"] ?? env["GEMINI_API_KEY"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !vertexKey.isEmpty {
+                var vertexCfg = settings.configuration(for: .vertexAI)
+                vertexCfg.apiKey = vertexKey
+                vertexCfg.baseURL = vertexBase.isEmpty ? AIProvider.vertexAI.defaultBaseURL : vertexBase
+                settings.setConfiguration(vertexCfg, for: .vertexAI)
+                settings.voice.vertexProject = vertexProject
+            }
+            if !geminiKey.isEmpty {
+                var geminiCfg = settings.configuration(for: VoiceProvider.aiStudio.keyProvider)
+                geminiCfg.apiKey = geminiKey
+                settings.setConfiguration(geminiCfg, for: VoiceProvider.aiStudio.keyProvider)
+            }
+            if !vertexKey.isEmpty || !geminiKey.isEmpty {
+                settings.voiceEnabled = true
+                settings.podcast.engine = .onDevice
+                settings.voice.sessionLimitMinutes = 0
+                settings.voice.dailyLimitMinutes = 0
+                settings.voice.idleTimeout = 300
+                if let explicit = AssistantDebug.value("-dc-voice-provider"),
+                   let forced = VoiceProvider(rawValue: explicit.lowercased()) {
+                    settings.voice.provider = forced
+                } else if !vertexKey.isEmpty {
+                    settings.voice.provider = .vertex
+                } else if !geminiKey.isEmpty {
+                    settings.voice.provider = .aiStudio
+                }
+            }
         }
 
         if let livePrompt {

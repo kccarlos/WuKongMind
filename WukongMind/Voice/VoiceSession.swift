@@ -229,6 +229,24 @@ final class VoiceSession: ObservableObject {
     private var loopTask: Task<Void, Never>?
     private var contextTasks: [Task<Void, Never>] = []
 
+    #if DEBUG
+    struct DebugToolEvent: Codable, Equatable {
+        var name: String
+        var status: String
+        var shown: String
+    }
+
+    private(set) var debugMicFramesSent = 0
+    private(set) var debugAudioFramesSent = 0
+    private(set) var debugTextFramesSent = 0
+    private(set) var debugUserTurns: [String] = []
+    private(set) var debugModelTurns: [String] = []
+    private(set) var debugToolEvents: [DebugToolEvent] = []
+    private(set) var debugBriefingKinds: [String] = []
+    var debugTurnCount: Int { turnCompleteCount }
+    var debugConnections: Int { connectionSerial }
+    #endif
+
     enum ReconnectReason: Equatable {
         case goAway
         case stalled
@@ -317,7 +335,6 @@ final class VoiceSession: ObservableObject {
         commitTranscripts()
         recordUsage()
         flushUsage()
-        state = final
         connectionSerial += 1
         transport?.close()
         transport = nil
@@ -327,6 +344,7 @@ final class VoiceSession: ObservableObject {
         loopTask?.cancel()
         contextTasks.forEach { $0.cancel() }
         contextTasks = []
+        state = final
     }
 
     func setMuted(_ muted: Bool) {
@@ -641,6 +659,13 @@ final class VoiceSession: ObservableObject {
     }
 
     private func toolFinished(_ call: GeminiLive.FunctionCall, outcome: VoiceToolOutcome, calledAt: Date) {
+        #if DEBUG
+        debugToolEvents.append(DebugToolEvent(
+            name: call.name,
+            status: outcome.response["status"]?.stringValue ?? "",
+            shown: String((outcome.response["shown"]?.stringValue ?? outcome.response["message"]?.stringValue ?? "").prefix(160))
+        ))
+        #endif
         switch outcome.effect {
         case .handOffStarted:
             acknowledgementWatch = lastUserSpeechAt.map { min($0, calledAt) } ?? calledAt
@@ -705,6 +730,9 @@ final class VoiceSession: ObservableObject {
         facts["about_this"] = "Not the user speaking: facts from the WukongMind app. You decide whether, when and how to tell the user, in your own words."
         facts["kind"] = .string(briefing.kind.rawValue)
         let scheduling = downgraded(briefing.scheduling)
+        #if DEBUG
+        debugBriefingKinds.append(briefing.kind.rawValue)
+        #endif
         send(.toolResponse([GeminiLive.FunctionResponse(
             id: "b-\(briefingSequence)", name: VoiceBriefing.name, response: facts, scheduling: scheduling
         )]))
@@ -791,6 +819,16 @@ final class VoiceSession: ObservableObject {
         send(.content(text, turnComplete: false))
     }
 
+    /// Ensures queued `[Screen: …]` context reaches the model before a new
+    /// user utterance starts, even when the user speaks again within a second
+    /// of the previous turn (before `isQuiet`'s 1s hold elapses).
+    private func flushNotesBeforeUserTurn() {
+        guard setupDone, !isSpeaking, awaitingReplySince == nil, pendingResponses.isEmpty, !noteQueue.isEmpty else { return }
+        let text = noteQueue.joined(separator: "\n")
+        noteQueue = []
+        send(.content(text, turnComplete: false))
+    }
+
     /// The code-level grounding guarantee: words that point at the screen,
     /// and the focused post's full text not sent yet, send it now, before
     /// the model's answer (not waiting for quiet: the model is not speaking).
@@ -838,6 +876,9 @@ final class VoiceSession: ObservableObject {
         guard !user.isEmpty else { return }
         let at = userTurnAt ?? Date()
         lastUserCommitAt = at
+        #if DEBUG
+        debugUserTurns.append(user)
+        #endif
         onTranscript?(.voiceUser, user, at)
     }
 
@@ -853,6 +894,9 @@ final class VoiceSession: ObservableObject {
         // After the words it answers, never after its own tool call (the run).
         if let user = lastUserCommitAt, at <= user { at = user.addingTimeInterval(0.000_001) }
         if let call, at > call { at = call }
+        #if DEBUG
+        debugModelTurns.append(spoken)
+        #endif
         onTranscript?(.voiceReply, spoken, at)
     }
 
@@ -870,6 +914,7 @@ final class VoiceSession: ObservableObject {
             audio.flushPlayback()
             modelSpeaking = false
         }
+        flushNotesBeforeUserTurn()
         lastUserText = text
         commitTranscripts()
         modelTurnText = ""
@@ -888,6 +933,9 @@ final class VoiceSession: ObservableObject {
 
     func microphoneFrame(_ pcm: Data) {
         guard !isMuted, gateOpen, setupDone, state.isActive else { return }
+        #if DEBUG
+        debugMicFramesSent += 1
+        #endif
         sentAudioThisTurn = true
         lastActivityAt = clock.now
         send(.audio(pcm))
@@ -895,6 +943,7 @@ final class VoiceSession: ObservableObject {
 
     func captureGate(open: Bool) {
         guard open != gateOpen else { return }
+        if open { flushNotesBeforeUserTurn() }
         gateOpen = open
         let now = clock.now
         if open {
@@ -1074,6 +1123,13 @@ final class VoiceSession: ObservableObject {
 
     private func send(_ message: GeminiLive.ClientMessage) {
         guard let transport, let text = try? GeminiLive.encode(message) else { return }
+        #if DEBUG
+        switch message {
+        case .audio: debugAudioFramesSent += 1
+        case .text: debugTextFramesSent += 1
+        default: break
+        }
+        #endif
         transport.send(text)
     }
 }

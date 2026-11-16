@@ -74,9 +74,9 @@ enum GeminiLive {
         /// Google AI Studio (a Gemini API key).
         case aiStudio
         /// Vertex AI with an API key. The Live model is served in
-        /// `us-central1` (not on the global host) and needs the full
-        /// `projects/…/locations/…/publishers/google/models/…` name; the
-        /// short `publishers/google/models/…` form closes with 1007.
+        /// `us-central1` (not on the global host): Express keys (`project`
+        /// empty) use `publishers/google/models/…`, and project-scoped keys
+        /// use `projects/…/locations/…/publishers/google/models/…`.
         case vertex(project: String, location: String)
 
         static let vertexLocation = "us-central1"
@@ -96,7 +96,10 @@ enum GeminiLive {
             case .aiStudio:
                 return model.hasPrefix("models/") ? model : "models/" + model
             case .vertex(let project, let location):
-                return "projects/\(project)/locations/\(location)/publishers/google/models/\(model)"
+                let bare = model.hasPrefix("models/") ? String(model.dropFirst("models/".count)) : model
+                return project.isEmpty
+                    ? "publishers/google/models/\(bare)"
+                    : "projects/\(project)/locations/\(location)/publishers/google/models/\(bare)"
             }
         }
 

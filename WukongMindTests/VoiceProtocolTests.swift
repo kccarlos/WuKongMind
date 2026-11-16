@@ -79,6 +79,8 @@ final class VoiceProtocolTests: XCTestCase {
             "forum-123"
         )
         XCTAssertNil(GeminiLive.Endpoint.vertexProject(fromBaseURL: "https://aiplatform.googleapis.com/v1"), "Express mode has no project")
+        let express = GeminiLive.Endpoint.vertex(project: "", location: "us-central1")
+        XCTAssertEqual(express.modelName("gemini-3.8-live"), "publishers/google/models/gemini-3.8-live")
     }
 
     // MARK: Client frames

@@ -248,6 +248,19 @@ struct DockLayer: View {
 
     var body: some View {
         VStack(alignment: floatsTrailing ? .trailing : .center, spacing: DCTheme.spacingS) {
+            #if DEBUG
+            if VoiceDebug.speaksTypedInput {
+                VoiceAcceptanceDebugState(
+                    app: app,
+                    browser: browser,
+                    voice: voice,
+                    podcast: podcast,
+                    player: podcast.player,
+                    injector: voice.debugSpeechInjector,
+                    probe: voice.debugAcceptanceProbe
+                )
+            }
+            #endif
             // While the drawer or the panel is up the cards are a chip in
             // its status row (`DrawerStatusRow`), not both.
             if !showsHome, !app.isAIViewShown {

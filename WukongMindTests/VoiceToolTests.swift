@@ -341,7 +341,7 @@ final class VoiceToolTests: XCTestCase {
         var vertex = app.settings.configuration(for: .vertexAI)
         vertex.apiKey = "vertex-key"
         app.settings.setConfiguration(vertex, for: .vertexAI)
-        XCTAssertEqual(app.voiceConfiguration().failureValue, .noVertexProject, "Express mode has no project")
+        XCTAssertEqual(try app.voiceConfiguration().get().endpoint, .vertex(project: "", location: "us-central1"), "Express mode uses regional publisher path")
         app.settings.voice.vertexProject = "my-project"
         XCTAssertEqual(try app.voiceConfiguration().get().endpoint, .vertex(project: "my-project", location: "us-central1"))
         vertex.baseURL = "https://aiplatform.googleapis.com/v1/projects/from-url/locations/global"
@@ -367,6 +367,18 @@ final class VoiceToolTests: XCTestCase {
         XCTAssertEqual(outcome.response["hits"]?.arrayValue?.count, 4)
         XCTAssertEqual(outcome.scheduling, .whenIdle)
         XCTAssertEqual(app.browseCursor.items.count, 4, "voice search fills the cards")
+        XCTAssertTrue(app.browseCursor.matches(app.pageContext), "cards match the searched forum")
+        XCTAssertFalse(
+            app.browseCursor.matches(PageContext(url: URL(string: "https://example.com")!, state: .notForum)),
+            "cards hide when navigating to an ordinary page"
+        )
+        XCTAssertFalse(
+            app.browseCursor.matches(PageContext(
+                url: URL(string: "https://other.example/latest")!,
+                site: .discourse, siteURL: "https://other.example", state: .forumHome
+            )),
+            "cards hide when navigating to a different forum"
+        )
 
         let empty = await bridge.handle(.init(id: "n", name: "browse_move", args: ["action": "previous"]), eyesFree: false)
         XCTAssertEqual(empty.response["status"], "endOfList")

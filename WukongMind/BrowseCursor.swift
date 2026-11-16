@@ -114,6 +114,17 @@ struct BrowseCursor: Equatable {
     var hasNext: Bool { !items.isEmpty && (index ?? -1) < items.count - 1 }
     var hasPrevious: Bool { (index ?? 0) > 0 }
 
+    /// Whether the list belongs to `page`: on the forum where it was made.
+    func matches(_ page: PageContext) -> Bool {
+        guard page.isForum, !isEmpty else { return false }
+        guard let itemSite = items.first?.siteURL, !itemSite.isEmpty else { return true }
+        if let url = page.url { return ForumSite.isSameForum(url: url, siteURL: itemSite) }
+        if let pageSite = page.siteURL, let url = URL(string: pageSite) {
+            return ForumSite.isSameForum(url: url, siteURL: itemSite)
+        }
+        return true
+    }
+
     /// Replaces the list. `current` nil leaves no item current (after a
     /// search, `next` opens the first hit).
     mutating func replace(with items: [BrowseItem], origin: Origin, current: Int? = nil) {
