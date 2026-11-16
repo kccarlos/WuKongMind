@@ -13,6 +13,12 @@ enum SuggestionPageKind: Equatable {
     case forumThread
     case forumList
     case ordinaryPage
+    /// A thread page of a site with a learned `read_topic`. `search`: `search_forum` is learned too.
+    case learnedThread(search: Bool)
+    /// A list page of a site with a learned `list_latest`.
+    case learnedList(search: Bool)
+    /// An unknown site whose page passes the fixed "looks like a thread" check.
+    case unknownThread
 }
 
 /// One built-in suggestion. The raw value is its stable identifier.
@@ -86,11 +92,21 @@ enum PageSuggestions {
     /// The page kind for the panel's state. Built-in forums (a recognized
     /// site) are `.topic` / `.forumHome`; everything else is an ordinary page.
     /// nil: no page open, or one still loading (its kind isn't known yet), so no row.
-    static func pageKind(state: PageContext.State, hasPage: Bool) -> SuggestionPageKind? {
+    ///
+    /// `learned` is what the site's saved reading state says of this page
+    /// (`SiteToolState.learnedSuggestionKind`); `looksLikeThread` is the probe's
+    /// fixed check. Both only apply to a page no built-in forum recognizes.
+    static func pageKind(
+        state: PageContext.State,
+        hasPage: Bool,
+        learned: SuggestionPageKind? = nil,
+        looksLikeThread: Bool = false
+    ) -> SuggestionPageKind? {
         switch state {
         case .topic: .forumThread
         case .forumHome: .forumList
-        case .notForum, .maybe: hasPage ? .ordinaryPage : nil
+        case .notForum, .maybe:
+            if !hasPage { nil } else if let learned { learned } else if looksLikeThread { .unknownThread } else { .ordinaryPage }
         case .loading: nil
         }
     }
@@ -114,6 +130,12 @@ enum PageSuggestions {
             [.worthReadingToday, .searchForum]
         case .ordinaryPage:
             [.summarizePage, .makeDark, .removeDistractions]
+        case .learnedThread(let search):
+            (isSummarizing ? [] : [.summarizeThread]) + [.readAloud] + (search ? [.searchForum] : [])
+        case .learnedList(let search):
+            [.worthReadingToday] + (search ? [.searchForum] : [])
+        case .unknownThread:
+            (isSummarizing ? [] : [.summarizeThread]) + [.readAloud, .makeDark]
         case nil:
             []
         }

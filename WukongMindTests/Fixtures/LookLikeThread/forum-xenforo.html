@@ -1,0 +1,563 @@
+<!DOCTYPE html><html id="XF" lang="en-US" dir="LTR"
+	data-xf="2.3"
+	data-app="public"
+	
+	
+	data-template="thread_view"
+	data-container-key="node-48"
+	data-content-key="thread-93000"
+	data-logged-in="false"
+	data-cookie-prefix="xf_"
+	data-csrf="1794817382,d72686339d7e8db490638bc1aef35d2e"
+	class="has-no-js v_2_1 template-thread_view"
+	><head><meta charset="utf-8" /><title>Solved - Strange ZFS status | The FreeBSD Forums</title><meta http-equiv="X-UA-Compatible" content="IE=Edge" /><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#ad221d" /><meta name="apple-mobile-web-app-title" content="FreeBSDForum"><meta name="description" content="This is a strange one:
+
+I&#039;ve recently reinstalled FreeBSD 14.0 on an old, non-mission critical PowerEdge R710.
+
+Two zpools were created, zsystem and zdata..." /><meta property="og:description" content="This is a strange one:
+
+I&#039;ve recently reinstalled FreeBSD 14.0 on an old, non-mission critical PowerEdge R710.
+
+Two zpools were created, zsystem and zdata.
+
+Since the old BIOS doesn&#039;t give me a JBOD option, the pools were created with megaraid virtual devices all attached to the same controller..." /><meta property="twitter:description" content="This is a strange one:
+
+I&#039;ve recently reinstalled FreeBSD 14.0 on an old, non-mission critical PowerEdge R710.
+
+Two zpools were created, zsystem and zdata.
+
+Since the old BIOS doesn&#039;t give me a..." /><meta property="og:url" content="https://forums.freebsd.org/threads/strange-zfs-status.93000/" /><meta property="og:site_name" content="The FreeBSD Forums" /><meta property="og:type" content="website" /><meta property="og:title" content="Solved - Strange ZFS status" /><meta property="twitter:title" content="Solved - Strange ZFS status" /><meta property="og:image" content="https://forums.freebsd.org/styles/freebsd/xenforo/logo.og.png" /><meta property="twitter:image" content="https://forums.freebsd.org/styles/freebsd/xenforo/logo.og.png" /><meta property="twitter:card" content="summary" /></head><body data-template="thread_view"><div id="freebsd_headercontainer"><div id="freebsd_header"><div id="freebsd_headerlogoleft"><a title="FreeBSD" href="https://www.freebsd.org/"><img></a></div><div id="freebsd_headerlogoright"><div class="frontdonateroundbox"><div class="frontdonatetop"><div><b style="display: none;">.</b></div></div><div class="frontdonatecontent"><a href="https://www.FreeBSDFoundation.org/donate/">Donate to FreeBSD</a></div><div class="frontdonatebot"><div><b style="display: none;">.</b></div></div></div></div></div><div id="freebsd_menu"><ul class="first"><li><a href="https://www.freebsd.org/">Home</a></li></ul><ul><li><a href="https://www.freebsd.org/about.html">About</a><ul><li><a href="https://www.freebsd.org/projects/newbies/">Introduction</a></li><li><a href="https://www.freebsd.org/features/">Features</a></li><li><a href="https://www.freebsd.org/privacy/">Privacy Policy</a></li><li><a href="https://www.freebsd.org/projects/">Projects</a></li><li><a href="https://ports.freebsd.org/cgi/ports.cgi">Ports</a></li></ul></li></ul><ul><li><a href="https://www.freebsd.org/where.html">Get FreeBSD</a><ul><li><a href="https://www.freebsd.org/releases/">Release Information</a></li><li><a href="https://www.freebsd.org/releng/">Release Engineering</a></li></ul></li></ul><ul><li><a href="https://www.freebsd.org/docs/">Documentation</a><ul><li><a href="https://docs.FreeBSD.org/en/books/faq/">FAQ</a></li><li><a href="https://docs.FreeBSD.org/en/books/handbook/">Handbook</a></li><li><a href="https://docs.freebsd.org/en/books/porters-handbook/">Porter's Handbook</a></li><li><a href="https://docs.freebsd.org/en/books/developers-handbook/">Developer's Handbook</a></li><li><a href="https://www.FreeBSD.org/cgi/man.cgi">Manual Pages</a></li><li><a href="https://papers.freebsd.org/">Presentations and Papers</a></li><li><a href="https://docs.FreeBSD.org/en/books/fdp-primer/">Documentation Project Primer</a></li><li><a href="https://www.freebsd.org/docs/">All Books and Articles</a></li></ul></li></ul><ul><li><a href="https://www.freebsd.org/community/">Community</a><ul><li><a href="https://www.freebsd.org/community/mailinglists/">Mailing Lists</a></li><li><a href="https://forums.freebsd.org">Forums</a></li><li><a href="https://www.freebsd.org/usergroups/">User Groups</a></li><li><a href="https://www.freebsd.org/events/">Events</a></li><li><a href="https://freebsdfoundation.org/our-work/journal/">FreeBSD Journal</a></li><li><a href="https://serverfault.com/questions/tagged/freebsd">Q&amp;A (external)</a></li></ul></li></ul><ul><li><a href="https://www.freebsd.org/projects/">Developers</a><ul><li><a href="https://wiki.FreeBSD.org/IdeasPage">Project Ideas</a></li><li><a href="https://cgit.FreeBSD.org">Git Repository</a></li><li><a href="https://github.com/freebsd">GitHub Mirror</a></li><li><a href="https://reviews.freebsd.org/">Code Review (Phabricator)</a></li><li><a href="https://wiki.freebsd.org/">Wiki</a></li><li><a href="https://ci.freebsd.org/">Continuous Integration Service</a></li></ul></li></ul><ul><li><a href="https://www.freebsd.org/support/">Support</a><ul><li><a href="https://www.freebsd.org/commercial/">Vendors</a></li><li><a href="https://www.freebsd.org/security/">Security Information</a></li><li><a href="https://bugs.freebsd.org/search/">Bug Reports</a></li><li><a href="https://www.freebsd.org/support/">Submitting Bug Reports</a></li></ul></li></ul><ul><li><a href="https://www.freebsdfoundation.org/">Foundation</a><ul><li><a href="https://www.freebsdfoundation.org/donate/">Monetary Donations</a></li><li><a href="https://www.freebsd.org/donations/">Hardware Donations</a></li></ul></li></ul></div></div><div class="p-pageWrapper" id="top"><header class="p-header" id="header"><div class="p-header-inner"><div class="p-header-content"></div></div></header><div class="p-navSticky p-navSticky--all" data-xf-init="sticky-header"><nav class="p-nav"><div class="p-nav-inner"><button type="button" class="button button--plain p-nav-menuTrigger" data-xf-click="off-canvas" data-menu=".js-headerOffCanvasMenu" tabindex="0" aria-label="Menu"><span class="button-text"><i aria-hidden="true"></i></span></button><div class="p-nav-smallLogo"><a href="/"><picture data-variations="{&quot;default&quot;:{&quot;1&quot;:&quot;\/data\/assets\/logo_default\/freebsd-logo-text-white-small.png&quot;,&quot;2&quot;:null}}"><img></picture></a></div><div class="p-nav-scroller hScroller" data-xf-init="h-scroller" data-auto-scroll=".p-navEl.is-selected"><div class="hScroller-scroll"><ul class="p-nav-list js-offCanvasNavSource"><li><div class="p-navEl is-selected" data-has-children="true"><a href="/"
+	class="p-navEl-link p-navEl-link--splitMenu "
+	
+	
+	data-nav-id="forums">Forums</a><a data-xf-key="1"
+			data-xf-click="menu"
+			data-menu-pos-ref="< .p-navEl"
+			class="p-navEl-splitTrigger"
+			role="button"
+			tabindex="0"
+			aria-label="Toggle expanded"
+			aria-expanded="false"
+			aria-haspopup="true"></a><div class="menu menu--structural" data-menu="menu" aria-hidden="true"><div class="menu-content"><a href="/whats-new/posts/"
+	class="menu-linkRow u-indentDepth0 js-offCanvasCopy "
+	
+	
+	data-nav-id="newPosts">New posts</a><a href="/search/?type=post"
+	class="menu-linkRow u-indentDepth0 js-offCanvasCopy "
+	
+	
+	data-nav-id="searchForums">Search forums</a></div></div></div></li><li><div class="p-navEl " data-has-children="true"><a href="/whats-new/"
+	class="p-navEl-link p-navEl-link--splitMenu "
+	
+	
+	data-nav-id="whatsNew">What's new</a><a data-xf-key="2"
+			data-xf-click="menu"
+			data-menu-pos-ref="< .p-navEl"
+			class="p-navEl-splitTrigger"
+			role="button"
+			tabindex="0"
+			aria-label="Toggle expanded"
+			aria-expanded="false"
+			aria-haspopup="true"></a><div class="menu menu--structural" data-menu="menu" aria-hidden="true"><div class="menu-content"><a href="/whats-new/posts/"
+	class="menu-linkRow u-indentDepth0 js-offCanvasCopy "
+	 rel="nofollow"
+	
+	data-nav-id="whatsNewPosts">New posts</a><a href="/whats-new/latest-activity"
+	class="menu-linkRow u-indentDepth0 js-offCanvasCopy "
+	 rel="nofollow"
+	
+	data-nav-id="latestActivity">Latest activity</a></div></div></div></li></ul></div></div><div class="p-nav-opposite"><div class="p-navgroup p-account p-navgroup--guest"><a href="/login/" class="p-navgroup-link p-navgroup-link--textual p-navgroup-link--logIn"
+								data-xf-click="overlay" data-follow-redirects="on"><span class="p-navgroup-linkText">Log in</span></a><a href="/register/" class="p-navgroup-link p-navgroup-link--textual p-navgroup-link--register"
+									data-xf-click="overlay" data-follow-redirects="on"><span class="p-navgroup-linkText">Register</span></a></div><div class="p-navgroup p-discovery"><a href="/whats-new/"
+							
+
+	class="p-navgroup-link p-navgroup-link--iconic p-navgroup-link--whatsnew"
+
+							aria-label="What&#039;s new"
+							title="What&#039;s new"><i aria-hidden="true"></i><span class="p-navgroup-linkText">What's new</span></a><a href="/search/"
+								class="p-navgroup-link p-navgroup-link--iconic p-navgroup-link--search"
+								data-xf-click="menu"
+								data-xf-key="/"
+								aria-label="Search"
+								aria-expanded="false"
+								aria-haspopup="true"
+								title="Search"><i aria-hidden="true"></i><span class="p-navgroup-linkText">Search</span></a><div class="menu menu--structural menu--wide" data-menu="menu" aria-hidden="true"><form action="/search/search" method="post"
+									class="menu-content"
+									data-xf-init="quick-search"><h3 class="menu-header">Search</h3><div class="menu-row"><div class="inputGroup inputGroup--joined"><input type="text" class="input" name="keywords" data-acurl="/search/auto-complete" placeholder="Search…" aria-label="Search" data-menu-autofocus="true" /><select name="constraints" class="js-quickSearch-constraint input" aria-label="Search within"><option value="">Everywhere</option><option value="{&quot;search_type&quot;:&quot;post&quot;}">Threads</option><option value="{&quot;search_type&quot;:&quot;post&quot;,&quot;c&quot;:{&quot;nodes&quot;:[48],&quot;child_nodes&quot;:1}}">This forum</option><option value="{&quot;search_type&quot;:&quot;post&quot;,&quot;c&quot;:{&quot;thread&quot;:93000}}">This thread</option></select></div></div><div class="menu-row"><label class="iconic"><input type="checkbox"  name="c[title_only]" value="1" /><i aria-hidden="true"></i><span class="iconic-label">Search titles only
+
+													
+													<span tabindex="0" role="button"
+														data-xf-init="tooltip" data-trigger="hover focus click" title="Tags will also be searched in content where tags are supported"><i class="fa--xf far fa-question-circle  u-muted u-smaller"></i></span></span></label></div><div class="menu-row"><div class="inputGroup"><span class="inputGroup-text" id="ctrl_search_menu_by_member">By:</span><input type="text" class="input" name="c[users]" data-xf-init="auto-complete" placeholder="Member" aria-labelledby="ctrl_search_menu_by_member" /></div></div><div class="menu-footer"><span class="menu-footer-controls"><button type="submit" class="button button--icon button--icon--search button--primary"><i class="fa--xf far fa-search "></i><span class="button-text">Search</span></button><button type="submit" class="button " name="from_search_menu"><span class="button-text">Advanced search…</span></button></span></div><input type="hidden" name="_xfToken" value="1794817382,d72686339d7e8db490638bc1aef35d2e" /></form></div></div></div></div></nav><div class="p-sectionLinks"><div class="p-sectionLinks-inner hScroller" data-xf-init="h-scroller"><div class="hScroller-scroll"><ul class="p-sectionLinks-list"><li><div class="p-navEl " ><a href="/whats-new/posts/"
+	class="p-navEl-link "
+	
+	data-xf-key="alt+1"
+	data-nav-id="newPosts">New posts</a></div></li><li><div class="p-navEl " ><a href="/search/?type=post"
+	class="p-navEl-link "
+	
+	data-xf-key="alt+2"
+	data-nav-id="searchForums">Search forums</a></div></li></ul></div></div></div></div><div class="offCanvasMenu offCanvasMenu--nav js-headerOffCanvasMenu" data-menu="menu" aria-hidden="true" data-ocm-builder="navigation"><div class="offCanvasMenu-backdrop" data-menu-close="true"></div><div class="offCanvasMenu-content"><div class="offCanvasMenu-header">
+				Menu
+				<a class="offCanvasMenu-closer" data-menu-close="true" role="button" tabindex="0" aria-label="Close"></a></div><div class="p-offCanvasRegisterLink"><div class="offCanvasMenu-linkHolder"><a href="/login/" class="offCanvasMenu-link" data-xf-click="overlay" data-menu-close="true">
+							Log in
+						</a></div><hr class="offCanvasMenu-separator" /><div class="offCanvasMenu-linkHolder"><a href="/register/" class="offCanvasMenu-link" data-xf-click="overlay" data-menu-close="true">
+								Register
+							</a></div><hr class="offCanvasMenu-separator" /></div><div class="js-offCanvasNavTarget"></div><div class="offCanvasMenu-installBanner js-installPromptContainer" style="display: none;" data-xf-init="install-prompt"><div class="offCanvasMenu-installBanner-header">Install the app</div><button type="button" class="button js-installPromptButton"><span class="button-text">Install</span></button><template class="js-installTemplateIOS"><div class="js-installTemplateContent"><div class="overlay-title">How to install the app on iOS</div><div class="block-body"><div class="block-row"><p>
+									Follow along with the video below to see how to install our site as a web app on your home screen.
+								</p><p style="text-align: center"><video></video></p><p><small><strong>Note:</strong> This feature may not be available in some browsers.</small></p></div></div></div></template></div></div></div><div class="p-body"><div class="p-body-inner"><ul class="p-breadcrumbs "
+			itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem"><a href="/categories/base-system.18/" itemprop="item"><span itemprop="name">Base System</span></a><meta itemprop="position" content="1" /></li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem"><a href="/forums/storage.48/" itemprop="item"><span itemprop="name">Storage</span></a><meta itemprop="position" content="2" /></li></ul><noscript class="js-jsWarning"><div class="blockMessage blockMessage--important blockMessage--iconic u-noJsOnly">JavaScript is disabled. For a better experience, please enable JavaScript in your browser before proceeding.</div></noscript><div class="blockMessage blockMessage--important blockMessage--iconic js-browserWarning" style="display: none">You are using an out of date browser. It  may not display this or other websites correctly.<br />You should upgrade or use an <a href="https://www.google.com/chrome/" target="_blank" rel="noopener">alternative browser</a>.</div><div class="p-body-header"><div class="p-title "><h1 class="p-title-value"><span class="label label--green" dir="auto">Solved</span><span class="label-append">&nbsp;</span>Strange ZFS status</h1></div><div class="p-description"><ul class="listInline listInline--bullet"><li><i class="fa--xf far fa-user "></i><span class="u-srOnly">Thread starter</span><a href="/members/mfoacs.52011/" class="username  u-concealed" dir="auto" data-user-id="52011" data-xf-init="member-tooltip">mfoacs</a></li><li><i class="fa--xf far fa-clock "></i><span class="u-srOnly">Start date</span><a href="/threads/strange-zfs-status.93000/" class="u-concealed"><time  class="u-dt" dir="auto" datetime="2024-04-04T20:36:03+0100" data-timestamp="1712259363" data-date="Apr 4, 2024" data-time="8:36 PM" data-short="Apr &#039;24" title="Apr 4, 2024 at 8:36 PM">Apr 4, 2024</time></a></li><li><dl class="tagList tagList--thread-93000 "><dt><i class="fa--xf far fa-tags "></i><span class="u-srOnly">Tags</span></dt><dd><span class="js-tagList"><a href="/tags/megaraid/" class="tagItem tagItem--tag_megaraid" dir="auto">
+							megaraid
+						</a><a href="/tags/nested/" class="tagItem tagItem--tag_nested" dir="auto">
+							nested
+						</a><a href="/tags/raid/" class="tagItem tagItem--tag_raid" dir="auto">
+							raid
+						</a><a href="/tags/zfs/" class="tagItem tagItem--tag_zfs" dir="auto">
+							zfs
+						</a></span></dd></dl></li></ul></div></div><div class="p-body-main  "><div class="p-body-contentCol"></div><div class="p-body-content"><div class="p-body-pageContent"><div class="block block--messages" data-xf-init="" data-type="post" data-href="/inline-mod/" data-search-target="*"><span class="u-anchorTarget" id="posts"></span><div class="block-outer"></div><div class="block-outer js-threadStatusField"></div><div class="block-container lbContainer"
+		data-xf-init="lightbox select-to-quote"
+		data-message-selector=".js-post"
+		data-lb-id="thread-93000"
+		data-lb-universal=""><div class="block-body js-replyNewMessageContainer"><article class="message message--post js-post js-inlineModContainer  "
+		data-author="mfoacs"
+		data-content="post-650540"
+		id="js-post-650540"
+		><span class="u-anchorTarget" id="post-650540"></span><div class="message-inner"><div class="message-cell message-cell--user"><section class="message-user"
+		
+		
+		><div class="message-avatar "><div class="message-avatar-wrapper"><a href="/members/mfoacs.52011/" class="avatar avatar--m" data-user-id="52011" data-xf-init="member-tooltip"><img></a></div></div><div class="message-userDetails"><h4 class="message-name"><a href="/members/mfoacs.52011/" class="username " dir="auto" data-user-id="52011" data-xf-init="member-tooltip">mfoacs</a></h4></div><span class="message-userArrow"></span></section></div><div class="message-cell message-cell--main"><div class="message-main js-quickEditTarget"><header class="message-attribution message-attribution--split"><ul class="message-attribution-main listInline "><li class="u-concealed"><a href="/threads/strange-zfs-status.93000/post-650540" rel="nofollow" ><time  class="u-dt" dir="auto" datetime="2024-04-04T20:36:03+0100" data-timestamp="1712259363" data-date="Apr 4, 2024" data-time="8:36 PM" data-short="Apr &#039;24" title="Apr 4, 2024 at 8:36 PM">Apr 4, 2024</time></a></li></ul><ul class="message-attribution-opposite message-attribution-opposite--list "><li><a href="/threads/strange-zfs-status.93000/post-650540"
+					class="message-attribution-gadget"
+					data-xf-init="share-tooltip"
+					data-href="/posts/650540/share"
+					aria-label="Share"
+					rel="nofollow"><i class="fa--xf far fa-share-alt "></i></a></li><li class="u-hidden js-embedCopy"><a href="javascript:"
+		data-xf-init="copy-to-clipboard"
+		data-copy-text="&lt;div class=&quot;js-xf-embed&quot; data-url=&quot;https://forums.freebsd.org&quot; data-content=&quot;post-650540&quot;&gt;&lt;/div&gt;&lt;script defer src=&quot;https://forums.freebsd.org/js/xf/external_embed.js?_v=65069f3a&quot;&gt;&lt;/script&gt;"
+		data-success="Embed code HTML copied to clipboard."
+		class=""><i class="fa--xf far fa-code "></i></a></li><li><a href="/threads/strange-zfs-status.93000/post-650540" rel="nofollow">
+						#1
+					</a></li></ul></header><div class="message-content js-messageContent"><div class="message-userContent lbContainer js-lbContainer "
+		data-lb-id="post-650540"
+		data-lb-caption-desc="mfoacs &middot; Apr 4, 2024 at 8:36 PM"><article class="message-body js-selectToQuote"><div ><div class="bbWrapper">This is a strange one:<br /><br />
+I&#039;ve recently reinstalled FreeBSD 14.0 on an old, non-mission critical PowerEdge R710.<br /><br />
+Two zpools were created, zsystem and zdata.<br /><br />
+Since the old BIOS doesn&#039;t give me a JBOD option, the pools were created with megaraid virtual devices all attached to the same controller.<br /><br />
+zsystem is a zpool created from a virtual device with 2 disks RAID1, seen as mfid0 (465Gb)<br /><br />
+zdata is a zpool with two RAID0 block devices, vd1 and vd2, created with 4 physical disks, seen as mfid1 and mfid2 (3.6Tb)<br /><br />
+One of the virtual devices is degrated, and the result is a FAULTED pool.<br /><br />
+But this is where nothing makes sense anymore:<br /><br /><div class="bbCodeBlock bbCodeBlock--screenLimited bbCodeBlock--code"><div class="bbCodeBlock-title">
+		Code:
+	</div><div class="bbCodeBlock-content" dir="ltr"><pre class="bbCodeCode" dir="ltr" data-xf-init="code-block" data-lang=""><code>zdata      FAULTED  corrupted data
+     mfid2p3   ONLINE
+     mfid2p3   FAULTED  corrupted data</code></pre></div></div><br />
+Note that it&#039;s <b>same</b> device, both ONLINE and FAULTED.<br /><br />
+Trying to import the pool obviously doesn&#039;t work:<br /><div class="bbCodeBlock bbCodeBlock--screenLimited bbCodeBlock--code"><div class="bbCodeBlock-title">
+		Code:
+	</div><div class="bbCodeBlock-content" dir="ltr"><pre class="bbCodeCode" dir="ltr" data-xf-init="code-block" data-lang=""><code>&gt; zpool import -f zdata
+cannot import &#039;zdata&#039;: one or more devices is currently unavailable</code></pre></div></div><br />
+gpart makes things worse:<br /><br /><div class="bbCodeBlock bbCodeBlock--screenLimited bbCodeBlock--code"><div class="bbCodeBlock-title">
+		Code:
+	</div><div class="bbCodeBlock-content" dir="ltr"><pre class="bbCodeCode" dir="ltr" data-xf-init="code-block" data-lang=""><code>&gt; gpart show
+=&gt;       40  975699888  mfid0  GPT  (465G)
+         40       1024      1  freebsd-boot  (512K)
+       1064        984         - free -  (492K)
+       2048    8388608      2  freebsd-swap  (4.0G)
+    8390656  967307264      3  freebsd-zfs  (461G)
+  975697920       2008         - free -  (1.0M)
+
+=&gt;        40  7812939696  mfid2  GPT  (3.6T)
+          40        1024      1  freebsd-boot  (512K)
+        1064         984         - free -  (492K)
+        2048     4194304      2  freebsd-swap  (2.0G)
+     4196352  7808741376      3  freebsd-zfs  (3.6T)
+  7812937728        2008         - free -  (1.0M)
+
+=&gt;        40  7812939696  mfid1  GPT  (3.6T)
+          40        1024      1  freebsd-boot  (512K)
+        1064         984         - free -  (492K)
+        2048     4194304      2  freebsd-swap  (2.0G)
+     4196352  7808741376      3  freebsd-zfs  (3.6T)
+  7812937728        2008         - free -  (1.0M)</code></pre></div></div><br />
+mfid0 is where the OS lives, and the partition makes sense (the system boots).<br />
+But both mfid1,2 don&#039;t make sense. Those were wiped clean and added to the zpool, never partioned as shown.<br /><br />
+The dagger comes when one examines the boot log (dmesg):<br /><div class="bbCodeBlock bbCodeBlock--screenLimited bbCodeBlock--code"><div class="bbCodeBlock-title">
+		Code:
+	</div><div class="bbCodeBlock-content" dir="ltr"><pre class="bbCodeCode" dir="ltr" data-xf-init="code-block" data-lang=""><code>mfid0 on mfi0
+mfid0: 476416MB (975699968 sectors) RAID volume &#039;Virtual Disk0&#039; is degraded
+mfid1 on mfi0
+mfid1: 3814912MB (7812939776 sectors) RAID volume &#039;vd1&#039; is optimal
+mfid2 on mfi0
+mfid2: 3814912MB (7812939776 sectors) RAID volume &#039;vd0&#039; is optimal</code></pre></div></div><br />
+So according to this, the FAULTED (degraded) pool, is where zsystem lives and therefore, I should not be able to boot the OS!<br /><br />
+Neither should this be happening?<br /><br /><div class="bbCodeBlock bbCodeBlock--screenLimited bbCodeBlock--code"><div class="bbCodeBlock-title">
+		Code:
+	</div><div class="bbCodeBlock-content" dir="ltr"><pre class="bbCodeCode" dir="ltr" data-xf-init="code-block" data-lang=""><code>host :: / » zpool status 
+  pool: zsystem
+ state: ONLINE
+  scan: scrub repaired 0B in 00:01:34 with 0 errors on Fri Mar  1 03:51:28 2024
+config:
+
+    NAME        STATE     READ WRITE CKSUM
+    zsystem     ONLINE       0     0     0
+     mfid0p3   ONLINE       0     0     0
+
+errors: No known data errors</code></pre></div></div><br />
+I know, mixing up megaraid and zfs is a bad idea, but this is on another level, does anyone have any idea what is going on?<br /><br />
+Any help is much appreciated.</div></div><div class="js-selectToQuoteEnd">&nbsp;</div></article></div><div class="message-lastEdit">
+			
+				Last edited by a moderator: <time  class="u-dt" dir="auto" datetime="2024-04-16T09:48:32+0100" data-timestamp="1713257312" data-date="Apr 16, 2024" data-time="9:48 AM" data-short="Apr &#039;24" title="Apr 16, 2024 at 9:48 AM">Apr 16, 2024</time></div></div><footer class="message-footer"><div class="reactionsBar js-reactionsList "></div><div class="js-historyTarget message-historyTarget toggleTarget" data-href="trigger-href"></div></footer></div></div></div></article><article class="message message--post js-post js-inlineModContainer  "
+		data-author="cy@"
+		data-content="post-650545"
+		id="js-post-650545"
+		itemscope itemtype="https://schema.org/Comment" itemid="https://forums.freebsd.org/posts/650545/"><meta itemprop="parentItem" itemscope itemid="https://forums.freebsd.org/threads/strange-zfs-status.93000/" /><meta itemprop="name" content="Post #2" /><span class="u-anchorTarget" id="post-650545"></span><div class="message-inner"><div class="message-cell message-cell--user"><section class="message-user"
+		itemprop="author"
+		itemscope itemtype="https://schema.org/Person"
+		itemid="https://forums.freebsd.org/members/cy.76/"><meta itemprop="url" content="https://forums.freebsd.org/members/cy.76/" /><div class="message-avatar "><div class="message-avatar-wrapper"><a href="/members/cy.76/" class="avatar avatar--m" data-user-id="76" data-xf-init="member-tooltip"><img></a></div></div><div class="message-userDetails"><h4 class="message-name"><a href="/members/cy.76/" class="username " dir="auto" data-user-id="76" data-xf-init="member-tooltip"><span itemprop="name">cy@</span></a></h4><div class="userBanner userBanner userBanner--royalBlue message-userBanner" itemprop="jobTitle"><span class="userBanner-before"></span><strong>Developer</strong><span class="userBanner-after"></span></div></div><span class="message-userArrow"></span></section></div><div class="message-cell message-cell--main"><div class="message-main js-quickEditTarget"><header class="message-attribution message-attribution--split"><ul class="message-attribution-main listInline "><li class="u-concealed"><a href="/threads/strange-zfs-status.93000/post-650545" rel="nofollow" itemprop="url"><time  class="u-dt" dir="auto" datetime="2024-04-04T20:59:42+0100" data-timestamp="1712260782" data-date="Apr 4, 2024" data-time="8:59 PM" data-short="Apr &#039;24" title="Apr 4, 2024 at 8:59 PM" itemprop="datePublished">Apr 4, 2024</time></a></li></ul><ul class="message-attribution-opposite message-attribution-opposite--list "><li><a href="/threads/strange-zfs-status.93000/post-650545"
+					class="message-attribution-gadget"
+					data-xf-init="share-tooltip"
+					data-href="/posts/650545/share"
+					aria-label="Share"
+					rel="nofollow"><i class="fa--xf far fa-share-alt "></i></a></li><li class="u-hidden js-embedCopy"><a href="javascript:"
+		data-xf-init="copy-to-clipboard"
+		data-copy-text="&lt;div class=&quot;js-xf-embed&quot; data-url=&quot;https://forums.freebsd.org&quot; data-content=&quot;post-650545&quot;&gt;&lt;/div&gt;&lt;script defer src=&quot;https://forums.freebsd.org/js/xf/external_embed.js?_v=65069f3a&quot;&gt;&lt;/script&gt;"
+		data-success="Embed code HTML copied to clipboard."
+		class=""><i class="fa--xf far fa-code "></i></a></li><li><a href="/threads/strange-zfs-status.93000/post-650545" rel="nofollow">
+						#2
+					</a></li></ul></header><div class="message-content js-messageContent"><div class="message-userContent lbContainer js-lbContainer "
+		data-lb-id="post-650545"
+		data-lb-caption-desc="cy@ &middot; Apr 4, 2024 at 8:59 PM"><article class="message-body js-selectToQuote"><div itemprop="text"><div class="bbWrapper">What do the mfiutil show commands tell you?<br /><br />
+Caveat: I don&#039;t have any of these controllers here but reading the man page you should be able to show the adapter, drives and volumes status. man mfiutil should tell you more.<br /><br />
+Looking at the devices using the LSI controller&#039;s BIOS should give you the status of the volumes and devices -- assuming the LSI controller&#039;s BIOS provides the same functions HPE controllers do.<br /><br />
+Also what do the dev.mfi sysctls show?</div></div><div class="js-selectToQuoteEnd">&nbsp;</div></article></div></div><footer class="message-footer"><div class="message-microdata" itemprop="interactionStatistic" itemtype="https://schema.org/InteractionCounter" itemscope><meta itemprop="userInteractionCount" content="1" /><meta itemprop="interactionType" content="https://schema.org/LikeAction" /></div><div class="reactionsBar js-reactionsList is-active"><ul class="reactionSummary"><li><span class="reaction reaction--small reaction--1" data-reaction-id="1"><i aria-hidden="true"></i><img></span></li></ul><span class="u-srOnly">Reactions:</span><a class="reactionsBar-link" href="/posts/650545/reactions" data-xf-click="overlay" data-cache="false" rel="nofollow"><bdi>mfoacs</bdi></a></div><div class="js-historyTarget message-historyTarget toggleTarget" data-href="trigger-href"></div></footer></div></div></div></article><article class="message message--post js-post js-inlineModContainer  "
+		data-author="Eric A. Borisch"
+		data-content="post-650555"
+		id="js-post-650555"
+		itemscope itemtype="https://schema.org/Comment" itemid="https://forums.freebsd.org/posts/650555/"><meta itemprop="parentItem" itemscope itemid="https://forums.freebsd.org/threads/strange-zfs-status.93000/" /><meta itemprop="name" content="Post #3" /><span class="u-anchorTarget" id="post-650555"></span><div class="message-inner"><div class="message-cell message-cell--user"><section class="message-user"
+		itemprop="author"
+		itemscope itemtype="https://schema.org/Person"
+		itemid="https://forums.freebsd.org/members/eric-a-borisch.52053/"><meta itemprop="url" content="https://forums.freebsd.org/members/eric-a-borisch.52053/" /><div class="message-avatar "><div class="message-avatar-wrapper"><a href="/members/eric-a-borisch.52053/" class="avatar avatar--m" data-user-id="52053" data-xf-init="member-tooltip"><img></a></div></div><div class="message-userDetails"><h4 class="message-name"><a href="/members/eric-a-borisch.52053/" class="username " dir="auto" data-user-id="52053" data-xf-init="member-tooltip"><span itemprop="name">Eric A. Borisch</span></a></h4></div><span class="message-userArrow"></span></section></div><div class="message-cell message-cell--main"><div class="message-main js-quickEditTarget"><header class="message-attribution message-attribution--split"><ul class="message-attribution-main listInline "><li class="u-concealed"><a href="/threads/strange-zfs-status.93000/post-650555" rel="nofollow" itemprop="url"><time  class="u-dt" dir="auto" datetime="2024-04-04T21:49:22+0100" data-timestamp="1712263762" data-date="Apr 4, 2024" data-time="9:49 PM" data-short="Apr &#039;24" title="Apr 4, 2024 at 9:49 PM" itemprop="datePublished">Apr 4, 2024</time></a></li></ul><ul class="message-attribution-opposite message-attribution-opposite--list "><li><a href="/threads/strange-zfs-status.93000/post-650555"
+					class="message-attribution-gadget"
+					data-xf-init="share-tooltip"
+					data-href="/posts/650555/share"
+					aria-label="Share"
+					rel="nofollow"><i class="fa--xf far fa-share-alt "></i></a></li><li class="u-hidden js-embedCopy"><a href="javascript:"
+		data-xf-init="copy-to-clipboard"
+		data-copy-text="&lt;div class=&quot;js-xf-embed&quot; data-url=&quot;https://forums.freebsd.org&quot; data-content=&quot;post-650555&quot;&gt;&lt;/div&gt;&lt;script defer src=&quot;https://forums.freebsd.org/js/xf/external_embed.js?_v=65069f3a&quot;&gt;&lt;/script&gt;"
+		data-success="Embed code HTML copied to clipboard."
+		class=""><i class="fa--xf far fa-code "></i></a></li><li><a href="/threads/strange-zfs-status.93000/post-650555" rel="nofollow">
+						#3
+					</a></li></ul></header><div class="message-content js-messageContent"><div class="message-userContent lbContainer js-lbContainer "
+		data-lb-id="post-650555"
+		data-lb-caption-desc="Eric A. Borisch &middot; Apr 4, 2024 at 9:49 PM"><article class="message-body js-selectToQuote"><div itemprop="text"><div class="bbWrapper">You might try zpool status -g, which will use guids rather than current / old names for devices. Avoids some confusion in cases where some devices have moved and some appear missing.</div></div><div class="js-selectToQuoteEnd">&nbsp;</div></article></div></div><footer class="message-footer"><div class="message-microdata" itemprop="interactionStatistic" itemtype="https://schema.org/InteractionCounter" itemscope><meta itemprop="userInteractionCount" content="1" /><meta itemprop="interactionType" content="https://schema.org/LikeAction" /></div><div class="reactionsBar js-reactionsList is-active"><ul class="reactionSummary"><li><span class="reaction reaction--small reaction--1" data-reaction-id="1"><i aria-hidden="true"></i><img></span></li></ul><span class="u-srOnly">Reactions:</span><a class="reactionsBar-link" href="/posts/650555/reactions" data-xf-click="overlay" data-cache="false" rel="nofollow"><bdi>mfoacs</bdi></a></div><div class="js-historyTarget message-historyTarget toggleTarget" data-href="trigger-href"></div></footer></div></div></div></article><article class="message message--post js-post js-inlineModContainer  "
+		data-author="mfoacs"
+		data-content="post-650616"
+		id="js-post-650616"
+		itemscope itemtype="https://schema.org/Comment" itemid="https://forums.freebsd.org/posts/650616/"><meta itemprop="parentItem" itemscope itemid="https://forums.freebsd.org/threads/strange-zfs-status.93000/" /><meta itemprop="name" content="Post #4" /><span class="u-anchorTarget" id="post-650616"></span><div class="message-inner"><div class="message-cell message-cell--user"><section class="message-user"
+		itemprop="author"
+		itemscope itemtype="https://schema.org/Person"
+		itemid="https://forums.freebsd.org/members/mfoacs.52011/"><meta itemprop="url" content="https://forums.freebsd.org/members/mfoacs.52011/" /><div class="message-avatar "><div class="message-avatar-wrapper"><div class="ribbonBox desktopRibbon leftCornerDesktop"><div class="ribbon-wrapper"><div class="ribbon"
+                    
+                        data-xf-init="tooltip"
+                        data-original-title="Thread Starter"
+                    
+                ><span>OP </span></div></div></div><a href="/members/mfoacs.52011/" class="avatar avatar--m" data-user-id="52011" data-xf-init="member-tooltip"><img></a></div></div><div class="message-userDetails"><h4 class="message-name"><a href="/members/mfoacs.52011/" class="username " dir="auto" data-user-id="52011" data-xf-init="member-tooltip"><span itemprop="name">mfoacs</span></a></h4></div><span class="message-userArrow"></span></section></div><div class="message-cell message-cell--main"><div class="message-main js-quickEditTarget"><header class="message-attribution message-attribution--split"><ul class="message-attribution-main listInline "><li class="u-concealed"><a href="/threads/strange-zfs-status.93000/post-650616" rel="nofollow" itemprop="url"><time  class="u-dt" dir="auto" datetime="2024-04-05T11:03:40+0100" data-timestamp="1712311420" data-date="Apr 5, 2024" data-time="11:03 AM" data-short="Apr &#039;24" title="Apr 5, 2024 at 11:03 AM" itemprop="datePublished">Apr 5, 2024</time></a></li></ul><ul class="message-attribution-opposite message-attribution-opposite--list "><li><span class="message-newIndicator threadStarterMobile">Thread Starter</span></li><li><a href="/threads/strange-zfs-status.93000/post-650616"
+					class="message-attribution-gadget"
+					data-xf-init="share-tooltip"
+					data-href="/posts/650616/share"
+					aria-label="Share"
+					rel="nofollow"><i class="fa--xf far fa-share-alt "></i></a></li><li class="u-hidden js-embedCopy"><a href="javascript:"
+		data-xf-init="copy-to-clipboard"
+		data-copy-text="&lt;div class=&quot;js-xf-embed&quot; data-url=&quot;https://forums.freebsd.org&quot; data-content=&quot;post-650616&quot;&gt;&lt;/div&gt;&lt;script defer src=&quot;https://forums.freebsd.org/js/xf/external_embed.js?_v=65069f3a&quot;&gt;&lt;/script&gt;"
+		data-success="Embed code HTML copied to clipboard."
+		class=""><i class="fa--xf far fa-code "></i></a></li><li><a href="/threads/strange-zfs-status.93000/post-650616" rel="nofollow">
+						#4
+					</a></li></ul></header><div class="message-content js-messageContent"><div class="message-userContent lbContainer js-lbContainer "
+		data-lb-id="post-650616"
+		data-lb-caption-desc="mfoacs &middot; Apr 5, 2024 at 11:03 AM"><article class="message-body js-selectToQuote"><div itemprop="text"><div class="bbWrapper"><blockquote data-attributes="member: 52053" data-quote="Eric A. Borisch" data-source="post: 650555"
+	class="bbCodeBlock bbCodeBlock--expandable bbCodeBlock--quote js-expandWatch"><div class="bbCodeBlock-title"><a href="/goto/post?id=650555"
+					class="bbCodeBlock-sourceJump"
+					rel="nofollow"
+					data-xf-click="attribution"
+					data-content-selector="#post-650555">Eric A. Borisch said:</a></div><div class="bbCodeBlock-content"><div class="bbCodeBlock-expandContent js-expandContent ">
+			You might try zpool status -g, which will use guids rather than current / old names for devices. Avoids some confusion in cases where some devices have moved and some appear missing.
+		</div><div class="bbCodeBlock-expandLink js-expandLink"><a role="button" tabindex="0">Click to expand...</a></div></div></blockquote>I would have tried that too but since the pool is not imported, it&#039;s no good.</div></div><div class="js-selectToQuoteEnd">&nbsp;</div></article></div></div><footer class="message-footer"><div class="message-microdata" itemprop="interactionStatistic" itemtype="https://schema.org/InteractionCounter" itemscope><meta itemprop="userInteractionCount" content="0" /><meta itemprop="interactionType" content="https://schema.org/LikeAction" /></div><div class="reactionsBar js-reactionsList "></div><div class="js-historyTarget message-historyTarget toggleTarget" data-href="trigger-href"></div></footer></div></div></div></article><article class="message message--post js-post js-inlineModContainer  "
+		data-author="mfoacs"
+		data-content="post-650618"
+		id="js-post-650618"
+		itemscope itemtype="https://schema.org/Comment" itemid="https://forums.freebsd.org/posts/650618/"><meta itemprop="parentItem" itemscope itemid="https://forums.freebsd.org/threads/strange-zfs-status.93000/" /><meta itemprop="name" content="Post #5" /><span class="u-anchorTarget" id="post-650618"></span><div class="message-inner"><div class="message-cell message-cell--user"><section class="message-user"
+		itemprop="author"
+		itemscope itemtype="https://schema.org/Person"
+		itemid="https://forums.freebsd.org/members/mfoacs.52011/"><meta itemprop="url" content="https://forums.freebsd.org/members/mfoacs.52011/" /><div class="message-avatar "><div class="message-avatar-wrapper"><div class="ribbonBox desktopRibbon leftCornerDesktop"><div class="ribbon-wrapper"><div class="ribbon"
+                    
+                        data-xf-init="tooltip"
+                        data-original-title="Thread Starter"
+                    
+                ><span>OP </span></div></div></div><a href="/members/mfoacs.52011/" class="avatar avatar--m" data-user-id="52011" data-xf-init="member-tooltip"><img></a></div></div><div class="message-userDetails"><h4 class="message-name"><a href="/members/mfoacs.52011/" class="username " dir="auto" data-user-id="52011" data-xf-init="member-tooltip"><span itemprop="name">mfoacs</span></a></h4></div><span class="message-userArrow"></span></section></div><div class="message-cell message-cell--main"><div class="message-main js-quickEditTarget"><header class="message-attribution message-attribution--split"><ul class="message-attribution-main listInline "><li class="u-concealed"><a href="/threads/strange-zfs-status.93000/post-650618" rel="nofollow" itemprop="url"><time  class="u-dt" dir="auto" datetime="2024-04-05T11:22:16+0100" data-timestamp="1712312536" data-date="Apr 5, 2024" data-time="11:22 AM" data-short="Apr &#039;24" title="Apr 5, 2024 at 11:22 AM" itemprop="datePublished">Apr 5, 2024</time></a></li></ul><ul class="message-attribution-opposite message-attribution-opposite--list "><li><span class="message-newIndicator threadStarterMobile">Thread Starter</span></li><li><a href="/threads/strange-zfs-status.93000/post-650618"
+					class="message-attribution-gadget"
+					data-xf-init="share-tooltip"
+					data-href="/posts/650618/share"
+					aria-label="Share"
+					rel="nofollow"><i class="fa--xf far fa-share-alt "></i></a></li><li class="u-hidden js-embedCopy"><a href="javascript:"
+		data-xf-init="copy-to-clipboard"
+		data-copy-text="&lt;div class=&quot;js-xf-embed&quot; data-url=&quot;https://forums.freebsd.org&quot; data-content=&quot;post-650618&quot;&gt;&lt;/div&gt;&lt;script defer src=&quot;https://forums.freebsd.org/js/xf/external_embed.js?_v=65069f3a&quot;&gt;&lt;/script&gt;"
+		data-success="Embed code HTML copied to clipboard."
+		class=""><i class="fa--xf far fa-code "></i></a></li><li><a href="/threads/strange-zfs-status.93000/post-650618" rel="nofollow">
+						#5
+					</a></li></ul></header><div class="message-content js-messageContent"><div class="message-userContent lbContainer js-lbContainer "
+		data-lb-id="post-650618"
+		data-lb-caption-desc="mfoacs &middot; Apr 5, 2024 at 11:22 AM"><article class="message-body js-selectToQuote"><div itemprop="text"><div class="bbWrapper"><blockquote data-attributes="member: 76" data-quote="cy@" data-source="post: 650545"
+	class="bbCodeBlock bbCodeBlock--expandable bbCodeBlock--quote js-expandWatch"><div class="bbCodeBlock-title"><a href="/goto/post?id=650545"
+					class="bbCodeBlock-sourceJump"
+					rel="nofollow"
+					data-xf-click="attribution"
+					data-content-selector="#post-650545">cy@ said:</a></div><div class="bbCodeBlock-content"><div class="bbCodeBlock-expandContent js-expandContent ">
+			What do the mfiutil show commands tell you?<br /><br />
+Caveat: I don&#039;t have any of these controllers here but reading the man page you should be able to show the adapter, drives and volumes status. man mfiutil should tell you more.<br /><br />
+Looking at the devices using the LSI controller&#039;s BIOS should give you the status of the volumes and devices -- assuming the LSI controller&#039;s BIOS provides the same functions HPE controllers do.<br /><br />
+Also what do the dev.mfi sysctls show?
+		</div><div class="bbCodeBlock-expandLink js-expandLink"><a role="button" tabindex="0">Click to expand...</a></div></div></blockquote><br />
+Good suggestion, thanks! <br /><br /><div class="bbCodeBlock bbCodeBlock--screenLimited bbCodeBlock--code"><div class="bbCodeBlock-title">
+		Code:
+	</div><div class="bbCodeBlock-content" dir="ltr"><pre class="bbCodeCode" dir="ltr" data-xf-init="code-block" data-lang=""><code>centaurus :: ~ » sudo sysctl dev.mfi.
+dev.mfi.0.keep_deleted_volumes: 0
+dev.mfi.0.delete_busy_volumes: 0
+dev.mfi.0.%parent: pci3
+dev.mfi.0.%pnpinfo: vendor=0x1000 device=0x0079 subvendor=0x1028 subdevice=0x1f17 class=0x010400
+dev.mfi.0.%location: slot=0 function=0 dbsf=pci0:3:0:0
+dev.mfi.0.%driver: mfi
+dev.mfi.0.%desc: Dell PERC H700 Integrated
+dev.mfi.%parent:
+centaurus :: ~ »</code></pre></div></div><br />
+Interestingly enough, mfiutil agrees with dmesg but not with ZFS:<br /><br /><div class="bbCodeBlock bbCodeBlock--screenLimited bbCodeBlock--code"><div class="bbCodeBlock-title">
+		Code:
+	</div><div class="bbCodeBlock-content" dir="ltr"><pre class="bbCodeCode" dir="ltr" data-xf-init="code-block" data-lang=""><code>centaurus :: ~ » mfiutil show config
+/dev/mfi0 Configuration: 3 arrays, 3 volumes, 0 spares
+    array 0 of 2 drives:
+        drive  0 (  466G) ONLINE &lt;SEAGATE ST3500414SS KS68 serial=9WJ1JVZK&gt; SAS
+        drive MISSING
+    array 1 of 1 drives:
+        drive  3 ( 3726G) ONLINE &lt;ST4000NM0033-9ZM GA0A serial=S1Z184SH&gt; SATA
+    array 2 of 1 drives:
+        drive  2 ( 3726G) ONLINE &lt;ST4000NM0033-9ZM GA0A serial=S1Z184NZ&gt; SATA
+    volume mfid0 (465G) RAID-1 64K DEGRADED &lt;Virtual Disk0&gt; spans:
+        array 0
+    volume mfid1 (3726G) RAID-0 64K OPTIMAL &lt;vd1&gt; spans:
+        array 1
+    volume mfid2 (3726G) RAID-0 64K OPTIMAL &lt;vd0&gt; spans:
+        array 2</code></pre></div></div><br />
+Note the MISSING drive, a second SEAGATE ST3500414SS KS68 SAS. The pool zsystem should be DEGRADED because one of the drives is missing. But for some reason, ZFS is reporting something else entirely. How do I fix this?</div></div><div class="js-selectToQuoteEnd">&nbsp;</div></article></div><div class="message-lastEdit">
+			
+				Last edited by a moderator: <time  class="u-dt" dir="auto" datetime="2024-04-16T09:49:08+0100" data-timestamp="1713257348" data-date="Apr 16, 2024" data-time="9:49 AM" data-short="Apr &#039;24" title="Apr 16, 2024 at 9:49 AM" itemprop="dateModified">Apr 16, 2024</time></div></div><footer class="message-footer"><div class="message-microdata" itemprop="interactionStatistic" itemtype="https://schema.org/InteractionCounter" itemscope><meta itemprop="userInteractionCount" content="0" /><meta itemprop="interactionType" content="https://schema.org/LikeAction" /></div><div class="reactionsBar js-reactionsList "></div><div class="js-historyTarget message-historyTarget toggleTarget" data-href="trigger-href"></div></footer></div></div></div></article><article class="message message--post js-post js-inlineModContainer  "
+		data-author="VladiBG"
+		data-content="post-650620"
+		id="js-post-650620"
+		itemscope itemtype="https://schema.org/Comment" itemid="https://forums.freebsd.org/posts/650620/"><meta itemprop="parentItem" itemscope itemid="https://forums.freebsd.org/threads/strange-zfs-status.93000/" /><meta itemprop="name" content="Post #6" /><span class="u-anchorTarget" id="post-650620"></span><div class="message-inner"><div class="message-cell message-cell--user"><section class="message-user"
+		itemprop="author"
+		itemscope itemtype="https://schema.org/Person"
+		itemid="https://forums.freebsd.org/members/vladibg.51300/"><meta itemprop="url" content="https://forums.freebsd.org/members/vladibg.51300/" /><div class="message-avatar "><div class="message-avatar-wrapper"><a href="/members/vladibg.51300/" class="avatar avatar--m" data-user-id="51300" data-xf-init="member-tooltip"><img></a></div></div><div class="message-userDetails"><h4 class="message-name"><a href="/members/vladibg.51300/" class="username " dir="auto" data-user-id="51300" data-xf-init="member-tooltip"><span itemprop="name">VladiBG</span></a></h4></div><span class="message-userArrow"></span></section></div><div class="message-cell message-cell--main"><div class="message-main js-quickEditTarget"><header class="message-attribution message-attribution--split"><ul class="message-attribution-main listInline "><li class="u-concealed"><a href="/threads/strange-zfs-status.93000/post-650620" rel="nofollow" itemprop="url"><time  class="u-dt" dir="auto" datetime="2024-04-05T11:56:09+0100" data-timestamp="1712314569" data-date="Apr 5, 2024" data-time="11:56 AM" data-short="Apr &#039;24" title="Apr 5, 2024 at 11:56 AM" itemprop="datePublished">Apr 5, 2024</time></a></li></ul><ul class="message-attribution-opposite message-attribution-opposite--list "><li><a href="/threads/strange-zfs-status.93000/post-650620"
+					class="message-attribution-gadget"
+					data-xf-init="share-tooltip"
+					data-href="/posts/650620/share"
+					aria-label="Share"
+					rel="nofollow"><i class="fa--xf far fa-share-alt "></i></a></li><li class="u-hidden js-embedCopy"><a href="javascript:"
+		data-xf-init="copy-to-clipboard"
+		data-copy-text="&lt;div class=&quot;js-xf-embed&quot; data-url=&quot;https://forums.freebsd.org&quot; data-content=&quot;post-650620&quot;&gt;&lt;/div&gt;&lt;script defer src=&quot;https://forums.freebsd.org/js/xf/external_embed.js?_v=65069f3a&quot;&gt;&lt;/script&gt;"
+		data-success="Embed code HTML copied to clipboard."
+		class=""><i class="fa--xf far fa-code "></i></a></li><li><a href="/threads/strange-zfs-status.93000/post-650620" rel="nofollow">
+						#6
+					</a></li></ul></header><div class="message-content js-messageContent"><div class="message-userContent lbContainer js-lbContainer "
+		data-lb-id="post-650620"
+		data-lb-caption-desc="VladiBG &middot; Apr 5, 2024 at 11:56 AM"><article class="message-body js-selectToQuote"><div itemprop="text"><div class="bbWrapper">Don&#039;t use nested raids.<br /><br />
+Your zsystem is build on top of mfi0 so the ZFS can&#039;t detect the degraded status of mfi0 because it doesn&#039;t know that drive0 is missing. That&#039;s why it&#039;s not degraded for the ZFS. To fix it you need to replace the missing drive0 with s/n:9WJ1JVZK and rebuild mfi0.<br /><br />
+Your zdata is gone if it&#039;s build as stripe from mfid1+mfid2</div></div><div class="js-selectToQuoteEnd">&nbsp;</div></article></div></div><footer class="message-footer"><div class="message-microdata" itemprop="interactionStatistic" itemtype="https://schema.org/InteractionCounter" itemscope><meta itemprop="userInteractionCount" content="1" /><meta itemprop="interactionType" content="https://schema.org/LikeAction" /></div><div class="reactionsBar js-reactionsList is-active"><ul class="reactionSummary"><li><span class="reaction reaction--small reaction--1" data-reaction-id="1"><i aria-hidden="true"></i><img></span></li></ul><span class="u-srOnly">Reactions:</span><a class="reactionsBar-link" href="/posts/650620/reactions" data-xf-click="overlay" data-cache="false" rel="nofollow"><bdi>mfoacs</bdi></a></div><div class="js-historyTarget message-historyTarget toggleTarget" data-href="trigger-href"></div></footer></div></div></div></article><article class="message message--post js-post js-inlineModContainer  "
+		data-author="mfoacs"
+		data-content="post-650627"
+		id="js-post-650627"
+		itemscope itemtype="https://schema.org/Comment" itemid="https://forums.freebsd.org/posts/650627/"><meta itemprop="parentItem" itemscope itemid="https://forums.freebsd.org/threads/strange-zfs-status.93000/" /><meta itemprop="name" content="Post #7" /><span class="u-anchorTarget" id="post-650627"></span><div class="message-inner"><div class="message-cell message-cell--user"><section class="message-user"
+		itemprop="author"
+		itemscope itemtype="https://schema.org/Person"
+		itemid="https://forums.freebsd.org/members/mfoacs.52011/"><meta itemprop="url" content="https://forums.freebsd.org/members/mfoacs.52011/" /><div class="message-avatar "><div class="message-avatar-wrapper"><div class="ribbonBox desktopRibbon leftCornerDesktop"><div class="ribbon-wrapper"><div class="ribbon"
+                    
+                        data-xf-init="tooltip"
+                        data-original-title="Thread Starter"
+                    
+                ><span>OP </span></div></div></div><a href="/members/mfoacs.52011/" class="avatar avatar--m" data-user-id="52011" data-xf-init="member-tooltip"><img></a></div></div><div class="message-userDetails"><h4 class="message-name"><a href="/members/mfoacs.52011/" class="username " dir="auto" data-user-id="52011" data-xf-init="member-tooltip"><span itemprop="name">mfoacs</span></a></h4></div><span class="message-userArrow"></span></section></div><div class="message-cell message-cell--main"><div class="message-main js-quickEditTarget"><header class="message-attribution message-attribution--split"><ul class="message-attribution-main listInline "><li class="u-concealed"><a href="/threads/strange-zfs-status.93000/post-650627" rel="nofollow" itemprop="url"><time  class="u-dt" dir="auto" datetime="2024-04-05T13:53:22+0100" data-timestamp="1712321602" data-date="Apr 5, 2024" data-time="1:53 PM" data-short="Apr &#039;24" title="Apr 5, 2024 at 1:53 PM" itemprop="datePublished">Apr 5, 2024</time></a></li></ul><ul class="message-attribution-opposite message-attribution-opposite--list "><li><span class="message-newIndicator threadStarterMobile">Thread Starter</span></li><li><a href="/threads/strange-zfs-status.93000/post-650627"
+					class="message-attribution-gadget"
+					data-xf-init="share-tooltip"
+					data-href="/posts/650627/share"
+					aria-label="Share"
+					rel="nofollow"><i class="fa--xf far fa-share-alt "></i></a></li><li class="u-hidden js-embedCopy"><a href="javascript:"
+		data-xf-init="copy-to-clipboard"
+		data-copy-text="&lt;div class=&quot;js-xf-embed&quot; data-url=&quot;https://forums.freebsd.org&quot; data-content=&quot;post-650627&quot;&gt;&lt;/div&gt;&lt;script defer src=&quot;https://forums.freebsd.org/js/xf/external_embed.js?_v=65069f3a&quot;&gt;&lt;/script&gt;"
+		data-success="Embed code HTML copied to clipboard."
+		class=""><i class="fa--xf far fa-code "></i></a></li><li><a href="/threads/strange-zfs-status.93000/post-650627" rel="nofollow">
+						#7
+					</a></li></ul></header><div class="message-content js-messageContent"><div class="message-userContent lbContainer js-lbContainer "
+		data-lb-id="post-650627"
+		data-lb-caption-desc="mfoacs &middot; Apr 5, 2024 at 1:53 PM"><article class="message-body js-selectToQuote"><div itemprop="text"><div class="bbWrapper"><blockquote data-attributes="member: 51300" data-quote="VladiBG" data-source="post: 650620"
+	class="bbCodeBlock bbCodeBlock--expandable bbCodeBlock--quote js-expandWatch"><div class="bbCodeBlock-title"><a href="/goto/post?id=650620"
+					class="bbCodeBlock-sourceJump"
+					rel="nofollow"
+					data-xf-click="attribution"
+					data-content-selector="#post-650620">VladiBG said:</a></div><div class="bbCodeBlock-content"><div class="bbCodeBlock-expandContent js-expandContent ">
+			Don&#039;t use nested raids.<br /><br />
+Your zsystem is build on top of mfi0 so the ZFS can&#039;t detect the degraded status of mfi0 because it doesn&#039;t know that drive0 is missing. That&#039;s why it&#039;s not degraded for the ZFS. To fix it you need to replace the missing drive0 with s/n:9WJ1JVZK and rebuild mfi0.<br /><br />
+Your zdata is gone if it&#039;s build as stripe from mfid1+mfid2
+		</div><div class="bbCodeBlock-expandLink js-expandLink"><a role="button" tabindex="0">Click to expand...</a></div></div></blockquote>I will remember that.<br />
+Thanks for clarifying it.</div></div><div class="js-selectToQuoteEnd">&nbsp;</div></article></div></div><footer class="message-footer"><div class="message-microdata" itemprop="interactionStatistic" itemtype="https://schema.org/InteractionCounter" itemscope><meta itemprop="userInteractionCount" content="0" /><meta itemprop="interactionType" content="https://schema.org/LikeAction" /></div><div class="reactionsBar js-reactionsList "></div><div class="js-historyTarget message-historyTarget toggleTarget" data-href="trigger-href"></div></footer></div></div></div></article><article class="message message--post js-post js-inlineModContainer  "
+		data-author="cy@"
+		data-content="post-650715"
+		id="js-post-650715"
+		itemscope itemtype="https://schema.org/Comment" itemid="https://forums.freebsd.org/posts/650715/"><meta itemprop="parentItem" itemscope itemid="https://forums.freebsd.org/threads/strange-zfs-status.93000/" /><meta itemprop="name" content="Post #8" /><span class="u-anchorTarget" id="post-650715"></span><div class="message-inner"><div class="message-cell message-cell--user"><section class="message-user"
+		itemprop="author"
+		itemscope itemtype="https://schema.org/Person"
+		itemid="https://forums.freebsd.org/members/cy.76/"><meta itemprop="url" content="https://forums.freebsd.org/members/cy.76/" /><div class="message-avatar "><div class="message-avatar-wrapper"><a href="/members/cy.76/" class="avatar avatar--m" data-user-id="76" data-xf-init="member-tooltip"><img></a></div></div><div class="message-userDetails"><h4 class="message-name"><a href="/members/cy.76/" class="username " dir="auto" data-user-id="76" data-xf-init="member-tooltip"><span itemprop="name">cy@</span></a></h4><div class="userBanner userBanner userBanner--royalBlue message-userBanner" itemprop="jobTitle"><span class="userBanner-before"></span><strong>Developer</strong><span class="userBanner-after"></span></div></div><span class="message-userArrow"></span></section></div><div class="message-cell message-cell--main"><div class="message-main js-quickEditTarget"><header class="message-attribution message-attribution--split"><ul class="message-attribution-main listInline "><li class="u-concealed"><a href="/threads/strange-zfs-status.93000/post-650715" rel="nofollow" itemprop="url"><time  class="u-dt" dir="auto" datetime="2024-04-06T05:46:24+0100" data-timestamp="1712378784" data-date="Apr 6, 2024" data-time="5:46 AM" data-short="Apr &#039;24" title="Apr 6, 2024 at 5:46 AM" itemprop="datePublished">Apr 6, 2024</time></a></li></ul><ul class="message-attribution-opposite message-attribution-opposite--list "><li><a href="/threads/strange-zfs-status.93000/post-650715"
+					class="message-attribution-gadget"
+					data-xf-init="share-tooltip"
+					data-href="/posts/650715/share"
+					aria-label="Share"
+					rel="nofollow"><i class="fa--xf far fa-share-alt "></i></a></li><li class="u-hidden js-embedCopy"><a href="javascript:"
+		data-xf-init="copy-to-clipboard"
+		data-copy-text="&lt;div class=&quot;js-xf-embed&quot; data-url=&quot;https://forums.freebsd.org&quot; data-content=&quot;post-650715&quot;&gt;&lt;/div&gt;&lt;script defer src=&quot;https://forums.freebsd.org/js/xf/external_embed.js?_v=65069f3a&quot;&gt;&lt;/script&gt;"
+		data-success="Embed code HTML copied to clipboard."
+		class=""><i class="fa--xf far fa-code "></i></a></li><li><a href="/threads/strange-zfs-status.93000/post-650715" rel="nofollow">
+						#8
+					</a></li></ul></header><div class="message-content js-messageContent"><div class="message-userContent lbContainer js-lbContainer "
+		data-lb-id="post-650715"
+		data-lb-caption-desc="cy@ &middot; Apr 6, 2024 at 5:46 AM"><article class="message-body js-selectToQuote"><div itemprop="text"><div class="bbWrapper"><blockquote data-attributes="member: 51300" data-quote="VladiBG" data-source="post: 650620"
+	class="bbCodeBlock bbCodeBlock--expandable bbCodeBlock--quote js-expandWatch"><div class="bbCodeBlock-title"><a href="/goto/post?id=650620"
+					class="bbCodeBlock-sourceJump"
+					rel="nofollow"
+					data-xf-click="attribution"
+					data-content-selector="#post-650620">VladiBG said:</a></div><div class="bbCodeBlock-content"><div class="bbCodeBlock-expandContent js-expandContent ">
+			Don&#039;t use nested raids.<br /><br />
+Your zsystem is build on top of mfi0 so the ZFS can&#039;t detect the degraded status of mfi0 because it doesn&#039;t know that drive0 is missing. That&#039;s why it&#039;s not degraded for the ZFS. To fix it you need to replace the missing drive0 with s/n:9WJ1JVZK and rebuild mfi0.<br /><br />
+Your zdata is gone if it&#039;s build as stripe from mfid1+mfid2
+		</div><div class="bbCodeBlock-expandLink js-expandLink"><a role="button" tabindex="0">Click to expand...</a></div></div></blockquote><br />
+I wouldn&#039;t say don&#039;t use nested raids. At $JOB we use ZFS on top of hardware RAID5 (on Solaris). As far as ZFS is concerned, the device is simply JBOD. But beneath it is hardware RAID. It&#039;s not nested RAIDs because ZFS is configured to use JBOD while the SAN RAID5 handles error recovery and replacement of damaged devices. The Solaris Team manages the servers while the Enterprise Storage Team manage the storage. Devices may be replaced by the storage team unbeknownst to the sysadmin teams (Solaris, Linux, VMware, Windows teams).</div></div><div class="js-selectToQuoteEnd">&nbsp;</div></article></div></div><footer class="message-footer"><div class="message-microdata" itemprop="interactionStatistic" itemtype="https://schema.org/InteractionCounter" itemscope><meta itemprop="userInteractionCount" content="0" /><meta itemprop="interactionType" content="https://schema.org/LikeAction" /></div><div class="reactionsBar js-reactionsList "></div><div class="js-historyTarget message-historyTarget toggleTarget" data-href="trigger-href"></div></footer></div></div></div></article><article class="message message--post js-post js-inlineModContainer  "
+		data-author="VladiBG"
+		data-content="post-650726"
+		id="js-post-650726"
+		itemscope itemtype="https://schema.org/Comment" itemid="https://forums.freebsd.org/posts/650726/"><meta itemprop="parentItem" itemscope itemid="https://forums.freebsd.org/threads/strange-zfs-status.93000/" /><meta itemprop="name" content="Post #9" /><span class="u-anchorTarget" id="post-650726"></span><div class="message-inner"><div class="message-cell message-cell--user"><section class="message-user"
+		itemprop="author"
+		itemscope itemtype="https://schema.org/Person"
+		itemid="https://forums.freebsd.org/members/vladibg.51300/"><meta itemprop="url" content="https://forums.freebsd.org/members/vladibg.51300/" /><div class="message-avatar "><div class="message-avatar-wrapper"><a href="/members/vladibg.51300/" class="avatar avatar--m" data-user-id="51300" data-xf-init="member-tooltip"><img></a></div></div><div class="message-userDetails"><h4 class="message-name"><a href="/members/vladibg.51300/" class="username " dir="auto" data-user-id="51300" data-xf-init="member-tooltip"><span itemprop="name">VladiBG</span></a></h4></div><span class="message-userArrow"></span></section></div><div class="message-cell message-cell--main"><div class="message-main js-quickEditTarget"><header class="message-attribution message-attribution--split"><ul class="message-attribution-main listInline "><li class="u-concealed"><a href="/threads/strange-zfs-status.93000/post-650726" rel="nofollow" itemprop="url"><time  class="u-dt" dir="auto" datetime="2024-04-06T08:39:41+0100" data-timestamp="1712389181" data-date="Apr 6, 2024" data-time="8:39 AM" data-short="Apr &#039;24" title="Apr 6, 2024 at 8:39 AM" itemprop="datePublished">Apr 6, 2024</time></a></li></ul><ul class="message-attribution-opposite message-attribution-opposite--list "><li><a href="/threads/strange-zfs-status.93000/post-650726"
+					class="message-attribution-gadget"
+					data-xf-init="share-tooltip"
+					data-href="/posts/650726/share"
+					aria-label="Share"
+					rel="nofollow"><i class="fa--xf far fa-share-alt "></i></a></li><li class="u-hidden js-embedCopy"><a href="javascript:"
+		data-xf-init="copy-to-clipboard"
+		data-copy-text="&lt;div class=&quot;js-xf-embed&quot; data-url=&quot;https://forums.freebsd.org&quot; data-content=&quot;post-650726&quot;&gt;&lt;/div&gt;&lt;script defer src=&quot;https://forums.freebsd.org/js/xf/external_embed.js?_v=65069f3a&quot;&gt;&lt;/script&gt;"
+		data-success="Embed code HTML copied to clipboard."
+		class=""><i class="fa--xf far fa-code "></i></a></li><li><a href="/threads/strange-zfs-status.93000/post-650726" rel="nofollow">
+						#9
+					</a></li></ul></header><div class="message-content js-messageContent"><div class="message-userContent lbContainer js-lbContainer "
+		data-lb-id="post-650726"
+		data-lb-caption-desc="VladiBG &middot; Apr 6, 2024 at 8:39 AM"><article class="message-body js-selectToQuote"><div itemprop="text"><div class="bbWrapper">Maybe you should sit with your Storage Team and discus this further.</div></div><div class="js-selectToQuoteEnd">&nbsp;</div></article></div></div><footer class="message-footer"><div class="message-microdata" itemprop="interactionStatistic" itemtype="https://schema.org/InteractionCounter" itemscope><meta itemprop="userInteractionCount" content="1" /><meta itemprop="interactionType" content="https://schema.org/LikeAction" /></div><div class="reactionsBar js-reactionsList is-active"><ul class="reactionSummary"><li><span class="reaction reaction--small reaction--7" data-reaction-id="7"><i aria-hidden="true"></i><img></span></li></ul><span class="u-srOnly">Reactions:</span><a class="reactionsBar-link" href="/posts/650726/reactions" data-xf-click="overlay" data-cache="false" rel="nofollow"><bdi>homeadm</bdi></a></div><div class="js-historyTarget message-historyTarget toggleTarget" data-href="trigger-href"></div></footer></div></div></div></article><article class="message message--post js-post js-inlineModContainer  "
+		data-author="ThePowerOfFuet"
+		data-content="post-651810"
+		id="js-post-651810"
+		itemscope itemtype="https://schema.org/Comment" itemid="https://forums.freebsd.org/posts/651810/"><meta itemprop="parentItem" itemscope itemid="https://forums.freebsd.org/threads/strange-zfs-status.93000/" /><meta itemprop="name" content="Post #10" /><span class="u-anchorTarget" id="post-651810"></span><div class="message-inner"><div class="message-cell message-cell--user"><section class="message-user"
+		itemprop="author"
+		itemscope itemtype="https://schema.org/Person"
+		itemid="https://forums.freebsd.org/members/thepoweroffuet.71628/"><meta itemprop="url" content="https://forums.freebsd.org/members/thepoweroffuet.71628/" /><div class="message-avatar "><div class="message-avatar-wrapper"><a href="/members/thepoweroffuet.71628/" class="avatar avatar--m avatar--default avatar--default--dynamic" data-user-id="71628" data-xf-init="member-tooltip" style="background-color: #cc3366; color: #f0c2d1"><span class="avatar-u71628-m" role="img" aria-label="ThePowerOfFuet">T</span></a></div></div><div class="message-userDetails"><h4 class="message-name"><a href="/members/thepoweroffuet.71628/" class="username " dir="auto" data-user-id="71628" data-xf-init="member-tooltip"><span itemprop="name">ThePowerOfFuet</span></a></h4></div><span class="message-userArrow"></span></section></div><div class="message-cell message-cell--main"><div class="message-main js-quickEditTarget"><header class="message-attribution message-attribution--split"><ul class="message-attribution-main listInline "><li class="u-concealed"><a href="/threads/strange-zfs-status.93000/post-651810" rel="nofollow" itemprop="url"><time  class="u-dt" dir="auto" datetime="2024-04-16T08:51:38+0100" data-timestamp="1713253898" data-date="Apr 16, 2024" data-time="8:51 AM" data-short="Apr &#039;24" title="Apr 16, 2024 at 8:51 AM" itemprop="datePublished">Apr 16, 2024</time></a></li></ul><ul class="message-attribution-opposite message-attribution-opposite--list "><li><a href="/threads/strange-zfs-status.93000/post-651810"
+					class="message-attribution-gadget"
+					data-xf-init="share-tooltip"
+					data-href="/posts/651810/share"
+					aria-label="Share"
+					rel="nofollow"><i class="fa--xf far fa-share-alt "></i></a></li><li class="u-hidden js-embedCopy"><a href="javascript:"
+		data-xf-init="copy-to-clipboard"
+		data-copy-text="&lt;div class=&quot;js-xf-embed&quot; data-url=&quot;https://forums.freebsd.org&quot; data-content=&quot;post-651810&quot;&gt;&lt;/div&gt;&lt;script defer src=&quot;https://forums.freebsd.org/js/xf/external_embed.js?_v=65069f3a&quot;&gt;&lt;/script&gt;"
+		data-success="Embed code HTML copied to clipboard."
+		class=""><i class="fa--xf far fa-code "></i></a></li><li><a href="/threads/strange-zfs-status.93000/post-651810" rel="nofollow">
+						#10
+					</a></li></ul></header><div class="message-content js-messageContent"><div class="message-userContent lbContainer js-lbContainer "
+		data-lb-id="post-651810"
+		data-lb-caption-desc="ThePowerOfFuet &middot; Apr 16, 2024 at 8:51 AM"><article class="message-body js-selectToQuote"><div itemprop="text"><div class="bbWrapper"><blockquote data-attributes="member: 52011" data-quote="mfoacs" data-source="post: 650540"
+	class="bbCodeBlock bbCodeBlock--expandable bbCodeBlock--quote js-expandWatch"><div class="bbCodeBlock-title"><a href="/goto/post?id=650540"
+					class="bbCodeBlock-sourceJump"
+					rel="nofollow"
+					data-xf-click="attribution"
+					data-content-selector="#post-650540">mfoacs said:</a></div><div class="bbCodeBlock-content"><div class="bbCodeBlock-expandContent js-expandContent ">
+			Since the old BIOS doesn&#039;t give me a JBOD option, the pools were created with megaraid virtual devices
+		</div><div class="bbCodeBlock-expandLink js-expandLink"><a role="button" tabindex="0">Click to expand...</a></div></div></blockquote><br />
+Ah yes, upon reading this I knew where we were headed.<br /><br />
+Don&#039;t do that.<br /><br />
+Rip out the RAID controller and replace it with an HBA in IT mode. You can even get ones which are crossflashed with the correct PCI ID so that you can use them in the storage controller slot without the machine complaining.<br /><br />
+Source: I run R710s with this exact configuration.</div></div><div class="js-selectToQuoteEnd">&nbsp;</div></article></div></div><footer class="message-footer"><div class="message-microdata" itemprop="interactionStatistic" itemtype="https://schema.org/InteractionCounter" itemscope><meta itemprop="userInteractionCount" content="1" /><meta itemprop="interactionType" content="https://schema.org/LikeAction" /></div><div class="reactionsBar js-reactionsList is-active"><ul class="reactionSummary"><li><span class="reaction reaction--small reaction--1" data-reaction-id="1"><i aria-hidden="true"></i><img></span></li></ul><span class="u-srOnly">Reactions:</span><a class="reactionsBar-link" href="/posts/651810/reactions" data-xf-click="overlay" data-cache="false" rel="nofollow"><bdi>mfoacs</bdi></a></div><div class="js-historyTarget message-historyTarget toggleTarget" data-href="trigger-href"></div></footer></div></div></div></article></div></div><div class="block-outer block-outer--after"><div class="block-outer-opposite"><a href="/login/" class="button button--link button--wrap" data-xf-click="overlay"><span class="button-text">
+								You must log in or register to reply here.
+							</span></a></div></div></div><div class="blockMessage blockMessage--none"><div class="shareButtons shareButtons--iconic" data-xf-init="share-buttons" data-page-url="" data-page-title="" data-page-desc="" data-page-image=""><span class="u-anchorTarget" id="_xfUid-1-1794817382"></span><span class="shareButtons-label">Share:</span><div class="shareButtons-buttons"><a class="shareButtons-button shareButtons-button--brand shareButtons-button--bluesky" href="#_xfUid-1-1794817382" data-href="https://bsky.app/intent/compose?text={url}"><i class="fa--xf fab fa-bluesky "></i><span>Bluesky</span></a><a class="shareButtons-button shareButtons-button--brand shareButtons-button--linkedin" href="#_xfUid-1-1794817382" data-href="https://www.linkedin.com/sharing/share-offsite/?url={url}"><i class="fa--xf fab fa-linkedin "></i><span>LinkedIn</span></a><a class="shareButtons-button shareButtons-button--brand shareButtons-button--reddit" href="#_xfUid-1-1794817382" data-href="https://reddit.com/submit?url={url}&amp;title={title}"><i class="fa--xf fab fa-reddit-alien "></i><span>Reddit</span></a><a class="shareButtons-button shareButtons-button--brand shareButtons-button--pinterest" href="#_xfUid-1-1794817382" data-href="https://pinterest.com/pin/create/bookmarklet/?url={url}&amp;description={title}&amp;media={image}"><i class="fa--xf fab fa-pinterest-p "></i><span>Pinterest</span></a><a class="shareButtons-button shareButtons-button--brand shareButtons-button--tumblr" href="#_xfUid-1-1794817382" data-href="https://www.tumblr.com/widgets/share/tool?canonicalUrl={url}&amp;title={title}"><i class="fa--xf fab fa-tumblr "></i><span>Tumblr</span></a><a class="shareButtons-button shareButtons-button--brand shareButtons-button--whatsApp" href="#_xfUid-1-1794817382" data-href="https://api.whatsapp.com/send?text={title}&nbsp;{url}"><i class="fa--xf fab fa-whatsapp "></i><span>WhatsApp</span></a><a class="shareButtons-button shareButtons-button--email" href="#_xfUid-1-1794817382" data-href="mailto:?subject={title}&amp;body={url}"><i class="fa--xf far fa-envelope "></i><span>Email</span></a><a class="shareButtons-button shareButtons-button--share is-hidden" href="#_xfUid-1-1794817382"
+							data-xf-init="web-share"
+							data-title="" data-text="" data-url=""
+							data-hide=".shareButtons-button:not(.shareButtons-button--share)"><i class="fa--xf far fa-share-alt "></i><span>Share</span></a><a class="shareButtons-button shareButtons-button--link is-hidden" href="#_xfUid-1-1794817382" data-clipboard="{url}"><i class="fa--xf far fa-link "></i><span>Link</span></a></div></div></div></div></div></div><ul class="p-breadcrumbs p-breadcrumbs--bottom"
+			itemscope itemtype="https://schema.org/BreadcrumbList"><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem"><a href="/categories/base-system.18/" itemprop="item"><span itemprop="name">Base System</span></a><meta itemprop="position" content="1" /></li><li itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem"><a href="/forums/storage.48/" itemprop="item"><span itemprop="name">Storage</span></a><meta itemprop="position" content="2" /></li></ul></div></div><footer class="p-footer" id="footer"><div class="p-footer-inner"><div class="p-footer-row"><div class="p-footer-row-main"><ul class="p-footer-linkList"><li><a href="/misc/style" data-xf-click="overlay"
+													data-xf-init="tooltip" title="Style chooser" rel="nofollow"><i class="fa--xf far fa-paint-brush "></i> FreeBSD Style
+												</a></li></ul></div><div class="p-footer-row-opposite"><ul class="p-footer-linkList"><li><a href="/misc/contact" data-xf-click="overlay">Contact us</a></li><li><a href="/forums/forum-rules-and-guidelines-required-reading.49/">Terms and rules</a></li><li><a href="/help/privacy-policy/">Privacy policy</a></li><li><a href="/help/">Help</a></li><li><a href="/forums/-/index.rss" target="_blank" class="p-footer-rssLink" title="RSS"><span aria-hidden="true"><i class="fa--xf far fa-rss "></i><span class="u-srOnly">RSS</span></span></a></li></ul></div></div><div class="p-footer-copyright"><a href="https://xenforo.com" class="u-concealed" dir="ltr" target="_blank" rel="sponsored noopener">Community platform by XenForo<sup>&reg;</sup><span class="copyright">&copy; 2010-2026 XenForo Ltd.</span></a><br/>The mark FreeBSD is a registered trademark of The FreeBSD Foundation and is used by The FreeBSD Project with the permission of The FreeBSD Foundation.
+				</div></div></footer></div><div class="u-bottomFixer js-bottomFixTarget"><ul class="notices notices--bottom_fixer  js-notices"
+			data-xf-init="notices"
+			data-type="bottom_fixer"
+			data-scroll-interval="6"><li class="notice js-notice notice--primary notice--cookie"
+		data-notice-id="-1"
+		data-delay-duration="0"
+		data-display-duration="0"
+		data-auto-dismiss="0"
+		data-visibility=""><div class="notice-content"><div class="u-alignCenter">
+		This site uses cookies to help personalise content, tailor your experience and to keep you logged in if you register.<br />
+By continuing to use this site, you are consenting to our use of cookies.
+	</div><div class="u-inputSpacer u-alignCenter"><a href="/account/dismiss-notice" class="button button--icon button--icon--confirm js-noticeDismiss button--notice"><i class="fa--xf far fa-check "></i><span class="button-text">Accept</span></a><a href="/help/cookies" class="button button--notice"><span class="button-text">Learn more…</span></a></div></div></li></ul></div><div class="u-navButtons js-navButtons"><a href="javascript:" class="button button--scroll"><span class="button-text"><i class="fa--xf far fa-arrow-left "></i><span class="u-srOnly">Back</span></span></a></div><div class="u-scrollButtons js-scrollButtons" data-trigger-type="up"><a href="#top" class="button button--scroll" data-xf-click="scroll-to"><span class="button-text"><i class="fa--xf far fa-arrow-up "></i><span class="u-srOnly">Top</span></span></a></div><form style="display:none" hidden="hidden"><input type="text" name="_xfClientLoadTime" value="" id="_xfClientLoadTime" title="_xfClientLoadTime" tabindex="-1" /></form><script type="application/ld+json">
+				{
+    "@context": "https://schema.org",
+    "@type": "WebPage",
+    "url": "https://forums.freebsd.org/threads/strange-zfs-status.93000/",
+    "mainEntity": {
+        "@type": "DiscussionForumPosting",
+        "@id": "https://forums.freebsd.org/threads/strange-zfs-status.93000/",
+        "headline": "Strange ZFS status",
+        "datePublished": "2024-04-04T19:36:03+00:00",
+        "keywords": "megaraid, nested, raid, zfs",
+        "url": "https://forums.freebsd.org/threads/strange-zfs-status.93000/",
+        "articleSection": "Storage",
+        "author": {
+            "@type": "Person",
+            "@id": "https://forums.freebsd.org/members/mfoacs.52011/",
+            "name": "mfoacs",
+            "url": "https://forums.freebsd.org/members/mfoacs.52011/"
+        },
+        "interactionStatistic": [
+            {
+                "@type": "InteractionCounter",
+                "interactionType": "https://schema.org/ViewAction",
+                "userInteractionCount": 4530
+            },
+            {
+                "@type": "InteractionCounter",
+                "interactionType": "https://schema.org/CommentAction",
+                "userInteractionCount": 9
+            },
+            {
+                "@type": "InteractionCounter",
+                "interactionType": "https://schema.org/LikeAction",
+                "userInteractionCount": 0
+            }
+        ],
+        "dateModified": "2024-04-16T08:48:32+00:00",
+        "text": "This is a strange one:\n\nI've recently reinstalled FreeBSD 14.0 on an old, non-mission critical PowerEdge R710.\n\nTwo zpools were created, zsystem and zdata.\n\nSince the old BIOS doesn't give me a JBOD option, the pools were created with megaraid virtual devices all attached to the same controller.\n\nzsystem is a zpool created from a virtual device with 2 disks RAID1, seen as mfid0 (465Gb)\n\nzdata is a zpool with two RAID0 block devices, vd1 and vd2, created with 4 physical disks, seen as mfid1 and mfid2 (3.6Tb)\n\nOne of the virtual devices is degrated, and the result is a FAULTED pool.\n\nBut this is where nothing makes sense anymore:\n\nzdata      FAULTED  corrupted data\n     mfid2p3   ONLINE\n     mfid2p3   FAULTED  corrupted data\n\n\nNote that it's same device, both ONLINE and FAULTED.\n\nTrying to import the pool obviously doesn't work:\n> zpool import -f zdata\ncannot import 'zdata': one or more devices is currently unavailable\n\n\ngpart makes things worse:\n\n> gpart show\n=>       40  975699888  mfid0  GPT  (465G)\n         40       1024      1  freebsd-boot  (512K)\n       1064        984         - free -  (492K)\n       2048    8388608      2  freebsd-swap  (4.0G)\n    8390656  967307264      3  freebsd-zfs  (461G)\n  975697920       2008         - free -  (1.0M)\n\n=>        40  7812939696  mfid2  GPT  (3.6T)\n          40        1024      1  freebsd-boot  (512K)\n        1064         984         - free -  (492K)\n        2048     4194304      2  freebsd-swap  (2.0G)\n     4196352  7808741376      3  freebsd-zfs  (3.6T)\n  7812937728        2008         - free -  (1.0M)\n\n=>        40  7812939696  mfid1  GPT  (3.6T)\n          40        1024      1  freebsd-boot  (512K)\n        1064         984         - free -  (492K)\n        2048     4194304      2  freebsd-swap  (2.0G)\n     4196352  7808741376      3  freebsd-zfs  (3.6T)\n  7812937728        2008         - free -  (1.0M)\n\n\nmfid0 is where the OS lives, and the partition makes sense (the system boots).\nBut both mfid1,2 don't make sense. Those were wiped clean and added to the zpool, never partioned as shown.\n\nThe dagger comes when one examines the boot log (dmesg):\nmfid0 on mfi0\nmfid0: 476416MB (975699968 sectors) RAID volume 'Virtual Disk0' is degraded\nmfid1 on mfi0\nmfid1: 3814912MB (7812939776 sectors) RAID volume 'vd1' is optimal\nmfid2 on mfi0\nmfid2: 3814912MB (7812939776 sectors) RAID volume 'vd0' is optimal\n\n\nSo according to this, the FAULTED (degraded) pool, is where zsystem lives and therefore, I should not be able to boot the OS!\n\nNeither should this be happening?\n\nhost :: / \u00bb zpool status \n  pool: zsystem\n state: ONLINE\n  scan: scrub repaired 0B in 00:01:34 with 0 errors on Fri Mar  1 03:51:28 2024\nconfig:\n\n    NAME        STATE     READ WRITE CKSUM\n    zsystem     ONLINE       0     0     0\n     mfid0p3   ONLINE       0     0     0\n\nerrors: No known data errors\n\nI know, mixing up megaraid and zfs is a bad idea, but this is on another level, does anyone have any idea what is going on?\n\nAny help is much appreciated."
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "The FreeBSD Forums",
+        "alternateName": "FreeBSDForum",
+        "description": "The FreeBSD Forums",
+        "url": "https://forums.freebsd.org",
+        "logo": "https://forums.freebsd.org/styles/freebsd/xenforo/logo.og.png"
+    }
+}
+			</script></body></html>
+
+
+
+
+
+
+
+
+

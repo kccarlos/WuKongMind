@@ -195,6 +195,7 @@ private struct ResizeHandleInteractionView: UIViewRepresentable {
 /// a notification (one scene), which owns the pane and address-bar state.
 enum WorkspaceCommand: String {
     case focusAddress, reload, back, forward, forumsHome, settings, history
+    case newTab, closeTab, nextTab, previousTab
     case togglePanel, nextResult, previousResult, playPause
 }
 
@@ -264,6 +265,11 @@ struct WorkspaceCommands: Commands {
         }
         CommandMenu("Browser") {
             Group {
+                Button("New Tab") { WorkspaceCommand.newTab.post() }
+                    .keyboardShortcut("t", modifiers: .command)
+                Button("Close Tab") { WorkspaceCommand.closeTab.post() }
+                    .keyboardShortcut("w", modifiers: .command)
+                Divider()
                 Button("Open Location") { WorkspaceCommand.focusAddress.post() }
                     .keyboardShortcut("l", modifiers: .command)
                 Button("Reload Page") { WorkspaceCommand.reload.post() }
@@ -273,6 +279,11 @@ struct WorkspaceCommands: Commands {
                     .keyboardShortcut("[", modifiers: .command)
                 Button("Forward") { WorkspaceCommand.forward.post() }
                     .keyboardShortcut("]", modifiers: .command)
+                Divider()
+                Button("Show Next Tab") { TabCycleShortcutGate.postOncePerKeystroke(.nextTab) }
+                    .keyboardShortcut(.tab, modifiers: .control)
+                Button("Show Previous Tab") { TabCycleShortcutGate.postOncePerKeystroke(.previousTab) }
+                    .keyboardShortcut(.tab, modifiers: [.control, .shift])
                 Divider()
                 Button("Home") { WorkspaceCommand.forumsHome.post() }
                     .keyboardShortcut("h", modifiers: [.command, .shift])

@@ -3,32 +3,42 @@ import SwiftUI
 
 struct ContentView: View {
     @ObservedObject var app: AppModel
+    @ObservedObject private var tabs: BrowserTabs
     @ObservedObject private var router: PresentationRouter
     @Namespace private var nowPlayingNamespace
     @State private var addressFocusRequest = 0
     /// The last `AppModel.assistantRequest` shown.
     @State private var handledAssistantRequest = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     init(app: AppModel) {
         self.app = app
+        tabs = app.tabs
         router = app.router
+    }
+
+    private static var hardwareSafeAreaBottom: CGFloat {
+        UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows)
+            .first(where: { !$0.isHidden && $0.windowLevel == .normal })?
+            .safeAreaInsets.bottom ?? 0
     }
 
     var body: some View {
         GeometryReader { proxy in
-            WorkspaceView(
+            ContentWorkspaceStage(
                 app: app,
-                browser: app.browser,
+                tabs: tabs,
                 router: router,
-                width: proxy.size.width,
+                containerSize: proxy.size,
+                safeBottom: max(proxy.safeAreaInsets.bottom, Self.hardwareSafeAreaBottom),
                 actions: actions,
                 addressFocusRequest: addressFocusRequest,
-                onOpenURL: { _ in showBrowser() }
+                onShowBrowser: showBrowser,
+                onWidthChanged: updateLayout
             )
-            .onChange(of: proxy.size.width, initial: true) { _, width in
-                updateLayout(forWidth: width)
-            }
         }
         .background(DCTheme.pageBackground)
         // First-run step 3: the Agent's first run over the page.
@@ -194,10 +204,27 @@ struct ContentView: View {
         let browser = app.browser
         switch command {
         case .focusAddress:
+            if router.isTabOverviewPresented {
+                app.dismissTabOverview(reduceMotion: reduceMotion)
+            }
             showBrowser()
             // The drawer covers the bar.
             if router.usesDrawer { router.closeDrawer() }
             addressFocusRequest += 1
+        case .newTab:
+            _ = app.openNewTabFromUI(reduceMotion: reduceMotion)
+        case .closeTab:
+            _ = app.closeTabWithUndo(id: app.tabs.currentTabID)
+        case .nextTab:
+            if router.isTabOverviewPresented {
+                app.dismissTabOverview(reduceMotion: reduceMotion)
+            }
+            _ = app.switchNextTab()
+        case .previousTab:
+            if router.isTabOverviewPresented {
+                app.dismissTabOverview(reduceMotion: reduceMotion)
+            }
+            _ = app.switchPreviousTab()
         case .reload:
             if browser.currentURL != nil { browser.reload() }
         case .back:
@@ -219,6 +246,102 @@ struct ContentView: View {
             if app.browseCursor.hasPrevious { Task { await app.previous() } }
         case .playPause:
             if app.podcast.isPlayingEpisode { app.podcast.player.toggle() }
+        }
+    }
+}
+
+/// Dedicated `@ObservedObject` view inside `ContentView`'s `GeometryReader` so `tabs` and
+/// `router` changes always invalidate the stage body directly without `GeometryReader` closure caching.
+private struct ContentWorkspaceStage: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var tabs: BrowserTabs
+    @ObservedObject var router: PresentationRouter
+    let containerSize: CGSize
+    let safeBottom: CGFloat
+    let actions: BrowserActions
+    let addressFocusRequest: Int
+    let onShowBrowser: () -> Void
+    let onWidthChanged: (CGFloat) -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        let overviewShown = router.isTabOverviewPresented
+        let isPadOverview = UIDevice.current.userInterfaceIdiom == .pad && containerSize.width >= 680
+        let cols = TabOverviewTransitionMetrics.columnCount(
+            isPadOverview: isPadOverview,
+            isAccessibilitySize: dynamicTypeSize.isAccessibilitySize
+        )
+        let activeIndex = tabs.index(of: tabs.currentTabID) ?? 0
+        let zoomAnchor = TabOverviewTransitionMetrics.cardZoomAnchor(
+            index: activeIndex,
+            columnCount: cols,
+            isPadOverview: isPadOverview
+        )
+        let usesZoom = TabOverviewTransitionMetrics.usesZoom(reduceMotion: reduceMotion)
+        let isSplit = router.splitLayout ?? ContentView.usesSplitLayout(width: containerSize.width)
+        let barPosition = isSplit ? BrowserBarPosition.top : app.settings.browserBarPosition.resolved(isSplit: false)
+        let activeBrowser = tabs.currentTab.browser
+
+        ZStack {
+            WorkspaceView(
+                app: app,
+                browser: activeBrowser,
+                router: router,
+                width: containerSize.width,
+                actions: actions,
+                addressFocusRequest: addressFocusRequest,
+                onOpenURL: { _ in onShowBrowser() }
+            )
+            .scaleEffect(overviewShown && usesZoom ? 0.52 : 1.0, anchor: zoomAnchor)
+            .opacity(overviewShown ? 0 : 1)
+            .allowsHitTesting(!overviewShown)
+
+            if overviewShown {
+                TabOverviewView(
+                    app: app,
+                    tabs: tabs,
+                    containerWidth: containerSize.width,
+                    safeAreaBottom: safeBottom
+                )
+                .transition(
+                    usesZoom
+                        ? .scale(scale: 1.08, anchor: zoomAnchor).combined(with: .opacity)
+                        : .opacity
+                )
+                .zIndex(2)
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if !overviewShown, let toast = app.tabClosedToast {
+                let bottomOffset: CGFloat = if isSplit || barPosition == .top {
+                    max(16, safeBottom)
+                } else {
+                    max(8, safeBottom - 4) + 64
+                }
+                TabClosedUndoToast(
+                    message: toast.message,
+                    onUndo: {
+                        DCHaptics.tap()
+                        _ = app.undoCloseTab()
+                    }
+                )
+                .frame(maxWidth: isSplit ? 460 : .infinity)
+                .padding(.horizontal, 16)
+                .padding(.bottom, bottomOffset)
+                .ignoresSafeArea(.container, edges: .bottom)
+                .transition(DCMotion.slide(.bottom, reduceMotion: reduceMotion))
+                .zIndex(3)
+            }
+        }
+        .animation(DCMotion.respecting(reduceMotion, DCMotion.spring), value: app.tabClosedToast?.id)
+        .background {
+            TabKeyCommandResponder()
+                .frame(width: 0, height: 0)
+        }
+        .onChange(of: containerSize.width, initial: true) { _, width in
+            onWidthChanged(width)
         }
     }
 }

@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import Network
+import SwiftUI
 import UIKit
 import WebKit
 import XCTest
@@ -1324,5 +1325,241 @@ final class BrowserTabsTests: XCTestCase {
         // Saving while the launch Home overlay is up preserves t2's underlying page URL.
         let exportedT2 = try XCTUnwrap(relaunched.tabs.exportState().tabs.first(where: { $0.id == "t2" }))
         XCTAssertEqual(exportedT2.url, server.url("/tall/2"))
+    }
+
+    // MARK: - T3: Reorder, Shortcuts, Long-Press Menu, Close-to-History + Undo, VoiceOver
+
+    func testReorderMoveEarlierMoveLaterAndCtrlTabCycle() throws {
+        let t1 = app.tabs.currentTab
+        let t2 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tall/2"), inFront: false))
+        let t3 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tall/3"), inFront: false))
+        let t4 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tall/4"), inFront: false))
+        XCTAssertEqual(app.tabs.tabs.map(\.id), [t1.id, t2.id, t3.id, t4.id])
+
+        // Boundary no-ops.
+        XCTAssertFalse(app.tabs.moveTabEarlier(id: t1.id))
+        XCTAssertFalse(app.tabs.moveTabLater(id: t4.id))
+
+        // Move later and move earlier.
+        XCTAssertTrue(app.tabs.moveTabLater(id: t1.id))
+        XCTAssertEqual(app.tabs.tabs.map(\.id), [t2.id, t1.id, t3.id, t4.id])
+        XCTAssertTrue(app.tabs.moveTabEarlier(id: t4.id))
+        XCTAssertEqual(app.tabs.tabs.map(\.id), [t2.id, t1.id, t4.id, t3.id])
+
+        // Arbitrary drag reorder (`moveTab(id:to:)`).
+        XCTAssertTrue(app.tabs.moveTab(id: t3.id, to: 0))
+        XCTAssertEqual(app.tabs.tabs.map(\.id), [t3.id, t2.id, t1.id, t4.id])
+        XCTAssertEqual(app.tabs.exportState().tabs.map(\.id), [t3.id, t2.id, t1.id, t4.id])
+
+        // ⌃Tab (`switchToNextTab`) and ⌃⇧Tab (`switchToPreviousTab`) wrap around.
+        XCTAssertEqual(app.tabs.currentTabID, t1.id)
+        XCTAssertTrue(app.switchNextTab())
+        XCTAssertEqual(app.tabs.currentTabID, t4.id)
+        XCTAssertTrue(app.switchNextTab())
+        XCTAssertEqual(app.tabs.currentTabID, t3.id)
+        XCTAssertTrue(app.switchPreviousTab())
+        XCTAssertEqual(app.tabs.currentTabID, t4.id)
+    }
+
+    func testCloseTabSavesConversationToHistoryShowsToastAndUndoRestoresStoppedRunWithoutResuming() async throws {
+        var anthropicConfig = app.settings.configuration(for: .anthropic)
+        anthropicConfig.apiKey = "test-key"
+        anthropicConfig.model = "claude-haiku-5-5"
+        app.settings.setConfiguration(anthropicConfig, for: .anthropic)
+        app.settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .browserAgent)
+
+        // 1. Tab 1 has a finished short conversation (< 200 chars); closing saves it to History and Undo restores it.
+        let tab1 = app.tabs.currentTab
+        tab1.browser.load(server.url("/tall/1"))
+        try await waitUntil(description: "tab 1 loaded") {
+            tab1.browser.pageTitle == "Tall Tab 1" && !tab1.browser.isLoading
+        }
+        let shortReplyClient = RecordedModelClient([
+            .success(AgentModelTurnResponse(text: "Short summary of Tall Tab 1."))
+        ])
+        tab1.agentSession.configureDebugModelClient(shortReplyClient)
+        await tab1.agentSession.sendAndWait("Summarize Tall Tab 1")
+        XCTAssertEqual(tab1.agentSession.runs.count, 1)
+        XCTAssertTrue(app.agentRuns.isEmpty, "Short <200-char reply is not in History until New conversation or tab close.")
+
+        let tab2 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tall/2"), inFront: true))
+        try await waitUntil(description: "tab 2 loaded") {
+            tab2.browser.pageTitle == "Tall Tab 2" && !tab2.browser.isLoading
+        }
+
+        XCTAssertTrue(app.closeTabWithUndo(id: tab1.id, toastDuration: .seconds(5)))
+        XCTAssertEqual(app.tabs.tabs.map(\.id), [tab2.id])
+        XCTAssertEqual(app.tabClosedToast?.message, "Tab closed. Its conversation is in History.")
+        XCTAssertEqual(app.agentRuns.count, 1, "Closing a tab with a conversation saves it to History.")
+        XCTAssertEqual(app.agentRuns.first?.goal, "Summarize Tall Tab 1")
+        XCTAssertEqual(app.agentRuns.first?.answer, "Short summary of Tall Tab 1.")
+
+        let restoredTab1 = try XCTUnwrap(app.undoCloseTab())
+        XCTAssertNil(app.tabClosedToast)
+        XCTAssertEqual(app.tabs.tabs.map(\.id), [tab1.id, tab2.id], "Undo restores tab 1 at its original index.")
+        XCTAssertEqual(restoredTab1.url, server.url("/tall/1"))
+        XCTAssertEqual(restoredTab1.agentSession.runs.first?.assistantText, "Short summary of Tall Tab 1.")
+        XCTAssertTrue(app.agentRuns.isEmpty, "Undoing the close removes the close-archived duplicate from History.")
+
+        // 2. Tab 2 has an actively running Agent; closing stops it first, saves to History, and Undo keeps it stopped.
+        let stalledClient = TabBoundAgentClient(step2DestinationURL: server.url("/tab-a-step2").absoluteString)
+        tab2.agentSession.configureDebugModelClient(stalledClient)
+        tab2.agentSession.send("Inspect Tall Tab 2 while open")
+        await stalledClient.step1Started.wait()
+        XCTAssertTrue(tab2.agentSession.isRunning)
+        XCTAssertTrue(app.tabs.runningTabIDs.contains(tab2.id))
+
+        XCTAssertTrue(app.closeTabWithUndo(id: tab2.id, toastDuration: .seconds(5)))
+        XCTAssertFalse(app.tabs.runningTabIDs.contains(tab2.id))
+        XCTAssertEqual(app.tabClosedToast?.message, "Tab closed. Its conversation is in History.")
+        XCTAssertEqual(app.agentRuns.first?.goal, "Inspect Tall Tab 2 while open")
+        XCTAssertEqual(app.agentRuns.first?.result, .cancelled)
+        XCTAssertEqual(app.agentRuns.first?.error, "Stopped")
+
+        let restoredTab2 = try XCTUnwrap(app.undoCloseTab())
+        XCTAssertEqual(app.tabs.currentTabID, restoredTab2.id)
+        XCTAssertFalse(restoredTab2.agentSession.isRunning, "Undo must NOT resume a run that closing stopped.")
+        if case .stopped = restoredTab2.agentSession.runState {
+            // expected
+        } else {
+            XCTFail("Expected restored runState to be .stopped, got \(restoredTab2.agentSession.runState)")
+        }
+        if case .stopped = restoredTab2.agentSession.runs.last?.state {
+            // expected
+        } else {
+            XCTFail("Expected last turn state to be .stopped, got \(String(describing: restoredTab2.agentSession.runs.last?.state))")
+        }
+
+        // 3. Closing an empty tab shows "Tab closed." and auto-expires after toastDuration.
+        let emptyTab = try XCTUnwrap(app.tabs.openTab(inFront: false))
+        XCTAssertTrue(app.closeTabWithUndo(id: emptyTab.id, toastDuration: .milliseconds(120)))
+        XCTAssertEqual(app.tabClosedToast?.message, "Tab closed.")
+        try await Task.sleep(for: .milliseconds(250))
+        XCTAssertNil(app.tabClosedToast)
+    }
+
+    func testTabsButtonLongPressMenuActionsAndThirtyTabLimit() throws {
+        let t1 = app.tabs.currentTab
+        let t2 = try XCTUnwrap(app.tabs.openTab(url: server.url("/tall/2"), inFront: true))
+
+        let menuSections = BrowserTabsButton.buildMenuElements(for: app).compactMap { $0 as? UIMenu }
+        XCTAssertEqual(menuSections.count, 2)
+        let commandActions = menuSections[0].children.compactMap { $0 as? UIAction }
+        XCTAssertEqual(commandActions.map(\.title), ["New Tab", "Close This Tab"])
+        XCTAssertFalse(commandActions[0].attributes.contains(.disabled))
+        XCTAssertTrue(commandActions[1].attributes.contains(.destructive))
+
+        let openTabActions = menuSections[1].children.compactMap { $0 as? UIAction }
+        XCTAssertEqual(openTabActions.count, 2)
+        XCTAssertEqual(openTabActions[0].state, .off)
+        XCTAssertEqual(openTabActions[1].state, .on)
+        XCTAssertEqual(t1.id, "t1")
+        XCTAssertEqual(t2.id, "t2")
+
+        // Fill up to 30 tabs: New Tab disables and shows the 30-tab limit subtitle.
+        while app.tabs.canOpenTab {
+            XCTAssertNotNil(app.tabs.openTab(inFront: false))
+        }
+        XCTAssertEqual(app.tabs.tabs.count, 30)
+        XCTAssertNil(app.openNewTabFromUI())
+
+        let fullSections = BrowserTabsButton.buildMenuElements(for: app).compactMap { $0 as? UIMenu }
+        let fullNewTab = try XCTUnwrap(fullSections.first?.children.first as? UIAction)
+        XCTAssertTrue(fullNewTab.attributes.contains(.disabled))
+        XCTAssertEqual(fullNewTab.subtitle, "30 tabs open. Close one to open another")
+    }
+
+    func testOverviewTransitionMetricsAndHostedVoiceOverCardCustomActions() throws {
+        // Transition & grid column rules.
+        XCTAssertEqual(TabOverviewTransitionMetrics.duration(reduceMotion: false), 0.25, accuracy: 0.001)
+        XCTAssertEqual(TabOverviewTransitionMetrics.duration(reduceMotion: true), 0.20, accuracy: 0.001)
+        XCTAssertTrue(TabOverviewTransitionMetrics.usesZoom(reduceMotion: false))
+        XCTAssertFalse(TabOverviewTransitionMetrics.usesZoom(reduceMotion: true))
+        XCTAssertEqual(TabOverviewTransitionMetrics.columnCount(isPadOverview: false, isAccessibilitySize: false), 2)
+        XCTAssertEqual(TabOverviewTransitionMetrics.columnCount(isPadOverview: false, isAccessibilitySize: true), 1)
+        XCTAssertEqual(TabOverviewTransitionMetrics.columnCount(isPadOverview: true, isAccessibilitySize: false), 4)
+        XCTAssertEqual(TabOverviewTransitionMetrics.columnCount(isPadOverview: true, isAccessibilitySize: true), 2)
+
+        // Exact VoiceOver label format from spec §2 ("Accessibility (tabs)").
+        let label = TabOverviewTransitionMetrics.cardAccessibilityLabel(
+            title: "Night ferries ease the summer rush",
+            host: "news.example.com",
+            isHome: false,
+            isCurrent: true,
+            isAgentWorking: true
+        )
+        XCTAssertEqual(label, "Night ferries ease the summer rush, news.example.com, current tab, Agent working")
+
+        // Mount TabOverviewView in a UIWindow and invoke real UIAccessibilityCustomActions.
+        let t1 = app.tabs.currentTab
+        let t2 = try XCTUnwrap(app.tabs.openTab(inFront: false))
+        let t3 = try XCTUnwrap(app.tabs.openTab(inFront: false))
+
+        let hostController = UIHostingController(
+            rootView: TabOverviewView(
+                app: app,
+                tabs: app.tabs,
+                containerWidth: 390,
+                safeAreaBottom: 34
+            )
+        )
+        let activeScene = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first
+        let overviewWindow: UIWindow
+        if let activeScene {
+            overviewWindow = UIWindow(windowScene: activeScene)
+        } else {
+            overviewWindow = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        }
+        overviewWindow.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        overviewWindow.rootViewController = hostController
+        overviewWindow.makeKeyAndVisible()
+        defer {
+            overviewWindow.isHidden = true
+            overviewWindow.rootViewController = nil
+        }
+        hostController.view.frame = overviewWindow.bounds
+        hostController.view.layoutIfNeeded()
+        CATransaction.flush()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.15))
+        hostController.view.layoutIfNeeded()
+        CATransaction.flush()
+
+        let hostedRoot: UIView = hostController.view!
+        XCTAssertFalse(app.router.isTabOverviewPresented)
+        app.presentTabOverview(reduceMotion: true)
+        XCTAssertTrue(app.router.isTabOverviewPresented)
+        XCTAssertEqual(
+            TabCardAccessibilityInspector.customActionNames(forCardID: t1.id, in: hostedRoot),
+            ["Close", "Move later"]
+        )
+        XCTAssertEqual(
+            TabCardAccessibilityInspector.customActionNames(forCardID: t2.id, in: hostedRoot),
+            ["Close", "Move earlier", "Move later"]
+        )
+        XCTAssertEqual(
+            TabCardAccessibilityInspector.customActionNames(forCardID: t3.id, in: hostedRoot),
+            ["Close", "Move earlier"]
+        )
+
+        XCTAssertTrue(
+            TabCardAccessibilityInspector.invokeCustomAction(named: "Move later", forCardID: t1.id, in: hostedRoot)
+        )
+        XCTAssertEqual(app.tabs.tabs.map(\.id), [t2.id, t1.id, t3.id])
+
+        hostController.view.layoutIfNeeded()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        XCTAssertTrue(
+            TabCardAccessibilityInspector.invokeCustomAction(named: "Move earlier", forCardID: t1.id, in: hostedRoot)
+        )
+        XCTAssertEqual(app.tabs.tabs.map(\.id), [t1.id, t2.id, t3.id])
+
+        hostController.view.layoutIfNeeded()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.05))
+        XCTAssertTrue(
+            TabCardAccessibilityInspector.invokeCustomAction(named: "Close", forCardID: t2.id, in: hostedRoot)
+        )
+        XCTAssertEqual(app.tabs.tabs.map(\.id), [t1.id, t3.id])
     }
 }

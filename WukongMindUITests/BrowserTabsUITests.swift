@@ -384,6 +384,405 @@ final class BrowserTabsUITests: DCUITestCase {
         )
         capture("t4-live-\(tag)-3-after-show")
     }
+
+    // MARK: - T3: Tab Overview, Close (Button & Swipe), Reorder, Undo Stopped Run, VoiceOver, Shortcuts
+
+    private func tapTabsButton(in app: XCUIApplication) {
+        let button = app.buttons["browserTabsButton"].firstMatch
+        XCTAssertTrue(waitOrDump(button, timeout: 10, in: app), "Tabs button missing in browser bar.")
+        button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    }
+
+    private func longPressTabsButton(in app: XCUIApplication) {
+        let button = app.buttons["browserTabsButton"].firstMatch
+        XCTAssertTrue(waitOrDump(button, timeout: 10, in: app), "Tabs button missing in browser bar.")
+        button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(forDuration: 1.0)
+    }
+
+    /// Waits past `-dc-browser-agent-demo`'s two-step `500ms + 1200ms` drawer reveal on iPhone
+    /// and closes the drawer so web-page links and the bottom browser bar are uncovered.
+    private func dismissDemoDrawerIfNeeded(in app: XCUIApplication) {
+        guard usesDrawerLayout(app) else { return }
+        _ = any(app, "drawerState").waitForExistence(timeout: 5)
+        RunLoop.current.run(until: Date().addingTimeInterval(1.6))
+        closeDrawer(in: app)
+    }
+
+    private func tapCardClose(on card: XCUIElement) {
+        card.coordinate(withNormalizedOffset: CGVector(dx: 1, dy: 0))
+            .withOffset(CGVector(dx: -22, dy: 22))
+            .tap()
+    }
+
+    func testTabOverviewOpenAddCloseByButtonAndSwipeAndDragReorder() throws {
+        let server = LocalTabsUIFixture()
+        try server.start()
+        defer { server.stop() }
+        XCUIDevice.shared.appearance = .light
+        defer { XCUIDevice.shared.appearance = .light }
+
+        let orientation: UIDeviceOrientation = isPhone ? .portrait : .landscapeLeft
+        let app = launch(
+            [
+                "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+                "-dc-open", server.guideURL,
+                "-dc-browser-agent-demo", "empty"
+            ],
+            orientation: orientation
+        )
+
+        let guideHeading = app.webViews.staticTexts["Harbor Ferry Field Guide"].firstMatch
+        XCTAssertTrue(waitOrDump(guideHeading, timeout: 15, in: app), "Initial guide page did not load.")
+        dismissDemoDrawerIfNeeded(in: app)
+
+        // Tap <a target="_blank"> on Tab 1 -> opens Tab 2 (/companion), then window.open -> opens Tab 3 (/popup-tariff).
+        let blankLink = app.webViews.links["Open Companion Schedule in New Tab"].firstMatch
+        XCTAssertTrue(waitForHittable(blankLink, timeout: 10))
+        blankLink.tap()
+        let companionHeading = app.webViews.staticTexts["Companion Ferry Schedule"].firstMatch
+        XCTAssertTrue(waitOrDump(companionHeading, timeout: 15, in: app))
+
+        let popupButton = app.webViews
+            .descendants(matching: .any)
+            .matching(label(contains: "Open Tariff Reference Window"))
+            .firstMatch
+        XCTAssertTrue(waitOrDump(popupButton, timeout: 10, in: app))
+        popupButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        let popupHeading = app.webViews.staticTexts["Summer Tariff Reference"].firstMatch
+        XCTAssertTrue(waitOrDump(popupHeading, timeout: 15, in: app))
+
+        if usesDrawerLayout(app) {
+            closeDrawer(in: app)
+        } else {
+            // On iPad split layout, verify the Agent panel is visible before opening the overview.
+            XCTAssertTrue(any(app, "aiPanel").exists, "iPad split layout should show Agent panel on a web page.")
+        }
+
+        // Open the tab overview from the bar's Tabs button.
+        tapTabsButton(in: app)
+        let overview = any(app, "tabOverview")
+        XCTAssertTrue(waitOrDump(overview, timeout: 10, in: app), "Tab overview did not open.")
+
+        if !usesDrawerLayout(app) {
+            XCTAssertFalse(any(app, "aiPanel").exists, "iPad Agent panel must hide while the tab overview shows.")
+        }
+
+        let countLabel = any(app, "tabOverviewCount")
+        XCTAssertTrue(waitOrDump(countLabel, timeout: 5, in: app))
+        XCTAssertEqual(countLabel.label, "3 tabs")
+
+        // Tap `+` (New tab): opens Tab 4 on Home and closes the overview.
+        let newTabButton = app.buttons["tabOverviewNewTab"].firstMatch
+        XCTAssertTrue(waitOrDump(newTabButton, timeout: 5, in: app))
+        newTabButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(waitForGone(overview, timeout: 5), "Opening a new tab should zoom into Home.")
+
+        // Reopen the overview: 4 tabs are open (Guide, Companion, Tariff, Home).
+        tapTabsButton(in: app)
+        XCTAssertTrue(waitOrDump(overview, timeout: 10, in: app))
+        XCTAssertTrue(wait(timeout: 5) { countLabel.label == "4 tabs" }, "Got \(countLabel.label)")
+
+        let card1 = any(app, "tabOverviewCard-t1")
+        let card2 = any(app, "tabOverviewCard-t2")
+        let card3 = any(app, "tabOverviewCard-t3")
+        let card4 = any(app, "tabOverviewCard-t4")
+        XCTAssertTrue(card1.exists && card2.exists && card3.exists && card4.exists)
+        XCTAssertTrue(card1.label.contains("Harbor Ferry Field Guide"), "Got \(card1.label)")
+        XCTAssertTrue(card4.label.contains("Home") && card4.label.contains("current tab"), "Got \(card4.label)")
+
+        if isPhone {
+            // 2-column grid on iPhone: card1 and card2 sit on row 1, card3 and card4 on row 2.
+            XCTAssertLessThan(card1.frame.minX, card2.frame.minX)
+            XCTAssertEqual(card1.frame.minY, card2.frame.minY, accuracy: 8)
+            XCTAssertGreaterThan(card3.frame.minY, card1.frame.maxY - 8)
+        } else {
+            // 4-column grid on iPad: all 4 cards sit side by side on row 1.
+            XCTAssertLessThan(card1.frame.minX, card2.frame.minX)
+            XCTAssertLessThan(card2.frame.minX, card3.frame.minX)
+            XCTAssertLessThan(card3.frame.minX, card4.frame.minX)
+            XCTAssertEqual(card1.frame.minY, card4.frame.minY, accuracy: 8)
+        }
+
+        let deviceTag = isPhone ? "iphone" : "ipad"
+        capture("t3-\(deviceTag)-overview-light")
+
+        XCUIDevice.shared.appearance = .dark
+        RunLoop.current.run(until: Date().addingTimeInterval(0.4))
+        capture("t3-\(deviceTag)-overview-dark")
+        XCUIDevice.shared.appearance = .light
+        RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+
+        // Long-press and drag card1 onto card2 to reorder (`t2` moves before `t1`).
+        let startDrag = card1.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        let endDrag = card2.coordinate(withNormalizedOffset: CGVector(dx: 0.65, dy: 0.5))
+        startDrag.press(forDuration: 0.85, thenDragTo: endDrag)
+        XCTAssertTrue(
+            wait(timeout: 5) { card2.frame.minX < card1.frame.minX },
+            "Long-press drag should reorder card2 before card1 (card1=\(card1.frame), card2=\(card2.frame))."
+        )
+        capture("t3-\(deviceTag)-overview-reordered")
+
+        // Close card3 via the top-trailing × button.
+        tapCardClose(on: card3)
+        XCTAssertTrue(waitForGone(card3, timeout: 5), "Closing card3 with × button should remove it.")
+        XCTAssertTrue(wait(timeout: 5) { countLabel.label == "3 tabs" })
+        XCTAssertTrue(any(app, "tabClosedToast").waitForExistence(timeout: 5))
+
+        // Close card4 (Home) by swiping sideways.
+        card4.swipeLeft()
+        XCTAssertTrue(waitForGone(card4, timeout: 5), "Swiping card4 sideways should close it.")
+        XCTAssertTrue(wait(timeout: 5) { countLabel.label == "2 tabs" })
+
+        // Tap card2 (Companion Ferry Schedule) to zoom into it; on iPad the Agent panel returns.
+        card2.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(waitForGone(overview, timeout: 5))
+        XCTAssertTrue(waitOrDump(companionHeading, timeout: 10, in: app))
+        if !usesDrawerLayout(app) {
+            XCTAssertTrue(waitOrDump(any(app, "aiPanel"), timeout: 5, in: app), "iPad Agent panel must return on the chosen tab.")
+        }
+    }
+
+    func testCloseRunningTabSavesToHistoryAndUndoRestoresTabAndStoppedConversation() throws {
+        let server = LocalTabsUIFixture()
+        try server.start()
+        defer { server.stop() }
+
+        let orientation: UIDeviceOrientation = isPhone ? .portrait : .landscapeLeft
+        // `run-limit` opens 4 tabs with running Agent sessions in t1, t2, t3 and recorded session in t4.
+        let app = launch(
+            [
+                "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+                "-dc-open", server.guideURL,
+                "-dc-browser-agent-demo", "run-limit",
+                "-dc-drawer-detent", "medium",
+                "-AppleInterfaceStyle", "Light"
+            ],
+            orientation: orientation
+        )
+
+        dismissDemoDrawerIfNeeded(in: app)
+
+        tapTabsButton(in: app)
+        let overview = any(app, "tabOverview")
+        XCTAssertTrue(waitOrDump(overview, timeout: 10, in: app))
+
+        let runningCard = any(app, "tabOverviewCard-t1")
+        XCTAssertTrue(waitOrDump(runningCard, timeout: 5, in: app))
+        XCTAssertTrue(
+            runningCard.label.contains("Agent working"),
+            "Running tab card must announce 'Agent working'; got “\(runningCard.label)”."
+        )
+        let deviceTag = isPhone ? "iphone" : "ipad"
+        capture("t3-\(deviceTag)-agent-working-card")
+
+        // Close running Tab 1: run stops, conversation saves to History, and 5s Undo toast appears.
+        tapCardClose(on: runningCard)
+        XCTAssertTrue(waitForGone(runningCard, timeout: 5))
+
+        let toast = any(app, "tabClosedToast")
+        let undoButton = app.buttons["tabClosedUndoButton"].firstMatch
+        XCTAssertTrue(waitOrDump(toast, timeout: 5, in: app), "Closing a tab must show the Undo toast.")
+        XCTAssertTrue(
+            app.staticTexts["Tab closed. Its conversation is in History."].exists
+                || toast.label.contains("Tab closed. Its conversation is in History."),
+            "Toast must read 'Tab closed. Its conversation is in History.'"
+        )
+        capture("t3-\(deviceTag)-tab-closed-toast")
+
+        // Tap Undo: Tab 1 returns with its conversation, and the run stays stopped ("Stopped").
+        XCTAssertTrue(undoButton.exists)
+        undoButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(waitOrDump(runningCard, timeout: 5, in: app), "Undo must restore Tab 1.")
+        XCTAssertFalse(
+            runningCard.label.contains("Agent working"),
+            "Undo must NOT resume the stopped run; got “\(runningCard.label)”."
+        )
+
+        // Open restored Tab 1 and inspect its conversation in the Agent panel.
+        runningCard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(waitForGone(overview, timeout: 5))
+        showAssistant(in: app)
+
+        let userPrompt = any(app, "agentUserMessage")
+        let stoppedNotice = any(app, "agentRunStoppedNotice")
+        XCTAssertTrue(waitOrDump(userPrompt, timeout: 10, in: app), "Undo must restore Tab 1's conversation prompt.")
+        XCTAssertTrue(waitOrDump(stoppedNotice, timeout: 5, in: app), "Last turn of a run stopped by closing must read 'Stopped'.")
+        XCTAssertEqual(stoppedNotice.label, "Stopped")
+        XCTAssertFalse(app.buttons["agentStopButton"].exists, "Stopped run must remain stopped after Undo.")
+        capture("t3-\(deviceTag)-undo-restored-stopped-turn")
+
+        // Close Tab 2 without Undo and verify its conversation appears in History.
+        if usesDrawerLayout(app) {
+            closeDrawer(in: app)
+        }
+        tapTabsButton(in: app)
+        XCTAssertTrue(waitOrDump(overview, timeout: 10, in: app))
+        let card2 = any(app, "tabOverviewCard-t2")
+        XCTAssertTrue(waitOrDump(card2, timeout: 5, in: app))
+        tapCardClose(on: card2)
+        XCTAssertTrue(waitForGone(card2, timeout: 5))
+
+        let doneButton = app.buttons["tabOverviewDone"].firstMatch
+        doneButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(waitForGone(overview, timeout: 5))
+
+        showAssistant(in: app)
+        let moreMenu = app.buttons["assistantMoreMenu"].firstMatch
+        if moreMenu.waitForExistence(timeout: 5) {
+            moreMenu.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+            let historyItem = app.buttons["History"].firstMatch
+            if historyItem.waitForExistence(timeout: 5) {
+                historyItem.tap()
+                XCTAssertTrue(
+                    wait(timeout: 10) {
+                        self.any(app, "agentRunRow").exists || app.staticTexts["Inspect tab 2"].exists
+                    },
+                    "Closed tab's conversation must appear in History."
+                )
+            }
+        }
+    }
+
+    func testVoiceOverActionsLongPressMenuThirtyTabLimitAndKeyboardShortcuts() throws {
+        let server = LocalTabsUIFixture()
+        try server.start()
+        defer { server.stop() }
+
+        let orientation: UIDeviceOrientation = isPhone ? .portrait : .landscapeLeft
+        let app = launch(
+            [
+                "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+                "-dc-tab-ax-debug",
+                "-dc-open", server.guideURL,
+                "-dc-browser-agent-demo", "empty",
+                "-AppleInterfaceStyle", "Light"
+            ],
+            orientation: orientation
+        )
+
+        let guideHeading = app.webViews.staticTexts["Harbor Ferry Field Guide"].firstMatch
+        XCTAssertTrue(waitOrDump(guideHeading, timeout: 15, in: app))
+        dismissDemoDrawerIfNeeded(in: app)
+
+        // Open Tab 2 (/companion) and Tab 3 (/popup-tariff).
+        let blankLink = app.webViews.links["Open Companion Schedule in New Tab"].firstMatch
+        XCTAssertTrue(waitForHittable(blankLink, timeout: 10))
+        blankLink.tap()
+        let companionHeading = app.webViews.staticTexts["Companion Ferry Schedule"].firstMatch
+        XCTAssertTrue(waitOrDump(companionHeading, timeout: 15, in: app))
+
+        let popupButton = app.webViews
+            .descendants(matching: .any)
+            .matching(label(contains: "Open Tariff Reference Window"))
+            .firstMatch
+        XCTAssertTrue(waitOrDump(popupButton, timeout: 10, in: app))
+        popupButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(waitOrDump(app.webViews.staticTexts["Summer Tariff Reference"].firstMatch, timeout: 15, in: app))
+
+        if usesDrawerLayout(app) {
+            closeDrawer(in: app)
+        }
+
+        // 1. VoiceOver custom actions: Move later, Move earlier, and Close on the live UIAccessibility elements.
+        tapTabsButton(in: app)
+        let overview = any(app, "tabOverview")
+        XCTAssertTrue(waitOrDump(overview, timeout: 10, in: app))
+
+        let card1 = any(app, "tabOverviewCard-t1")
+        let card2 = any(app, "tabOverviewCard-t2")
+        let card3 = any(app, "tabOverviewCard-t3")
+        XCTAssertTrue(card1.exists && card2.exists && card3.exists)
+        XCTAssertLessThan(card1.frame.minX, card2.frame.minX)
+
+        any(app, "tabAXInvoke-t1-later").coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(wait(timeout: 5) { card2.frame.minX < card1.frame.minX }, "VoiceOver Move later must move t1 after t2.")
+
+        any(app, "tabAXInvoke-t1-earlier").coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(wait(timeout: 5) { card1.frame.minX < card2.frame.minX }, "VoiceOver Move earlier must move t1 back before t2.")
+
+        any(app, "tabAXInvoke-t3-close").coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(waitForGone(card3, timeout: 5), "VoiceOver Close action must close t3.")
+
+        app.buttons["tabOverviewDone"].firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+        XCTAssertTrue(waitForGone(overview, timeout: 5))
+
+        // 2. Long-press native Menu on the bar's Tabs button: New Tab, Close This Tab, and open tab list.
+        longPressTabsButton(in: app)
+        XCTAssertTrue(app.buttons["New Tab"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Close This Tab"].exists)
+        let guideMenuAction = app.buttons.matching(label(contains: "Harbor Ferry Field Guide")).firstMatch
+        XCTAssertTrue(waitOrDump(guideMenuAction, timeout: 5, in: app))
+        let deviceTag = isPhone ? "iphone" : "ipad"
+        capture("t3-\(deviceTag)-tabs-long-press-menu")
+        guideMenuAction.tap()
+        XCTAssertTrue(waitOrDump(guideHeading, timeout: 10, in: app), "Choosing a tab from the long-press menu must switch to it.")
+
+        // 3. On iPad, test ⌘T, ⌃Tab, ⌃⇧Tab, and ⌘W.
+        if !isPhone {
+            _ = waitForGone(app.buttons["New Tab"].firstMatch, timeout: 5)
+            app.typeKey(.tab, modifierFlags: .control)
+            if !companionHeading.waitForExistence(timeout: 3) {
+                app.typeKey(.tab, modifierFlags: .control)
+            }
+            XCTAssertTrue(waitOrDump(companionHeading, timeout: 10, in: app), "⌃Tab must switch to the next tab.")
+
+            app.typeKey(.tab, modifierFlags: [.control, .shift])
+            if !guideHeading.waitForExistence(timeout: 3) {
+                app.typeKey(.tab, modifierFlags: [.control, .shift])
+            }
+            XCTAssertTrue(waitOrDump(guideHeading, timeout: 10, in: app), "⌃⇧Tab must switch to the previous tab.")
+
+            app.typeKey("t", modifierFlags: .command)
+            XCTAssertTrue(
+                wait(timeout: 5) { !guideHeading.exists },
+                "⌘T must open a new Home tab in front."
+            )
+
+            app.typeKey("w", modifierFlags: .command)
+            XCTAssertTrue(
+                waitOrDump(any(app, "tabClosedToast"), timeout: 5, in: app),
+                "⌘W must close the current tab with Undo."
+            )
+        }
+        app.terminate()
+
+        // 4. 30-tab limit + Accessibility Dynamic Type grid (1 column on iPhone, 2 columns on iPad).
+        let ax3 = UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue
+        let limitApp = launch(
+            [
+                "-UIPreferredContentSizeCategoryName", ax3,
+                "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+                "-dc-seed-open-tabs", "30",
+                "-AppleInterfaceStyle", "Light"
+            ],
+            orientation: orientation
+        )
+        tapTabsButton(in: limitApp)
+        let limitOverview = any(limitApp, "tabOverview")
+        XCTAssertTrue(waitOrDump(limitOverview, timeout: 10, in: limitApp))
+        XCTAssertFalse(limitApp.buttons["tabOverviewNewTab"].firstMatch.isEnabled, "New tab must be disabled at 30 tabs.")
+        let limitNotice = any(limitApp, "tabOverviewLimitNotice")
+        XCTAssertTrue(waitOrDump(limitNotice, timeout: 5, in: limitApp))
+        XCTAssertEqual(limitNotice.label, "30 tabs open. Close one to open another")
+
+        let axCard1 = any(limitApp, "tabOverviewCard-t1")
+        let axCard2 = any(limitApp, "tabOverviewCard-t2")
+        if axCard1.exists && axCard2.exists {
+            if isPhone {
+                // 1 column at accessibility Dynamic Type on iPhone: card2 sits below card1, not beside it.
+                XCTAssertEqual(axCard1.frame.minX, axCard2.frame.minX, accuracy: 8)
+                XCTAssertGreaterThan(axCard2.frame.minY, axCard1.frame.maxY - 8)
+            } else {
+                // 2 columns at accessibility Dynamic Type on iPad.
+                let axCard3 = any(limitApp, "tabOverviewCard-t3")
+                XCTAssertLessThan(axCard1.frame.minX, axCard2.frame.minX)
+                if axCard3.exists {
+                    XCTAssertEqual(axCard1.frame.minX, axCard3.frame.minX, accuracy: 8)
+                }
+            }
+        }
+        capture("t3-\(deviceTag)-30-limit-ax-grid")
+    }
 }
 
 private final class LocalTabsUIFixture: @unchecked Sendable {

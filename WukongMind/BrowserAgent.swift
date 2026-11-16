@@ -1275,6 +1275,8 @@ final class BrowserAgentSession {
     @ObservationIgnored var onRunStateChanged: (@MainActor (Bool) -> Void)?
     /// Fired when persisted conversation state changes.
     @ObservationIgnored var onConversationChanged: (@MainActor () -> Void)?
+    /// Fired right before `resetConversation()` clears the existing runs and messages so History can archive them.
+    @ObservationIgnored var onWillResetConversation: (@MainActor () -> Void)?
     /// Fired when `resetConversation()` starts a fresh conversation on the tab.
     @ObservationIgnored var onConversationReset: (@MainActor () -> Void)?
     /// The task ID of the latest run (the run's UUID string).
@@ -1291,7 +1293,7 @@ final class BrowserAgentSession {
     private(set) var pageBaseline: PageStateSnapshot?
     private(set) var pageBaselineImage: AgentImage?
     /// The page URL the last page context named, to tell the model the page changed.
-    private var lastContextURL: String?
+    private(set) var lastContextURL: String?
 
     init(
         pageDriver: AgentPageDriving,
@@ -1591,6 +1593,7 @@ final class BrowserAgentSession {
         if isRunning {
             stop()
         }
+        onWillResetConversation?()
         messages = []
         runs = []
         toolCalls = []

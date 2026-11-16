@@ -236,6 +236,28 @@ struct SiteToolState: Codable, Equatable, Sendable {
         return !script.isEnabled && (script.disabledReason ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    /// What the saved reading state says of the page at `url`, for suggestions:
+    /// a thread page when `read_topic` is learned and `thread_match` matches,
+    /// else a list page when `list_latest` is learned and `list_match` matches.
+    /// A slot counts only while it is learned and its script exists and is on.
+    /// Pure, no I/O: the patterns come from the script's own header.
+    static func learnedSuggestionKind(state: SiteToolState?, url: URL, scripts: [UserScript]) -> SuggestionPageKind? {
+        guard let state, normalizedHost(from: url) == state.host else { return nil }
+        let scriptsByID = Dictionary(uniqueKeysWithValues: scripts.map { ($0.id, $0) })
+        func usable(_ slot: SiteToolSlot) -> Bool {
+            let s = state.slot(slot)
+            guard s.status == .learned, let id = s.scriptID, let script = scriptsByID[id] else { return false }
+            return script.isEnabled
+        }
+        func matches(_ patterns: [String]) -> Bool {
+            patterns.contains { (try? MatchPattern.parse($0))?.matches(url: url) == true }
+        }
+        let search = usable(.searchForum)
+        if usable(.readTopic), matches(state.threadMatch) { return .learnedThread(search: search) }
+        if usable(.listLatest), matches(state.listMatch) { return .learnedList(search: search) }
+        return nil
+    }
+
     private enum SlotOutcome: Equatable {
         case untried, notApplicable, learned, broken, failed(Date, SiteFailureCode, SiteReadingPromptLine.Retry), turnedOff
     }
@@ -346,5 +368,14 @@ final class SiteToolStateStore: @unchecked Sendable {
         guard !safeName.isEmpty, !safeName.hasPrefix(".") else { return nil }
         let file = directoryURL.appendingPathComponent("\(safeName).json", isDirectory: false)
         return file.deletingLastPathComponent().standardizedFileURL == directoryURL.standardizedFileURL ? file : nil
+    }
+}
+
+extension UserScript {
+    /// A learned reader: an Agent-made script that provides a forum-tool slot.
+    /// This page shows "Reads this site" under it.
+    var readsSite: Bool {
+        if case .agent = source { return !metadata.provides.isEmpty }
+        return false
     }
 }

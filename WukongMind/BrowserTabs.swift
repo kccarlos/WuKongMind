@@ -25,6 +25,19 @@ enum BrowserTabOpenError: LocalizedError, Equatable, Sendable {
     }
 }
 
+/// Snapshot captured right before closing a tab so Undo can bring back the tab,
+/// its page, its thumbnail, and its stopped/finished conversation without resuming any run.
+struct ClosedBrowserTabSnapshot {
+    let savedTab: SavedBrowserTab
+    let index: Int
+    let wasCurrent: Bool
+    let snapshot: UIImage?
+    let conversation: SavedAgentConversation
+    let hadConversation: Bool
+    let addedHistoryRunIDs: [UUID]
+    let replacementHomeTabID: String?
+}
+
 /// One open browser tab (`design-browser-bar-tabs-models.md` §2, T1/T2): its own
 /// `ForumBrowserModel` (lazy/unloadable `WKWebView` + `AgentBridge`),
 /// `BrowserAgentSession`, live userscript controller, HTTP client, confirmation
@@ -442,6 +455,122 @@ final class BrowserTabs: ObservableObject {
         return true
     }
 
+    /// Moves the tab with `id` to `destinationIndex` (`0..<tabs.count`), preserving selection.
+    @discardableResult
+    func moveTab(id: String, to destinationIndex: Int) -> Bool {
+        guard let sourceIndex = index(of: id), !tabs.isEmpty else { return false }
+        let clampedDestination = min(max(0, destinationIndex), tabs.count - 1)
+        guard sourceIndex != clampedDestination else { return false }
+        let moving = tabs.remove(at: sourceIndex)
+        tabs.insert(moving, at: clampedDestination)
+        onTabsMutated?()
+        return true
+    }
+
+    @discardableResult
+    func moveTabEarlier(id: String) -> Bool {
+        guard let currentIndex = index(of: id), currentIndex > 0 else { return false }
+        return moveTab(id: id, to: currentIndex - 1)
+    }
+
+    @discardableResult
+    func moveTabLater(id: String) -> Bool {
+        guard let currentIndex = index(of: id), currentIndex < tabs.count - 1 else { return false }
+        return moveTab(id: id, to: currentIndex + 1)
+    }
+
+    /// Cycles forward through open tabs (`⌃Tab`), wrapping from last to first.
+    @discardableResult
+    func switchToNextTab() -> Bool {
+        guard tabs.count > 1, let currentIndex = index(of: currentTabID) else { return false }
+        let nextIndex = (currentIndex + 1) % tabs.count
+        return switchToTab(id: tabs[nextIndex].id)
+    }
+
+    /// Cycles backward through open tabs (`⌃⇧Tab`), wrapping from first to last.
+    @discardableResult
+    func switchToPreviousTab() -> Bool {
+        guard tabs.count > 1, let currentIndex = index(of: currentTabID) else { return false }
+        let prevIndex = (currentIndex - 1 + tabs.count) % tabs.count
+        return switchToTab(id: tabs[prevIndex].id)
+    }
+
+    /// Restores a recently closed tab for Undo. Any run that closing stopped stays
+    /// stopped (`restoreConversation` never resumes a run).
+    @discardableResult
+    func restoreClosedTab(_ record: ClosedBrowserTabSnapshot) -> BrowserTab? {
+        if let existing = tab(id: record.savedTab.id) {
+            return existing
+        }
+        let shouldReplaceBlankHome: Bool = {
+            guard let replacementID = record.replacementHomeTabID,
+                  tabs.count == 1,
+                  let onlyTab = tabs.first,
+                  onlyTab.id == replacementID,
+                  onlyTab.showsHome,
+                  !onlyTab.agentSession.hasConversation else {
+                return false
+            }
+            return true
+        }()
+        if !shouldReplaceBlankHome, !canOpenTab {
+            return nil
+        }
+
+        let previousCurrent = currentTab
+        let shouldMakeCurrent = record.wasCurrent || shouldReplaceBlankHome
+        if shouldMakeCurrent, !shouldReplaceBlankHome, previousCurrent.isWebViewLoaded {
+            previousCurrent.browser.refreshScrollPositionFromWebView()
+            Task { @MainActor [weak previousCurrent] in
+                _ = await previousCurrent?.captureSnapshotIfAvailable()
+            }
+        }
+
+        let browser = makeBrowser(
+            nil,
+            !shouldMakeCurrent,
+            record.savedTab.url,
+            record.savedTab.title,
+            record.savedTab.scrollPosition
+        )
+        let restored = makeTab(
+            record.savedTab.id,
+            record.savedTab.conversationID,
+            record.snapshot,
+            browser
+        )
+        if !record.conversation.isEmpty {
+            restored.agentSession.restoreConversation(record.conversation)
+        }
+        installTabHandlers(on: restored)
+        if let num = Self.numericSuffix(of: restored.id) {
+            nextTabNumber = max(nextTabNumber, num + 1)
+        }
+
+        if shouldReplaceBlankHome, let placeholder = tabs.first {
+            tearDown(placeholder)
+            onTabClosed?(placeholder)
+            tabs = [restored]
+        } else {
+            let insertIndex = min(max(0, record.index), tabs.count)
+            tabs.insert(restored, at: insertIndex)
+        }
+
+        if shouldMakeCurrent {
+            currentTabID = restored.id
+            if let url = record.savedTab.url, ForumBrowserModel.isBrowsableURL(url) {
+                restored.browser.load(
+                    url,
+                    silentOnFailure: true,
+                    restoringScroll: record.savedTab.scrollPosition
+                )
+            }
+            onActiveTabChanged?(restored, previousCurrent)
+        }
+        onTabsMutated?()
+        return restored
+    }
+
     /// Resets all tabs back to a single fresh `"t1"` Home tab (used by "Clear all data").
     func resetToSingleHomeTab() {
         let oldCurrent = currentTab
@@ -630,6 +759,7 @@ final class BrowserTabs: ObservableObject {
         tab.agentSession.onRunStateChanged = nil
         tab.agentSession.onRunFinished = nil
         tab.agentSession.onConversationChanged = nil
+        tab.agentSession.onWillResetConversation = nil
         tab.agentSession.onConversationReset = nil
         tab.confirmations.cancelAll()
         tab.browser.stopLoading()
