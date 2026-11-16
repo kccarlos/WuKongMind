@@ -3057,6 +3057,8 @@ struct LearnedSiteContext: Sendable {
     var pageToolBridge: PageToolBridge
     var scope: LearnedRunScope
     var promptState: SiteReadingPromptState
+    /// How long one reader call may run; a reader that hangs past it is a `tool` failure.
+    var readerTimeout: TimeInterval = PageToolBridge.defaultTimeout
 
     @MainActor
     init(host: String, state: SiteToolState, pageToolBridge: PageToolBridge, scriptStore: ScriptStore, scope: LearnedRunScope? = nil, stateStore: SiteToolStateStore? = nil) {

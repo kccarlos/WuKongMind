@@ -435,11 +435,11 @@ extension ToolRegistry {
         learned: LearnedSiteContext, shapeNoun: String, as _: Shape.Type
     ) async -> (envelope: LearnedToolResult<Shape>?, error: ToolExecutionOutput?, thrownCode: String?) {
         let outcome = await learned.pageToolBridge.callScriptTool(
-            scriptID: scriptID, name: slot.rawValue, argumentsJSON: JSONValue.encodeCompactJSON(payload)
+            scriptID: scriptID, name: slot.rawValue, argumentsJSON: JSONValue.encodeCompactJSON(payload), timeout: learned.readerTimeout
         )
         guard case .success(let callResult) = outcome else {
             if case .failure(let failure) = outcome {
-                let pageSide = [PageToolCallFailureCode.disabled, .detached, .invalidName, .notFound, .timedOut].contains(failure.code)
+                let pageSide = [PageToolCallFailureCode.disabled, .detached, .invalidName, .notFound].contains(failure.code)
                 return (nil, ToolExecutionOutput(
                     content: "Error: \(failure.message)", summary: pageSide ? bridgeFailureSummary : nil, isError: true
                 ), failure.thrownCode)

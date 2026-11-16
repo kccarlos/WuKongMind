@@ -524,6 +524,28 @@ final class LearnedSiteRepairWebTests: XCTestCase {
         XCTAssertTrue(learned.scope.brokenSlots.isEmpty)
     }
 
+    /// A reader that never resolves is the reader's own fault (`tool`); a site that times out is not.
+    func testHangingReaderBreaksTheSlotButASlowSiteDoesNot() async throws {
+        let h = try await makeHarness(), script = try await learn(h)
+        defer { h.controller.detach(); h.pageToolBridge.detach() }
+        let hang = "await modelContext.registerTool({ name: \"read_topic\", async execute() { await new Promise(() => {}); } });"
+        try await edit(h, script, js: hang)
+        var learned = h.makeLearned(); learned.readerTimeout = 1
+        // The site answers normally, so the hang is the reader's.
+        let hung = try await h.registry(learned).dispatch(toolName: "read_topic", arguments: ["url": .string(h.u1)])
+        XCTAssertTrue(hung.isError && hung.output.contains("Script repair context"), hung.output)
+        XCTAssertEqual(slot(h, .readTopic).status, .broken)
+
+        // Back to a healthy reader; now the site itself is the one that fails.
+        try h.stateStore.update(host: "127.0.0.1") { state in var s = state.slot(.readTopic); s.status = .learned; s.repairFailures = 0; state.setSlot(s, for: .readTopic) }
+        try await edit(h, script, js: hang)
+        h.site.mode = .tooMany
+        var learned2 = h.makeLearned(); learned2.readerTimeout = 1
+        let slow = try await h.registry(learned2).dispatch(toolName: "read_topic", arguments: ["url": .string(h.u1)])
+        XCTAssertTrue(slow.isError && slow.output.contains("isn't answering the way it should"), slow.output)
+        XCTAssertEqual(slot(h, .readTopic).status, .learned)
+    }
+
     /// A reader edited by hand fails its next call (the full check on a changed hash), once.
     func testChangedHashRunsTheFullCheckOnce() async throws {
         let h = try await makeHarness(), script = try await learn(h)
