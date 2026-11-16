@@ -188,6 +188,8 @@ final class GMBridge {
     @ObservationIgnored var onScriptError: ((String, [String: Any]) -> Void)?
     @ObservationIgnored var onScriptLoadClean: ((String, [String: Any]) -> Void)?
     @ObservationIgnored var onPageScriptReport: (([String: Any]) -> Void)?
+    @ObservationIgnored var onGMAiCallStarted: ((String) -> Void)?
+    @ObservationIgnored var onGMAiServiceFailure: ((String, String) -> Void)?
     @ObservationIgnored private var registeredHandlers: [String: GMScriptReplyHandler] = [:]
     @ObservationIgnored private var pageReportHandler: GMPageReplyHandler?
     @ObservationIgnored private var inFlightRequests: [String: Task<Void, Never>] = [:]
@@ -238,6 +240,13 @@ final class GMBridge {
     private func rememberRetiredToken(_ token: String) {
         if retiredDocTokens.count > 256 { retiredDocTokens.removeAll() }
         retiredDocTokens.insert(token)
+    }
+
+    func inFlightCallCount(for scriptID: String) -> Int {
+        let prefix = "\(scriptID):"
+        return inFlightRequests.keys.reduce(into: 0) { count, key in
+            if key.hasPrefix(prefix) { count += 1 }
+        }
     }
 
     func cancelRequests(for scriptID: String) {
@@ -444,8 +453,11 @@ final class GMBridge {
         replyHandler: @escaping (Any?, String?) -> Void
     ) {
         guard let script = requireActiveGrantedScript(scriptID, grants: ["GM_ai"], reportName: "GM_ai", replyHandler: replyHandler) else { return }
+        onGMAiCallStarted?(scriptID)
         guard let service = aiService else {
-            replyHandler(["ok": false, "code": GMAiError.Code.noModel.rawValue, "message": "Script AI service is unavailable."], nil)
+            let msg = "Script AI service is unavailable."
+            onGMAiServiceFailure?(scriptID, msg)
+            replyHandler(["ok": false, "code": GMAiError.Code.noModel.rawValue, "message": msg], nil)
             return
         }
         let requestID = (payload["requestId"] as? String) ?? UUID().uuidString
@@ -475,10 +487,12 @@ final class GMBridge {
                 }
                 replyHandler(["ok": true, "rawJSON": GMAiFormat.encodeJSON(value)], nil)
             } catch let aiErr as GMAiError {
+                self?.onGMAiServiceFailure?(scriptID, aiErr.message)
                 replyHandler(["ok": false, "code": aiErr.code.rawValue, "message": aiErr.message], nil)
             } catch is CancellationError {
                 replyHandler(["ok": false, "code": GMAiError.Code.provider.rawValue, "message": "Cancelled."], nil)
             } catch {
+                self?.onGMAiServiceFailure?(scriptID, error.localizedDescription)
                 replyHandler(["ok": false, "code": GMAiError.Code.provider.rawValue, "message": error.localizedDescription], nil)
             }
         }

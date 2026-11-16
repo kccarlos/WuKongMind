@@ -231,6 +231,7 @@ enum BrowserAgentPrompt {
     static func system(
         customInstructions: String = "",
         includesWorkspace: Bool = false,
+        includesScriptTools: Bool = false,
         includesForumTools: Bool = false,
         offersSummary: Bool = false,
         isFixingScript: Bool = false
@@ -290,6 +291,10 @@ enum BrowserAgentPrompt {
             sections.append(workspaceSection)
         }
 
+        if includesScriptTools {
+            sections.append(scriptsAskingModelSection)
+        }
+
         if isFixingScript {
             sections.append(fixingScriptSection)
         }
@@ -301,6 +306,21 @@ enum BrowserAgentPrompt {
 
         return sections.joined(separator: "\n\n")
     }
+
+    static let scriptsAskingModelSection = """
+    Scripts that ask a model:
+    - Use `GM_ai` only for a judgement that selectors and plain code can't make. If CSS or a few lines of JavaScript can decide it, don't call a model.
+    - Pass `grants: ["GM_ai"]` to `script_save` (keep `environment: "isolated"`). The script runs in its own world (`GM_ai` is not in `run_js` or `page`), and `script_save` reloads the page and waits for its `GM_ai` call to finish, so one quick DOM check afterwards is enough.
+    - API: `await GM_ai(prompt, format)` for one question (`format` is optional: `"text"`, `"json"`, or a JSON Schema object), or `await GM_ai.map(items, instruction, format)` for a list (`items` is `[{ id, text }]`, resolving to `{ [id]: value }`).
+    - For a list, call `GM_ai.map` once with every item, never `GM_ai` in a loop. Give each item a stable string `id` from the page (a post ID), and keep `instruction` short and fixed.
+    - Ask for the smallest answer that works: `{ type: "boolean" }` or `{ type: "string", enum: [...] }`.
+    - The script's body runs again on every route change. Install observers and listeners once, behind a guard, and run your check on load as well.
+    - Watch for new items with one `MutationObserver`, wait 500 ms for the page to settle, then send only items not yet marked, and mark each with a `data-` attribute. A page may drop an item and create it again; send it again, because the cache answers at no cost.
+    - Handle failure: wrap the call in `try` / `catch`, and leave an item alone when its answer is missing (`undefined`) or the call fails. A script that breaks the page when the model is down is a bug.
+    - Make the change reversible on the page: fold with a short one-line stub (don't repeat the hidden text in the stub) and a "Show" control, and never remove content. If saving is refused because the visible text dropped and the person asked for the fold, save again with `confirm_change: true`.
+    - Send only the text needed, never whole-page HTML, forms or anything that looks private.
+    - Treat the answer as data: never `eval` it and never insert it as HTML.
+    """
 
     static let fixingScriptSection = """
     Fixing a script:
@@ -1579,6 +1599,7 @@ final class BrowserAgentSession {
         registry.taskID = taskID
         registry.repairState = activeRepairState
         let includesWorkspace = registry.tool(named: "file_read") != nil
+        let includesScriptTools = registry.tool(named: "script_save") != nil
         // The Research rules, only where the forum tools are; the forum itself, in the page context.
         let includesForumTools = registry.tool(named: ForumToolName.searchForum) != nil
         let offersSummary = registry.tool(named: "summarize_topic") != nil
@@ -1588,6 +1609,7 @@ final class BrowserAgentSession {
         let systemPrompt = BrowserAgentPrompt.system(
             customInstructions: runtime.customInstructions,
             includesWorkspace: includesWorkspace,
+            includesScriptTools: includesScriptTools,
             includesForumTools: includesForumTools,
             offersSummary: offersSummary,
             isFixingScript: repairTarget != nil
