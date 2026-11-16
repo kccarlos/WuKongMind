@@ -502,4 +502,280 @@ final class BrowserBarMorphUITests: DCUITestCase {
         XCTAssertFalse(chip.exists)
         XCTAssertNotNil(waitForDebug(in: app, timeout: 5) { !$0.isMinimized && $0.insetBottom == 0 })
     }
+
+    func testPageMenuInsideAddressFieldForwardInMenuAndBackLongPressAndReloadWorks() throws {
+        try skipUnlessPhone("B2 covers the iPhone address field's page menu, reload, and back/forward history.")
+
+        let server = FixtureSpaForumServer()
+        try server.start()
+        defer { server.stop() }
+
+        let page1URL = "\(server.baseURL)/crawl/page-01.html"
+        let app = launch(["-dc-open", page1URL, "-dc-bar", "automatic"])
+        let webView = app.webViews.firstMatch
+        XCTAssertTrue(webView.waitForExistence(timeout: 15))
+        XCTAssertTrue(
+            webView.staticTexts.matching(label(contains: "CRAWL-MARKER-01")).firstMatch.waitForExistence(timeout: 15),
+            "Page 01 did not finish loading."
+        )
+
+        let back = app.buttons["browserBack"]
+        let pageMenu = app.buttons["forumSwitcher"]
+        let title = app.buttons["browserTitle"]
+        let reload = app.buttons["browserReload"]
+        let ai = app.buttons["aiButton"]
+
+        XCTAssertTrue(waitForBarItem(title, timeout: 10))
+        XCTAssertTrue(back.exists && pageMenu.exists && reload.exists && ai.exists)
+
+        // Page menu and Reload sit strictly inside the address field between Back and Agent.
+        XCTAssertLessThanOrEqual(back.frame.maxX, pageMenu.frame.minX + 1, "Page menu sits after Back.")
+        XCTAssertLessThanOrEqual(pageMenu.frame.maxX, title.frame.minX + 1, "Page menu leads the domain inside the address field.")
+        XCTAssertLessThanOrEqual(title.frame.maxX, reload.frame.minX + 1, "Reload trails the domain inside the address field.")
+        XCTAssertLessThanOrEqual(reload.frame.maxX, ai.frame.minX + 1, "Reload sits inside the address field before Agent.")
+
+        // 1. Page menu opens from inside the address field and exposes Forward (disabled before forward history).
+        tapBarItem(pageMenu)
+        let menuCollection = app.collectionViews.firstMatch
+        XCTAssertTrue(menuCollection.waitForExistence(timeout: 5), "Tapping Page menu inside the address field did not open the menu.")
+        let menuForward = menuCollection.buttons["Forward"]
+        XCTAssertTrue(menuForward.waitForExistence(timeout: 5), "Forward is missing from the page menu.")
+        XCTAssertFalse(menuForward.isEnabled, "Forward is disabled before going back.")
+        capture("b2-page-menu-open")
+        dismissMenu(in: app)
+        XCTAssertTrue(waitForGone(menuCollection, timeout: 5))
+
+        // 2. Navigate to page 02, tap Back to return to page 01, then use Forward in the Page menu.
+        let nextLink = webView.links["Next page"].firstMatch
+        XCTAssertTrue(nextLink.waitForExistence(timeout: 10))
+        nextLink.tap()
+        XCTAssertTrue(
+            webView.staticTexts.matching(label(contains: "CRAWL-MARKER-02")).firstMatch.waitForExistence(timeout: 15),
+            "Tapping Next page did not load page 02."
+        )
+        XCTAssertTrue(wait(timeout: 5) { back.isEnabled }, "Back enables after navigating to page 02.")
+
+        tapBarItem(back)
+        XCTAssertTrue(
+            webView.staticTexts.matching(label(contains: "CRAWL-MARKER-01")).firstMatch.waitForExistence(timeout: 15),
+            "Tapping Back did not return to page 01."
+        )
+        XCTAssertTrue(wait(timeout: 5) { !back.isEnabled }, "Back disables at the start of history.")
+
+        tapBarItem(pageMenu)
+        XCTAssertTrue(menuForward.waitForExistence(timeout: 5))
+        XCTAssertTrue(menuForward.isEnabled, "Forward in the page menu enables when forward history exists.")
+        menuForward.tap()
+        XCTAssertTrue(
+            webView.staticTexts.matching(label(contains: "CRAWL-MARKER-02")).firstMatch.waitForExistence(timeout: 15),
+            "Tapping Forward in the page menu did not return to page 02."
+        )
+
+        // 3. Go back to page 01 again, then long-press Back (even while Back tap is disabled!) to go Forward from history.
+        tapBarItem(back)
+        XCTAssertTrue(
+            webView.staticTexts.matching(label(contains: "CRAWL-MARKER-01")).firstMatch.waitForExistence(timeout: 15)
+        )
+        pressBarItem(back, duration: 1.0)
+        let historyMenu = app.collectionViews.firstMatch
+        XCTAssertTrue(historyMenu.waitForExistence(timeout: 5), "Long-pressing Back did not open the history menu.")
+        let forwardSection = historyMenu.descendants(matching: .any)["Forward"].firstMatch
+        XCTAssertTrue(forwardSection.exists, "Back's long-press history menu has no Forward section.")
+        let page2HistoryItem = historyMenu.buttons.matching(label(contains: "page 02")).firstMatch
+        XCTAssertTrue(page2HistoryItem.waitForExistence(timeout: 5), "Page 02 is missing from Back's long-press Forward history.")
+        capture("b2-back-long-press-history")
+        page2HistoryItem.tap()
+        XCTAssertTrue(
+            webView.staticTexts.matching(label(contains: "CRAWL-MARKER-02")).firstMatch.waitForExistence(timeout: 15),
+            "Selecting Page 02 from Back's long-press Forward history did not navigate forward."
+        )
+
+        // 4. Open /threads/101 and verify the trailing Reload button inside the address field reloads the page.
+        tapBarItem(title)
+        let addressField = app.textFields["addressField"]
+        XCTAssertTrue(addressField.waitForExistence(timeout: 5))
+        addressField.typeText(server.thread101URL + "\n")
+        XCTAssertTrue(webView.staticTexts["Load #1"].waitForExistence(timeout: 15), "Initial thread load did not show Load #1.")
+        let countBefore = server.requestCount(forPath: "/threads/101")
+
+        XCTAssertTrue(waitForBarItem(reload, timeout: 5))
+        tapBarItem(reload)
+        XCTAssertTrue(webView.staticTexts["Load #2"].waitForExistence(timeout: 15), "Tapping Reload inside the address field did not reload.")
+        XCTAssertGreaterThanOrEqual(server.requestCount(forPath: "/threads/101"), countBefore + 1)
+    }
+
+    func testVoiceOverAuditFindsLabelsAndXXXLAndAX5KeepOneRowWith44PtButtons() throws {
+        try skipUnlessPhone("B2 VoiceOver audit, XXXL one-row 44 pt check, and Large Content Viewer check.")
+
+        // 1. VoiceOver labels & system Accessibility Audit (expanded + collapsed).
+        let app = launch([
+            "-dc-browse-debug",
+            "-dc-bar-morph-fixture", "long",
+            "-dc-bar", "automatic",
+            "-AppleInterfaceStyle", "Light"
+        ])
+        let webView = app.webViews.firstMatch
+        XCTAssertTrue(webView.waitForExistence(timeout: 15))
+        XCTAssertTrue(webView.staticTexts["Browser Bar Motion Spec"].waitForExistence(timeout: 10))
+        XCTAssertNotNil(waitForDebug(in: app, timeout: 15) { $0.maxOffsetY > 1500 && $0.isAtRest && $0.progress <= 0.001 })
+
+        let bar = any(app, "browserBar")
+        let back = app.buttons["browserBack"]
+        let pageMenu = app.buttons["forumSwitcher"]
+        let title = app.buttons["browserTitle"]
+        let reload = app.buttons["browserReload"]
+        let ai = app.buttons["aiButton"]
+
+        XCTAssertTrue(bar.waitForExistence(timeout: 5), "Expanded bar exposes Browser bar container.")
+        XCTAssertEqual(bar.label, "Browser bar")
+        XCTAssertEqual(back.label, "Back")
+        XCTAssertEqual(pageMenu.label, "Page menu")
+        XCTAssertEqual(title.label, "Address field: news.example.org")
+        XCTAssertEqual(reload.label, "Reload")
+        XCTAssertEqual(ai.label, "Agent")
+        capture("b2-phone-expanded-light")
+
+        // Activating the address field edits and shows the full URL.
+        XCTAssertTrue(waitForBarItem(title, timeout: 5))
+        tapBarItem(title)
+        let editField = app.textFields["addressField"]
+        XCTAssertTrue(editField.waitForExistence(timeout: 5))
+        XCTAssertEqual(editField.value as? String, "https://news.example.org/story/bar-morph")
+        app.buttons["addressCancel"].tap()
+        XCTAssertTrue(waitForBarItem(title, timeout: 5))
+
+        // Audit every native element in the expanded bar (`performAccessibilityAudit` inspects contrast, hitRegion, traits, labels).
+        let barFrame = bar.frame.insetBy(dx: -8, dy: -8)
+        try app.performAccessibilityAudit(for: [.elementDetection, .hitRegion, .sufficientElementDescription, .trait, .contrast]) { issue in
+            guard let element = issue.element else { return false }
+            if element.frame.intersects(barFrame) {
+                return false
+            }
+            return true
+        }
+
+        // Collapse and audit the single pill button ("Show browser bar, news.example.org").
+        // Over translucent Liquid Glass, WebKit paragraph glyphs behind the pill vary by scroll offset,
+        // while solid surface contrast (>= 4.5:1 under Reduce Transparency / Increase Contrast) is verified in unit tests.
+        controlledDrag(on: webView, fromNormalizedY: 0.68, toNormalizedY: 0.28)
+        let pill = app.buttons["browserChromeStrip"]
+        XCTAssertTrue(pill.waitForExistence(timeout: 5))
+        XCTAssertEqual(pill.label, "Show browser bar, news.example.org")
+        XCTAssertGreaterThanOrEqual(pill.frame.height, 44 - 0.5, "Collapsed pill maintains a 44 pt hit target.")
+        let pillFrame = pill.frame.insetBy(dx: -8, dy: -8)
+        try app.performAccessibilityAudit(for: [.elementDetection, .hitRegion, .sufficientElementDescription, .trait]) { issue in
+            guard let element = issue.element else { return false }
+            return !element.frame.intersects(pillFrame)
+        }
+        app.terminate()
+
+        // 2. XXXL Dynamic Type screenshot & single-row 44 pt button check (Light and Dark).
+        let xxxl = UIContentSizeCategory.extraExtraExtraLarge.rawValue
+        for style in ["Light", "Dark"] {
+            let xxxlApp = launch([
+                "-UIPreferredContentSizeCategoryName", xxxl,
+                "-dc-browse-debug",
+                "-dc-bar-morph-fixture", "long",
+                "-dc-bar", "automatic",
+                "-AppleInterfaceStyle", style
+            ])
+            XCTAssertTrue(xxxlApp.webViews.firstMatch.waitForExistence(timeout: 15))
+            let xxxlBar = any(xxxlApp, "browserBar")
+            let xxxlBack = xxxlApp.buttons["browserBack"]
+            let xxxlMenu = xxxlApp.buttons["forumSwitcher"]
+            let xxxlTitle = xxxlApp.buttons["browserTitle"]
+            let xxxlReload = xxxlApp.buttons["browserReload"]
+            let xxxlAI = xxxlApp.buttons["aiButton"]
+            XCTAssertTrue(waitForBarItem(xxxlTitle, timeout: 10))
+
+            // `browserBar` reports the content union of its single 44 pt row inside the 56 pt glass capsule.
+            XCTAssertGreaterThanOrEqual(xxxlBar.frame.height, 44 - 0.5)
+            XCTAssertLessThanOrEqual(xxxlBar.frame.height, 56 + 1.5, "XXXL expanded bar stays one row (\(style)).")
+            for (name, button) in [("Back", xxxlBack), ("Page menu", xxxlMenu), ("Reload", xxxlReload), ("Agent", xxxlAI)] {
+                XCTAssertGreaterThanOrEqual(button.frame.width, 44 - 0.5, "\(name) width < 44 pt at XXXL (\(button.frame)).")
+                XCTAssertGreaterThanOrEqual(button.frame.height, 44 - 0.5, "\(name) height < 44 pt at XXXL (\(button.frame)).")
+                XCTAssertLessThanOrEqual(
+                    abs(button.frame.midY - xxxlBar.frame.midY),
+                    1.5,
+                    "\(name) wrapped out of the single bar row at XXXL (\(button.frame) vs bar \(xxxlBar.frame))."
+                )
+            }
+            XCTAssertGreaterThanOrEqual(xxxlTitle.frame.height, 44 - 0.5)
+            XCTAssertLessThanOrEqual(xxxlBack.frame.maxX, xxxlMenu.frame.minX + 0.5)
+            XCTAssertLessThanOrEqual(xxxlMenu.frame.maxX, xxxlTitle.frame.minX + 0.5)
+            XCTAssertLessThanOrEqual(xxxlTitle.frame.maxX, xxxlReload.frame.minX + 0.5)
+            XCTAssertLessThanOrEqual(xxxlReload.frame.maxX, xxxlAI.frame.minX + 0.5)
+
+            capture("b2-phone-xxxl-expanded-\(style.lowercased())")
+            xxxlApp.terminate()
+        }
+
+        // 3. Accessibility Dynamic Type (AX5): stays expanded on one row, 44 pt buttons, middle-truncated domain, Large Content Viewer on long press.
+        let ax5 = UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue
+        let axApp = launch([
+            "-UIPreferredContentSizeCategoryName", ax5,
+            "-dc-browse-debug",
+            "-dc-bar-morph-fixture", "long-domain",
+            "-dc-bar", "automatic",
+            "-dc-voice-fake",
+            "-AppleInterfaceStyle", "Light"
+        ])
+        let axWebView = axApp.webViews.firstMatch
+        XCTAssertTrue(axWebView.waitForExistence(timeout: 15))
+        let axBar = any(axApp, "browserBar")
+        let axBack = axApp.buttons["browserBack"]
+        let axMenu = axApp.buttons["forumSwitcher"]
+        let axTitle = axApp.buttons["browserTitle"]
+        let axReload = axApp.buttons["browserReload"]
+        let axAI = axApp.buttons["aiButton"]
+        XCTAssertTrue(waitForBarItem(axTitle, timeout: 10))
+        XCTAssertEqual(axTitle.label, "Address field: communities.reader-archive.example.org")
+        XCTAssertGreaterThanOrEqual(axBar.frame.height, 44 - 0.5)
+        XCTAssertLessThanOrEqual(axBar.frame.height, 56 + 1.5, "AX5 bar stays one row.")
+        for button in [axBack, axMenu, axReload, axAI] {
+            XCTAssertGreaterThanOrEqual(button.frame.width, 44 - 0.5)
+            XCTAssertGreaterThanOrEqual(button.frame.height, 44 - 0.5)
+        }
+        capture("b2-phone-ax5-middle-truncation")
+
+        // Scrolling at AX5 leaves the bar expanded (`p = 0`), because above XXXL a pill is not small.
+        axWebView.swipeUp()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        XCTAssertFalse(axApp.buttons["browserChromeStrip"].exists, "Above XXXL the bar stays expanded.")
+
+        // Long-pressing the Agent button at AX5 shows Large Content Viewer instead of starting a voice session;
+        // sliding off cancels activation so the drawer stays closed too.
+        axAI.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(
+            forDuration: 0.8,
+            thenDragTo: axWebView.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35))
+        )
+        XCTAssertFalse(any(axApp, "voiceBar").exists, "At AX5 long-pressing Agent shows Large Content Viewer rather than starting voice.")
+        if drawerState(in: axApp).exists {
+            closeDrawer(in: axApp)
+        }
+
+        // Editing still shows the full URL.
+        tapBarItem(axTitle)
+        let axField = axApp.textFields["addressField"]
+        XCTAssertTrue(axField.waitForExistence(timeout: 5))
+        XCTAssertEqual(
+            axField.value as? String,
+            "https://communities.reader-archive.example.org/story/browser-bar-accessibility"
+        )
+        capture("b2-phone-ax5-address-editing")
+        axApp.buttons["addressCancel"].tap()
+        axApp.terminate()
+
+        // 4. Forum page shows the forum avatar inside the leading edge of the address field ("Page menu", value = forum name).
+        let forumApp = launch(["-dc-sample", "-dc-page-state", "topic", "-dc-bar", "automatic", "-AppleInterfaceStyle", "Light"])
+        RunLoop.current.run(until: Date().addingTimeInterval(1.2))
+        showBrowser(in: forumApp)
+        let forumMenu = forumApp.buttons["forumSwitcher"]
+        let forumTitle = forumApp.buttons["browserTitle"]
+        XCTAssertTrue(waitForBarItem(forumMenu, timeout: 10))
+        XCTAssertEqual(forumMenu.label, "Page menu")
+        XCTAssertEqual(forumMenu.value as? String, "Discourse Meta")
+        XCTAssertEqual(forumTitle.label, "Address field: meta.discourse.org")
+        capture("b2-phone-forum-avatar")
+    }
 }

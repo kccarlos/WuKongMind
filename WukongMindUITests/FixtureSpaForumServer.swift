@@ -414,10 +414,15 @@ final class FixtureSpaForumServer: @unchecked Sendable {
 extension DCUITestCase {
     func reloadCurrentPage(in app: XCUIApplication) {
         showBrowser(in: app)
+        let barReload = app.buttons["browserReload"]
+        if waitForBarItem(barReload, timeout: 5) {
+            tapBarItem(barReload)
+            return
+        }
         if usesDrawerLayout(app) {
             openForumMenu(in: app)
-            let reload = app.buttons["Reload"].firstMatch
-            XCTAssertTrue(reload.waitForExistence(timeout: 10), "Reload action is missing from the forum menu.")
+            let reload = app.collectionViews.buttons["Reload"].firstMatch
+            XCTAssertTrue(reload.waitForExistence(timeout: 10), "Reload action is missing from the page menu.")
             reload.tap()
         } else {
             let reload = app.buttons["Reload"].firstMatch

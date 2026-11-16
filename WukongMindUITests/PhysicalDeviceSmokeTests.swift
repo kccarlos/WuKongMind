@@ -483,38 +483,45 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         let app = try launchOnForum()
         try waitForForumDetected(in: app)
 
-        // Three items: avatar, title, AI button. No More menu, no Back button.
+        // Expanded bar: Back | Address field (Page menu, domain, Reload) | Agent ring.
+        let backButton = app.buttons["browserBack"]
+        let pageMenu = app.buttons["forumSwitcher"]
         let title = app.buttons["browserTitle"]
-        XCTAssertTrue(title.waitForExistence(timeout: 10), "The bar has no title capsule.")
+        let reloadButton = app.buttons["browserReload"]
+        XCTAssertTrue(title.waitForExistence(timeout: 10), "The bar has no address field.")
+        XCTAssertTrue(backButton.exists, "The bar has no Back button.")
+        XCTAssertTrue(pageMenu.exists, "The address field has no Page menu button.")
+        XCTAssertTrue(reloadButton.exists, "The address field has no Reload button.")
         XCTAssertTrue(app.buttons["aiButton"].exists || any(app, "aiButton").exists, "The bar has no AI button.")
         XCTAssertFalse(app.buttons["browserMoreMenu"].exists)
         XCTAssertFalse(any(app, "contentBlockingShield").exists, "The ad shield moved from the address capsule into This page.")
 
-        // The forum menu lists every bar action (menu items keep only labels).
+        // The page menu lists every bar action (menu items keep only labels).
         openForumMenu(in: app)
-        XCTAssertTrue(app.buttons["Back"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.buttons["Forward"].exists)
+        let menu = app.collectionViews.firstMatch
+        XCTAssertTrue(menu.buttons["Back"].waitForExistence(timeout: 10))
+        XCTAssertTrue(menu.buttons["Forward"].exists)
         XCTAssertTrue(
-            app.buttons.matching(
+            menu.buttons.matching(
                 NSPredicate(format: "label == %@ OR label == %@", "Reload", "Stop loading")
             ).firstMatch.exists
         )
-        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label ENDSWITH %@", " home")).firstMatch.exists, "Forum home is missing.")
+        XCTAssertTrue(menu.buttons.matching(NSPredicate(format: "label ENDSWITH %@", " home")).firstMatch.exists, "Forum home is missing.")
         XCTAssertTrue(
-            app.buttons.matching(
+            menu.buttons.matching(
                 NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@", "signed in", "Logged in as")
             ).firstMatch.exists
-            || app.buttons.matching(label(contains: "Signed in")).firstMatch.exists,
+            || menu.buttons.matching(label(contains: "Signed in")).firstMatch.exists,
             "The account row is missing."
         )
-        XCTAssertTrue(app.buttons["Settings"].exists)
-        XCTAssertTrue(app.buttons["Share"].exists, "The Share submenu is missing.")
-        XCTAssertTrue(app.buttons["Home"].exists)
-        XCTAssertTrue(app.buttons["History"].exists)
+        XCTAssertTrue(menu.buttons["Settings"].exists)
+        XCTAssertTrue(menu.buttons["Share"].exists, "The Share submenu is missing.")
+        XCTAssertTrue(menu.buttons["Home"].exists)
+        XCTAssertTrue(menu.buttons["History"].exists)
 
         // Sign-in help and the per-site ad switch are in the account row's submenu.
         // Menu items lose their identifiers on iOS 27: find the account row by its host line.
-        app.buttons.matching(
+        menu.buttons.matching(
             NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@ OR label CONTAINS %@", "Signed in", "Not signed in", "Logged in as")
         ).firstMatch.tap()
         let help = app.buttons["Sign-in help"]
@@ -527,13 +534,13 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(app.navigationBars["Forum Login"].waitForExistence(timeout: 10))
         app.buttons["Done"].tap()
 
-        // Long-pressing the title lists the history.
-        XCTAssertTrue(waitForBarItem(title))
-        pressBarItem(title, duration: 1.2)
-        let history = app.descendants(matching: .any)
+        // Long-pressing Back lists the history.
+        XCTAssertTrue(waitForBarItem(backButton))
+        pressBarItem(backButton, duration: 1.2)
+        let history = app.collectionViews.descendants(matching: .any)
             .matching(NSPredicate(format: "label == %@ OR label == %@ OR label == %@", "No history yet", "Back", "Forward"))
             .firstMatch
-        XCTAssertTrue(history.waitForExistence(timeout: 5), "Long-pressing the title shows no history menu.")
+        XCTAssertTrue(history.waitForExistence(timeout: 5), "Long-pressing Back shows no history menu.")
         dismissMenu(in: app)
 
         // Home over the page: Home renders its own search/address bar while
@@ -544,9 +551,9 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(any(app, "homeAddress").waitForExistence(timeout: 5))
         XCTAssertTrue(any(app, "aiButton").exists, "Home over an open page keeps the AI button.")
         openForumMenu(in: app)
-        let back = app.buttons["Back"].firstMatch
-        XCTAssertTrue(back.waitForExistence(timeout: 5))
-        back.tap()
+        let menuBack = app.collectionViews.buttons["Back"].firstMatch
+        XCTAssertTrue(menuBack.waitForExistence(timeout: 5))
+        menuBack.tap()
         XCTAssertTrue(waitForGone(any(app, "home"), timeout: 10))
     }
 
@@ -647,12 +654,15 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(waitForBarItem(button, timeout: 5))
     }
 
-    /// Waits until the page is detected as a Discourse forum (the switcher
-    /// then names it).
+    /// Waits until the page is detected as a Discourse forum (the Page menu
+    /// button's accessibility value then names the forum).
     private func waitForForumDetected(in app: XCUIApplication) throws {
         let switcher = app.buttons["forumSwitcher"]
         guard switcher.waitForExistence(timeout: 20),
-              wait(timeout: 45, until: { switcher.label.hasPrefix("Forum:") })
+              wait(timeout: 45, until: {
+                  let value = (switcher.value as? String)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                  return !value.isEmpty || switcher.label.hasPrefix("Forum:")
+              })
         else {
             attachTree(app)
             throw XCTSkip("\(Self.forumHost) did not load as a Discourse forum (network?).")

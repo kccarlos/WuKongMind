@@ -19,11 +19,23 @@ struct VoiceBarButton: View {
             voice.toggle()
         } label: {
             Image(systemName: voice.isActive ? "mic.fill" : "mic")
+                .font(.system(size: 17, weight: .semibold))
                 .foregroundStyle(voice.isActive ? DCTheme.goldInk : DCTheme.ink)
                 .symbolEffect(.pulse, isActive: voice.isActive)
         }
         .buttonStyle(DCIconButtonStyle())
         .accessibilityLabel(voice.isActive ? Text("End voice") : Text("Talk to WukongMind", comment: "Browser bar button: start a live voice session"))
+        .accessibilityShowsLargeContentViewer {
+            Label {
+                if voice.isActive {
+                    Text("End voice")
+                } else {
+                    Text("Talk to WukongMind", comment: "Browser bar button: start a live voice session")
+                }
+            } icon: {
+                Image(systemName: voice.isActive ? "mic.fill" : "mic")
+            }
+        }
         .accessibilityIdentifier("voiceButton")
     }
 }

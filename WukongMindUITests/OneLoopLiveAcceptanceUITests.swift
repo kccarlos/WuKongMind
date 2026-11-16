@@ -137,9 +137,11 @@ final class OneLoopLiveAcceptanceUITests: DCUITestCase {
         if !chip.isHittable { _ = reveal(chip, in: app) }
         capture("check1-citations")
         chip.tap()
-        // The browser's own title button names the page it shows ("<title>, <host>/t/…/<id>").
+        // The browser's address button exposes the host in `label` and host + path in `value`.
         let title = app.buttons["browserTitle"].firstMatch
-        let opened = wait(timeout: 30) { title.exists && title.label.contains(topic) }
+        let opened = wait(timeout: 30) {
+            title.exists && (title.label.contains(topic) || ((title.value as? String)?.contains(topic) == true))
+        }
         sleep(3)
         capture("check1-chip-opened")
         evidence("check1-chip", "tapped \(chip.label) → \(target)\nbrowser title: \(title.exists ? title.label : "(none)")\nshows \(topic): \(opened)")

@@ -335,9 +335,11 @@ class DCUITestCase: XCTestCase {
         return condition()
     }
 
-    /// The browser bar's address (shown without the scheme; tap to edit).
+    /// The browser bar's address (domain in `label`, host + path in `value`; tap to edit).
     func address(containing text: String, in app: XCUIApplication) -> XCUIElement {
-        app.buttons.matching(label(contains: text)).firstMatch
+        app.buttons.matching(
+            NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@", text, text)
+        ).firstMatch
     }
 
     func any(_ app: XCUIApplication, _ identifier: String) -> XCUIElement {
