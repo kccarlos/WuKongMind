@@ -88,12 +88,22 @@ Not `paths-ignore`: with it no run appears, and Herdr waits and then drops
 auto-merge. Pushes to `main` always run in full: a newer run can replace a
 waiting one there, and a docs-only push must not stand in for a code push.
 
-**Timings** (GitHub `xcode-27` runners, wall clock from the first job's start
-to `CI`):
+**Timings** (GitHub `xcode-27` runners, minutes, from the run's creation to
+the last job's end; the proof on the WUKO-128 pull request has every run):
 
-| Run | Before (WUKO-125 split) | After |
+| Run | Before (WUKO-125 split, runs 43950672043 and 43957715364) | After (PR tier) |
 | --- | --- | --- |
-| Pull request | 34 min (UI tests job 33-34 min; unit job 20-30 min, each building from scratch; Release build 5-8 min) | see the WUKO-128 proof; target 20 min or less |
+| Whole run | 33-35 | 23-25 |
+| Building | in every macOS job, 8-10 each | once, 3 |
+| Longest job | UI tests 33-34 (timeout 60) | 15-21 (timeout 35) |
+| macOS jobs | 3, plus Release build 5-8 | 3 |
+
+Where the test-job minutes go: about 1.5 to boot the simulator, about 1 for
+xcodebuild to reach the first test, then 1-3 while WebKit launches for the
+first time on the fresh simulator ("GPU process took 95 seconds to launch");
+the first test that loads a page pays it (the known `AIViewIntentTests` flake
+times out there and passes on retry). Booting the simulator during the download
+was tried and made the download and unzip take minutes instead.
 
 **Test retries.** Every test job runs `xcodebuild test-without-building` with
 `-retry-tests-on-failure -test-iterations 3`: a test passes if any of up to 3
