@@ -644,26 +644,23 @@ final class ScriptImportTests: XCTestCase {
 
     // MARK: - Update link rules
 
-    func testUpdateChecksUseOnlyHTTPSUpdateLinks() async throws {
-        func header(_ extra: String) -> String {
-            """
-            // ==UserScript==
-            // @name        Link Rules
-            // @namespace   https://example.org/ns
-            // @version     1.0.0
-            // @match       https://talk.example.org/*
-            \(extra)
-            // ==/UserScript==
-            console.log('x');
-            """
-        }
-        ImportStubProtocol.install { req in
-            StubResponse(body: Data(header("").utf8))
-        }
+    nonisolated static func linkRulesHeader(_ extra: String) -> String {
+        """
+        // ==UserScript==
+        // @name        Link Rules
+        // @namespace   https://example.org/ns
+        // @version     1.0.0
+        // @match       https://talk.example.org/*
+        \(extra)
+        // ==/UserScript==
+        console.log('x');
+        """
+    }
 
+    func testUpdateChecksUseOnlyHTTPSUpdateLinks() async throws {
         func importScript(extra: String, installURL: String) async throws -> UserScript {
             let installURL = URL(string: installURL)!
-            ImportStubProtocol.install { req in StubResponse(body: Data(header(extra).utf8)) }
+            ImportStubProtocol.install { req in StubResponse(body: Data(Self.linkRulesHeader(extra).utf8)) }
             let review = try await importer.fetchReview(from: installURL, httpClient: httpClient).get()
             return try store.saveImportedScript(
                 review.candidate, installURL: review.installURL,
@@ -683,7 +680,7 @@ final class ScriptImportTests: XCTestCase {
             extra: "// @updateURL https://meta.example.org/b.meta.js\n// @downloadURL https://dl.example.org/b.user.js",
             installURL: "https://example.org/b.user.js"
         )
-        ImportStubProtocol.install { req in StubResponse(body: Data(header("// @version 2.0.0").utf8)) }
+        ImportStubProtocol.install { req in StubResponse(body: Data(Self.linkRulesHeader("// @version 2.0.0").utf8)) }
         let before = ImportStubProtocol.seenRequests.count
         _ = await importer.checkForUpdate(script: b, httpClient: httpClient)
         let fetched = ImportStubProtocol.seenRequests.dropFirst(before).compactMap { $0.url?.absoluteString }
