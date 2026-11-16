@@ -6,6 +6,16 @@ struct CapabilityResolvedThread: Sendable, Equatable {
     var knownPostCount: Int
 }
 
+struct LearnedThreadSummary: Equatable, Sendable {
+    var title: String
+    var url: String
+    var postCount: Int
+    var summary: String
+}
+
+/// What voice says when a learned thread's URL reaches it: the Agent has the reader.
+let capabilityHandToAgentMessage = "hand this to the Agent: the voice session can't read this site's threads, but the Agent can."
+
 struct CapabilityToolError: LocalizedError, Equatable, Sendable {
     var message: String
     init(_ message: String) { self.message = message }
@@ -47,6 +57,12 @@ struct CapabilityToolContext: Sendable {
     var resolveTopicURL: @Sendable (String) async throws -> CapabilityResolvedThread
     var summarizeThread: @Sendable (ForumTopic) async throws -> TopicSession
     var summarizeText: @Sendable (String) async throws -> String
+    /// A thread URL on a site whose `read_topic` reader was learned, with that site's page open.
+    var isLearnedThread: @Sendable (String) async -> Bool = { _ in false }
+    /// Reads such a thread and summarizes it for the conversation (kept by URL and post count).
+    var summarizeLearnedThread: @Sendable (String) async throws -> LearnedThreadSummary = { _ in
+        throw CapabilityToolError("No reading tool for this site yet.")
+    }
     var existingThreadSummary: @MainActor @Sendable (String) -> TopicSession?
     var readAloud: @MainActor @Sendable (_ id: String, _ title: String, _ text: String) throws -> Int
     var followThread: @Sendable (CapabilityResolvedThread) async -> Void
@@ -66,7 +82,7 @@ extension ToolRegistry {
 
     private static let capabilityContentParameters: [ToolParameterSchema] = [
         ToolParameterSchema(name: "topic_id", type: .string, description: "Numeric thread ID on the currently open forum.", minLength: 1),
-        ToolParameterSchema(name: "url", type: .string, description: "Full URL of a forum thread (Discourse, Hacker News, or WordPress).", minLength: 1),
+        ToolParameterSchema(name: "url", type: .string, description: "Full URL of a forum thread (Discourse, Hacker News, WordPress, or a site the page context says can be read).", minLength: 1),
         ToolParameterSchema(name: "path", type: .string, description: "Workspace-relative path of a UTF-8 text file.", minLength: 1),
         ToolParameterSchema(name: "text", type: .string, description: "Plain text to process directly.", minLength: 1)
     ]
@@ -112,6 +128,10 @@ extension ToolRegistry {
         return .thread(ThreadShape(id: session.topicID, title: session.title, url: session.url.absoluteString, posts: [], totalPosts: count))
     }
 
+    private static func learnedThreadShape(_ learned: LearnedThreadSummary) -> ForumShape {
+        .thread(ThreadShape(id: nil, title: learned.title, url: learned.url, posts: [], totalPosts: learned.postCount))
+    }
+
     private static func makeSummarizeTopicTool(
         capabilities: CapabilityToolContext,
         workspace: AgentWorkspace?,
@@ -120,7 +140,7 @@ extension ToolRegistry {
         let keys = ["topic_id", "url", "path", "text"]
         let description = surface == .voice
             ? "Summarize what the user is looking at. With no input it summarizes the open thread on a forum topic, and on any other page the page's readable text (\"summarize this\", \"what's this page about\"); leave all parameters out for the current page instead of passing 'text'. Also takes a forum thread ('topic_id' or 'url'), a workspace file ('path'), or plain 'text'. Give the gist in a few spoken sentences."
-            : "Summarize a forum thread ('topic_id' on the open forum or 'url' on any supported Discourse, Hacker News, or WordPress thread), a workspace file ('path'), or plain 'text'."
+            : "Summarize a forum thread ('topic_id' on the open forum or 'url' on any supported Discourse, Hacker News, or WordPress thread, or a thread of a site whose reading was learned), a workspace file ('path'), or plain 'text'."
         return AgentTool(
             definition: AgentToolDefinition(
                 name: "summarize_topic",
@@ -133,6 +153,14 @@ extension ToolRegistry {
                 let input = try parseSingleInput(args, keys: keys, toolName: "summarize_topic")
                 switch input.key {
                 case "topic_id", "url":
+                    if input.key == "url", await capabilities.isLearnedThread(input.value) {
+                        guard surface != .voice else { throw CapabilityToolError(capabilityHandToAgentMessage) }
+                        let learned = try await capabilities.summarizeLearnedThread(input.value)
+                        return ToolExecutionOutput(
+                            content: "Summary of \(learned.title) (\(learned.url)), \(learned.postCount) posts:\n\n\(learned.summary)",
+                            summary: learned.title, shape: learnedThreadShape(learned)
+                        )
+                    }
                     let resolved = try await resolveThread(key: input.key, value: input.value, capabilities: capabilities)
                     let session = try await capabilities.summarizeThread(resolved.topic)
                     let count = session.summaryPostCount ?? session.totalPosts ?? resolved.knownPostCount
@@ -174,6 +202,13 @@ extension ToolRegistry {
                 let id: String, title: String, rawText: String, shape: ForumShape?
                 switch input.key {
                 case "topic_id", "url":
+                    if input.key == "url", await capabilities.isLearnedThread(input.value) {
+                        guard surface != .voice else { throw CapabilityToolError(capabilityHandToAgentMessage) }
+                        let learned = try await capabilities.summarizeLearnedThread(input.value)
+                        id = "learned:" + CapabilityReadAloud.textID(learned.url); title = learned.title; rawText = learned.summary
+                        shape = learnedThreadShape(learned)
+                        break
+                    }
                     let resolved = try await resolveThread(key: input.key, value: input.value, capabilities: capabilities)
                     let cached = await capabilities.existingThreadSummary(resolved.topic.topicKey)
                     let session = if let cached { cached } else { try await capabilities.summarizeThread(resolved.topic) }
@@ -217,6 +252,9 @@ extension ToolRegistry {
             summarizeArguments: { summarizeContentArgs($0) },
             execute: { args in
                 let input = try parseSingleInput(args, keys: keys, toolName: "watch_topic")
+                if input.key == "url", await capabilities.isLearnedThread(input.value) {
+                    throw CapabilityToolError("Following isn't available on this site.")
+                }
                 let resolved = try await resolveThread(key: input.key, value: input.value, capabilities: capabilities)
                 await capabilities.followThread(resolved)
                 let count = resolved.knownPostCount > 0 ? resolved.knownPostCount : nil

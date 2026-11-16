@@ -21,4 +21,12 @@ struct DiscussionProfile: Sendable, Equatable {
         blocks: "The text is unnumbered material rather than numbered forum posts, so omit #N post citations unless numbered posts appear.",
         signals: "There are no likes, votes, or accepted answers."
     )
+
+    /// A thread read through a learned site reader: numbered posts, no site signals known.
+    static let learnedThread = DiscussionProfile(
+        openingHeading: "Original post",
+        material: "a discussion thread",
+        blocks: "Posts are numbered #N; cite them as #N.",
+        signals: "There are no likes, votes, or accepted answers."
+    )
 }

@@ -418,6 +418,10 @@ struct ToolNote: Codable, Equatable, Sendable {
     static let readSavedFile = ToolNote("The full result is in the workspace file named in the result; "
         + "read any part with file_read(path, offset).")
 
+    /// The pre-save exploration cap passed 4 probes on a run that has not shown it is learning: a nudge, never a refusal.
+    static let explorationNudge = ToolNote("If you are working out how to read this site, stop exploring: save the reader "
+        + "with `script_save` and `provides` now. Otherwise carry on.")
+
     /// `run_js` in the page world failed on the page's Content Security Policy.
     static let pageWorldCSP = ToolNote("The page's Content Security Policy restricts eval or cross-origin requests "
         + "in the 'page' world; retry with environment: 'isolated' unless you specifically need page JS globals.")
@@ -541,6 +545,9 @@ final class SiteLearningRunState: @unchecked Sendable {
     nonisolated static let threeAttemptsStopMessage = "Stop: three attempts failed."
     private let lock = NSLock()
     private var refusalCounts: [String: Int] = [:]
+    private var preSaveProbes = 0
+    private var probingClosed = false
+    private var learningArmed = false
     let verifierLimits: SiteToolVerifier.Limits
     init(verifierLimits: SiteToolVerifier.Limits = .default) { self.verifierLimits = verifierLimits }
     private func key(host: String, scriptID: String?, slot: SiteToolSlot) -> String {
@@ -549,6 +556,24 @@ final class SiteLearningRunState: @unchecked Sendable {
     func hasReachedLimit(host: String, scriptID: String?, slots: [SiteToolSlot]) -> Bool {
         lock.withLock { slots.contains { refusalCounts[key(host: host, scriptID: scriptID, slot: $0), default: 0] >= Self.maxRefusals } }
     }
+    /// Counts one data-source probe made before this run's first reader save; nil once saving began.
+    func noteProbe() -> Int? {
+        lock.withLock {
+            guard !probingClosed else { return nil }
+            preSaveProbes += 1
+            return preSaveProbes
+        }
+    }
+    /// Arms the hard cap: a forum tool was refused in this run for want of a reading tool, so the run is after a learned reader.
+    func armLearning() { lock.withLock { learningArmed = true } }
+    /// Step 1 of "Learning a site" is a fixed line in the assistant's text: seeing it shows the run is learning.
+    func noteAssistantText(_ text: String) {
+        if text.lowercased().contains(Self.learningAnnouncement) { armLearning() }
+    }
+    static let learningAnnouncement = "how to read this site"
+    var isLearningArmed: Bool { lock.withLock { learningArmed } }
+    /// A reader save was attempted: fixing a refusal may need more probes, so the cap ends.
+    func closeProbing() { lock.withLock { probingClosed = true } }
     @discardableResult
     func noteRefusal(host: String, scriptID: String?, slots: [SiteToolSlot]) -> Int {
         lock.withLock {
@@ -645,6 +670,8 @@ struct ToolRegistry: Sendable {
     var siteReadingPrompt: SiteReadingPromptState = .none
     /// WebMCP page-tool dispatcher context, for the page context's count line.
     var pageTools: PageToolContext?
+    /// The run's learning state, so the session can tell it what the assistant said.
+    var learningRunState: SiteLearningRunState?
 
     init(
         tools: [AgentTool] = [],
@@ -3128,6 +3155,7 @@ extension ToolRegistry {
         tools += capabilityTools(context: context, surface: surface)
         tools += browseTools(context: context)
         tools += pageDispatcherTools(context: context)
+        tools = capPreSaveExploration(tools, context: context)
         var registry = ToolRegistry(
             tools: tools.filter { $0.surfaces.contains(surface) },
             truncationLimit: context.settings.truncationLimit,
@@ -3140,6 +3168,7 @@ extension ToolRegistry {
                 maxTopicReads: $0.maxTopicReads, openTopicID: $0.openTopicID, openTopicURL: $0.openTopicURL
             )
         }
+        registry.learningRunState = context.learningRunState
         registry.siteReadingPrompt = context.forum == nil ? (context.learnedSite?.promptState ?? .none) : .none
         if surface == .text, let pageTools = context.pageTools, pageTools.isEnabled {
             registry.pageTools = pageTools
