@@ -151,11 +151,11 @@ struct AuditLine: Codable, Hashable, Sendable, Identifiable {
     /// tool, the (redacted, clipped) arguments and the size of the result, never the result.
     static func toolTrial(
         host: String, tool: String, argumentsJSON: String, time: Date, pageURL: String?,
-        durationMs: Int, resultBytes: Int?, errorMessage: String?, secrets: [String] = []
+        durationMs: Int, resultBytes: Int?, errorMessage: String?, secrets: [String] = [], summary: String? = nil
     ) -> AuditLine {
         let args = UntrustedWebContent.redactSecrets(in: argumentsJSON, secrets: secrets)
         let summary = errorMessage.map { clip(UntrustedWebContent.redactSecrets(in: $0, secrets: secrets), maxSummaryCharacters) }
-            ?? "trial run · \(resultBytes ?? 0) bytes"
+            ?? summary ?? "trial run · \(resultBytes ?? 0) bytes"
         return AuditLine(
             kind: .toolTrial, time: time, taskID: "trial:\(AuditLog.dayKey(time)):\(host)",
             tool: tool, durationMs: durationMs, arguments: clip(args, maxArgumentCharacters),

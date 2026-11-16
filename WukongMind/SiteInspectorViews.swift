@@ -90,13 +90,28 @@ private struct InspectorSourceLabel: View {
         let text: String = switch kind {
         case .site: String(localized: "This site", comment: "Site inspector: a tool the website registered itself")
         case .script(let name): String(localized: "Script · \(name)", comment: "Site inspector: a tool from a saved script")
-        case .learned(_, let name, _): String(localized: "Learned script · \(name)", comment: "Site inspector: a learned reader's script")
+        case .learned(_, let name, _): String(localized: "Learned · \(name)", comment: "Site inspector: a learned reader's script")
         }
         Text(verbatim: text)
             .font(.caption.weight(.medium))
             .padding(.horizontal, 8).padding(.vertical, 3)
             .background(DCTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
             .foregroundStyle(DCTheme.ink)
+    }
+}
+
+/// A navigation title with a monospaced second line: the host, or the tool's full name (middle-truncated).
+private struct InspectorTitle: View {
+    let title: Text
+    let subtitle: String
+
+    var body: some View {
+        VStack(spacing: 0) {
+            title.font(.headline)
+            Text(verbatim: subtitle).font(DCType.caption.monospaced()).foregroundStyle(DCTheme.inkMuted)
+                .lineLimit(1).truncationMode(.middle)
+        }
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -130,9 +145,11 @@ struct SiteInspectorView: View {
             .listStyle(.insetGrouped)
             .dcGroupedBackground()
             .tint(DCTheme.goldInk)
-            .navigationTitle(Text("Site inspector", comment: "Developer mode sheet title"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } } }
+            .toolbar {
+                ToolbarItem(placement: .principal) { InspectorTitle(title: Text("Site inspector", comment: "Developer mode sheet title"), subtitle: host) }
+                ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
+            }
             .navigationDestination(item: $openTask) { AuditTaskPage(app: app, task: $0, focusStep: nil) }
             .navigationDestination(for: SiteInspectorTool.ID.self) { id in
                 if let tool = tools.first(where: { $0.id == id }) {
@@ -158,7 +175,10 @@ struct SiteInspectorView: View {
         host = url.flatMap { SiteToolState.normalizedHost(from: $0) } ?? ""
         pageURL = url?.absoluteString ?? ""
         state = app.siteToolStateStore.state(forHost: host)
-        let snapshot = await app.pageToolBridge.collectTools()
+        var snapshot = await app.pageToolBridge.collectTools()
+        #if DEBUG
+        if AssistantDebug.has("-dc-site-inspector-seed") { snapshot = .inspectorSeed }
+        #endif
         tools = SiteInspectorTool.rows(snapshot: snapshot, state: state, scripts: app.scriptStore.scripts)
         let log = app.auditLog
         let ids = Set((state?.log ?? []).compactMap(\.taskID))
@@ -209,7 +229,7 @@ struct SiteInspectorView: View {
             case .learned:
                 Label(String(localized: "Learned", comment: "Site inspector slot status"), systemImage: "checkmark").foregroundStyle(DCTheme.success)
             case .broken:
-                Label { Text(verbatim: String(localized: "Broken: \(slotState.failure?.sentence ?? "")", comment: "Site inspector slot status; the reason follows")) } icon: { Image(systemName: "exclamationmark.triangle") }
+                Label { Text(verbatim: String(localized: "Broken: \(slotState.failure?.sentence ?? "") · waits for repair", comment: "Site inspector slot status; the reason follows")) } icon: { Image(systemName: "exclamationmark.triangle") }
                     .foregroundStyle(DCTheme.warning)
             case .failed:
                 Label { Text(verbatim: String(localized: "Failed: \(slotState.failure?.sentence ?? "")", comment: "Site inspector slot status; the reason follows")) } icon: { Image(systemName: "xmark") }
@@ -220,7 +240,8 @@ struct SiteInspectorView: View {
                 Text("Not applicable", comment: "Site inspector slot status").foregroundStyle(.secondary)
             }
             if let scriptID = slotState.scriptID, let script = app.scriptStore.script(id: scriptID) {
-                Text(verbatim: script.name).font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: script.name + (slotState.verifiedAt.map { " · " + String(localized: "verified \($0.formatted(date: .abbreviated, time: .shortened))", comment: "Site inspector: when the slot was last verified") } ?? ""))
+                    .font(.caption).foregroundStyle(.secondary)
             }
             if slotState.status == .broken {
                 Text("Repair failed \(slotState.repairFailures) of 3 times.", comment: "Site inspector: repairs tried on a broken reader")
@@ -355,6 +376,7 @@ struct SiteInspectorView: View {
 
 struct ToolTrialView: View {
     @ObservedObject var app: AppModel
+    @Environment(\.dismiss) private var dismissSheet
     let tool: SiteInspectorTool
     let state: SiteToolState?
     let host: String
@@ -408,8 +430,11 @@ struct ToolTrialView: View {
         .listStyle(.insetGrouped)
         .dcGroupedBackground()
         .tint(DCTheme.goldInk)
-        .navigationTitle(Text("Try tool", comment: "Trial run title"))
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) { InspectorTitle(title: Text("Try tool", comment: "Trial run title"), subtitle: tool.tool.prefixedName) }
+            ToolbarItem(placement: .confirmationAction) { Button("Done") { dismissSheet() } }
+        }
         .onAppear { if argumentsText.isEmpty { argumentsText = ToolTrialArguments.skeleton(schema: tool.tool.inputSchema) } }
         .alert(
             String(localized: "Run this site's own tool?", comment: "Trial run warning title"), isPresented: $warning
@@ -418,7 +443,9 @@ struct ToolTrialView: View {
             Button(String(localized: "Run", comment: "Trial run warning confirm")) { Task { await run() } }
                 .accessibilityIdentifier("toolTrialWarningRun")
         } message: {
-            Text(verbatim: String(localized: "Nobody checked this code. It runs on \(host) with your login there. The page says it only reads; that is its own claim.", comment: "Trial run warning message")
+            Text(verbatim: (tool.tool.annotations.readOnlyHint
+                ? String(localized: "Nobody checked this code. It runs on \(host) with your login there. The page says it only reads; that is its own claim.", comment: "Trial run warning message")
+                : String(localized: "Nobody checked this code. It runs on \(host) with your login there.", comment: "Trial run warning message, tool makes no read-only claim"))
                 + "\n\n\(tool.tool.prefixedName)(\(argumentsText.replacingOccurrences(of: "\n", with: " ")))")
         }
         .sheet(item: Binding(get: { fullText.map(TrialText.init) }, set: { fullText = $0?.text })) { TrialBodySheet(text: $0.text) }
@@ -448,6 +475,13 @@ struct ToolTrialView: View {
             slot: slot, script: script, state: state, openPageURL: pageURL, bridge: app.browser.agentBridge,
             pageToolBridge: app.pageToolBridge, scriptStore: app.scriptStore
         )
+        if let report {
+            app.auditLog.append(.toolTrial(
+                host: host, tool: tool.tool.prefixedName, argumentsJSON: "{}", time: Date(), pageURL: pageURL,
+                durationMs: Int(report.slots[slot]?.durationMs ?? 0), resultBytes: nil,
+                errorMessage: report.passed ? nil : report.reason, summary: "shape check · \(report.passed ? "passed" : "failed")"
+            ))
+        }
         running = false
     }
 

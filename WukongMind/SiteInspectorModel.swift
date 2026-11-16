@@ -170,3 +170,25 @@ extension SiteToolState {
     }
 }
 #endif
+
+#if DEBUG
+extension PageToolSnapshot {
+    /// The tools the seeded inspector shows (the fixture page registers none): two learned readers,
+    /// two site tools (one claiming read-only) and a script's tool.
+    static var inspectorSeed: PageToolSnapshot {
+        func tool(_ source: PageToolSource, _ owner: String?, _ name: String, readOnly: Bool = false, schema: JSONValue? = nil) -> PageTool {
+            PageTool(source: source, ownerID: owner, name: name, prefixedName: source == .site ? "site.\(name)" : "script.\(owner ?? "").\(name)",
+                     title: nil, description: "", inputSchema: schema, inputSchemaJSON: nil, annotations: PageToolAnnotations(readOnlyHint: readOnly))
+        }
+        let string = JSONValue.object(["type": .string("string")]), integer = JSONValue.object(["type": .string("integer")])
+        func object(_ properties: [String: JSONValue]) -> JSONValue { .object(["type": .string("object"), "properties": .object(properties)]) }
+        return PageToolSnapshot(tools: [
+            tool(.script, "seed.reader", "read_topic", readOnly: true, schema: object(["url": string, "page": integer])),
+            tool(.script, "seed.reader", "list_latest", readOnly: true),
+            tool(.site, nil, "bookmark_topic", schema: object(["id": string])),
+            tool(.site, nil, "search_posts", readOnly: true, schema: object(["query": string, "limit": integer])),
+            tool(.script, "seed.tidy", "export_md")
+        ], droppedCount: 0, nativeModelContextDetected: false)
+    }
+}
+#endif

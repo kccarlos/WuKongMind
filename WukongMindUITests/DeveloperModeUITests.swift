@@ -46,6 +46,29 @@ final class DeveloperModeUITests: DCUITestCase {
 
     func testSiteInspectorOpensInDarkMode() throws { try openSiteInspector(dark: true) }
 
+    func testTryToolWarnsBeforeASiteToolRuns() throws { try openTryTool(dark: false) }
+
+    func testTryToolInDarkMode() throws { try openTryTool(dark: true) }
+
+    private func openTryTool(dark: Bool) throws {
+        let suffix = dark ? "-dark" : ""
+        let app = launchDemo(developer: true, extra: ["-dc-site-inspector-seed"] + (dark ? ["-AppleInterfaceStyle", "Dark"] : []))
+        app.buttons["pageCapabilitiesSeal"].firstMatch.tap()
+        let row = any(app, "thisPageSiteInspector")
+        XCTAssertTrue(row.waitForExistence(timeout: 8))
+        row.tap()
+        let trial = any(app, "siteInspectorTool-site.search_posts")
+        XCTAssertTrue(trial.waitForExistence(timeout: 10), "The seeded site tool row did not show.")
+        trial.tap()
+        XCTAssertTrue(any(app, "toolTrialRun").waitForExistence(timeout: 5), "Try tool did not open.")
+        capture("try-tool\(suffix)")
+        any(app, "toolTrialRun").tap()
+        let warning = app.alerts["Run this site's own tool?"]
+        XCTAssertTrue(warning.waitForExistence(timeout: 5), "A site's own tool must warn before a trial run, even when it claims to be read-only.")
+        capture("try-tool-warning\(suffix)")
+        warning.buttons["Cancel"].tap()
+    }
+
     private func openSiteInspector(dark: Bool) throws {
         let suffix = dark ? "-dark" : ""
         let app = launchDemo(developer: true, extra: ["-dc-site-inspector-seed"] + (dark ? ["-AppleInterfaceStyle", "Dark"] : []))
@@ -54,13 +77,16 @@ final class DeveloperModeUITests: DCUITestCase {
         XCTAssertTrue(row.waitForExistence(timeout: 8))
         row.tap()
         XCTAssertTrue(any(app, "siteInspector").waitForExistence(timeout: 8), "The site inspector sheet did not open.")
-        XCTAssertTrue(any(app, "siteInspectorSlotPicker").waitForExistence(timeout: 5))
-        let slot = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH 'Read a thread'")).firstMatch
-        XCTAssertTrue(slot.waitForExistence(timeout: 10), "The seeded Reading section did not show.")
+        let toolRow = any(app, "siteInspectorTool-site.search_posts")
+        XCTAssertTrue(toolRow.waitForExistence(timeout: 10), "The seeded tools did not show.")
         capture("site-inspector\(suffix)")
-        app.swipeUp()
+        app.swipeUp(velocity: .slow)
+        capture("site-inspector-reading\(suffix)")
+        let picker = any(app, "siteInspectorSlotPicker")
+        for _ in 0..<5 where !picker.isHittable { app.swipeUp(velocity: .slow) }
+        XCTAssertTrue(picker.isHittable, "The Last check picker never scrolled into view.")
         capture("site-inspector-scrolled\(suffix)")
-        app.swipeUp()
+        app.swipeUp(); app.swipeUp()
         capture("site-inspector-bottom\(suffix)")
         app.buttons["Done"].firstMatch.tap()
         XCTAssertTrue(wait(timeout: 5) { !self.any(app, "siteInspector").exists })

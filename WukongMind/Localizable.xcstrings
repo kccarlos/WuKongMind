@@ -5043,19 +5043,19 @@
         }
       }
     },
-    "Broken: %@" : {
+    "Broken: %@ · waits for repair" : {
       "comment" : "Site inspector slot status; the reason follows",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已损坏：%@"
+            "value" : "已损坏：%@ · 等待修复"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已損壞：%@"
+            "value" : "已損壞：%@ · 等待修復"
           }
         }
       }
@@ -11062,19 +11062,19 @@
         }
       }
     },
-    "Learned script · %@" : {
+    "Learned · %@" : {
       "comment" : "Site inspector: a learned reader's script",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已学脚本 · %@"
+            "value" : "已学会 · %@"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已學腳本 · %@"
+            "value" : "已學會 · %@"
           }
         }
       }
@@ -13195,6 +13195,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "目前沒有正在執行的任務。"
+          }
+        }
+      }
+    },
+    "Nobody checked this code. It runs on %@ with your login there." : {
+      "comment" : "Trial run warning message, tool makes no read-only claim",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有人检查过这段代码。它会以你在 %@ 的登录身份运行。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有人檢查過這段程式碼。它會以你在 %@ 的登入身分執行。"
           }
         }
       }
@@ -27368,6 +27385,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "用於%@"
+          }
+        }
+      }
+    },
+    "verified %@" : {
+      "comment" : "Site inspector: when the slot was last verified",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "验证于 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "驗證於 %@"
           }
         }
       }
