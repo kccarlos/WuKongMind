@@ -418,6 +418,10 @@ struct ToolNote: Codable, Equatable, Sendable {
     static let readSavedFile = ToolNote("The full result is in the workspace file named in the result; "
         + "read any part with file_read(path, offset).")
 
+    /// The pre-save exploration cap passed 4 probes on a run that has not shown it is learning: a nudge, never a refusal.
+    static let explorationNudge = ToolNote("If you are working out how to read this site, stop exploring: save the reader "
+        + "with `script_save` and `provides` now. Otherwise carry on.")
+
     /// `run_js` in the page world failed on the page's Content Security Policy.
     static let pageWorldCSP = ToolNote("The page's Content Security Policy restricts eval or cross-origin requests "
         + "in the 'page' world; retry with environment: 'isolated' unless you specifically need page JS globals.")
@@ -535,6 +539,7 @@ final class SiteLearningRunState: @unchecked Sendable {
     private var refusalCounts: [String: Int] = [:]
     private var preSaveProbes = 0
     private var probingClosed = false
+    private var learningArmed = false
     let verifierLimits: SiteToolVerifier.Limits
     init(verifierLimits: SiteToolVerifier.Limits = .default) { self.verifierLimits = verifierLimits }
     private func key(host: String, scriptID: String?, slot: SiteToolSlot) -> String {
@@ -551,6 +556,9 @@ final class SiteLearningRunState: @unchecked Sendable {
             return preSaveProbes
         }
     }
+    /// Arms the hard cap: a forum tool was refused in this run for want of a reading tool, so the run is after a learned reader.
+    func armLearning() { lock.withLock { learningArmed = true } }
+    var isLearningArmed: Bool { lock.withLock { learningArmed } }
     /// A reader save was attempted: fixing a refusal may need more probes, so the cap ends.
     func closeProbing() { lock.withLock { probingClosed = true } }
     @discardableResult

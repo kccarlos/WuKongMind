@@ -34,8 +34,6 @@ enum LearnedThreadReader {
         guard let scriptID = gate.scriptID, let url = SiteToolState.sameSiteURL(rawURL, host: learned.host) else {
             throw CapabilityToolError("That address is not on this site.")
         }
-        let threadKey = SiteToolState.canonicalThreadKey(for: url)
-        try await MainActor.run { try learned.scope.checkTopicBudget(for: threadKey) }
 
         var posts: [ThreadShape.Post] = []
         var first: ThreadShape?
@@ -62,7 +60,6 @@ enum LearnedThreadReader {
         guard let head = first else { throw CapabilityToolError("The reading tool returned no thread.") }
         var thread = head
         thread.posts = posts
-        await MainActor.run { learned.scope.recordTopicRead(threadKey) }
         let title = head.title.trimmingCharacters(in: .whitespacesAndNewlines)
         return LearnedThreadText(
             title: title.isEmpty ? url.absoluteString : title, url: url.absoluteString,

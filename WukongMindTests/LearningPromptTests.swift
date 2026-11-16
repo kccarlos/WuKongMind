@@ -83,10 +83,15 @@ final class LearningPromptTests: XCTestCase {
     }
 
     private func stubTools() -> [AgentTool] {
-        ["run_js", "network_log", "http_request", "script_save", "read_page"].map { name in
+        ["run_js", "network_log", "http_request", "script_save", "read_page", "read_topic"].map { name in
             AgentTool(
                 definition: AgentToolDefinition(name: name, description: "stub", parameters: [], required: []),
-                summarizeArguments: { _ in "" }, execute: { _ in ToolExecutionOutput(content: "ok") }
+                summarizeArguments: { _ in "" },
+                execute: { _ in
+                    name == "read_topic"
+                        ? ToolExecutionOutput(content: "No reading tool for this site yet.", isError: true)
+                        : ToolExecutionOutput(content: "ok")
+                }
             )
         }
     }
@@ -106,9 +111,27 @@ final class LearningPromptTests: XCTestCase {
         XCTAssertFalse(read.isError)
     }
 
+    func testHttpRequestsAndUnarmedProbesAreNeverRefused() async throws {
+        let (context, _) = try makeCapContext()
+        let tools = ToolRegistry.capPreSaveExploration(stubTools(), context: context)
+        for i in 1...6 {
+            let out = try await call(tools, "http_request", ["url": .string("https://example.org/api/\(i)")])
+            XCTAssertFalse(out.isError || !out.notes.isEmpty, "http_request \(i)")
+        }
+        // Unarmed `fetch(` probes past 4 get a nudge, never a refusal or a steer to `site_learning_report`.
+        let probe: [String: JSONValue] = ["code": .string("const r = await fetch('/api/t'); return (await r.text()).length")]
+        for i in 1...6 {
+            let out = try await call(tools, "run_js", probe)
+            XCTAssertFalse(out.isError, "probe \(i)")
+            XCTAssertEqual(out.notes.isEmpty, i <= 4, "probe \(i)")
+        }
+    }
+
     func testLearningRunsFifthProbeIsTurnedAroundAndSavingEndsTheCap() async throws {
         let (context, _) = try makeCapContext()
         let tools = ToolRegistry.capPreSaveExploration(stubTools(), context: context)
+        let armed = try await call(tools, "read_topic", ["url": .string("https://example.org/t/1")])
+        XCTAssertTrue(armed.isError)
         let probe: [String: JSONValue] = ["code": .string("const r = await fetch('/api/t'); return (await r.text()).length")]
         for i in 1...4 {
             let out = try await call(tools, i % 2 == 0 ? "run_js" : "network_log", probe)
@@ -122,6 +145,17 @@ final class LearningPromptTests: XCTestCase {
         XCTAssertFalse(save.isError)
         let afterSave = try await call(tools, "run_js", probe)
         XCTAssertFalse(afterSave.isError, "fixing a refusal may need more probes")
+    }
+
+    func testLearnedSummaryCacheKeepsByKeyAndIsBounded() {
+        let cache = LearnedSummaryCache()
+        cache.store("one", for: "u#3")
+        XCTAssertEqual(cache.summary(for: "u#3"), "one")
+        XCTAssertNil(cache.summary(for: "u#4"), "a grown thread is a new key")
+        for i in 0..<25 { cache.store("s\(i)", for: "k\(i)") }
+        XCTAssertNil(cache.summary(for: "u#3"))
+        XCTAssertEqual(cache.summary(for: "k24"), "s24")
+        XCTAssertEqual(DiscussionProfile.learnedThread.material, "a discussion thread")
     }
 
     func testLearnedSiteAndBuiltInForumAreNeverCapped() async throws {
