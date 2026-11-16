@@ -452,6 +452,10 @@ struct ToolExecutionOutput: Equatable, Sendable {
     var shape: ForumShape?
     /// The app's own notes, sent before the untrusted wrapper (`ToolNote`).
     var notes: [ToolNote]
+    /// Tab ID opened by `tabs(action: "open")` or a `run_js` popup, enabling the tool row's Show button.
+    var openedTabID: String?
+    /// Extra URLs touched during execution (e.g. a background tab opened or read) for task-record cookie scrubbing.
+    var touchedURLs: [String]
 
     init(
         content: String,
@@ -462,7 +466,9 @@ struct ToolExecutionOutput: Equatable, Sendable {
         isRanged: Bool = false,
         images: [AgentImage] = [],
         shape: ForumShape? = nil,
-        notes: [ToolNote] = []
+        notes: [ToolNote] = [],
+        openedTabID: String? = nil,
+        touchedURLs: [String] = []
     ) {
         self.content = content
         self.summary = summary ?? Self.defaultSummary(for: content)
@@ -473,6 +479,8 @@ struct ToolExecutionOutput: Equatable, Sendable {
         self.images = images
         self.shape = shape
         self.notes = notes
+        self.openedTabID = openedTabID
+        self.touchedURLs = touchedURLs
     }
 
     static func defaultSummary(for text: String, maxChars: Int = 96) -> String {
@@ -609,6 +617,10 @@ struct ToolDispatchResult: Equatable, Sendable {
     var shape: ForumShape? = nil
     /// The app's own notes (hints, page feedback), outside the wrapper in `modelContent`.
     var notes: [ToolNote] = []
+    /// Tab ID opened by `tabs(action: "open")` or a `run_js` popup, enabling the tool row's Show button.
+    var openedTabID: String? = nil
+    /// Extra URLs touched during execution for task-record cookie scrubbing.
+    var touchedURLs: [String] = []
 }
 
 /// Validates tool arguments against JSON Schema, dispatches tool calls, converts
@@ -943,6 +955,8 @@ struct ToolRegistry: Sendable {
                 images: execution.images,
                 shape: execution.shape,
                 notes: execution.notes,
+                openedTabID: execution.openedTabID,
+                touchedURLs: execution.touchedURLs,
                 step: step
             )
         } catch let cancellation as CancellationError {
@@ -975,6 +989,8 @@ struct ToolRegistry: Sendable {
         images: [AgentImage] = [],
         shape: ForumShape? = nil,
         notes: [ToolNote] = [],
+        openedTabID: String? = nil,
+        touchedURLs: [String] = [],
         step: Int? = nil
     ) async -> ToolDispatchResult {
         let scrubbedOutput = UntrustedWebContent.redactSecrets(in: rawOutput, secrets: redactedSecrets)
@@ -1036,7 +1052,9 @@ struct ToolRegistry: Sendable {
             savedPath: finalSavedPath,
             images: images,
             shape: shape,
-            notes: notes
+            notes: notes,
+            openedTabID: openedTabID,
+            touchedURLs: touchedURLs
         )
     }
 
@@ -1145,6 +1163,7 @@ extension ToolRegistry {
     private static func makeRunJSTool(
         bridge: AgentPageDriving,
         workspace: AgentWorkspace? = nil,
+        tabsContext: TabsToolContext? = nil,
         secrets: [String] = [],
         supportsImageInput: Bool = false
     ) -> AgentTool {
@@ -1208,7 +1227,7 @@ extension ToolRegistry {
                 let env = AgentExecutionEnvironment(rawValue: envRaw) ?? .defaultEnvironment
                 let timeout = args["timeout"]?.strictDoubleValue ?? AgentBridge.defaultJSTimeout
 
-                let result = workspace == nil
+                let result = (workspace == nil && tabsContext == nil)
                     ? try await bridge.runJS(code: code, environment: env, timeout: timeout)
                     : try await bridge.runAgentJS(code: code, environment: env, timeout: timeout)
                 if let errorMessage = result.error {
@@ -1224,6 +1243,25 @@ extension ToolRegistry {
                     )
                 }
 
+                var openedTabID: String?
+                var openedSummaryOverride: String?
+                var openedTabURLs: [String] = []
+                if let lastOpened = result.openedTabs.last {
+                    openedTabID = lastOpened.id
+                    let resolvedURL: String
+                    if let tabsContext {
+                        resolvedURL = await MainActor.run {
+                            tabsContext.resolvePopupURL(tabID: lastOpened.id, fallback: lastOpened.url)
+                        }
+                    } else {
+                        resolvedURL = lastOpened.url
+                    }
+                    openedSummaryOverride = openedTabSummary(rawURL: resolvedURL, inBackground: true)
+                    if !resolvedURL.isEmpty {
+                        openedTabURLs.append(resolvedURL)
+                    }
+                }
+
                 let valueDisplay = result.valueJSON ?? "undefined"
                 if let workspace, let target = args["save_to"]?.stringValue {
                     // A returned string is saved as its text, anything else as JSON.
@@ -1237,22 +1275,30 @@ extension ToolRegistry {
                     }
                     return ToolExecutionOutput(
                         content: sections.joined(separator: "\n\n"),
-                        summary: "Saved \(saved.path)",
-                        savedPath: saved.path
+                        summary: openedSummaryOverride ?? "Saved \(saved.path)",
+                        savedPath: saved.path,
+                        openedTabID: openedTabID,
+                        touchedURLs: openedTabURLs
                     )
                 }
                 var sections = [valueDisplay]
                 if !result.consoleOutput.isEmpty {
                     sections.append("Console:\n" + result.consoleOutput.joined(separator: "\n"))
                 }
+                if !result.openedTabs.isEmpty {
+                    let ids = result.openedTabs.map(\.id).joined(separator: ", ")
+                    sections.append("Opened background tab: \(ids)")
+                }
                 let summaryValue = condenseInline(valueDisplay, maxChars: 72)
-                let summary = result.consoleOutput.isEmpty
+                let defaultSummary = result.consoleOutput.isEmpty
                     ? summaryValue
                     : "\(summaryValue) (\(result.consoleOutput.count) console line\(result.consoleOutput.count == 1 ? "" : "s"))"
                 return ToolExecutionOutput(
                     content: sections.joined(separator: "\n\n"),
-                    summary: summary,
-                    isError: false
+                    summary: openedSummaryOverride ?? defaultSummary,
+                    isError: false,
+                    openedTabID: openedTabID,
+                    touchedURLs: openedTabURLs
                 )
             }
         )
@@ -1435,6 +1481,7 @@ extension ToolRegistry {
     static func pageTools(
         bridge: AgentPageDriving,
         workspace: AgentWorkspace?,
+        tabsContext: TabsToolContext? = nil,
         secrets: [String] = [],
         supportsImageInput: Bool = false
     ) -> [AgentTool] {
@@ -1443,6 +1490,7 @@ extension ToolRegistry {
             makeRunJSTool(
                 bridge: bridge,
                 workspace: workspace,
+                tabsContext: tabsContext,
                 secrets: secrets,
                 supportsImageInput: supportsImageInput
             ),
@@ -3001,6 +3049,8 @@ struct AgentToolContext: Sendable {
     var pageTools: PageToolContext?
     var siteToolStateStore: SiteToolStateStore?
     var learningRunState: SiteLearningRunState
+    /// Open browser tabs and this conversation's bound tab (`tabs` tool).
+    var tabs: TabsToolContext?
 
     init(
         bridge: AgentPageDriving,
@@ -3019,7 +3069,8 @@ struct AgentToolContext: Sendable {
         browse: BrowseToolContext? = nil,
         pageTools: PageToolContext? = nil,
         siteToolStateStore: SiteToolStateStore? = nil,
-        learningRunState: SiteLearningRunState = SiteLearningRunState()
+        learningRunState: SiteLearningRunState = SiteLearningRunState(),
+        tabs: TabsToolContext? = nil
     ) {
         self.bridge = bridge
         self.workspace = workspace
@@ -3038,6 +3089,7 @@ struct AgentToolContext: Sendable {
         self.pageTools = pageTools
         self.siteToolStateStore = siteToolStateStore ?? learnedSite?.stateStore
         self.learningRunState = learningRunState
+        self.tabs = tabs
     }
 }
 
@@ -3051,6 +3103,7 @@ extension ToolRegistry {
         var tools = pageTools(
             bridge: context.bridge,
             workspace: context.workspace,
+            tabsContext: context.tabs,
             secrets: context.settings.redactedSecrets,
             supportsImageInput: context.settings.supportsImageInput
         )
@@ -3069,6 +3122,7 @@ extension ToolRegistry {
         tools += workspaceTools(context: context)
         tools += captureTools(context: context)
         tools += navigationTools(context: context)
+        tools += tabTools(context: context)
         tools += networkTools(context: context)
         tools += forumTools(context: context, surface: surface)
         tools += capabilityTools(context: context, surface: surface)

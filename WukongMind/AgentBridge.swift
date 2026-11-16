@@ -31,6 +31,12 @@ struct AgentPageMetadata: Equatable, Sendable {
     static let empty = AgentPageMetadata(url: "", title: "")
 }
 
+/// Background tab opened while the Agent's `run_js` ran (`design-browser-bar-tabs-models.md` §2).
+struct OpenedBrowserTab: Equatable, Sendable {
+    var id: String
+    var url: String
+}
+
 /// Result of running JavaScript through `AgentBridge.runJS`.
 struct JSExecutionResult: Equatable, Sendable {
     /// JSON-encoded return value, or `nil` when the script returned `undefined`.
@@ -39,6 +45,8 @@ struct JSExecutionResult: Equatable, Sendable {
     var consoleOutput: [String]
     /// Runtime or syntax error message when execution threw; `nil` on success.
     var error: String?
+    /// Background tabs opened via `window.open` or `target="_blank"` during `runAgentJS`.
+    var openedTabs: [OpenedBrowserTab] = []
 
     var succeeded: Bool { error == nil }
 }
@@ -248,6 +256,11 @@ final class AgentBridge: NSObject, AgentPageDriving {
     /// Tokens of the `run_js` calls running now; the `files` route accepts only
     /// these, so saved userscripts (same world) and the page world can't use it.
     private var activeCallTokens: Set<String> = []
+    private var agentJSCallDepth = 0
+    private var savedCanOpenWindows = false
+    private var pendingAgentPopupTabs: [OpenedBrowserTab] = []
+    /// True while the Agent's `run_js` tool is executing on this bridge.
+    var isRunningAgentJS: Bool { agentJSCallDepth > 0 }
     /// Answers `wukong.fetch(url)` (the native HTTP client, with its cookie, pacing and site rules).
     var fetchHandler: (@Sendable (String) async throws -> String)?
 
@@ -296,6 +309,8 @@ final class AgentBridge: NSObject, AgentPageDriving {
 
     func detachWebView() {
         activeCallTokens.removeAll()
+        agentJSCallDepth = 0
+        pendingAgentPopupTabs.removeAll()
         if let controller = webView?.configuration.userContentController {
             controller.removeScriptMessageHandler(
                 forName: Self.messageHandlerName,
@@ -625,12 +640,36 @@ final class AgentBridge: NSObject, AgentPageDriving {
         try await runJS(code: code, environment: environment, timeout: timeout, withHelpers: false)
     }
 
+    func recordAgentPopupTab(id: String, url: String) {
+        guard isRunningAgentJS else { return }
+        pendingAgentPopupTabs.append(OpenedBrowserTab(id: id, url: url))
+    }
+
     func runAgentJS(
         code: String,
         environment: AgentExecutionEnvironment = .defaultEnvironment,
         timeout: TimeInterval = AgentBridge.defaultJSTimeout
     ) async throws -> JSExecutionResult {
-        try await runJS(code: code, environment: environment, timeout: timeout, withHelpers: true)
+        if agentJSCallDepth == 0 {
+            savedCanOpenWindows = webView?.configuration.preferences.javaScriptCanOpenWindowsAutomatically ?? false
+            webView?.configuration.preferences.javaScriptCanOpenWindowsAutomatically = true
+            pendingAgentPopupTabs.removeAll()
+        }
+        agentJSCallDepth += 1
+        defer {
+            agentJSCallDepth = max(0, agentJSCallDepth - 1)
+            if agentJSCallDepth == 0 {
+                webView?.configuration.preferences.javaScriptCanOpenWindowsAutomatically = savedCanOpenWindows
+            }
+        }
+        var result = try await runJS(code: code, environment: environment, timeout: timeout, withHelpers: true)
+        if !pendingAgentPopupTabs.isEmpty {
+            // Yield briefly so WebKit's popup navigation URL commits if `window.open` queued it asynchronously.
+            try? await Task.sleep(for: .milliseconds(30))
+            result.openedTabs = pendingAgentPopupTabs
+            pendingAgentPopupTabs.removeAll()
+        }
+        return result
     }
 
     private func runJS(
@@ -1308,7 +1347,14 @@ extension AgentBridge {
 
     if (mode === "text") {
       const textRoot = (root === document.documentElement && document.body) ? document.body : root;
-      const text = (typeof textRoot.innerText === "string" ? textRoot.innerText : textRoot.textContent) || "";
+      let text = (typeof textRoot.innerText === "string" ? textRoot.innerText : textRoot.textContent) || "";
+      if (!text.trim() && window.innerWidth === 0 && window.innerHeight === 0) {
+        const clone = textRoot.cloneNode(true);
+        for (const el of clone.querySelectorAll("script,style,noscript,template,head")) {
+          el.remove();
+        }
+        text = clone.textContent || "";
+      }
       return { content: text.replace(/\\n{3,}/g, "\\n\\n").trim() };
     }
 

@@ -527,7 +527,8 @@ final class AppModel: ObservableObject {
                             }
                         )
                     } : nil,
-                    siteToolStateStore: app.siteToolStateStore
+                    siteToolStateStore: app.siteToolStateStore,
+                    tabs: TabsToolContext(tabs: app.tabs, sourceTabID: id)
                 ))
             },
             auditLog: auditLog,

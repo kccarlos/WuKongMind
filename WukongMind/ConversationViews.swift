@@ -46,6 +46,7 @@ enum DCToolLabel {
         case "network_log": running ? String(localized: "Reading network log") : String(localized: "Read network log")
         case "navigate": running ? String(localized: "Opening page") : String(localized: "Opened page")
         case "reload_page": running ? String(localized: "Reloading page") : String(localized: "Reloaded page")
+        case "tabs": running ? String(localized: "Listing tabs", comment: "Tool row label while the Agent lists open browser tabs") : String(localized: "Listed tabs", comment: "Tool row label after the Agent listed open browser tabs")
         case "http_request", "GM_xmlhttpRequest": running ? String(localized: "Sending request") : String(localized: "Sent request")
         case "GM_ai", "GM_ai.map": running ? String(localized: "Asking model", comment: "Audit/tool row label while a userscript calls GM_ai") : String(localized: "Asked model", comment: "Audit/tool row label after a userscript called GM_ai")
         case "cookies_get": running ? String(localized: "Reading cookies") : String(localized: "Read cookies")
@@ -65,6 +66,40 @@ enum DCToolLabel {
         default: running ? String(localized: "Using a tool") : String(localized: "Used a tool")
         }
     }
+
+    static func browser(_ tool: String, argumentsJSON: String?, openedTabID: String? = nil, running: Bool) -> String {
+        if openedTabID != nil {
+            return running
+                ? String(localized: "Opening a new tab", comment: "Tool row label while the Agent opens a new browser tab")
+                : String(localized: "Opened a new tab", comment: "Tool row label after the Agent opened a new browser tab")
+        }
+        guard tool == "tabs" else {
+            return browser(tool, running: running)
+        }
+        let action = argumentsJSON
+            .flatMap { try? JSONValue.parseObjectJSON($0) }?["action"]?
+            .stringValue ?? "list"
+        switch action {
+        case "open":
+            return running
+                ? String(localized: "Opening a new tab", comment: "Tool row label while the Agent opens a new browser tab")
+                : String(localized: "Opened a new tab", comment: "Tool row label after the Agent opened a new browser tab")
+        case "switch":
+            return running
+                ? String(localized: "Switching tab", comment: "Tool row label while the Agent switches the active browser tab")
+                : String(localized: "Switched tab", comment: "Tool row label after the Agent switched the active browser tab")
+        case "close":
+            return running
+                ? String(localized: "Closing tab", comment: "Tool row label while the Agent closes a browser tab")
+                : String(localized: "Closed tab", comment: "Tool row label after the Agent closed a browser tab")
+        case "read":
+            return running ? String(localized: "Reading page") : String(localized: "Read page")
+        default:
+            return running
+                ? String(localized: "Listing tabs", comment: "Tool row label while the Agent lists open browser tabs")
+                : String(localized: "Listed tabs", comment: "Tool row label after the Agent listed open browser tabs")
+        }
+    }
 }
 
 /// One step as a single line: a 28 pt disc (check, turning gold ring or cinnabar triangle),
@@ -77,56 +112,99 @@ struct DCToolRow<Detail: View>: View {
     var duration: String?
     var summary: String = ""
     let state: State
+    var doneSymbol: String = "checkmark"
     var isExpanded = false
     var onToggle: (() -> Void)?
+    var actionTitle: String? = nil
+    var actionHint: String? = nil
+    var actionIdentifier: String = "agentToolAction"
+    var onAction: (() -> Void)? = nil
     @ViewBuilder var detail: () -> Detail
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Button { onToggle?() } label: {
-                HStack(spacing: 10) {
-                    disc
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(verbatim: codeName ?? label)
-                            .font(codeName == nil
-                                ? .subheadline.weight(.semibold)
-                                : .subheadline.weight(.semibold).monospaced())
-                            .foregroundStyle(state == .running ? DCTheme.goldInk : DCTheme.ink)
-                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
-                        if !summary.isEmpty {
-                            Text(verbatim: summary)
-                                .font(.caption)
-                                .foregroundStyle(state == .error ? DCTheme.danger : (state == .warning ? DCTheme.warning : DCTheme.inkMuted))
-                                .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
-                                .multilineTextAlignment(.leading)
-                        }
-                    }
-                    Spacer(minLength: 4)
-                    if let duration {
-                        Text(verbatim: duration)
-                            .font(.caption.monospacedDigit())
-                            .foregroundStyle(DCTheme.inkMuted)
-                    }
-                    if onToggle != nil {
-                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                            .font(.caption2.weight(.semibold))
-                            .foregroundStyle(DCTheme.inkFaint)
-                            .accessibilityHidden(true)
-                    }
+            if dynamicTypeSize.isAccessibilitySize, actionTitle != nil, onAction != nil {
+                VStack(alignment: .leading, spacing: 2) {
+                    mainButton
+                    actionButton
+                        .padding(.leading, 32)
                 }
-                .padding(.vertical, 6)
-                .frame(minHeight: 44)
-                .contentShape(Rectangle())
+            } else {
+                HStack(spacing: 8) {
+                    mainButton
+                    actionButton
+                }
             }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text(verbatim: [label, codeName, summary].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")))
-            .accessibilityIdentifier("agentToolRow")
 
             if isExpanded {
                 detail().padding(.leading, 38).padding(.bottom, 8)
             }
+        }
+    }
+
+    private var mainButton: some View {
+        Button { onToggle?() } label: {
+            HStack(spacing: 10) {
+                disc
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: codeName ?? label)
+                        .font(codeName == nil
+                            ? .subheadline.weight(.semibold)
+                            : .subheadline.weight(.semibold).monospaced())
+                        .foregroundStyle(state == .running ? DCTheme.goldInk : DCTheme.ink)
+                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+                    if !summary.isEmpty {
+                        Text(verbatim: summary)
+                            .font(.caption)
+                            .foregroundStyle(state == .error ? DCTheme.danger : (state == .warning ? DCTheme.warning : DCTheme.inkMuted))
+                            .lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 2)
+                            .multilineTextAlignment(.leading)
+                    }
+                }
+                Spacer(minLength: 4)
+                if let duration {
+                    Text(verbatim: duration)
+                        .font(.caption.monospacedDigit())
+                        .foregroundStyle(DCTheme.inkMuted)
+                }
+                if onToggle != nil, onAction == nil || isExpanded {
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(DCTheme.inkFaint)
+                        .accessibilityHidden(true)
+                }
+            }
+            .padding(.vertical, 6)
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityAddTraits(onToggle != nil ? .isButton : [])
+        .accessibilityLabel(Text(verbatim: [label, codeName, summary].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")))
+        .accessibilityIdentifier("agentToolRow")
+    }
+
+    @ViewBuilder
+    private var actionButton: some View {
+        if let actionTitle, let onAction {
+            Button(action: onAction) {
+                Text(verbatim: actionTitle)
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(DCTheme.goldInk)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .padding(.horizontal, 6)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityShowsLargeContentViewer {
+                Label(actionTitle, systemImage: "square.on.square")
+            }
+            .accessibilityLabel(Text(verbatim: actionTitle))
+            .accessibilityHint(Text(verbatim: actionHint ?? ""))
+            .accessibilityIdentifier(actionIdentifier)
         }
     }
 
@@ -137,7 +215,7 @@ struct DCToolRow<Detail: View>: View {
             DCAgentRing(size: 28, lineWidth: DCTheme.ringWidth, isTurning: true)
         case .done:
             Circle().fill(DCTheme.surfaceRaised).frame(width: 28, height: 28)
-                .overlay { Image(systemName: "checkmark").font(.caption.weight(.bold)).foregroundStyle(DCTheme.inkMuted) }
+                .overlay { Image(systemName: doneSymbol).font(.caption.weight(.bold)).foregroundStyle(DCTheme.inkMuted) }
         case .warning:
             Circle().fill(DCTheme.surfaceRaised).frame(width: 28, height: 28)
                 .overlay { Image(systemName: "exclamationmark.triangle").font(.caption.weight(.bold)).foregroundStyle(DCTheme.warning) }

@@ -400,6 +400,23 @@
         }
       }
     },
+    "%@ · in the background" : {
+      "comment" : "Tool row summary when the Agent opened a new tab in the background; placeholder is the compact page address or Home",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · 在后台"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · 在背景"
+          }
+        }
+      }
+    },
     "%@ · step %lld" : {
       "comment" : "Subtitle of the full-size screenshot sheet: the capture summary and the step number",
       "localizations" : {
@@ -1678,6 +1695,53 @@
         }
       }
     },
+    "%lld tabs" : {
+      "comment" : "Tool row summary showing the number of open browser tabs",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tab"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld tabs"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 个标签页"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 個分頁"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld times" : {
       "comment" : "Number of times a userscript runtime error occurred",
       "localizations" : {
@@ -2407,40 +2471,6 @@
         }
       }
     },
-    "Address field" : {
-      "comment" : "Expanded browser bar address button when no domain is loaded",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "地址栏"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "網址列"
-          }
-        }
-      }
-    },
-    "Address field: %@" : {
-      "comment" : "Expanded browser bar address button; placeholder is the website domain",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "地址栏：%@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "網址列：%@"
-          }
-        }
-      }
-    },
     "AI cache cleared" : {
       "comment" : "VoiceOver announcement after clearing a script's AI cache",
       "localizations" : {
@@ -2578,29 +2608,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "AI 生成，可能有誤"
-          }
-        }
-      }
-    },
-    "Allow %@ to run its page tool “%@”?" : {
-      "comment" : "Confirmation card: the Agent wants to call an unverified WebMCP tool registered by the website. First placeholder is the site host, second is the tool name.",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Allow %1$@ to run its page tool “%2$@”?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "允许 %1$@ 运行其页面工具“%2$@”？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "允許 %1$@ 執行其頁面工具「%2$@」？"
           }
         }
       }
@@ -3104,6 +3111,40 @@
         }
       }
     },
+    "Address field" : {
+      "comment" : "Expanded browser bar address button when no domain is loaded",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地址栏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網址列"
+          }
+        }
+      }
+    },
+    "Address field: %@" : {
+      "comment" : "Expanded browser bar address button; placeholder is the website domain",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "地址栏：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網址列：%@"
+          }
+        }
+      }
+    },
     "Adds commands to This page" : {
       "comment" : "Capability row for GM_registerMenuCommand grant",
       "localizations" : {
@@ -3466,6 +3507,29 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "允許"
+          }
+        }
+      }
+    },
+    "Allow %@ to run its page tool “%@”?" : {
+      "comment" : "Confirmation card: the Agent wants to call an unverified WebMCP tool registered by the website. First placeholder is the site host, second is the tool name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Allow %1$@ to run its page tool “%2$@”?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许 %1$@ 运行其页面工具“%2$@”？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允許 %1$@ 執行其頁面工具「%2$@」？"
           }
         }
       }
@@ -6096,6 +6160,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安靜後關閉"
+          }
+        }
+      }
+    },
+    "Closed tab" : {
+      "comment" : "Tool row label after the Agent closed a browser tab",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已关闭标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已關閉分頁"
+          }
+        }
+      }
+    },
+    "Closing tab" : {
+      "comment" : "Tool row label while the Agent closes a browser tab",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在关闭标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在關閉分頁"
           }
         }
       }
@@ -9580,23 +9678,6 @@
         }
       }
     },
-    "Hold to talk" : {
-      "comment" : "Accessibility hint of the browser bar Agent ring button",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "按住以说话"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "按住以說話"
-          }
-        }
-      }
-    },
     "HTTP %lld: %@" : {
       "comment" : "Error: HTTP status code, then the server's message",
       "localizations" : {
@@ -9764,6 +9845,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "歷史記錄"
+          }
+        }
+      }
+    },
+    "Hold to talk" : {
+      "comment" : "Accessibility hint of the browser bar Agent ring button",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按住以说话"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按住以說話"
           }
         }
       }
@@ -10493,38 +10591,6 @@
         }
       }
     },
-    "Listed page tools" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已列出页面工具"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已列出頁面工具"
-          }
-        }
-      }
-    },
-    "Listing page tools" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在列出页面工具"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在列出頁面工具"
-          }
-        }
-      }
-    },
     "LM Studio (Local)" : {
       "comment" : "AI provider name: LM Studio running on the user's own computer. Keep \"LM Studio\".",
       "localizations" : {
@@ -10925,6 +10991,22 @@
         }
       }
     },
+    "Listed page tools" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出页面工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出頁面工具"
+          }
+        }
+      }
+    },
     "Listed scripts" : {
       "localizations" : {
         "zh-Hans" : {
@@ -10937,6 +11019,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已列出腳本"
+          }
+        }
+      }
+    },
+    "Listed tabs" : {
+      "comment" : "Tool row label after the Agent listed open browser tabs",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已列出分頁"
           }
         }
       }
@@ -11058,6 +11157,22 @@
         }
       }
     },
+    "Listing page tools" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出页面工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出頁面工具"
+          }
+        }
+      }
+    },
     "Listing scripts" : {
       "localizations" : {
         "zh-Hans" : {
@@ -11070,6 +11185,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在列出腳本"
+          }
+        }
+      }
+    },
+    "Listing tabs" : {
+      "comment" : "Tool row label while the Agent lists open browser tabs",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在列出分頁"
           }
         }
       }
@@ -12106,23 +12238,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "接下來是「%@」。"
-          }
-        }
-      }
-    },
-    "no" : {
-      "comment" : "Short boolean value on a page-tool confirmation card.",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "否"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "否"
           }
         }
       }
@@ -13736,6 +13851,23 @@
         }
       }
     },
+    "Opened a new tab" : {
+      "comment" : "Tool row label after the Agent opened a new browser tab",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已打开新标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已打開新分頁"
+          }
+        }
+      }
+    },
     "Opened page" : {
       "localizations" : {
         "zh-Hans" : {
@@ -13748,6 +13880,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已打開頁面"
+          }
+        }
+      }
+    },
+    "Opening a new tab" : {
+      "comment" : "Tool row label while the Agent opens a new browser tab",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在打开新标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在打開新分頁"
           }
         }
       }
@@ -18600,6 +18749,23 @@
         }
       }
     },
+    "Show" : {
+      "comment" : "Button on an opened-tab tool row that switches to that tab",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "顯示"
+          }
+        }
+      }
+    },
     "Show AI panel" : {
       "localizations" : {
         "zh-Hans" : {
@@ -20307,6 +20473,40 @@
         }
       }
     },
+    "Switched tab" : {
+      "comment" : "Tool row label after the Agent switched the active browser tab",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已切换标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已切換分頁"
+          }
+        }
+      }
+    },
+    "Switches to the opened tab" : {
+      "comment" : "VoiceOver hint for the Show button on an opened-tab tool row",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换到打开的标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切換到打開的分頁"
+          }
+        }
+      }
+    },
     "Switches to this model" : {
       "comment" : "Accessibility hint of a ready model in the model not ready card",
       "localizations" : {
@@ -20320,6 +20520,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "切換到此模型"
+          }
+        }
+      }
+    },
+    "Switching tab" : {
+      "comment" : "Tool row label while the Agent switches the active browser tab",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在切换标签页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在切換分頁"
           }
         }
       }
@@ -21654,23 +21871,6 @@
     },
     "This page" : {
       "comment" : "Popover header for page capabilities and scripts",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此页面"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此頁面"
-          }
-        }
-      }
-    },
-    "this page" : {
-      "comment" : "Fallback site label on a page-tool confirmation card when the URL has no host.",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -23780,23 +23980,6 @@
         }
       }
     },
-    "Uses AI · %@" : {
-      "comment" : "Script row subtitle in Settings › Scripts when the script has the GM_ai grant; placeholder is the active Scripts model name",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用 AI · %@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "使用 AI · %@"
-          }
-        }
-      }
-    },
     "Uses %@" : {
       "comment" : "Update diff row when a new @grant capability was added",
       "localizations" : {
@@ -23810,6 +23993,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "使用 %@"
+          }
+        }
+      }
+    },
+    "Uses AI · %@" : {
+      "comment" : "Script row subtitle in Settings › Scripts when the script has the GM_ai grant; placeholder is the active Scripts model name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 AI · %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用 AI · %@"
           }
         }
       }
@@ -25064,23 +25264,6 @@
         }
       }
     },
-    "yes" : {
-      "comment" : "Short boolean value on a page-tool confirmation card.",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "是"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "是"
-          }
-        }
-      }
-    },
     "You" : {
       "localizations" : {
         "zh-Hans" : {
@@ -25729,6 +25912,23 @@
         }
       }
     },
+    "no" : {
+      "comment" : "Short boolean value on a page-tool confirmation card.",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "否"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "否"
+          }
+        }
+      }
+    },
     "no signal" : {
       "comment" : "Voice Health row: the microphone delivers only silence",
       "localizations" : {
@@ -25864,6 +26064,23 @@
         }
       }
     },
+    "this page" : {
+      "comment" : "Fallback site label on a page-tool confirmation card when the URL has no host.",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此頁面"
+          }
+        }
+      }
+    },
     "topic %@" : {
       "comment" : "A topic without a known title; the placeholder is its number",
       "localizations" : {
@@ -25894,6 +26111,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "用於%@"
+          }
+        }
+      }
+    },
+    "yes" : {
+      "comment" : "Short boolean value on a page-tool confirmation card.",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是"
           }
         }
       }

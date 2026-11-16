@@ -29,7 +29,14 @@ enum BrowserAgentPanelView {
                 return .think
             }
             if let runningRow = toolCalls.last(where: \.isRunning) {
-                return runningRow.toolName == "read_page" ? .search : .run
+                if runningRow.toolName == "read_page" {
+                    return .search
+                }
+                if runningRow.toolName == "tabs",
+                   (try? JSONValue.parseObjectJSON(runningRow.argumentsJSON))?["action"]?.stringValue == "read" {
+                    return .search
+                }
+                return .run
             }
             return step > 0 ? .run : .think
         case .completed:
@@ -137,6 +144,7 @@ enum ConversationItem: Identifiable {
 
 struct BrowserAgentRunsView: View {
     @ObservedObject var app: AppModel
+    @ObservedObject private var tabs: BrowserTabs
     let session: BrowserAgentSession
     @Binding var expandedToolRowIDs: Set<UUID>
     /// Opens a source of an answer in the browser.
@@ -144,6 +152,19 @@ struct BrowserAgentRunsView: View {
     @State private var manuallyExpandedRunIDs: Set<UUID> = []
     @State private var screenshotSheet: ScreenshotSheetItem?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    init(
+        app: AppModel,
+        session: BrowserAgentSession,
+        expandedToolRowIDs: Binding<Set<UUID>>,
+        onOpenURL: ((URL) -> Void)? = nil
+    ) {
+        self.app = app
+        _tabs = ObservedObject(wrappedValue: app.tabs)
+        self.session = session
+        _expandedToolRowIDs = expandedToolRowIDs
+        self.onOpenURL = onOpenURL
+    }
 
     private var isProviderReady: Bool { app.isProviderReady(for: .browserAgent) }
 
@@ -348,6 +369,12 @@ struct BrowserAgentRunsView: View {
                     }
                 }
                 if !stepsExpanded {
+                    let openedRows = run.toolCalls.filter { !$0.isRunning && !$0.isError && $0.openedTabID != nil }
+                    if !openedRows.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            toolRowList(openedRows, inlineCapabilityCards: false)
+                        }
+                    }
                     ForEach(Self.capabilityEntries(in: run.toolCalls)) { entry in
                         capabilityCard(for: entry)
                     }
@@ -361,18 +388,52 @@ struct BrowserAgentRunsView: View {
         let developerMode = app.settings.agentDeveloperMode
         ForEach(rows) { row in
             let expanded = expandedToolRowIDs.contains(row.id)
+            let showableTabID: String? = {
+                guard !row.isRunning,
+                      !row.isError,
+                      let tabID = row.openedTabID,
+                      tabs.tab(id: tabID) != nil,
+                      tabs.currentTabID != tabID else {
+                    return nil
+                }
+                return tabID
+            }()
             VStack(alignment: .leading, spacing: inlineCapabilityCards ? 8 : 0) {
                 DCToolRow(
-                    label: DCToolLabel.browser(row.toolName, running: row.isRunning),
+                    label: DCToolLabel.browser(
+                        row.toolName,
+                        argumentsJSON: row.argumentsJSON,
+                        openedTabID: row.openedTabID,
+                        running: row.isRunning
+                    ),
                     codeName: developerMode ? row.toolName : nil,
                     duration: developerMode ? row.duration.map(BrowserAgentPanelView.formatDuration) : nil,
                     summary: row.isRunning ? "" : row.resultSummary,
                     state: row.isRunning ? .running : (row.isError ? .error : (row.isPageWarning ? .warning : .done)),
+                    doneSymbol: row.openedTabID != nil ? "square.on.square" : "checkmark",
                     isExpanded: expanded,
                     onToggle: {
                         DCHaptics.tap()
                         withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
                             if expanded { expandedToolRowIDs.remove(row.id) } else { expandedToolRowIDs.insert(row.id) }
+                        }
+                    },
+                    actionTitle: showableTabID != nil
+                        ? String(localized: "Show", comment: "Button on an opened-tab tool row that switches to that tab")
+                        : nil,
+                    actionHint: showableTabID != nil
+                        ? String(localized: "Switches to the opened tab", comment: "VoiceOver hint for the Show button on an opened-tab tool row")
+                        : nil,
+                    actionIdentifier: "agentToolShowTab",
+                    onAction: showableTabID.map { tabID in
+                        {
+                            DCHaptics.tap()
+                            if app.router.drawerPhase == .shown, app.router.drawerDetent == .large {
+                                withAnimation(DCMotion.respecting(reduceMotion, DCMotion.smooth)) {
+                                    app.router.drawerDetent = .medium
+                                }
+                            }
+                            _ = app.tabs.switchToTab(id: tabID)
                         }
                     }
                 ) {

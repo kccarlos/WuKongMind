@@ -510,7 +510,7 @@ struct AuditTaskPage: View {
     private func stepRow(_ step: AuditLine) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(verbatim: DCToolLabel.browser(step.tool ?? "", running: false))
+                Text(verbatim: DCToolLabel.browser(step.tool ?? "", argumentsJSON: step.arguments, running: false))
                     .font(.body.weight(.medium))
                 Spacer()
                 if step.isError == true {
