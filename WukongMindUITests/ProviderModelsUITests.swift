@@ -324,11 +324,18 @@ final class ProviderModelsUITests: DCUITestCase {
         let star = app.buttons["toggleFavoriteModel"]
         XCTAssertTrue(reveal(star, in: app, swipes: 3))
         XCTAssertTrue(star.isEnabled)
-        capture("wuko138-vertex-agent-before-dark")
+        // The sample seeds the Agent model as a favorite: unstar it first.
+        let favoriteRow = app.buttons.matching(label(contains: "Google Vertex AI")).matching(label(contains: "gemini-4-argon")).firstMatch
+        XCTAssertTrue(favoriteRow.waitForExistence(timeout: 5), "Seeded favorite row")
         star.tap()
+        XCTAssertTrue(app.buttons.matching(label(contains: "Add to favorites")).firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForGone(favoriteRow, timeout: 5))
+        capture("wuko138-vertex-agent-before-dark")
+        // Now tap "Add to favorites": the model appears under Favorite models.
+        app.buttons["toggleFavoriteModel"].tap()
         XCTAssertTrue(app.buttons.matching(label(contains: "Remove from favorites")).firstMatch.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Favorite models"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons.matching(label(contains: "Google Vertex AI")).matching(label(contains: "gemini-4-argon")).firstMatch.waitForExistence(timeout: 5), "New favorite row")
+        XCTAssertTrue(favoriteRow.waitForExistence(timeout: 5), "New favorite row")
         capture("wuko138-vertex-agent-after-dark")
     }
 
