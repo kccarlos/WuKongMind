@@ -1264,7 +1264,10 @@ class AIService: @unchecked Sendable {
                 text: textSegments.joined(),
                 toolCalls: toolCalls,
                 stopReason: candidate?["finishReason"] as? String,
-                usage: AgentTokenUsage(inputTokens: inputTokens, outputTokens: outputTokens)
+                usage: AgentTokenUsage(
+                    inputTokens: inputTokens, outputTokens: outputTokens,
+                    cacheReadTokens: usageMeta?["cachedContentTokenCount"] as? Int
+                )
             )
 
         case .ollama:

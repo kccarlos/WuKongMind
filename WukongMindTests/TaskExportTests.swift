@@ -34,6 +34,23 @@ final class TaskExportTests: XCTestCase {
         XCTAssertEqual(exchange.status, 200)
     }
 
+    /// A Gemini or Vertex reply reports its cached prompt tokens as cache reads (the live runs print them).
+    func testGeminiToolReplyReportsCachedPromptTokensAsCacheReads() async throws {
+        for (provider, body, cached) in [
+            (AIProvider.gemini, #"{"candidates":[{"content":{"parts":[{"text":"ok"}]},"finishReason":"STOP"}],"usageMetadata":{"promptTokenCount":9000,"cachedContentTokenCount":8192,"candidatesTokenCount":5}}"#, 8192 as Int?),
+            (.vertexAI, #"{"candidates":[{"content":{"parts":[{"text":"ok"}]},"finishReason":"STOP"}],"usageMetadata":{"promptTokenCount":900,"candidatesTokenCount":5}}"#, nil)
+        ] {
+            StubHTTP.reset([body])
+            let response = try await StubHTTP.service.completeToolTurn(
+                system: "sys", messages: [.user("hi")], tools: [],
+                configuration: ProviderConfiguration(model: "gemini-3.8-flash", baseURL: provider.defaultBaseURL, apiKey: "k"),
+                provider: provider, maxTokens: 64
+            )
+            XCTAssertEqual(response.usage.cacheReadTokens, cached, "\(provider)")
+            XCTAssertEqual(response.usage.inputTokens, provider == .gemini ? 9000 : 900)
+        }
+    }
+
     // MARK: Export of a real session
 
     func testRecordedSessionExportsWithoutKeysOrCookiesAndReplays() async throws {

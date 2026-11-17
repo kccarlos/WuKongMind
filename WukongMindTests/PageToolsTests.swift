@@ -451,7 +451,7 @@ final class PageToolsTests: XCTestCase {
         }
         var targets: [(AIProvider, String, String)] = []
         if !anthKey.isEmpty { targets.append((.anthropic, "claude-haiku-5-5", anthKey)) }
-        if !vertexKey.isEmpty { targets.append((.vertexAI, env["VERTEX_MODEL"] ?? "gemini-2.5-flash", vertexKey)) }
+        if !vertexKey.isEmpty { targets.append((.vertexAI, env["VERTEX_MODEL"] ?? "gemini-3.8-flash", vertexKey)) }
         for (provider, model, key) in targets {
             let ai = CapturingAIService()
             let out = try await runShippingQuoteSession(ai: ai, provider: provider, model: model, apiKey: key)
