@@ -302,6 +302,35 @@ final class ProviderModelsUITests: DCUITestCase {
         capture("p1-iphone-anthropic-ax-dark")
     }
 
+    /// WUKO-138: the Agent page on Vertex AI shows the chosen model (never the
+    /// provider name) and "Add to favorites" adds it to Favorite models.
+    func testVertexAIAgentRowShowsModelAndAddToFavoritesAddsIt() throws {
+        let app = launch([
+            "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+            "-dc-sample",
+            "-dc-forums-home",
+            "-dc-show-settings", "provider",
+            "-dc-agent-model", "vertexai:gemini-4-argon"
+        ])
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 20))
+        XCUIDevice.shared.appearance = .dark
+        let agentRoleRow = any(app, "modelRole-browserAgent")
+        XCTAssertTrue(waitOrDump(agentRoleRow, timeout: 5, in: app))
+        agentRoleRow.tap()
+        XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
+        let modelsLink = app.buttons["providerModelsLink"]
+        XCTAssertTrue(reveal(modelsLink, in: app, swipes: 3))
+        XCTAssertTrue(modelsLink.label.contains("gemini-4-argon"), "Got “\(modelsLink.label)”.")
+        let star = app.buttons["toggleFavoriteModel"]
+        XCTAssertTrue(reveal(star, in: app, swipes: 3))
+        XCTAssertTrue(star.isEnabled)
+        capture("wuko138-vertex-agent-before-dark")
+        star.tap()
+        XCTAssertTrue(wait(timeout: 5) { app.buttons["toggleFavoriteModel"].label.contains("Remove from favorites") })
+        XCTAssertTrue(app.staticTexts["Favorite models"].waitForExistence(timeout: 5))
+        capture("wuko138-vertex-agent-after-dark")
+    }
+
     /// P2 Done-when UI test:
     /// - `ModelRolePage`'s model row opens the chosen provider's page scrolled to `Models`;
     /// - adding `my-gateway/claude-x` puts it at the top marked `added by name`;

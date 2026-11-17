@@ -691,7 +691,7 @@ struct ModelRolePage: View {
                 Text("Choose a model", comment: "Placeholder for browser agent model field when no model is chosen")
                     .foregroundStyle(DCTheme.goldInk)
                 Spacer(minLength: 8)
-                Text(provider.displayName)
+                Text("None", comment: "Settings › Agent: the Model row's value while no model is chosen")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)

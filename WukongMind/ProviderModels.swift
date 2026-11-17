@@ -100,11 +100,28 @@ enum AIProvider: String, Codable, CaseIterable, Identifiable, Sendable {
         }
     }
 
+    /// The model a role gets when it switches to Vertex AI: it works on the
+    /// default (express) base URL, unlike the Gemini 4 models.
+    static let vertexAIDefaultAgentModel = "gemini-3.8-flash"
+
     /// Vertex AI has no model list an API key can read, so the picker offers
     /// these Gemini models; any other model ID can still be typed.
+    ///
+    /// Refresh with `scripts/vertex-models.sh` (see docs/DEVELOPMENT.md), then
+    /// verify each new model answers `generateContent` and a tool call with
+    /// the real key. Checked 2026-11-17: the `gemini-4-*` models answer (and
+    /// call tools; `gemini-4-carbon` is slow) only through a project path with
+    /// `locations/global` as the base URL; the express host
+    /// (`aiplatform.googleapis.com/v1`) returns 404 for them. Every other
+    /// model here works on the express host. `gemini-3-pro-preview` is listed
+    /// by gcloud but 404s for this key, so it is left out.
     static let vertexAIModels = [
+        "gemini-4-argon",
+        "gemini-4-carbon",
+        "gemini-4-hydrogen",
         "gemini-3.8-flash",
         "gemini-3.7-flash",
+        "gemini-3.6-flash",
         "gemini-3.5-flash",
         "gemini-3.5-flash-lite",
         "gemini-3.1-pro-preview",

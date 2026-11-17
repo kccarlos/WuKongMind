@@ -330,7 +330,11 @@ extension AppModel {
     /// other role uses there, else the provider's default (empty for `.browserAgent`,
     /// which intentionally has no preset model).
     func suggestedModel(for provider: AIProvider, role: ModelRole) -> String {
-        if role == .browserAgent { return "" }
+        if role == .browserAgent {
+            // Providers with a built-in list get a working model; the rest
+            // let the user choose (the Agent has no preset).
+            return provider == .vertexAI ? AIProvider.vertexAIDefaultAgentModel : ""
+        }
         if provider.isAppleIntelligence { return provider.defaultModel }
         let other = selection(for: role.other)
         if other.provider == provider, !other.model.isEmpty { return other.model }
