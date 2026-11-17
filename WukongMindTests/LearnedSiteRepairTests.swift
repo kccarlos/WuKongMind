@@ -618,6 +618,21 @@ final class LearnedSiteRepairWebTests: XCTestCase {
         XCTAssertEqual(fixed.status, .learned); XCTAssertEqual(fixed.repairFailures, 0); XCTAssertEqual(fixed.scriptID, script.id)
         XCTAssertEqual(h.stateStore.state(forHost: "127.0.0.1")?.log.map(\.kind).prefix(3).contains(.repaired), true)
         XCTAssertTrue(session.runs[0].assistantText.contains("fan curves"))
+        let entry = try XCTUnwrap(BrowserAgentRunsView.savedScriptEntries(in: session.runs[0]).first)
+        XCTAssertEqual(entry.repairTarget?.scriptID, script.id, "the card reads Fixed and offers Undo")
+    }
+
+    /// A repair that names only the failing URL still verifies on the saved test URLs.
+    func testRepairNamingOnlyTheFailingURLUsesTheSavedTestURLs() async throws {
+        let h = try await makeHarness(), script = try await learn(h)
+        defer { h.controller.detach(); h.pageToolBridge.detach() }
+        try await edit(h, script, js: Self.emptyReaderJS, keepHash: true)
+        _ = try await h.registry().dispatch(toolName: "read_topic", arguments: ["url": .string(h.u1)])
+        let fixed = try await h.registry().dispatch(toolName: "script_update", arguments: [
+            "script_id": .string(script.id), "js": .string(Self.readerJS), "enabled": .bool(true), "test_urls": .array([.string(h.u1)])
+        ])
+        XCTAssertFalse(fixed.isError, fixed.output)
+        XCTAssertEqual(slot(h, .readTopic).status, .learned)
     }
 
     /// A run that ends with the slot still broken counts one failed repair; the next run repairs the same script

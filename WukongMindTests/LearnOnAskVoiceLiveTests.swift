@@ -30,7 +30,7 @@ final class LearnOnAskVoiceLiveTests: XCTestCase {
         navigator.explicitPageTitle = "Cooling Fan Hysteresis and Paste"
         navigator.readableText = "Cooling Fan Hysteresis and Paste\n\nalice: Thermal paste dropped idle temperatures by twelve degrees."
         // The site is learned in the app's own stores, so `summarize_topic` on this thread is the learned-thread refusal.
-        let script = try app.scriptStore.create(id: "reader.fixture", name: "Reads forum.example.org", matchRules: ["*://forum.example.org/*"], js: "1;", source: .imported, provides: ["read_topic"])
+        let script = try app.scriptStore.create(id: "reader.fixture", name: "Reads forum.example.org", matchRules: ["*://forum.example.org/*"], js: "1;", source: .imported, provides: ["read_topic"], threadMatches: ["*://forum.example.org/thread-*"])
         var learnedState = SiteToolState(host: "forum.example.org")
         learnedState.setSlot(SiteSlotState(status: .learned, scriptID: script.id), for: .readTopic)
         try app.siteToolStateStore.save(learnedState)

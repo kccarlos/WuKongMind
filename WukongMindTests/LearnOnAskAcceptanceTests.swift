@@ -125,10 +125,10 @@ extension LearnedSiteRepairWebTests {
         if let key = env["ANTHROPIC_API_KEY"], !key.isEmpty { target = (.anthropic, "claude-haiku-5-5", key) }
         else if let key = env["VERTEX_API_KEY"], !key.isEmpty { target = (.vertexAI, "gemini-3.8-flash", key) }
         guard let (provider, model, key) = target else { throw XCTSkip("Set TEST_RUNNER_ANTHROPIC_API_KEY or TEST_RUNNER_VERTEX_API_KEY for the live repair run.") }
-        let h = try await makeHarness(), script = try await learn(h)
+        let h = try await makeHarness(), script = try await learnThreadReaderOnly(h)
         defer { h.controller.detach(); h.pageToolBridge.detach() }
         h.site.inlineLogin = true
-        try await edit(h, script, js: Self.emptyReaderJS, keepHash: true)
+        try await edit(h, script, js: Self.emptyThreadReaderJS, keepHash: true)
         var configuration = ProviderConfiguration(provider: provider)
         configuration.apiKey = key; configuration.model = model
         let runtime = BrowserAgentRuntimeConfig(
@@ -145,7 +145,32 @@ extension LearnedSiteRepairWebTests {
         XCTAssertEqual(slot(h, .readTopic).status, .learned, model)
         XCTAssertEqual(h.scriptStore.scripts.count, 1, "one script for the slot")
         XCTAssertTrue(h.stateStore.state(forHost: "127.0.0.1")?.log.map(\.kind).contains(.repaired) == true)
+        let entry = try XCTUnwrap(BrowserAgentRunsView.savedScriptEntries(in: run).first)
+        XCTAssertNotNil(entry.repairTarget, "the card reads Fixed and offers Undo")
     }
+
+    private static let emptyThreadReaderJS = """
+    await modelContext.registerTool({ name: "read_topic", async execute({ url }) { return { shape: { title: "T", url, total_posts: 0, posts: [] } }; }});
+    """
+
+    /// A reader that provides only `read_topic`, learned through the real `script_save`.
+    private func learnThreadReaderOnly(_ h: Harness) async throws -> UserScript {
+        try await h.waiter.load(h.webView, url: URL(string: h.u1)!)
+        let saved = try await h.registry().dispatch(toolName: "script_save", arguments: [
+            "name": .string("Thread reader"), "match_rules": .array([.string("*://127.0.0.1/*")]), "js": .string(Self.threadReaderJS),
+            "provides": .array([.string("read_topic")]), "thread_match": .string("*://127.0.0.1/thread-*"),
+            "test_urls": .array([.string(h.u1), .string(h.u2)])
+        ])
+        XCTAssertFalse(saved.isError, saved.output)
+        return try XCTUnwrap(h.scriptStore.scripts.first)
+    }
+
+    private static let threadReaderJS = """
+    await modelContext.registerTool({ name: "read_topic", annotations: { readOnlyHint: true }, async execute({ url, page = 1 }) {
+      const d = await (await fetch("/api" + new URL(url).pathname)).json();
+      return { shape: { title: d.title, url, total_posts: d.posts.length, posts: d.posts }, page, total_pages: 1 };
+    }});
+    """
 }
 
 /// Check 10, replayed: on a learned thread, "summarize this" and "read it to me" are for the Agent, never the page text.
@@ -176,6 +201,46 @@ final class LearnOnAskVoiceTests: XCTestCase {
         navigator.openPageIsLearnedThread = false
         _ = await bridge.handle(.init(id: "s", name: "summarize_topic", args: [:]), eyesFree: false)
         XCTAssertEqual(seen.called, ["summarize_topic"])
+    }
+
+    /// The app's own rule: a thread of the site by `thread_match`, with the reader on, userscripts on, the slot not failed
+    /// and Forums Home not covering the page.
+    func testAppSaysLearnedThreadOnlyForAThreadWhoseReaderCanRun() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("accept-voice-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let app = AppModel(
+            store: PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
+            forumService: WordPressFixtureSite(commentCount: 1).service(), sites: SiteRegistry.standard, aiService: StateAIStub(),
+            workspaceDirectory: dir.appendingPathComponent("ws", isDirectory: true)
+        )
+        app.browser.onPageContextChanged = nil
+        let script = try app.scriptStore.create(id: "reader.v", name: "Reads example.org", matchRules: ["*://example.org/*"], js: "1;", source: .imported, provides: ["read_topic"], threadMatches: ["*://example.org/thread-*"])
+        var state = SiteToolState(host: "example.org")
+        state.threadMatch = ["*://example.org/thread-*"]
+        state.setSlot(SiteSlotState(status: .learned, scriptID: script.id), for: .readTopic)
+        try app.siteToolStateStore.save(state)
+        func open(_ path: String) { app.browser.setPageContext(PageContext(url: URL(string: "https://example.org\(path)"), state: .notForum)) }
+
+        open("/thread-1")
+        XCTAssertTrue(app.openPageIsLearnedThread)
+        open("/forum")
+        XCTAssertFalse(app.openPageIsLearnedThread, "a list page of the site is read as an ordinary page")
+        _ = try app.scriptStore.setEnabled(id: script.id, isEnabled: false, runLiveJS: false)
+        XCTAssertFalse(app.openPageIsLearnedThread, "a reader turned off in This page")
+        _ = try app.scriptStore.setEnabled(id: script.id, isEnabled: true, runLiveJS: false)
+        try app.siteToolStateStore.save(state)
+        XCTAssertEqual(app.scriptStore.script(id: script.id)?.isEnabled, true)
+        XCTAssertTrue(app.scriptStore.isGlobalEnabled)
+        XCTAssertEqual(app.siteToolStateStore.state(forHost: "example.org")?.slot(.readTopic).status, .learned)
+        XCTAssertTrue(app.openPageIsLearnedThread)
+        state.setSlot(SiteSlotState(status: .failed, scriptID: script.id), for: .readTopic)
+        try app.siteToolStateStore.save(state)
+        XCTAssertFalse(app.openPageIsLearnedThread, "a failed slot is not read by the Agent either")
+        state.setSlot(SiteSlotState(status: .learned, scriptID: script.id), for: .readTopic)
+        try app.siteToolStateStore.save(state)
+        XCTAssertTrue(app.openPageIsLearnedThread)
+        app.browser.showForumsHome()
+        XCTAssertFalse(app.openPageIsLearnedThread, "Forums Home covers the page")
     }
 }
 

@@ -380,8 +380,9 @@ final class LearningPromptTests: XCTestCase {
         var capabilities: CapabilityToolContext
 
         func makeLearned() -> LearnedSiteContext {
-            LearnedSiteContext(
-                host: "127.0.0.1", state: stateStore.state(forHost: "127.0.0.1") ?? SiteToolState(host: "127.0.0.1"),
+            let host = webView.url.flatMap(SiteToolState.normalizedHost(from:)) ?? "127.0.0.1"
+            return LearnedSiteContext(
+                host: host, state: stateStore.state(forHost: host) ?? SiteToolState(host: host),
                 pageToolBridge: pageToolBridge, scriptStore: scriptStore, stateStore: stateStore
             )
         }
