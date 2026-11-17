@@ -326,8 +326,9 @@ final class ProviderModelsUITests: DCUITestCase {
         XCTAssertTrue(star.isEnabled)
         capture("wuko138-vertex-agent-before-dark")
         star.tap()
-        XCTAssertTrue(wait(timeout: 5) { app.buttons["toggleFavoriteModel"].label.contains("Remove from favorites") })
+        XCTAssertTrue(app.buttons.matching(label(contains: "Remove from favorites")).firstMatch.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Favorite models"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons.matching(label(contains: "Google Vertex AI")).matching(label(contains: "gemini-4-argon")).firstMatch.waitForExistence(timeout: 5), "New favorite row")
         capture("wuko138-vertex-agent-after-dark")
     }
 
