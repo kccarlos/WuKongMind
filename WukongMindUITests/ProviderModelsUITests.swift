@@ -196,7 +196,7 @@ final class ProviderModelsUITests: DCUITestCase {
         XCTAssertTrue(reveal(any(app, "modelRow-gemini-3.8-flash"), in: app, swipes: 3))
         let vertexShowAll = any(app, "showAllModels")
         XCTAssertTrue(reveal(vertexShowAll, in: app, swipes: 3))
-        XCTAssertTrue(vertexShowAll.label.contains("Show all 10"))
+        XCTAssertTrue(vertexShowAll.label.contains("Show all 14"))
         XCTAssertEqual(server.requestCount, 0)
 
         app.navigationBars["Google Vertex AI"].buttons.element(boundBy: 0).tap()
