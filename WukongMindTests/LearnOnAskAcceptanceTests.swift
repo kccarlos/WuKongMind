@@ -225,6 +225,7 @@ final class LearnOnAskVoiceTests: XCTestCase {
         XCTAssertTrue(app.openPageIsLearnedThread)
         open("/forum")
         XCTAssertFalse(app.openPageIsLearnedThread, "a list page of the site is read as an ordinary page")
+        open("/thread-1")
         _ = try app.scriptStore.setEnabled(id: script.id, isEnabled: false, runLiveJS: false)
         XCTAssertFalse(app.openPageIsLearnedThread, "a reader turned off in This page")
         _ = try app.scriptStore.setEnabled(id: script.id, isEnabled: true, runLiveJS: false)
