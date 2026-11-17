@@ -137,11 +137,19 @@ enum TaskExport {
         return hosts
     }
 
-    /// Reads the task's record, the cookies current for its hosts, builds the file and writes it to
-    /// a temporary folder for the share sheet.
-    static func export(
+    /// The host of the page the task started on (`task` line's `pageURL`), lowercased.
+    static func startHost(in events: [TaskRecordEvent]) -> String? {
+        for event in events where event.type == "task" {
+            if case .string(let url)? = event.fields["pageURL"] { return URL(string: url)?.host?.lowercased() }
+        }
+        return nil
+    }
+
+    /// Reads the task's record and the cookies current for its hosts, and builds the file (with the
+    /// same redaction and refusals as every export), plus the host the task started on.
+    static func file(
         taskID: String, store: TaskRecordStore, cookieSource: TaskCookieSource, secrets: [String]
-    ) async throws -> URL {
+    ) async throws -> (filename: String, data: Data, host: String?) {
         let events = await store.events(taskID: taskID)
         guard !events.isEmpty else { throw TaskExportError.notFound }
         let hosts = hosts(in: events)
@@ -151,6 +159,14 @@ enum TaskExport {
             cookies = current
         }
         let file = try build(events: events, secrets: secrets, cookies: cookies, app: currentApp, now: Date())
+        return (file.filename, file.data, startHost(in: events))
+    }
+
+    /// Builds the file (`file(taskID:…)`) and writes it to a temporary folder for the share sheet.
+    static func export(
+        taskID: String, store: TaskRecordStore, cookieSource: TaskCookieSource, secrets: [String]
+    ) async throws -> URL {
+        let file = try await file(taskID: taskID, store: store, cookieSource: cookieSource, secrets: secrets)
         let folder = FileManager.default.temporaryDirectory
             .appendingPathComponent("wukong-export-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)

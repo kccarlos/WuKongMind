@@ -38,6 +38,7 @@ struct AssistantPanel: View {
     let onOpenURL: ((URL) -> Void)?
     @State private var exporting = false
     @State private var exportTaskID: String?
+    @State private var reportTaskID: String?
     /// "Tap a post number to jump to it", shown with the first summary.
     @State private var showsCitationTip = false
     @State private var renderedSummary: ThrottledParse<DrawerSummarySections.Input, (sections: Int, hasCitations: Bool, rows: [MarkdownRow])>?
@@ -158,6 +159,17 @@ struct AssistantPanel: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        // ⋯ › Report a problem's toast, inside the drawer (a root overlay would sit under it).
+        .overlay(alignment: .bottom) {
+            if let toast = app.feedbackToast {
+                FeedbackSavedToast(message: toast.message)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+                    .transition(DCMotion.slide(.bottom, reduceMotion: reduceMotion))
+                    .onTapGesture { app.feedbackToast = nil }
+            }
+        }
+        .animation(DCMotion.respecting(reduceMotion, DCMotion.spring), value: app.feedbackToast?.id)
         // In the drawer the system sheet's glass shows through at medium
         // (opaque at large by itself).
         .background(Color.clear)
@@ -587,8 +599,8 @@ struct AssistantPanel: View {
             }
 
             Section {
+                let finished = browserAgent.runs.last.flatMap { $0.state.isRunning ? nil : $0.id.uuidString }
                 if app.settings.agentDeveloperMode {
-                    let finished = browserAgent.runs.last.flatMap { $0.state.isRunning ? nil : $0.id.uuidString }
                     Button {
                         exportTaskID = finished
                     } label: {
@@ -600,6 +612,17 @@ struct AssistantPanel: View {
                     .disabled(finished == nil)
                     .accessibilityIdentifier("exportTaskMenuItem")
                 }
+
+                Button {
+                    reportTaskID = finished
+                } label: {
+                    Label(
+                        String(localized: "Report a problem", comment: "Assistant more menu: save the last task for TestFlight feedback"),
+                        systemImage: "exclamationmark.bubble"
+                    )
+                }
+                .disabled(finished == nil)
+                .accessibilityIdentifier("reportProblemMenuItem")
 
                 Button {
                     app.auditLogRequest = AuditLogRequest()
@@ -633,6 +656,7 @@ struct AssistantPanel: View {
         .accessibilityLabel("More assistant actions")
         .accessibilityIdentifier("assistantMoreMenu")
         .taskExportPrompt(app: app, taskID: $exportTaskID)
+        .taskReportPrompt(app: app, taskID: $reportTaskID)
         .sheet(item: $app.auditLogRequest) { request in
             NavigationStack {
                 SettingsAuditLogPage(app: app, focus: request)

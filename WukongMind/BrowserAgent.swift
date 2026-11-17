@@ -1231,6 +1231,9 @@ final class BrowserAgentSession {
                 learnedRunFinish?()
                 learnedRunFinish = nil
                 onRunFinished?()
+                if let currentTaskID, FeedbackReportStore.savesAutomatically(after: runState, enabled: true) {
+                    onRunEndedWithError?(currentTaskID, runState)
+                }
             case .idle, .running, .stopped:
                 break
             }
@@ -1269,6 +1272,9 @@ final class BrowserAgentSession {
     @ObservationIgnored var onAnswer: (@MainActor (BrowserAgentAnswer) -> Void)?
     /// Called whenever a run transitions out of `.running` on its own (`.completed`, `.stepLimitReached`, `.failed`).
     @ObservationIgnored var onRunFinished: (@MainActor () -> Void)?
+    /// Called when a started run ends in an error (`.failed`, `.stepLimitReached`) with its task ID,
+    /// after its record's last tool result is written (failed tasks saved for feedback).
+    @ObservationIgnored var onRunEndedWithError: (@MainActor (String, BrowserAgentRunState) -> Void)?
     /// Checked before starting a turn; returns a user-facing refusal message when disallowed, or `nil` when allowed.
     @ObservationIgnored var runStartGate: (@MainActor () -> String?)?
     /// Fired whenever `isRunning` changes (`true` on start, `false` when finished, stopped or failed).

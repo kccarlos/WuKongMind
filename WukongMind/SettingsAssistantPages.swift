@@ -282,6 +282,18 @@ struct SettingsAgentPage: View {
                     }
                 }
                 .accessibilityIdentifier("agentDeveloperMode")
+                Toggle(isOn: Binding(
+                    get: { app.settings.savesFailedTasksForFeedback() },
+                    set: { app.settings.saveFailedTasksForFeedback = $0 }
+                )) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Save failed tasks for feedback", comment: "Settings › Agent › Developer switch: save the export of a task that ends in an error")
+                        Text("A task that ends in an error is saved to iCloud Drive for TestFlight feedback", comment: "Settings › Agent subtitle for Save failed tasks for feedback")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .accessibilityIdentifier("saveFailedTasksForFeedback")
             } header: {
                 Text("Developer", comment: "Settings › Agent section header for developer diagnostics")
             }
@@ -346,6 +358,7 @@ struct SettingsAgentPage: View {
         .onChange(of: app.settings.agentConfirmBeforeWrites) { app.saveSettings() }
         .onChange(of: app.settings.agentPageToolsEnabled) { app.saveSettings() }
         .onChange(of: app.settings.agentDeveloperMode) { app.saveSettings() }
+        .onChange(of: app.settings.saveFailedTasksForFeedback) { app.saveSettings() }
         .onChange(of: app.settings.agentMaxTopicReads) { app.saveSettings() }
         .onChange(of: app.settings.agentReadLimit) { app.saveSettings() }
         .onChange(of: app.settings.browserAgentMaxSteps) { app.saveSettings() }

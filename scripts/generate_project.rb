@@ -167,7 +167,10 @@ if cloudkit_enabled
   # with the distribution profile, which switches it to "production".
   extra_entitlements["aps-environment"] = "development"
   extra_entitlements["com.apple.developer.icloud-container-identifiers"] = [cloudkit_container]
-  extra_entitlements["com.apple.developer.icloud-services"] = ["CloudKit"]
+  # CloudDocuments: the iCloud Drive container where feedback reports land
+  # (docs/wukongmind/feedback.md).
+  extra_entitlements["com.apple.developer.icloud-services"] = ["CloudKit", "CloudDocuments"]
+  extra_entitlements["com.apple.developer.ubiquity-container-identifiers"] = [cloudkit_container]
 end
 extra_entitlements["com.apple.developer.private-cloud-compute"] = true if pcc_enabled
 
@@ -183,6 +186,28 @@ app_entitlements_path =
     FileUtils.mkdir_p(generated_entitlements_dir)
     Xcodeproj::Plist.write_to_path(entitlements, File.join(generated_entitlements_dir, "WukongMind.entitlements"))
     "WukongMind/Generated/WukongMind.entitlements"
+  end
+
+# The app's Info.plist: the committed file, or with CloudKit on a copy in
+# WukongMind/Generated/ (git-ignored) that adds NSUbiquitousContainers, so the
+# container shows as a "WukongMind" folder in iCloud Drive. The key is the
+# literal container ID: Xcode doesn't expand build settings in plist keys.
+base_info_plist_path = "WukongMind/Info.plist"
+app_info_plist_path =
+  if cloudkit_enabled
+    info = Xcodeproj::Plist.read_from_path(File.join(root, base_info_plist_path))
+    info["NSUbiquitousContainers"] = {
+      "iCloud.#{bundle_id_prefix}" => {
+        "NSUbiquitousContainerIsDocumentScopePublic" => false,
+        "NSUbiquitousContainerName" => "WukongMind",
+        "NSUbiquitousContainerSupportedFolderLevels" => "Any"
+      }
+    }
+    FileUtils.mkdir_p(generated_entitlements_dir)
+    Xcodeproj::Plist.write_to_path(info, File.join(generated_entitlements_dir, "Info.plist"))
+    "WukongMind/Generated/Info.plist"
+  else
+    base_info_plist_path
   end
 
 app_swift_flags = ["$(inherited)"]
@@ -201,7 +226,7 @@ app_target.build_configurations.each do |configuration|
   settings["CURRENT_PROJECT_VERSION"] = build_number
   settings.merge!(identity_settings)
   settings["GENERATE_INFOPLIST_FILE"] = "NO"
-  settings["INFOPLIST_FILE"] = "WukongMind/Info.plist"
+  settings["INFOPLIST_FILE"] = app_info_plist_path
   settings["IPHONEOS_DEPLOYMENT_TARGET"] = "17.0"
   settings["MARKETING_VERSION"] = marketing_version
   settings["PRODUCT_BUNDLE_IDENTIFIER"] = bundle_id_prefix

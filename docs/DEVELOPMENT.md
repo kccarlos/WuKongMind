@@ -67,10 +67,15 @@ generator turns CloudKit on **only when it finds a team**:
 With CloudKit on, the generator writes
 `WukongMind/Generated/WukongMind.entitlements` from the base file plus:
 
-- `com.apple.developer.icloud-services` = `CloudKit`,
+- `com.apple.developer.icloud-services` = `CloudKit`, `CloudDocuments`,
 - `com.apple.developer.icloud-container-identifiers` =
   `iCloud.<BUNDLE_ID_PREFIX>` (the app reads it from `DCCloudKitContainer`
   in `Info.plist`),
+- `com.apple.developer.ubiquity-container-identifiers` = the same container,
+  for the iCloud Drive folder where feedback reports land
+  ([feedback.md](wukongmind/feedback.md)); the generator also writes
+  `WukongMind/Generated/Info.plist` (git-ignored) with the
+  `NSUbiquitousContainers` entry and builds with it,
 - `aps-environment` = `development`, for the silent pushes that announce
   changes (exporting for TestFlight or the App Store switches it to
   `production`),

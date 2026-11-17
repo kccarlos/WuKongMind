@@ -10,6 +10,7 @@ WukongMind is a fork of Forumind into a self-use, open-source iOS/iPadOS browser
 - The Learn on ask (1.5.0) design and its task split are in [design-learn-on-ask.md](design-learn-on-ask.md) (provisional, approved 2026-11-15 under the owner's delegation after a Fable review; revised after the trial notes).
 - The Safari-like address bar, multiple tabs and the provider page model list are designed in [design-browser-bar-tabs-models.md](design-browser-bar-tabs-models.md) (proposed, WUKO-77).
 - Voice (Gemini Live) cost: measured session, where the cost goes and the planned cuts are in [voice-cost.md](voice-cost.md); live test rules are in DEVELOPMENT.md "Live Gemini Live budget".
+- TestFlight feedback: where task exports saved for feedback land on the Mac, their names and how to match them to a feedback item are in [feedback.md](feedback.md).
 - English first: code, docs, commits and pull requests are in English.
 - This repo started as a copy of Forumind `main` (e046b43). The `forumind` remote is fetch-only; never push to it.
 - Milestones run in order per [section 7 of next-phase.md](next-phase.md#7-milestones); each needs the owner's acceptance before the next.
