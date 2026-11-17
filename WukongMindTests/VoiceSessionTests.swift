@@ -549,6 +549,84 @@ final class VoiceSessionTests: XCTestCase {
         XCTAssertGreaterThan(session.connectedSeconds, 0)
     }
 
+    /// WUKO-124: an idle close leaves the handle; the next tap resumes with
+    /// it and sends the page note itself (the new session's context is empty).
+    func testIdleCloseResumesOnTheNextTapWithThePageNote() async throws {
+        navigator.pageContext = PageContext(url: URL(string: "https://news.example.org/a")!, state: .notForum)
+        navigator.explicitPageTitle = "Markets"
+        let first = try await started()
+        first.receive(frame(#"{"sessionResumptionUpdate":{"newHandle":"h-1","resumable":true}}"#))
+        clock.advance(VoiceSettings.defaultIdleTimeout + 1)
+        first.tick()
+        XCTAssertEqual(first.state, .ended(.idle))
+        XCTAssertTrue(transports[0].closed, "The socket closes when idle")
+        let resumption = try XCTUnwrap(first.resumption)
+        XCTAssertEqual(resumption.handle, "h-1")
+
+        clock.advance(60)
+        let second = makeSession()
+        await second.start(resuming: resumption)
+        XCTAssertEqual(transports[1].messages.first, .setup(model: "models/gemini-3.8-live", handle: "h-1"))
+        second.receive(frame(#"{"setupComplete":{}}"#))
+        await settle()
+        let notes = transports[1].messages.compactMap(\.noteText).joined(separator: "\n")
+        XCTAssertTrue(notes.contains("[Screen: the user is on \"Markets\" at news.example.org"), notes)
+
+        // A user's own stop, or a handle past the window, starts fresh.
+        second.stop()
+        XCTAssertNil(second.resumption)
+        clock.advance(VoiceSession.Resumption.window)
+        let third = makeSession()
+        await third.start(resuming: resumption)
+        XCTAssertEqual(transports[2].messages.first, .setup(model: "models/gemini-3.8-live", handle: nil))
+        // Another key or endpoint never takes the handle either.
+        XCTAssertFalse(resumption.usable(by: .init(endpoint: .aiStudio, apiKey: "other"), at: resumption.endedAt))
+    }
+
+    /// On Vertex a resumed connection's handles are dropped, so a session
+    /// that itself resumed leaves nothing to resume; a dead handle starts fresh.
+    func testVertexResumedSessionLeavesNoHandleAndADeadHandleStartsFresh() async throws {
+        let vertex = GeminiLive.Endpoint.vertex(project: "p", location: "us-central1")
+        let model = "projects/p/locations/us-central1/publishers/google/models/gemini-3.8-live"
+        let first = try await started(endpoint: vertex)
+        first.receive(frame(#"{"sessionResumptionUpdate":{"newHandle":"v-0","resumable":true}}"#))
+        clock.advance(VoiceSettings.defaultIdleTimeout + 1)
+        first.tick()
+        let resumption = try XCTUnwrap(first.resumption)
+
+        let second = makeSession(endpoint: vertex)
+        await second.start(resuming: resumption)
+        XCTAssertEqual(transports[1].messages.first, .setup(model: model, handle: "v-0"))
+        transports[1].drop(LiveClose(code: 1008, reason: "Requested entity was not found."))
+        try await waitForTransports(3)
+        XCTAssertEqual(transports[2].messages.first, .setup(model: model, handle: nil), "A dead handle: fresh")
+        second.receive(frame(#"{"setupComplete":{}}"#))
+        XCTAssertEqual(second.state, .listening)
+        second.receive(frame(#"{"sessionResumptionUpdate":{"newHandle":"v-1","resumable":true}}"#))
+
+        let third = makeSession(endpoint: vertex)
+        await third.start(resuming: resumption)
+        XCTAssertEqual(transports[3].messages.first, .setup(model: model, handle: "v-0"))
+        third.receive(frame(#"{"setupComplete":{}}"#))
+        third.receive(frame(#"{"sessionResumptionUpdate":{"newHandle":"v-2","resumable":true}}"#))
+        clock.advance(VoiceSettings.defaultIdleTimeout + 1)
+        third.tick()
+        XCTAssertEqual(third.state, .ended(.idle))
+        XCTAssertNil(third.resumption, "A resumed Vertex connection's handle is never used")
+    }
+
+    func testIdleDefaultIsShortAndAnOldSavedDefaultMovesToIt() throws {
+        XCTAssertEqual(VoiceSettings().idleTimeout, 20)
+        let old = try JSONDecoder().decode(VoiceSettings.self, from: Data(#"{"idleTimeout":60}"#.utf8))
+        XCTAssertEqual(old.idleTimeout, 20, "60 was the old default, saved without a revision")
+        var chosen = VoiceSettings()
+        chosen.idleTimeout = 60
+        let saved = try JSONDecoder().decode(VoiceSettings.self, from: JSONEncoder().encode(chosen))
+        XCTAssertEqual(saved.idleTimeout, 60, "A 60 picked since then stays")
+        let other = try JSONDecoder().decode(VoiceSettings.self, from: Data(#"{"idleTimeout":120}"#.utf8))
+        XCTAssertEqual(other.idleTimeout, 120)
+    }
+
     func testEndToolClosesAfterTheGoodbye() async throws {
         let session = try await started()
         session.receive(frame(#"{"serverContent":{"outputTranscription":{"text":"Bye for now."}}}"#))

@@ -202,8 +202,9 @@ enum GeminiLive {
         var sessionResumption: Resumption
 
         /// Compression starts at `triggerTokens` and slides back to
-        /// `targetTokens`: every turn re-bills the whole context.
-        static let triggerTokens = 16_000
+        /// `targetTokens`: every turn re-bills the whole context. 10k since
+        /// WUKO-124 (was 16k): a long session re-bills at most about 10k a turn.
+        static let triggerTokens = 10_000
         static let targetTokens = 4_000
 
         init(
