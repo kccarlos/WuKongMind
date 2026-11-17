@@ -336,8 +336,15 @@ owner found our test use too high (2026-11-15). The rules:
 # The one scripted live session (Vertex first): recording + cost numbers
 herdr-secret run VERTEX_API_KEY -- scripts/remote-test.sh \
   --secret VERTEX_API_KEY=TEST_RUNNER_VERTEX_API_KEY \
-  -only-testing:WukongMindTests/VoiceLiveCostTests
+  -only-testing:WukongMindTests/VoiceLiveCostTests/testLiveScriptedSessionRecordsAndMeasures
 ```
+
+`VoiceLiveCostTests/testLiveRoutingAfterTrimAndResumeAfterIdle` uses 2 more
+connections: forum routing (spike Q3) after a change to tool descriptions,
+then an idle close and a resumed session. Run one method at a time with
+`-only-testing:` so a run stays within its budget. `VoicePromptSizeTests`
+(offline) fails when the instruction or the tool declarations grow past their
+budget; raise it only on purpose, and update docs/wukongmind/voice-cost.md.
 
 ### The shared test iPhone
 
