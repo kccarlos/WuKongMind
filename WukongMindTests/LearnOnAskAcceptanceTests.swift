@@ -93,6 +93,31 @@ extension LearnedSiteRepairWebTests {
         XCTAssertFalse(fetched.contains { $0.hasPrefix("/api") }, "a reader ran on page open")
     }
 
+    /// Check 3, live: on the list page of an unlearned site, "What's worth reading today" learns `list_latest`, then reads a thread.
+    func testLiveListPageLearnsListLatestThenReadsAThread() async throws {
+        let env = ProcessInfo.processInfo.environment
+        var targets: [(AIProvider, String, String)] = []
+        if let key = env["ANTHROPIC_API_KEY"], !key.isEmpty { targets.append((.anthropic, "claude-haiku-5-5", key)) }
+        if let key = env["VERTEX_API_KEY"], !key.isEmpty { targets.append((.vertexAI, "gemini-3.8-flash", key)) }
+        guard !targets.isEmpty else { throw XCTSkip("Set TEST_RUNNER_ANTHROPIC_API_KEY or TEST_RUNNER_VERTEX_API_KEY for the live list run.") }
+        for (provider, model, key) in targets {
+            let h = try await makeHarness()
+            defer { h.controller.detach(); h.pageToolBridge.detach() }
+            try await h.waiter.load(h.webView, url: URL(string: h.forum)!)
+            var configuration = ProviderConfiguration(provider: provider)
+            configuration.apiKey = key; configuration.model = model
+            let runtime = BrowserAgentRuntimeConfig(
+                selection: ModelSelection(provider: provider, model: model), configuration: configuration,
+                maxSteps: BrowserAgentLimits.defaultMaxSteps, truncationLimit: 20_000, customInstructions: "", redactedSecrets: []
+            )
+            let session = BrowserAgentSession(pageDriver: h.bridge, modelClient: AIService(), configProvider: { runtime }, registryBuilder: { _, _, _ in h.registry() })
+            await session.sendAndWait("What's worth reading today on this forum?")
+            let run = try XCTUnwrap(session.runs.first)
+            let names = run.toolCalls.map(\.toolName)
+            print("LISTLIVE model=\(model) provider=\(provider.rawValue) state=\(run.state) calls=\(names.count) in=\(run.tokenUsage.inputTokens) out=\(run.tokenUsage.outputTokens) cacheRead=\(run.tokenUsage.cacheReadTokens ?? -1) tools=\(names.joined(separator: ",")) listLatest=\(slot(h, .listLatest).status.rawValue) scripts=\(h.scriptStore.scripts.count) answer=\(run.assistantText.prefix(200).replacingOccurrences(of: "\n", with: " "))")
+        }
+    }
+
     /// Check 5, live once: a hand-broken reader is repaired inside the run that needs it (`claude-haiku-5-5`, or Vertex Gemini).
     func testLiveBrokenReaderIsRepairedInTheSameRun() async throws {
         let env = ProcessInfo.processInfo.environment
@@ -102,6 +127,7 @@ extension LearnedSiteRepairWebTests {
         guard let (provider, model, key) = target else { throw XCTSkip("Set TEST_RUNNER_ANTHROPIC_API_KEY or TEST_RUNNER_VERTEX_API_KEY for the live repair run.") }
         let h = try await makeHarness(), script = try await learn(h)
         defer { h.controller.detach(); h.pageToolBridge.detach() }
+        h.site.inlineLogin = true
         try await edit(h, script, js: Self.emptyReaderJS, keepHash: true)
         var configuration = ProviderConfiguration(provider: provider)
         configuration.apiKey = key; configuration.model = model
@@ -114,6 +140,7 @@ extension LearnedSiteRepairWebTests {
         let run = try XCTUnwrap(session.runs.first)
         let names = run.toolCalls.map(\.toolName)
         print("REPAIRLIVE model=\(model) provider=\(provider.rawValue) calls=\(names.count) in=\(run.tokenUsage.inputTokens) out=\(run.tokenUsage.outputTokens) cacheRead=\(run.tokenUsage.cacheReadTokens ?? -1) tools=\(names.joined(separator: ",")) slot=\(slot(h, .readTopic).status.rawValue) scripts=\(h.scriptStore.scripts.count) answer=\(run.assistantText.prefix(200).replacingOccurrences(of: "\n", with: " "))")
+        for row in run.toolCalls where row.toolName == "script_update" || row.isError { print("REPAIRLIVE-ROW \(row.toolName) error=\(row.isError) \(row.argumentsJSON.prefix(300)) -> \(row.resultText.prefix(500).replacingOccurrences(of: "\n", with: " | "))") }
         XCTAssertTrue(names.contains("script_update"), "the Agent repaired the reader with script_update: \(names)")
         XCTAssertEqual(slot(h, .readTopic).status, .learned, model)
         XCTAssertEqual(h.scriptStore.scripts.count, 1, "one script for the slot")
