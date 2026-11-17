@@ -45,6 +45,11 @@ Options:
   --timeout <seconds>    limit for the test run (default 1800)
   --seconds <seconds>    launch mode: how long to capture the console (default 20)
   --skip-build           reuse the build already in the derived-data dir
+  --xctrace <template>   test mode: record an Instruments trace of the app (e.g. SwiftUI,
+                         'Time Profiler', 'Animation Hitches') from the first line
+                         `XCTRACE-START` the tests print, for --xctrace-seconds
+                         (default 45), into <out>/perf.trace; log in <out>/xctrace.log
+  --xctrace-seconds <s>  how long that recording lasts
   --reboot               OFF by default: reboot the phone before the run (clears
                          System Data after heavy recording); it is the owner's phone
   --self-test            exercise the lock logic without the phone, then exit
@@ -85,6 +90,9 @@ LOCK_TOKEN=""
 CHILD_PID=""
 TAIL_PID=""
 CLEANUP_HOOK=""
+XCTRACE_PID=""
+XCTRACE_TEMPLATE=""
+XCTRACE_SECONDS=45
 
 mtime() { stat -f %m "$1" 2>/dev/null || stat -c %Y "$1" 2>/dev/null; }
 
@@ -163,6 +171,7 @@ cleanup() {
   trap - EXIT INT TERM
   [[ -n "$CHILD_PID" ]] && kill "$CHILD_PID" 2>/dev/null
   [[ -n "$TAIL_PID" ]] && kill "$TAIL_PID" 2>/dev/null
+  [[ -n "$XCTRACE_PID" ]] && { pkill -P "$XCTRACE_PID" 2>/dev/null; kill "$XCTRACE_PID" 2>/dev/null; }
   if [[ -n "$CLEANUP_HOOK" ]]; then "$CLEANUP_HOOK" || true; fi
   release_lock
   exit "$rc"
@@ -301,10 +310,28 @@ PY
   LAUNCHED=0
 }
 
+# Waits for the tests' `XCTRACE-START` line, then records the app with xctrace
+# (inside the lock: it is the same device session as the test run).
+xctrace_watch() {
+  local udid="$1" out="$2" _n
+  for _n in $(seq 1 3600); do
+    grep -aq 'XCTRACE-START' "$out/test.log" 2>/dev/null && break
+    sleep 1
+  done
+  grep -aq 'XCTRACE-START' "$out/test.log" 2>/dev/null || return 0
+  log "recording '$XCTRACE_TEMPLATE' for ${XCTRACE_SECONDS}s; log: $out/xctrace.log"
+  xcrun xctrace record --device "$udid" --template "$XCTRACE_TEMPLATE" --attach WukongMind \
+    --time-limit "${XCTRACE_SECONDS}s" --output "$out/perf.trace" --no-prompt >"$out/xctrace.log" 2>&1
+}
+
 mode_test() {
   local udid="$1" out="$2" dd="$3" limit="$4"; shift 4
   local result="$out/test.xcresult" rc
   rm -rf "$result"
+  if [[ -n "$XCTRACE_TEMPLATE" ]]; then
+    rm -rf "$out/perf.trace"; : >"$out/test.log"
+    xctrace_watch "$udid" "$out" & XCTRACE_PID=$!
+  fi
   log "running tests on $udid; log: $out/test.log"
   run_logged "$out/test.log" "$limit" xcodebuild test-without-building \
     -project "$REPO_ROOT/WukongMind.xcodeproj" -scheme "$SCHEME" \
@@ -312,6 +339,11 @@ mode_test() {
     -parallel-testing-enabled NO -resultBundlePath "$result" \
     -allowProvisioningUpdates "$@"
   rc=$?
+  if [[ -n "$XCTRACE_PID" ]]; then
+    # A recording still going gets up to a minute to finish writing its file.
+    local _n; for _n in $(seq 1 60); do kill -0 "$XCTRACE_PID" 2>/dev/null || break; sleep 1; done
+    kill "$XCTRACE_PID" 2>/dev/null; XCTRACE_PID=""
+  fi
   if (( rc == 124 )); then log "ERROR: test run timed out after ${limit}s"; return 4; fi
   tail -n 15 "$out/test.log" >&2
   return "$rc"
@@ -440,13 +472,16 @@ while (( $# )); do
     --seconds) SECONDS_CAPTURE="${2:?--seconds needs a value}"; shift 2 ;;
     --skip-build) SKIP_BUILD=1; shift ;;
     --reboot) REBOOT=1; shift ;;
+    --xctrace) XCTRACE_TEMPLATE="${2:?--xctrace needs a template name}"; shift 2 ;;
+    --xctrace-seconds) XCTRACE_SECONDS="${2:?--xctrace-seconds needs a value}"; shift 2 ;;
     --) shift; EXTRA+=("$@"); break ;;
     *) EXTRA+=("$1"); shift ;;
   esac
 done
 
 [[ "$UDID" =~ ^[0-9A-Fa-f-]+$ ]] || die "bad --udid: $UDID" 2
-[[ "$TIMEOUT" =~ ^[0-9]+$ && "$SECONDS_CAPTURE" =~ ^[0-9]+$ ]] || die "--timeout/--seconds must be numbers" 2
+[[ "$TIMEOUT" =~ ^[0-9]+$ && "$SECONDS_CAPTURE" =~ ^[0-9]+$ && "$XCTRACE_SECONDS" =~ ^[0-9]+$ ]] \
+  || die "--timeout/--seconds/--xctrace-seconds must be numbers" 2
 command -v xcodebuild >/dev/null || die "xcodebuild not found" 2
 [[ -f "$REPO_ROOT/WukongMind.xcodeproj/project.pbxproj" ]] || die "WukongMind.xcodeproj not found in $REPO_ROOT" 2
 [[ -d /Volumes/Ext/dev || "$LOCK_ROOT" != /Volumes/Ext/dev/* ]] || die "external drive /Volumes/Ext/dev not mounted" 2
@@ -480,7 +515,7 @@ fi
 
 echo "---- device-check result: exit $rc ----"
 echo "output dir: $OUT"
-for f in build.log test.log launch.log test.xcresult; do
+for f in build.log test.log launch.log test.xcresult perf.trace xctrace.log; do
   [[ -e "$OUT/$f" ]] && echo "  $OUT/$f"
 done
 exit "$rc"

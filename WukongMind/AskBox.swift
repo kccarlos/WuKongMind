@@ -44,6 +44,7 @@ struct AssistantComposer: View {
     }
 
     var body: some View {
+        let _ = PerfProbe.hit("AssistantComposer.body")
         HStack(alignment: .bottom, spacing: DCTheme.space2) {
             inputField
             trailingRingButton

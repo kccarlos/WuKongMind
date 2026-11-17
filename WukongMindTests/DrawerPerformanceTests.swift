@@ -1,0 +1,489 @@
+import SwiftUI
+import XCTest
+@testable import WukongMind
+
+/// Measures the drawer on long threads (docs/wukongmind/design-performance-and-state.md).
+///
+/// It records, it does not assert on time: every number is printed as a
+/// `PERF<tab>case<tab>metric<tab>value` line and attached as `drawer-perf.tsv`.
+/// CI skips this suite (scripts/ci/run-tests.sh); run it on the Mac mini with
+/// `scripts/remote-test.sh -only-testing:WukongMindTests/DrawerPerformanceTests`.
+/// No network, no model: the thread, the summary and the conversation are generated here.
+@MainActor
+final class DrawerPerformanceTests: XCTestCase {
+    // MARK: Fixture
+
+    struct Fixture {
+        var name: String
+        /// Posts in the pulled text (`TopicSession.source`); 0 leaves it empty.
+        var sourcePosts = 0
+        /// `##` sections in the saved summary (each has a paragraph and four cited bullets).
+        var summarySections = 6
+        /// Finished Agent runs in the conversation (each: three tool rows and a Markdown reply).
+        var runs = 0
+        /// Posts in the thread shape the first tool row of every run carries; 0 for none.
+        var shapePosts = 0
+    }
+
+    static let siteURL = "https://meta.discourse.org"
+    static let topicID = "139139"
+
+    static func post(_ number: Int) -> String {
+        "Post #\(number) by user\(number % 97) (2026-11-\(String(format: "%02d", number % 28 + 1))):\n"
+            + "I tried the workaround from the earlier reply on build \(number) and it behaves differently "
+            + "when the sidebar is collapsed. The header jumps by a few points, the avatar row wraps and the "
+            + "composer loses focus after the first keystroke. Steps: open the topic, scroll to the middle, "
+            + "rotate the phone, type one character. Expected: nothing moves. Actual: the list scrolls to the "
+            + "top and the draft is cleared. Logs are attached; the relevant line is `layout pass \(number * 7)`."
+    }
+
+    static func source(posts: Int) -> String {
+        (1...max(posts, 1)).map(post).joined(separator: "\n\n")
+    }
+
+    static func summary(sections: Int, posts: Int) -> String {
+        (1...max(sections, 1)).map { section -> String in
+            let base = max(1, (section * max(posts, 40)) / (sections + 1))
+            return """
+            ## Theme \(section): layout jumps after rotation
+
+            Several people report the same jump after rotating with the sidebar collapsed [#\(base)](wukongmind-post:\(base)), \
+            and the first fix only helped on the newest build [#\(base + 1)](wukongmind-post:\(base + 1)).
+
+            - The header moves by a few points when the avatar row wraps [#\(base + 2)](wukongmind-post:\(base + 2)).
+            - The composer loses focus after the first keystroke, **only** on phones [#\(base + 3)](wukongmind-post:\(base + 3)).
+            - A workaround is to pin the sidebar before rotating; it costs one tap [#\(base + 4)](wukongmind-post:\(base + 4)).
+            - The maintainers asked for logs with `layout pass` lines [#\(base + 5)](wukongmind-post:\(base + 5)).
+            """
+        }.joined(separator: "\n\n")
+    }
+
+    static func reply(_ index: Int) -> String {
+        """
+        Here is what the thread says about question \(index):
+
+        1. The jump happens after rotation with the sidebar collapsed.
+        2. Pinning the sidebar first avoids it, at the cost of one tap.
+        3. The fix in the newest build covers phones but **not** tablets.
+
+        The maintainers want logs with the `layout pass` lines before they look further. \
+        If you only need the short version: pin the sidebar, then rotate.
+        """
+    }
+
+    static func threadShape(posts: Int) -> ForumShape {
+        .thread(ThreadShape(
+            id: topicID,
+            title: "Layout jumps after rotation",
+            url: "\(siteURL)/t/layout-jumps-after-rotation/\(topicID)",
+            posts: (1...posts).map { ThreadShape.Post(number: $0, author: "user\($0 % 97)", body: post($0)) },
+            totalPosts: posts
+        ))
+    }
+
+    /// The same ids every time, so a conversation that grows by one run keeps the earlier runs' identity.
+    static func stableID(_ run: Int, _ part: Int) -> UUID {
+        UUID(uuidString: String(format: "00000139-0000-4000-8000-%08d%04d", run, part))!
+    }
+
+    static let conversationStart = Date(timeIntervalSince1970: 1_795_000_000)
+
+    static func conversation(runs count: Int, shapePosts: Int) -> SavedAgentConversation {
+        let start = conversationStart
+        var runs: [BrowserAgentRun] = []
+        var messages: [BrowserAgentMessage] = []
+        for index in 0..<count {
+            let runID = stableID(index, 0)
+            var rows = (1...3).map { step in
+                BrowserAgentToolCallRow(
+                    id: stableID(index, step), callID: "call_\(index)_\(step)", runID: runID, stepNumber: step,
+                    toolName: step == 1 ? "read_topic" : "run_js",
+                    argumentSummary: "page \(step)", argumentsJSON: "{\"page\":\(step)}",
+                    resultSummary: "\(step * 20) posts",
+                    resultText: (1...20).map { post($0 + step * 20) }.joined(separator: "\n\n"),
+                    duration: 0.8, isRunning: false, isError: false, wasTruncated: false, totalCharacterCount: 12_000
+                )
+            }
+            if shapePosts > 0 { rows[0].shape = threadShape(posts: shapePosts) }
+            let startedAt = start.addingTimeInterval(Double(index) * 30)
+            runs.append(BrowserAgentRun(
+                id: runID, prompt: "What does the thread say about question \(index)?", toolCalls: rows,
+                assistantText: reply(index), state: .completed(steps: 3, duration: 4.2),
+                tokenUsage: AgentTokenUsage(inputTokens: 9_000, outputTokens: 300),
+                startedAt: startedAt, duration: 4.2
+            ))
+            messages.append(BrowserAgentMessage(id: stableID(index, 8), role: .user, text: runs[index].prompt, runID: runID, createdAt: startedAt))
+            messages.append(BrowserAgentMessage(id: stableID(index, 9), role: .assistant, text: reply(index), runID: runID, createdAt: startedAt.addingTimeInterval(4)))
+        }
+        return SavedAgentConversation(
+            messages: messages, runs: runs, toolCalls: runs.flatMap(\.toolCalls),
+            runState: count == 0 ? .idle : .completed(steps: 3, duration: 4.2),
+            tokenUsage: AgentTokenUsage(inputTokens: 9_000 * count, outputTokens: 300 * count), history: []
+        )
+    }
+
+    private func makeApp(_ fixture: Fixture) -> AppModel {
+        let store = PersistentStore(
+            fileURL: FileManager.default.temporaryDirectory
+                .appendingPathComponent(UUID().uuidString, isDirectory: true)
+                .appendingPathComponent("state.json")
+        )
+        let app = AppModel(store: store)
+        // The view cost only: saving is timed by itself in `testHotFunctionsScaleWithThreadLength`.
+        app.suppressesPersistence = true
+        let forum = Forum(siteURL: Self.siteURL, kind: .discourse, name: "Discourse Meta", isPinned: true, pinOrder: 0)
+        let topic = ForumTopic(
+            siteURL: Self.siteURL, topicID: Self.topicID,
+            url: URL(string: "\(Self.siteURL)/t/layout-jumps-after-rotation/\(Self.topicID)")!,
+            title: "Layout jumps after rotation"
+        )
+        var session = TopicSession(siteURL: topic.siteURL, topicID: topic.topicID, url: topic.url, title: topic.title)
+        if fixture.sourcePosts > 0 { session.seedSource(Self.source(posts: fixture.sourcePosts)) }
+        session.summary = Self.summary(sections: fixture.summarySections, posts: fixture.sourcePosts)
+        session.totalPosts = max(fixture.sourcePosts, 40)
+        session.summaryPostCount = session.totalPosts
+        session.model = "claude-haiku-5-5"
+        session.summaryUpdatedAt = Date().addingTimeInterval(-600)
+        app.applyDebugSeed(AssistantDebugSeed(
+            forums: [forum], sessions: [session], activities: [], agentRuns: [], watchedTopics: [],
+            currentTopic: topic, currentForum: forum,
+            pageContext: PageContext(
+                url: topic.url, site: .discourse, siteURL: forum.siteURL, forumName: forum.name, topic: topic, state: .topic
+            )
+        ))
+        if fixture.runs > 0 {
+            app.browserAgent.restoreConversation(Self.conversation(runs: fixture.runs, shapePosts: fixture.shapePosts))
+        }
+        return app
+    }
+
+    // MARK: Meter
+
+    /// Main-thread time spent working (not waiting) while the run loop spins.
+    private final class BusyMeter {
+        private(set) var busy: Double = 0
+        private var startedAt: UInt64?
+        private var observers: [CFRunLoopObserver] = []
+
+        init() {
+            // Waking is seen first and going to sleep last, so the work other observers do
+            // before the loop sleeps (Core Animation's commit, where SwiftUI updates and lays
+            // out) is counted.
+            let wake: CFRunLoopActivity = [.entry, .afterWaiting]
+            let sleep: CFRunLoopActivity = [.beforeWaiting, .exit]
+            observers = [
+                CFRunLoopObserverCreateWithHandler(nil, wake.rawValue, true, CFIndex.min) { [weak self] _, _ in
+                    guard let self, self.startedAt == nil else { return }
+                    self.startedAt = DispatchTime.now().uptimeNanoseconds
+                },
+                CFRunLoopObserverCreateWithHandler(nil, sleep.rawValue, true, CFIndex.max) { [weak self] _, _ in
+                    guard let self, let start = self.startedAt else { return }
+                    self.busy += Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000
+                    self.startedAt = nil
+                }
+            ].compactMap { $0 }
+            observers.forEach { CFRunLoopAddObserver(CFRunLoopGetMain(), $0, .commonModes) }
+        }
+
+        deinit {
+            observers.forEach { CFRunLoopRemoveObserver(CFRunLoopGetMain(), $0, .commonModes) }
+        }
+    }
+
+    /// Runs `action`, then lets the run loop settle; returns the main-thread milliseconds both took.
+    private func mainThreadMilliseconds(settle: TimeInterval = 0.12, _ action: () -> Void) -> Double {
+        let meter = BusyMeter()
+        let start = DispatchTime.now().uptimeNanoseconds
+        action()
+        CATransaction.flush()
+        let sync = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000
+        RunLoop.current.run(until: Date().addingTimeInterval(settle))
+        return (sync + meter.busy) * 1_000
+    }
+
+    private var lines: [String] = []
+
+    private func record(_ fixture: String, _ metric: String, _ value: Double) {
+        let line = "PERF\t\(fixture)\t\(metric)\t\(String(format: "%.3f", value))"
+        lines.append(line)
+        print(line)
+    }
+
+    private func recordSamples(_ fixture: String, _ metric: String, _ samples: [Double]) {
+        guard !samples.isEmpty else { return }
+        record(fixture, "\(metric)_min_ms", samples.min() ?? 0)
+        record(fixture, "\(metric)_median_ms", median(samples))
+        record(fixture, "\(metric)_max_ms", samples.max() ?? 0)
+    }
+
+    private func median(_ values: [Double]) -> Double {
+        let sorted = values.sorted()
+        return sorted.isEmpty ? 0 : sorted[sorted.count / 2]
+    }
+
+    private func attachLines(named name: String) {
+        let attachment = XCTAttachment(string: lines.joined(separator: "\n"))
+        attachment.name = name
+        attachment.lifetime = .keepAlways
+        add(attachment)
+    }
+
+    private func descendants<T: UIView>(of view: UIView, as type: T.Type) -> [T] {
+        var found: [T] = []
+        func walk(_ view: UIView) {
+            if let match = view as? T { found.append(match) }
+            view.subviews.forEach(walk)
+        }
+        walk(view)
+        return found
+    }
+
+    // MARK: The drawer, hosted
+
+    private func measureDrawer(_ fixture: Fixture) {
+        let app = makeApp(fixture)
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        // Open: mount the panel as the drawer does and lay out its first frame.
+        PerfProbe.reset()
+        var host: UIHostingController<AnyView>!
+        let open = mainThreadMilliseconds(settle: 0.6) {
+            host = UIHostingController(rootView: AnyView(
+                AssistantPanel(app: app, onExpand: { _ in }).environment(\.colorScheme, .light)
+            ))
+            window.rootViewController = host
+            window.makeKeyAndVisible()
+            host.view.layoutIfNeeded()
+        }
+        record(fixture.name, "open_ms", open)
+        let openProbe = PerfProbe.snapshot
+        record(fixture.name, "open_block_bodies", Double(openProbe.counts["MarkdownBlockView.body"] ?? 0))
+        record(fixture.name, "open_run_sections", Double(openProbe.counts["BrowserAgentRunsView.runSection"] ?? 0))
+        RunLoop.current.run(until: Date().addingTimeInterval(0.4))
+        // What the meter reads when nothing is asked of the drawer (timers, the caret).
+        recordSamples(fixture.name, "idle", (0..<6).map { _ in mainThreadMilliseconds {} })
+
+        // Typing: one character at a time into the composer's own text view.
+        let editor = descendants(of: host.view, as: UITextView.self).first
+        let field = descendants(of: host.view, as: UITextField.self).first
+        XCTAssertTrue(editor != nil || field != nil, "The composer's text input was not found")
+        var keystrokes: [Double] = []
+        PerfProbe.reset()
+        let typed = 12
+        for index in 0..<typed {
+            let character = String(UnicodeScalar(UInt8(97 + index % 26)))
+            keystrokes.append(mainThreadMilliseconds {
+                if let editor { editor.insertText(character) } else { field?.insertText(character) }
+            })
+        }
+        let typing = PerfProbe.snapshot
+        XCTAssertGreaterThan(typing.counts["AssistantComposer.body"] ?? 0, 0, "Typing did not reach the composer")
+        // The first keystroke also hides the suggestion row; the rest are the steady state.
+        record(fixture.name, "key_first_ms", keystrokes[0])
+        recordSamples(fixture.name, "key", Array(keystrokes.dropFirst()))
+        for name in [
+            "AssistantPanel.body", "ChatThread.body", "BrowserAgentRunsView.body", "BrowserAgentRunsView.runSection",
+            "DrawerSummarySections.body", "MarkdownView.body", "MarkdownBlockView.body", "AssistantComposer.body"
+        ] {
+            record(fixture.name, "per_key_count:\(name)", Double(typing.counts[name] ?? 0) / Double(typed))
+        }
+        for name in [
+            "AssistantPanel.buildHeader", "AssistantPanel.buildThread", "AssistantPanel.buildFooter",
+            "AssistantPanel.exportText", "DrawerSummarySections.parsed", "AssistantPanel.summaryPlacement",
+            "AssistantPanel.strippedSummary", "BrowserAgentRunsView.timeline", "BrowserAgentRunsView.forumSources"
+        ] {
+            record(fixture.name, "per_key_ms:\(name)", (typing.seconds[name] ?? 0) * 1_000 / Double(typed))
+            record(fixture.name, "per_key_calls:\(name)", Double(typing.counts[name] ?? 0) / Double(typed))
+        }
+
+        // An AppModel publish that has nothing to do with the drawer (any @Published does this).
+        PerfProbe.reset()
+        var publishes: [Double] = []
+        for index in 0..<6 {
+            publishes.append(mainThreadMilliseconds { app.settingsStatus = "tick \(index)" })
+        }
+        let publishing = PerfProbe.snapshot
+        recordSamples(fixture.name, "unrelated_publish", publishes)
+        record(fixture.name, "per_publish_count:AssistantPanel.body", Double(publishing.counts["AssistantPanel.body"] ?? 0) / 6)
+        record(fixture.name, "per_publish_count:BrowserAgentRunsView.runSection", Double(publishing.counts["BrowserAgentRunsView.runSection"] ?? 0) / 6)
+
+        // Scrolling: 300 pt steps down the transcript.
+        let scrollViews = descendants(of: host.view, as: UIScrollView.self).filter { !($0 is UITextView) }
+        if let scroll = scrollViews.max(by: { $0.contentSize.height < $1.contentSize.height }) {
+            record(fixture.name, "content_height_pt", Double(scroll.contentSize.height))
+            var steps: [Double] = []
+            let limit = max(0, scroll.contentSize.height - scroll.bounds.height)
+            var offset: CGFloat = 0
+            while offset < limit, steps.count < 40 {
+                offset = min(limit, offset + 300)
+                steps.append(mainThreadMilliseconds(settle: 0.03) {
+                    scroll.setContentOffset(CGPoint(x: 0, y: offset), animated: false)
+                    scroll.layoutIfNeeded()
+                })
+            }
+            if !steps.isEmpty {
+                recordSamples(fixture.name, "scroll_step", steps)
+                record(fixture.name, "scroll_steps_over_16ms", Double(steps.filter { $0 > 16.7 }.count))
+                record(fixture.name, "scroll_steps", Double(steps.count))
+            }
+        }
+
+        // One more finished run arrives in the conversation.
+        if fixture.runs > 0 {
+            let grown = Self.conversation(runs: fixture.runs + 1, shapePosts: fixture.shapePosts)
+            record(fixture.name, "new_run_ms", mainThreadMilliseconds(settle: 0.3) {
+                app.browserAgent.restoreConversation(grown)
+            })
+        }
+    }
+
+    /// The composer by itself, its draft in a small view of its own: what a keystroke costs
+    /// when nothing else is invalidated (the target for the isolated input).
+    private struct ComposerOnly: View {
+        @State private var draft = ""
+        @FocusState private var focused: Bool
+
+        var body: some View {
+            VStack {
+                Spacer()
+                AssistantComposer(draft: $draft, focused: $focused, isRunning: false, onSend: {}, onStop: {})
+                    .padding(14)
+            }
+        }
+    }
+
+    private func measureComposerOnly() {
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+        let host = UIHostingController(rootView: ComposerOnly())
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        host.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.4))
+        let editor = descendants(of: host.view, as: UITextView.self).first
+        let field = descendants(of: host.view, as: UITextField.self).first
+        XCTAssertTrue(editor != nil || field != nil, "The composer's text input was not found")
+        PerfProbe.reset()
+        var keystrokes: [Double] = []
+        for index in 0..<12 {
+            let character = String(UnicodeScalar(UInt8(97 + index % 26)))
+            keystrokes.append(mainThreadMilliseconds {
+                if let editor { editor.insertText(character) } else { field?.insertText(character) }
+            })
+        }
+        XCTAssertGreaterThan(PerfProbe.snapshot.counts["AssistantComposer.body"] ?? 0, 0, "Typing did not reach the composer")
+        record("composer-only", "key_first_ms", keystrokes[0])
+        recordSamples("composer-only", "key", Array(keystrokes.dropFirst()))
+    }
+
+    func testDrawerOnLongThreads() {
+        let fixtures = [
+            Fixture(name: "baseline"),
+            Fixture(name: "source-100", sourcePosts: 100),
+            Fixture(name: "source-500", sourcePosts: 500),
+            Fixture(name: "source-2000", sourcePosts: 2_000),
+            // The owner's real case has 6,184 comments (doctorofcredit.com/citi-300-checking-bonus).
+            Fixture(name: "source-6000", sourcePosts: 6_000),
+            Fixture(name: "summary-15", summarySections: 15),
+            Fixture(name: "summary-30", summarySections: 30),
+            Fixture(name: "summary-60", summarySections: 60),
+            Fixture(name: "runs-5", runs: 5),
+            Fixture(name: "runs-20", runs: 20),
+            Fixture(name: "runs-60", runs: 60),
+            Fixture(name: "runs-5-shape-500", runs: 5, shapePosts: 500),
+            Fixture(name: "runs-5-shape-2000", runs: 5, shapePosts: 2_000),
+            Fixture(name: "all-2000", sourcePosts: 2_000, summarySections: 30, runs: 20, shapePosts: 2_000),
+            Fixture(name: "all-6000", sourcePosts: 6_000, summarySections: 30, runs: 20, shapePosts: 2_000)
+        ]
+        // Warm up SwiftUI, fonts and the Markdown caches so the first fixture is not charged for them.
+        UIView.setAnimationsEnabled(false)
+        defer { UIView.setAnimationsEnabled(true) }
+        measureDrawer(Fixture(name: "warmup", runs: 1))
+        lines.removeAll()
+        measureComposerOnly()
+        for fixture in fixtures {
+            measureDrawer(fixture)
+        }
+        attachLines(named: "drawer-perf.tsv")
+    }
+
+    // MARK: Hot functions by themselves
+
+    private func milliseconds(repeating count: Int = 5, _ body: () -> Void) -> Double {
+        var samples: [Double] = []
+        for _ in 0..<count {
+            let start = DispatchTime.now().uptimeNanoseconds
+            body()
+            samples.append(Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000)
+        }
+        return median(samples)
+    }
+
+    func testHotFunctionsScaleWithThreadLength() throws {
+        for posts in [100, 500, 2_000, 6_000] {
+            let name = "posts-\(posts)"
+            let source = Self.source(posts: posts)
+            let summary = Self.summary(sections: 30, posts: posts)
+            record(name, "source_characters", Double(source.count))
+            let payload = TopicExportPayload(
+                summary: summary, source: source, title: "Layout jumps after rotation",
+                url: URL(string: Self.siteURL), history: []
+            )
+            var sink = 0
+            record(name, "export_text_ms", milliseconds { sink &+= payload.text(options: ExportOptions()).utf8.count })
+
+            let conversation = Self.conversation(runs: 5, shapePosts: posts)
+            let other = Self.conversation(runs: 5, shapePosts: posts)
+            record(name, "runs_equal_ms", milliseconds { sink &+= conversation.runs == conversation.runs ? 1 : 0 })
+            record(name, "runs_differ_ms", milliseconds { sink &+= conversation.runs == other.runs ? 1 : 0 })
+            let encoder = JSONEncoder()
+            var bytes = 0
+            record(name, "conversation_encode_ms", milliseconds(repeating: 3) {
+                bytes = (try? encoder.encode(conversation))?.count ?? 0
+            })
+            record(name, "conversation_bytes", Double(bytes))
+
+            var session = TopicSession(
+                siteURL: Self.siteURL, topicID: Self.topicID,
+                url: URL(string: "\(Self.siteURL)/t/x/\(Self.topicID)")!, title: "Layout jumps after rotation"
+            )
+            session.seedSource(source)
+            session.summary = summary
+            var snapshot = AppSnapshot()
+            snapshot.sessions = [session]
+            record(name, "snapshot_encode_ms", milliseconds(repeating: 3) {
+                bytes = (try? encoder.encode(snapshot))?.count ?? 0
+            })
+            record(name, "snapshot_bytes", Double(bytes))
+            XCTAssertGreaterThan(sink, 0)
+        }
+        for sections in [6, 15, 30, 60] {
+            let name = "summary-\(sections)"
+            let summary = Self.summary(sections: sections, posts: 2_000)
+            record(name, "summary_characters", Double(summary.count))
+            // Every pass is a new string, as a body pass sees after the caches turn over.
+            var pass = 0
+            record(name, "summary_parse_cold_ms", milliseconds(repeating: 3) {
+                pass += 1
+                _ = DrawerSummarySections.parsed(for: .init(text: summary + "\n\nPass \(pass).", maximumPost: 2_000))
+            })
+            _ = DrawerSummarySections.parsed(for: .init(text: summary, maximumPost: 2_000))
+            record(name, "summary_parse_warm_ms", milliseconds {
+                _ = DrawerSummarySections.parsed(for: .init(text: summary, maximumPost: 2_000))
+            })
+            record(name, "summary_strip_ms", milliseconds { _ = PostCitations.stripped(summary) })
+        }
+        attachLines(named: "hot-functions.tsv")
+    }
+}

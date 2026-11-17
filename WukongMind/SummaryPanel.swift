@@ -98,7 +98,7 @@ struct AssistantPanel: View {
     }
 
     private var exportText: String {
-        payload.text(options: app.exportOptions)
+        PerfProbe.time("AssistantPanel.exportText") { payload.text(options: app.exportOptions) }
     }
 
     private var exportDisabled: Bool {
@@ -135,6 +135,7 @@ struct AssistantPanel: View {
     }
 
     var body: some View {
+        let _ = PerfProbe.hit("AssistantPanel.body")
         VStack(spacing: 0) {
             // Over History and Settings too: voice can always be muted or
             // ended (the rest of the row is about the topic).
@@ -144,12 +145,12 @@ struct AssistantPanel: View {
             )
             if app.panelRoute == .topic {
                 VStack(spacing: 0) {
-                    drawerHeader
+                    PerfProbe.time("AssistantPanel.buildHeader") { drawerHeader }
                     Divider()
-                    drawerThread
+                    PerfProbe.time("AssistantPanel.buildThread") { drawerThread }
                         .id(ObjectIdentifier(browserAgent))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    assistantFooter
+                    PerfProbe.time("AssistantPanel.buildFooter") { assistantFooter }
                 }
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("agentPanel")
@@ -161,6 +162,9 @@ struct AssistantPanel: View {
         // In the drawer the system sheet's glass shows through at medium
         // (opaque at large by itself).
         .background(Color.clear)
+        #if DEBUG
+        .overlay(alignment: .topLeading) { if AssistantDebug.has("-dc-perf-probe") { PerfProbeState(app: app) } }
+        #endif
         .dcKeyboardVisible($isKeyboardVisible)
         .environment(\.activeCitation, app.citationJump?.number)
         // A pointer over a citation pre-highlights the post on the page.
@@ -1011,6 +1015,10 @@ struct AssistantPanel: View {
     }
 
     private var summaryPlacement: SummaryPlacement {
+        PerfProbe.time("AssistantPanel.summaryPlacement") { resolvedSummaryPlacement }
+    }
+
+    private var resolvedSummaryPlacement: SummaryPlacement {
         let topicKey = app.currentTopic?.topicKey ?? ""
         let cardRowID = BrowserAgentRunsView.latestThreadSummaryRowID(in: browserAgent.runs, topicKey: topicKey, app: app)
         let hiddenByReset = app.drawerSummaryHiddenTopicKeys.contains(topicKey)
@@ -1253,7 +1261,7 @@ struct AssistantPanel: View {
 
     /// Model, post count, age, Kept; then the AI label, Translate, Read aloud, Retry, and summary `⋯`.
     private func drawerSummaryMeta(_ session: TopicSession) -> some View {
-        let strippedText = PostCitations.stripped(session.summary)
+        let strippedText = PerfProbe.time("AssistantPanel.strippedSummary") { PostCitations.stripped(session.summary) }
         return VStack(alignment: .leading, spacing: 6) {
             if !dynamicTypeSize.isAccessibilitySize { summaryMeta(session) }
             let layout = dynamicTypeSize.isAccessibilitySize
@@ -1493,6 +1501,7 @@ private struct ChatThread<Leading: View>: View {
     }
 
     var body: some View {
+        let _ = PerfProbe.hit("ChatThread.body")
         ScrollViewReader { proxy in
             // A ZStack, not a VStack: the jump button floats over the text with no row of its own.
             ZStack(alignment: .bottomTrailing) {
@@ -2121,6 +2130,51 @@ struct WorkProgressCard: View {
 }
 
 #if DEBUG
+/// `-dc-perf-probe`: the probe's cumulative numbers as an accessibility element
+/// (`perfProbeState`) for the long-thread UI test, refreshed twice a second.
+private struct PerfProbeState: View {
+    @ObservedObject var app: AppModel
+
+    private var state: String {
+        let main = PerfProbe.mainThreadReport
+        let probe = PerfProbe.snapshot
+        let session = app.currentSession
+        var fields = [
+            "passes=\(main.passes)", "busy_ms=\(Int(main.busySeconds * 1_000))"
+        ]
+        for (index, threshold) in PerfProbe.MainThreadReport.thresholds.enumerated() {
+            fields.append("over\(Int(threshold * 1_000))=\(main.over[index])")
+        }
+        for name in ["AssistantPanel.body", "ChatThread.body", "BrowserAgentRunsView.runSection", "MarkdownBlockView.body"] {
+            fields.append("n:\(name)=\(probe.counts[name] ?? 0)")
+        }
+        for name in ["AssistantPanel.exportText", "DrawerSummarySections.parsed", "AssistantPanel.strippedSummary",
+                     "AssistantPanel.summaryPlacement", "BrowserAgentRunsView.forumSources"] {
+            fields.append("n:\(name)=\(probe.counts[name] ?? 0)")
+            fields.append("us:\(name)=\(Int((probe.seconds[name] ?? 0) * 1_000_000))")
+        }
+        fields.append("source_chars=\(session?.source.count ?? 0)")
+        fields.append("summary_chars=\(session?.summary.count ?? 0)")
+        fields.append("posts=\(session?.totalPosts ?? 0)")
+        fields.append("runs=\(app.browserAgent.runs.count)")
+        return fields.joined(separator: " ")
+    }
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 0.5)) { _ in
+            let state = state
+            Text(verbatim: state)
+                .font(.system(size: 2))
+                .frame(width: 4, height: 4)
+                .opacity(0.02)
+                .allowsHitTesting(false)
+                .accessibilityLabel(Text(verbatim: state))
+                .accessibilityIdentifier("perfProbeState")
+        }
+        .onAppear { PerfProbe.startMainThreadMonitor() }
+    }
+}
+
 @MainActor
 enum ChatScrollProbe {
     private static var activeToken: UUID?
@@ -2538,6 +2592,10 @@ struct DrawerSummarySections: View {
     }
 
     static func parsed(for input: Input) -> (sections: Int, hasCitations: Bool, rows: [MarkdownRow]) {
+        PerfProbe.time("DrawerSummarySections.parsed") { parsedUntimed(for: input) }
+    }
+
+    private static func parsedUntimed(for input: Input) -> (sections: Int, hasCitations: Bool, rows: [MarkdownRow]) {
         let marker = "](\(PostCitations.scheme):"
         var hasCitations = false
         let linked = sections(of: input.text).map { section -> String in
@@ -2549,6 +2607,7 @@ struct DrawerSummarySections: View {
     }
 
     var body: some View {
+        let _ = PerfProbe.hit("DrawerSummarySections.body")
         switch layout {
         case .singleColumn:
             rowList(rows)
