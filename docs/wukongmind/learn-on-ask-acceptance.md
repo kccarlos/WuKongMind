@@ -47,6 +47,7 @@ Other live runs: list page, Haiku 6 calls (in 84,832, out 7,037, cache read 78,2
 ## Fixed in this task
 
 - **Voice on a learned thread** (check 10): `summarize_topic` and `read_aloud` with no input now answer with the hand-to-the-Agent message when the open page is a learned thread, so voice no longer summarizes the page's raw text there. `LearnOnAskVoiceTests` pins it.
+- **Repair card and saved test URLs** (review round 1): a repair found mid-run now carries its undo data, so the card can read "Fixed" with Undo (`testRecordedRunRepairsABrokenReaderAndAnswers` asserts it, as a model, not a screenshot); a `script_update` that names only the failing URL keeps the saved test URLs (`testRepairNamingOnlyTheFailingURLUsesTheSavedTestURLs`). The voice rule now needs a thread of the site (`thread_match`), the reader on, userscripts on, the slot not failed and Forums Home not showing (`testAppSaysLearnedThreadOnlyForAThreadWhoseReaderCanRun`). The live repair numbers above were taken before these fixes and not rerun.
 - **Gemini and Vertex cache reads** are now reported (`usageMetadata.cachedContentTokenCount`), as the design planned for this task; `TaskExportTests.testGeminiToolReplyReportsCachedPromptTokensAsCacheReads`.
 - The live learn test now also moves to an unknown host and prints each run's state; `PageToolsTests` live runs default to `gemini-3.8-flash`.
 - **Version** `1.5.0` and the README row.
