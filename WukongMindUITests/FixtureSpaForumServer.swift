@@ -470,6 +470,7 @@ extension DCUITestCase {
             }
             var args = [
                 "-dc-skip-onboarding",
+                "-dc-no-animations",
                 "-dc-browser-agent-scripts-box", boxID,
                 "-dc-open", server.thread101URL,
                 "-AppleInterfaceStyle", "Light"
@@ -494,7 +495,7 @@ extension DCUITestCase {
 
         if let prefix = screenshotPrefix {
             RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-            capture("\(prefix)-1-before")
+            captureIfRequested("\(prefix)-1-before")
         }
 
         // 2. Open the browser agent and say: "from now on, show only the original poster on this site".
@@ -524,7 +525,7 @@ extension DCUITestCase {
         }
         if !finished || !statusLine.label.contains("Done") {
             if let prefix = screenshotPrefix {
-                capture("\(prefix)-failure")
+                captureIfRequested("\(prefix)-failure")
             }
             attachTree(app, named: "M2 browser agent failure tree")
             XCTFail("Browser agent did not complete cleanly (status: \(statusLine.exists ? statusLine.label : "missing")).")
@@ -571,7 +572,7 @@ extension DCUITestCase {
                 named: "\(prefix)-tool-calls"
             )
             RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-            capture("\(prefix)-2-saved-card")
+            captureIfRequested("\(prefix)-2-saved-card")
         }
 
         // 3. Reload the page: the saved script still applies on a fresh HTTP document load.
@@ -595,7 +596,7 @@ extension DCUITestCase {
 
         if let prefix = screenshotPrefix {
             RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-            capture("\(prefix)-3-after-reload")
+            captureIfRequested("\(prefix)-3-after-reload")
         }
 
         // 4. Kill and reopen the app: ScriptStore reloads `.user.js` from disk and injects automatically.
@@ -637,7 +638,7 @@ extension DCUITestCase {
 
         if let prefix = screenshotPrefix {
             RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-            capture("\(prefix)-4-after-reopen")
+            captureIfRequested("\(prefix)-4-after-reopen")
         }
 
         // 5. SPA route change via `history.pushState` (no document reload): script still applies.
@@ -674,7 +675,7 @@ extension DCUITestCase {
 
         if let prefix = screenshotPrefix {
             RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-            capture("\(prefix)-5-after-spa-route")
+            captureIfRequested("\(prefix)-5-after-spa-route")
         }
 
         // 6. Switch the script off in Settings › Scripts (`ScriptManagerView`) and reload: back to normal.
@@ -695,7 +696,7 @@ extension DCUITestCase {
 
         if let prefix = screenshotPrefix {
             RunLoop.current.run(until: Date().addingTimeInterval(0.6))
-            capture("\(prefix)-6-script-manager-on")
+            captureIfRequested("\(prefix)-6-script-manager-on")
         }
 
         turnScriptSwitchOff(scriptToggle)
@@ -706,7 +707,7 @@ extension DCUITestCase {
 
         if let prefix = screenshotPrefix {
             RunLoop.current.run(until: Date().addingTimeInterval(0.6))
-            capture("\(prefix)-7-script-manager-off")
+            captureIfRequested("\(prefix)-7-script-manager-off")
         }
 
         tapNavigationBack(in: reopenedApp)
@@ -733,7 +734,7 @@ extension DCUITestCase {
 
         if let prefix = screenshotPrefix {
             RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-            capture("\(prefix)-8-back-to-normal")
+            captureIfRequested("\(prefix)-8-back-to-normal")
         }
 
         reopenedApp.terminate()

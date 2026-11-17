@@ -12,6 +12,10 @@ class DCUITestCase: XCTestCase {
     static let forumLatest = "https://meta.discourse.org/latest"
     static let forumHost = "meta.discourse.org"
 
+    /// UI tests launch with animations off (faster, steadier). A suite that
+    /// tests an animation overrides this.
+    var disablesAnimations: Bool { true }
+
     override func setUpWithError() throws {
         continueAfterFailure = false
     }
@@ -34,7 +38,8 @@ class DCUITestCase: XCTestCase {
         let app = XCUIApplication()
         let wantsOnboarding = arguments.contains("-dc-reset")
             || arguments.contains("-dc-onboarding-step")
-        app.launchArguments = (wantsOnboarding ? [] : ["-dc-skip-onboarding"]) + arguments
+        app.launchArguments = (wantsOnboarding ? [] : ["-dc-skip-onboarding"])
+            + (disablesAnimations ? ["-dc-no-animations"] : []) + arguments
         app.launch()
         return app
     }
@@ -183,14 +188,14 @@ class DCUITestCase: XCTestCase {
 
     /// Drags the drawer by its header to a point of the screen's height
     /// (0 top … 1 bottom).
-    func dragDrawer(in app: XCUIApplication, to y: CGFloat) {
+    func dragDrawer(in app: XCUIApplication, to y: CGFloat, settle: TimeInterval = 1) {
         let header = app.descendants(matching: .any)["drawerHeader"].firstMatch
         guard header.waitForExistence(timeout: 5) else { return }
         // On the title, clear of the model pill (a press on it opens its menu).
         let start = header.coordinate(withNormalizedOffset: CGVector(dx: 0.08, dy: 0.5))
         let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: y))
         start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.1)
-        RunLoop.current.run(until: Date().addingTimeInterval(1))
+        RunLoop.current.run(until: Date().addingTimeInterval(settle))
     }
 
     /// Flicks the drawer down by its header (closes it from any height).
@@ -209,7 +214,9 @@ class DCUITestCase: XCTestCase {
         let state = drawerState(in: app)
         guard state.waitForExistence(timeout: 3) else { return }
         for _ in 0..<4 where state.exists {
-            dragDrawer(in: app, to: 0.99)
+            // Wait on the readout going away instead of a fixed 1 s settle.
+            dragDrawer(in: app, to: 0.99, settle: 0.1)
+            _ = waitForGone(state, timeout: 1.5)
         }
         XCTAssertTrue(waitForGone(state, timeout: 5), "The AI drawer did not close.")
     }
@@ -390,5 +397,13 @@ class DCUITestCase: XCTestCase {
         if let directory = ProcessInfo.processInfo.environment["DC_SCREENSHOT_DIR"] {
             try? shot.pngRepresentation.write(to: URL(fileURLWithPath: directory).appendingPathComponent("\(name).png"))
         }
+    }
+
+    /// `capture(_:)` only when a screenshot directory was asked for. Tests
+    /// that run in CI use it: a screenshot costs seconds on a runner and
+    /// nobody reads one from a passing run (XCTest attaches one on failure).
+    func captureIfRequested(_ name: String) {
+        guard ProcessInfo.processInfo.environment["DC_SCREENSHOT_DIR"] != nil else { return }
+        capture(name)
     }
 }

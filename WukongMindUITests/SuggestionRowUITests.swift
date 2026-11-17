@@ -36,14 +36,14 @@ final class SuggestionRowUITests: DCUITestCase {
         let app = launch(thread + ["-dc-no-summary"])
         showAssistant(in: app)
         expectChips(["summarizeThread", "readAloud", "searchForum", "followReplies"], absent: ["summarizePage"], in: app)
-        capture("suggestions-forum-thread")
+        captureIfRequested("suggestions-forum-thread")
     }
 
     func testForumListShowsListSuggestions() {
         let app = launch(["-dc-sample", "-dc-page-state", "forumHome"])
         showAssistant(in: app)
         expectChips(["worthReadingToday", "searchForum"], absent: ["summarizeThread", "followReplies"], in: app)
-        capture("suggestions-forum-list")
+        captureIfRequested("suggestions-forum-list")
     }
 
     func testOrdinaryPageShowsPageSuggestions() {
@@ -51,7 +51,7 @@ final class SuggestionRowUITests: DCUITestCase {
         showAssistant(in: app)
         expectChips(["summarizePage", "makeDark", "removeDistractions"], absent: ["summarizeThread", "searchForum"], in: app)
         XCTAssertFalse(app.buttons["suggestionPageBroken"].exists, "suggestionPageBroken must not show without active scripts.")
-        capture("suggestions-ordinary-page")
+        captureIfRequested("suggestions-ordinary-page")
     }
 
     func testPageBrokenSuggestionPromotesFirstWhenCurrentPageScriptsHaveErrors() {
@@ -72,7 +72,7 @@ final class SuggestionRowUITests: DCUITestCase {
         showAssistant(in: app)
         scrollToChip(app, "summarizeThread").tap()
         XCTAssertTrue(any(app, "capabilityThreadSummaryCard").waitForExistence(timeout: 30), "Missing summary card under summarize_topic.")
-        capture("suggestion-summary-done")
+        captureIfRequested("suggestion-summary-done")
 
         let read = scrollToChip(app, "readAloud")
         read.tap()
@@ -82,7 +82,7 @@ final class SuggestionRowUITests: DCUITestCase {
             wait(timeout: 15) { (listenRow.value as? String) == "Pause" },
             "Read it to me did not start reading the summary aloud."
         )
-        capture("suggestion-read-aloud")
+        captureIfRequested("suggestion-read-aloud")
     }
 
     /// Read it to me with no summary yet: it summarizes first, then reads.
@@ -115,7 +115,7 @@ final class SuggestionRowUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(reply, timeout: 15, in: app), "No Following confirmation.")
         if allow.exists { allow.tap() }
         XCTAssertTrue(waitForGone(follow, timeout: 5), "Notify me stays after following.")
-        capture("suggestion-following")
+        captureIfRequested("suggestion-following")
 
         app.buttons["pageCapabilitiesSeal"].firstMatch.tap()
         let toggle = app.switches["pageTopicFollowing"].firstMatch
@@ -136,6 +136,6 @@ final class SuggestionRowUITests: DCUITestCase {
         let userTurn = any(app, "agentUserMessage")
         XCTAssertTrue(waitOrDump(userTurn, timeout: 15, in: app), "The search did not send to the Agent.")
         XCTAssertTrue(app.staticTexts.matching(label(contains: "Search this forum for streaming bugs")).firstMatch.exists)
-        capture("suggestion-search-agent")
+        captureIfRequested("suggestion-search-agent")
     }
 }
