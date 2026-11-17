@@ -21608,19 +21608,19 @@
         }
       }
     },
-    "Sync needs a signed build" : {
-      "comment" : "iCloud sync status: this build of the app is unsigned, so iCloud can't be used (developer builds)",
+    "This build doesn't include iCloud" : {
+      "comment" : "iCloud sync status: this build of the app was made without CloudKit (sync has no transport), so iCloud can't be used",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同步需要已签名的版本"
+            "value" : "此版本不包含 iCloud"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "同步需要已簽署的版本"
+            "value" : "此版本不包含 iCloud"
           }
         }
       }

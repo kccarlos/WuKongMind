@@ -175,7 +175,7 @@ the settings it started with.
 - CloudKit needs a build **signed with a paid team** and the iCloud
   entitlement. The generator turns CloudKit on only when a team is set
   (`CLOUDKIT_ENABLED`); unsigned builds, CI, and unit tests have no transport
-  and show "Sync needs a signed build". See
+  and show "This build doesn't include iCloud" (the switch shows off and disabled; the stored preference is kept). See
   [DEVELOPMENT.md](DEVELOPMENT.md#icloud-sync-cloudkit-and-signing).
 - Everything counts toward the user's iCloud storage (a few KB per topic).
 - A record holds at most about 900 KB of payload (CloudKit's limit is 1 MB).

@@ -47,8 +47,8 @@ import UIKit
 // real time in `cloudsync-deletions.json` until a pass has turned them into
 // tombstones. Turning sync off (or signing out) clears the log.
 //
-// Without `CLOUDKIT_ENABLED` (unsigned builds, CI, unit tests) there is no
-// transport and `status` is `.unavailable("Sync needs a signed build")`.
+// Without `CLOUDKIT_ENABLED` (builds made with DC_ENABLE_CLOUDKIT=NO, CI, unit tests) there is no
+// transport and `status` is `.unavailable("This build doesn't include iCloud")`.
 // DEBUG: `-dc-cloudkit-probe` prints the account status and a zone round trip
 // (CloudKit builds only). Sync stays off under `-dc-sample` and `-ui-test-*`
 // so sample data never reaches iCloud.
@@ -70,7 +70,7 @@ final class CloudSyncController: ObservableObject, CloudSyncTransportDelegate {
 
     static let enabledKey = "cloudSync.enabled"
     static let lastSyncedKey = "cloudSync.lastSyncedAt"
-    nonisolated static let unsignedBuildReason = String(localized: "Sync needs a signed build", comment: "iCloud sync status: this build of the app is unsigned, so iCloud can't be used (developer builds)")
+    nonisolated static let unsignedBuildReason = String(localized: "This build doesn't include iCloud", comment: "iCloud sync status: this build of the app was made without CloudKit (sync has no transport), so iCloud can't be used")
 
     let engine: CloudSyncEngine
     let transport: CloudSyncTransport?

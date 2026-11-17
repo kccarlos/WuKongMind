@@ -152,13 +152,19 @@ final class SettingsNavigationUITests: DCUITestCase {
         let cancel = app.buttons["Cancel"]
         if cancel.exists { cancel.tap() } else { app.tap() }
         XCTAssertTrue(waitForGone(app.staticTexts["Delete iCloud data?"], timeout: 5))
+    }
 
-        // Unsigned / CloudKit-off build reports "Sync needs a signed build".
-        let unsignedApp = launch(["-AppleInterfaceStyle", "Dark", "-dc-skip-onboarding", "-dc-show-settings", "sync"])
-        XCTAssertTrue(unsignedApp.navigationBars["iCloud Sync"].waitForExistence(timeout: 20))
-        let unsignedStatus = any(unsignedApp, "syncStatus")
+    func testSyncPageWithoutCloudKitShowsOffDisabledSwitch() throws {
+        // Unsigned / CloudKit-off build reports "This build doesn't include iCloud".
+        let app = launch(["-AppleInterfaceStyle", "Dark", "-dc-skip-onboarding", "-dc-show-settings", "sync"])
+        XCTAssertTrue(app.navigationBars["iCloud Sync"].waitForExistence(timeout: 20))
+        let unsignedStatus = any(app, "syncStatus")
         XCTAssertTrue(unsignedStatus.waitForExistence(timeout: 5))
-        XCTAssertTrue(unsignedStatus.label.contains("Sync needs a signed build"), "Got “\(unsignedStatus.label)”.")
+        XCTAssertTrue(unsignedStatus.label.contains("This build doesn't include iCloud"), "Got “\(unsignedStatus.label)”.")
+        let unsignedSwitch = app.switches["syncEnabled"]
+        XCTAssertTrue(unsignedSwitch.exists)
+        XCTAssertEqual(unsignedSwitch.value as? String, "0", "Without CloudKit the switch shows off.")
+        XCTAssertFalse(unsignedSwitch.isEnabled, "Without CloudKit the switch is disabled.")
         capture("sync-page-unsigned-dark")
     }
 

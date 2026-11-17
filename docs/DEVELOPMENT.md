@@ -61,7 +61,7 @@ generator turns CloudKit on **only when it finds a team**:
 
 | Generated with | CloudKit | Entitlements the app is signed with |
 | --- | --- | --- |
-| No team (the committed project, CI, forks without a team) | off: no `CLOUDKIT_ENABLED`; Settings shows "Sync needs a signed build" | `WukongMind/WukongMind.entitlements` (App Group only) |
+| No team (the committed project, CI, forks without a team) | off: no `CLOUDKIT_ENABLED`; Settings shows "This build doesn't include iCloud" (switch off and disabled) | `WukongMind/WukongMind.entitlements` (App Group only) |
 | A team | on: `-D CLOUDKIT_ENABLED` | `WukongMind/Generated/WukongMind.entitlements` (git-ignored) |
 
 With CloudKit on, the generator writes

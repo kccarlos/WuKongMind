@@ -1049,11 +1049,24 @@ final class CloudSyncTests: XCTestCase {
     func testWithoutATransportSyncIsUnavailable() {
         let sync = CloudSyncController(transport: nil, files: nil, defaults: nil, schedulesAutomatically: false)
         XCTAssertEqual(sync.status, .unavailable(CloudSyncController.unsignedBuildReason))
-        XCTAssertEqual(CloudSyncController.unsignedBuildReason, "Sync needs a signed build")
+        XCTAssertEqual(CloudSyncController.unsignedBuildReason, "This build doesn't include iCloud")
         sync.setEnabled(false)
         XCTAssertEqual(sync.status, .off)
         sync.setEnabled(true)
         XCTAssertEqual(sync.status, .unavailable(CloudSyncController.unsignedBuildReason))
+    }
+
+    /// The Settings switch shows off and disabled without a transport, but the
+    /// stored preference survives for a CloudKit build.
+    func testWithoutATransportThePreferenceIsKeptButTheSwitchIsOff() {
+        let suite = "cloudsync-no-transport-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let sync = CloudSyncController(transport: nil, files: nil, defaults: defaults, schedulesAutomatically: false)
+        XCTAssertTrue(sync.isEnabled, "On by default; the preference is kept.")
+        XCTAssertNil(sync.transport)
+        XCTAssertFalse(SyncPageState.switchIsOn(sync: sync))
+        XCTAssertFalse(SyncPageState.switchIsEnabled(sync: sync))
     }
 
     // MARK: Payloads
