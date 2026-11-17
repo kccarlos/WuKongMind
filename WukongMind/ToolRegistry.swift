@@ -2254,6 +2254,7 @@ extension ToolRegistry {
                 ]
                 if isTargetRepair {
                     payload["repaired"] = .bool(isVerifiedRepair)
+                    if let target = repairState?.target { payload.merge(target.payloadFields) { _, new in new } }
                     if case .unverified(let note) = verification {
                         payload["verification_note"] = .string(note)
                     }
@@ -2530,7 +2531,10 @@ extension ToolRegistry {
                 "provides": .array(updated.metadata.provides.map(JSONValue.string)), "test_urls": .array(updated.metadata.testURLs.map(JSONValue.string)),
                 "verification": .string(report.verificationSummary), "applied_to_current_page": .bool(true), "verified": .bool(true)
             ]
-            if isTargetRepair { payload["repaired"] = .bool(true) }
+            if isTargetRepair {
+                payload["repaired"] = .bool(true)
+                if let target = callContext.repairState?.target { payload.merge(target.payloadFields) { _, new in new } }
+            }
             let verb = isTargetRepair ? "Fixed '\(updated.name)' (v\(updated.version))" : "Updated '\(updated.name)' to v\(updated.version)"
             return ToolExecutionOutput(content: JSONValue.encodeCompactJSON(payload), summary: "\(verb) · \(report.verificationSummary)", isError: false)
         }

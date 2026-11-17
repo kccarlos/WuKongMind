@@ -176,6 +176,7 @@ final class FakeVoiceNavigator: VoiceNavigator {
     var links: [PageLink] = []
     var followLinkResults: [String: VoiceOpenResult] = [:]
     var readableText: String?
+    var openPageIsLearnedThread = false
     var brief: VoiceTopicBrief?
     var visible: [VisiblePost] = []
     var summary: String?

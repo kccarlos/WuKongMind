@@ -223,10 +223,14 @@ final class LearnedSiteRepairWebTests: XCTestCase {
     private var windows: [UIWindow] = [], listeners: [NWListener] = [], tempDirs: [URL] = []
 
     /// What the fixture site does right now; the server reads it on every request.
-    private final class Site: @unchecked Sendable {
+    final class Site: @unchecked Sendable {
         enum Mode { case normal, signIn, tooMany }
         private let lock = NSLock()
         private var _mode = Mode.normal, _inlineLogin = false, _listFirst = 101
+        private var _paths: [String] = []
+        /// Every path the fixture site has been asked for, in order.
+        var paths: [String] { lock.withLock { _paths } }
+        func record(_ path: String) { lock.withLock { _paths.append(path) } }
         var mode: Mode { get { lock.withLock { _mode } } set { lock.withLock { _mode = newValue } } }
         var inlineLogin: Bool { get { lock.withLock { _inlineLogin } } set { lock.withLock { _inlineLogin = newValue } } }
         var listFirst: Int { get { lock.withLock { _listFirst } } set { lock.withLock { _listFirst = newValue } } }
@@ -237,6 +241,7 @@ final class LearnedSiteRepairWebTests: XCTestCase {
     private static let loginForm = #"<form action="/login"><input type="text" name="u"><input type="password" name="p"></form>"#
 
     nonisolated private static func serve(path: String, site: Site) -> (Int, String, Data) {
+        site.record(path)
         func html(_ body: String, _ status: Int = 200) -> (Int, String, Data) { (status, "text/html; charset=utf-8", Data("<!doctype html><html><body>\(body)</body></html>".utf8)) }
         switch site.mode {
         case .signIn: return html(loginForm)
@@ -294,7 +299,7 @@ final class LearnedSiteRepairWebTests: XCTestCase {
         return URL(string: "http://127.0.0.1:\(port)")!
     }
 
-    private final class Waiter: NSObject, WKNavigationDelegate, AgentPageNavigating {
+    final class Waiter: NSObject, WKNavigationDelegate, AgentPageNavigating {
         weak var webView: WKWebView?
         private var continuation: CheckedContinuation<Void, Error>?
         func load(_ wv: WKWebView, url: URL, timeout: Double = 20) async throws {
@@ -353,7 +358,7 @@ final class LearnedSiteRepairWebTests: XCTestCase {
     await modelContext.registerTool({ name: "search_forum", async execute() { return { shape: { items: [] } }; }});
     """
 
-    private struct Harness {
+    struct Harness {
         let site: Site, base: URL
         let webView: WKWebView, waiter: Waiter, bridge: AgentBridge
         let scriptStore: ScriptStore, stateStore: SiteToolStateStore, workspace: AgentWorkspace
@@ -390,7 +395,7 @@ final class LearnedSiteRepairWebTests: XCTestCase {
         }
     }
 
-    private func makeHarness() async throws -> Harness {
+    func makeHarness() async throws -> Harness {
         let site = Site(), base = try await startServer(site)
         let dir = FileManager.default.temporaryDirectory.appendingPathComponent("repair-web-\(UUID().uuidString)", isDirectory: true)
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true); tempDirs.append(dir)
@@ -415,7 +420,7 @@ final class LearnedSiteRepairWebTests: XCTestCase {
     }
 
     /// Learns all three slots through the real `script_save`, so state, hash and post starts are the app's own.
-    private func learn(_ h: Harness) async throws -> UserScript {
+    func learn(_ h: Harness) async throws -> UserScript {
         try await h.waiter.load(h.webView, url: URL(string: h.u1)!)
         let saved = try await h.registry().dispatch(toolName: "script_save", arguments: [
             "name": .string("Forum reader"), "match_rules": .array([.string("*://127.0.0.1/*")]), "js": .string(Self.readerJS),
@@ -430,7 +435,7 @@ final class LearnedSiteRepairWebTests: XCTestCase {
     }
 
     /// Edits the reader's text, as a person or a sync would; `keepHash` keeps the saved hash so only the light check applies.
-    private func edit(_ h: Harness, _ script: UserScript, js: String, keepHash: Bool = false, reload: String? = nil) async throws {
+    func edit(_ h: Harness, _ script: UserScript, js: String, keepHash: Bool = false, reload: String? = nil) async throws {
         let updated = try h.scriptStore.update(id: script.id, patch: ScriptUpdatePatch(js: js))
         if !keepHash {
             try h.stateStore.update(host: "127.0.0.1") { state in
@@ -444,7 +449,7 @@ final class LearnedSiteRepairWebTests: XCTestCase {
         try await Task.sleep(nanoseconds: 80_000_000)
     }
 
-    private func slot(_ h: Harness, _ slot: SiteToolSlot) -> SiteSlotState { h.stateStore.state(forHost: "127.0.0.1")?.slot(slot) ?? SiteSlotState() }
+    func slot(_ h: Harness, _ slot: SiteToolSlot) -> SiteSlotState { h.stateStore.state(forHost: "127.0.0.1")?.slot(slot) ?? SiteSlotState() }
 
     /// Requirement (a) and the cases that must not break a slot: nothing changes, nothing is recorded.
     func testSiteTroubleNeverBreaksTheSlotOrTouchesTheErrorList() async throws {
@@ -613,6 +618,21 @@ final class LearnedSiteRepairWebTests: XCTestCase {
         XCTAssertEqual(fixed.status, .learned); XCTAssertEqual(fixed.repairFailures, 0); XCTAssertEqual(fixed.scriptID, script.id)
         XCTAssertEqual(h.stateStore.state(forHost: "127.0.0.1")?.log.map(\.kind).prefix(3).contains(.repaired), true)
         XCTAssertTrue(session.runs[0].assistantText.contains("fan curves"))
+        let entry = try XCTUnwrap(BrowserAgentRunsView.savedScriptEntries(in: session.runs[0]).first)
+        XCTAssertEqual(entry.repairTarget?.scriptID, script.id, "the card reads Fixed and offers Undo")
+    }
+
+    /// A repair that names only the failing URL still verifies on the saved test URLs.
+    func testRepairNamingOnlyTheFailingURLUsesTheSavedTestURLs() async throws {
+        let h = try await makeHarness(), script = try await learn(h)
+        defer { h.controller.detach(); h.pageToolBridge.detach() }
+        try await edit(h, script, js: Self.emptyReaderJS, keepHash: true)
+        _ = try await h.registry().dispatch(toolName: "read_topic", arguments: ["url": .string(h.u1)])
+        let fixed = try await h.registry().dispatch(toolName: "script_update", arguments: [
+            "script_id": .string(script.id), "js": .string(Self.readerJS), "enabled": .bool(true), "test_urls": .array([.string(h.u1)])
+        ])
+        XCTAssertFalse(fixed.isError, fixed.output)
+        XCTAssertEqual(slot(h, .readTopic).status, .learned)
     }
 
     /// A run that ends with the slot still broken counts one failed repair; the next run repairs the same script

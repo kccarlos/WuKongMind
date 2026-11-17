@@ -4,6 +4,20 @@ struct ScriptRepairTarget: Codable, Equatable, Sendable {
     var scriptID: String
     var preRepairVersion: Int
     var preRepairIsEnabled: Bool
+
+    /// What a repairing `script_update` result carries so the card can offer Undo even when the break was found mid-run.
+    var payloadFields: [String: JSONValue] {
+        ["pre_repair_version": .int(Int64(preRepairVersion)), "pre_repair_enabled": .bool(preRepairIsEnabled)]
+    }
+
+    init(scriptID: String, preRepairVersion: Int, preRepairIsEnabled: Bool) {
+        self.scriptID = scriptID; self.preRepairVersion = preRepairVersion; self.preRepairIsEnabled = preRepairIsEnabled
+    }
+
+    init?(scriptID: String, payload: [String: JSONValue]) {
+        guard case .int(let version)? = payload["pre_repair_version"], let enabled = payload["pre_repair_enabled"]?.strictBoolValue else { return nil }
+        self.init(scriptID: scriptID, preRepairVersion: Int(version), preRepairIsEnabled: enabled)
+    }
 }
 
 struct ScriptRepairRequest: Equatable, Sendable {

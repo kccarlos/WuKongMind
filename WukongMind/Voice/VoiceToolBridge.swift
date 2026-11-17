@@ -19,6 +19,8 @@ protocol VoiceNavigator: AnyObject {
     var openTopicID: String? { get }
     var hasOpenPage: Bool { get }
     func pageReadableText() async -> String?
+    /// The open page is a thread of a site whose reading was learned: only the Agent reads it.
+    var openPageIsLearnedThread: Bool { get }
     var linkPageIdentity: String { get }
     func openTopic(_ target: BrowseTarget, at landing: BrowseLanding, includeContent: Bool) async -> BrowseResult
     func openCard(_ index: Int, includeContent: Bool) async -> BrowseResult
@@ -76,6 +78,7 @@ extension VoiceNavigator {
     }
 
     func pageReadableText() async -> String? { nil }
+    var openPageIsLearnedThread: Bool { false }
 }
 
 /// Where `browse_move` scrolls on an ordinary page (or a forum page without an open topic).
@@ -335,6 +338,9 @@ final class VoiceToolBridge {
             if let topicID = navigator?.openTopicID {
                 args = Self.defaultingToOpenTopic(args, topicID: topicID, for: tool.definition)
             } else if Self.defaultsToPageText(tool.definition) {
+                if navigator?.openPageIsLearnedThread == true, name == "summarize_topic" || name == "read_aloud" {
+                    return refusal(capabilityHandToAgentMessage)
+                }
                 guard let text = await navigator?.pageReadableText()?
                     .trimmingCharacters(in: .whitespacesAndNewlines),
                     !text.isEmpty else {

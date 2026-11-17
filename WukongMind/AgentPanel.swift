@@ -300,7 +300,7 @@ struct BrowserAgentRunsView: View {
                 ?? argsObj?["match_rules"]?.arrayValue?.first?.stringValue
                 ?? ""
             let repairTarget: ScriptRepairTarget? = isUpdate
-                ? (run.repairTarget?.scriptID == scriptID ? run.repairTarget : nil)
+                ? (run.repairTarget?.scriptID == scriptID ? run.repairTarget : ScriptRepairTarget(scriptID: scriptID, payload: obj))
                 : nil
             let entry = SavedScriptCardEntry(
                 scriptID: scriptID,

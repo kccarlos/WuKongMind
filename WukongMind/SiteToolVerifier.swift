@@ -183,8 +183,10 @@ enum SiteToolVerifier {
 
         if providedSlots.contains(.readTopic) {
             guard !threadPatterns.isEmpty else { return fail(2, slot: .readTopic, code: .shape, "thread_match is required for read_topic") }
-            let sourceURLs = validatedTestURLs.isEmpty
-                ? (existingState?.slot(.readTopic).testURLs.compactMap { SiteToolState.sameSiteURL($0, host: siteHost) } ?? []) : validatedTestURLs
+            // A repair names only the failing URL: the saved test URLs still count.
+            let savedURLs = existingState?.slot(.readTopic).testURLs.compactMap { SiteToolState.sameSiteURL($0, host: siteHost) } ?? []
+            var sourceURLs = validatedTestURLs
+            for url in savedURLs where !sourceURLs.contains(url) { sourceURLs.append(url) }
             if providedSlots.count == 1 {
                 for u in sourceURLs where !threadPatterns.contains(where: { $0.matches(url: u) }) {
                     return fail(2, slot: .readTopic, code: .shape, "'\(u.absoluteString)' does not match thread_match")
