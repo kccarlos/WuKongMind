@@ -783,6 +783,7 @@ extension AppModel {
         } else if variant == "detail-error" {
             requestedScriptID = "quote-fold"
         } else if variant == "m4-ai" || variant == "m4-ai-detail" {
+            settings.browserScriptsAIEnabled = true
             if let aiScript = try? scriptStore.create(
                 id: "fold-empty-replies",
                 name: "Fold empty replies",

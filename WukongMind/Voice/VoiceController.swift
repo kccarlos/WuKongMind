@@ -18,7 +18,8 @@ final class VoiceController: ObservableObject {
     /// Unit tests: uses `SilentVoiceAudio` and `ScriptedLiveTransport`.
     var useScriptedSession = false
     private(set) var debugSessionCount = 0
-    let debugSpeechInjector = SpeechFrameInjector()
+    // Lazy so normal launches and UI tests never touch AVSpeechSynthesisVoice at startup.
+    lazy var debugSpeechInjector = SpeechFrameInjector()
     let debugAcceptanceProbe = VoiceAcceptanceProbe()
     #endif
 

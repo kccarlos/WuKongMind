@@ -694,6 +694,7 @@ extension AppModel {
 
         settings.hasCompletedOnboarding = true
         var sampleSettings = settings
+        sampleSettings.scriptsModel = nil
         sampleSettings.setModel(ModelSelection(provider: sampleProvider, model: sampleModel), for: .assistant)
         if !AssistantDebug.has("-dc-no-provider") {
             // `-dc-agent-model` names the Agent's model since the old Ask the forum role went (One loop 14).
