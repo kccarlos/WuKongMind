@@ -1,14 +1,34 @@
 name: CI
 
+# Tiers (docs/CI.md):
+#   pull_request    lint, project drift, then one build and 2 test jobs: unit
+#                   tests in two halves, a UI smoke set with the lighter half.
+#                   At most 3 macOS jobs per run (the free plan runs 5 at once).
+#   push to main, tags v*, nightly, manual (tier "full" by default)
+#                   the whole unit suite, the CI UI suites in two shards, and
+#                   the unsigned Release build.
+# Require only the summary check "CI": the other check names follow the tier.
+
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
+  schedule:
+    - cron: '41 7 * * *' # nightly 07:41 UTC, full tier
   workflow_dispatch:
+    inputs:
+      tier:
+        description: 'pr (what a pull request runs) or full (main, tags, nightly)'
+        type: choice
+        options: [full, pr]
+        default: full
 
+# Pull requests cancel a superseded run. On main and tags the running run
+# finishes and only the newest waiting one is kept.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -63,14 +83,40 @@ jobs:
         # entry in scripts/ci/site-layering-allowlist.txt.
         run: scripts/ci/check-site-layering.sh
 
-  # Unit and UI tests run as two parallel jobs, each building in place (a
-  # shared build-for-testing artifact was tried and failed: simulator UDIDs
-  # differ per runner and the products handoff stalled). Required check name
-  # stays "Build & unit tests"; add "UI tests" as a required check too.
-  build-test:
-    name: Build & unit tests
+  changes:
+    name: Plan (tier, docs-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tier: ${{ steps.plan.outputs.tier }}
+      code: ${{ steps.plan.outputs.code }}
+      release: ${{ steps.plan.outputs.release }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # History without file contents: enough for git diff --name-only.
+          fetch-depth: 0
+          filter: blob:none
+      - name: Plan the run
+        id: plan
+        # Docs-only pull requests (*.md, docs/**, images) skip the macOS jobs,
+        # but the workflow still starts and "CI" still reports (paths-ignore
+        # would show no run at all).
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE: ${{ github.event.pull_request.base.sha }}
+          TIER_INPUT: ${{ inputs.tier }}
+        run: scripts/ci/plan.sh
+
+  # Builds the app and both test bundles once; the test jobs run
+  # test-without-building on their own runner and simulator.
+  build:
+    name: Build for testing
+    needs: [lint, project-drift, changes]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ${{ vars.CI_MACOS_RUNNER || 'xcode-27' }}
-    timeout-minutes: 45
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
       - name: Select Xcode
@@ -80,52 +126,51 @@ jobs:
         env:
           SIM_PREFER: iPhone 17 Pro,iPhone 18 Pro,iPhone 17,iPhone Air
         run: scripts/ci/pick-simulator.sh
-      - name: Unit tests
+      - name: Build for testing
         env:
           DESTINATION: ${{ steps.sim.outputs.destination }}
-          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
-          VERTEX_API_KEY: ${{ secrets.VERTEX_API_KEY }}
-        run: |
-          set -o pipefail
-          formatter=(cat)
-          if command -v xcbeautify >/dev/null; then formatter=(xcbeautify --renderer github-actions); fi
-          # Same cap as before the split: AIViewIntentTests.testAnswerReady... is a known flake.
-          xcodebuild test \
-            -project "$PROJECT" \
-            -scheme "$SCHEME" \
-            -destination "$DESTINATION" \
-            -only-testing:WukongMindTests \
-            -parallel-testing-enabled NO \
-            -retry-tests-on-failure \
-            -test-iterations 3 \
-            -test-timeouts-enabled YES \
-            -maximum-test-execution-time-allowance 300 \
-            -derivedDataPath DerivedData \
-            -resultBundlePath TestResults.xcresult \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            | "${formatter[@]}"
-      - name: Flaky tests (passed on retry)
-        # Never fails the job: a missing or unreadable result only gets a note.
-        if: always()
-        run: scripts/ci/flaky-summary.sh TestResults.xcresult >> "$GITHUB_STEP_SUMMARY" || true
-      - name: Upload test results
+        run: scripts/ci/build-for-testing.sh
+      - name: Raw xcodebuild tail
         if: failure()
+        run: tail -n 60 build.log || true
+      # No run_attempt in the name: "Re-run failed jobs" re-runs only the test
+      # jobs, which must find the first attempt's products. A full re-run
+      # rebuilds and overwrites them.
+      - name: Upload test products
         uses: actions/upload-artifact@v7
         with:
-          name: TestResults-unit-${{ github.run_id }}-${{ github.run_attempt }}.xcresult
-          path: TestResults.xcresult
-          retention-days: 14
-          if-no-files-found: ignore
+          name: test-products-${{ github.run_id }}
+          overwrite: true
+          path: test-products.zip
+          retention-days: 3
+          compression-level: 0
+          if-no-files-found: error
 
-  ui-tests:
-    name: UI tests
+  test:
+    name: ${{ matrix.name }}
+    needs: [changes, build]
+    if: needs.changes.outputs.code == 'true'
     runs-on: ${{ vars.CI_MACOS_RUNNER || 'xcode-27' }}
-    timeout-minutes: 60
+    timeout-minutes: ${{ matrix.timeout }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.changes.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v7
       - name: Select Xcode
         run: scripts/ci/select-xcode.sh
+      # Download before picking and booting: a booting simulator slowed the
+      # download and unzip to minutes (3-vCPU runners; tried in WUKO-125 and
+      # WUKO-128).
+      - name: Download test products
+        uses: actions/download-artifact@v7
+        with:
+          name: test-products-${{ github.run_id }}
+      - name: Unpack test products
+        run: |
+          mkdir -p DerivedData/Build/Products
+          unzip -q test-products.zip -d DerivedData/Build/Products
+          rm test-products.zip
       - name: Pick simulator
         id: sim
         env:
@@ -135,44 +180,23 @@ jobs:
         # A cold simulator made the UI runner fail to launch ("Lost pending
         # connection to the test runner before launch").
         run: xcrun simctl bootstatus "${{ steps.sim.outputs.udid }}" -b
-      - name: UI tests
+      - name: Tests
         env:
           DESTINATION: ${{ steps.sim.outputs.destination }}
-        run: |
-          set -o pipefail
-          formatter=(cat)
-          if command -v xcbeautify >/dev/null; then formatter=(xcbeautify --renderer github-actions); fi
-          # Fast offline UI suites; 6-11m multi-launch suites, xctrace perf
-          # loops and live meta.discourse.org suites stay manual.
-          # 600s per test: testM4GMAiSettingsManagerAndDetailViews took 277s on a slow runner.
-          run_ui() {
-            xcodebuild test \
-              -project "$PROJECT" \
-              -scheme "$SCHEME" \
-              -destination "$DESTINATION" \
-              -only-testing:WukongMindUITests/SuggestionRowUITests \
-              -only-testing:WukongMindUITests/ScriptManagerUITests \
-              -parallel-testing-enabled NO \
-              -retry-tests-on-failure \
-              -test-iterations 3 \
-              -test-timeouts-enabled YES \
-              -maximum-test-execution-time-allowance 600 \
-              -derivedDataPath DerivedData \
-              -resultBundlePath TestResults.xcresult \
-              CODE_SIGNING_ALLOWED=NO \
-              CODE_SIGNING_REQUIRED=NO \
-              2>&1 | tee ui.log | "${formatter[@]}"
-          }
-          # Retry the whole step once, only when the runner never launched.
-          if ! run_ui; then
-            grep -q "Lost pending connection to the test runner" ui.log || exit 1
-            rm -rf TestResults.xcresult
-            run_ui
-          fi
+          # Runtime only (never in the build or the products artifact);
+          # empty for fork pull requests, and those live tests skip.
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          VERTEX_API_KEY: ${{ secrets.VERTEX_API_KEY }}
+        run: scripts/ci/run-tests.sh "${{ matrix.shard }}"
       - name: Raw xcodebuild tail
         # The beautifier hides why xcodebuild exited early; show the raw end.
         if: failure()
-        run: tail -n 60 ui.log || true
+        run: tail -n 60 tests.log || true
+      - name: Test start-up timeline
+        # Where the minutes before the first test went. On a fresh simulator
+        # WebKit's first launch takes 1-2 min ("GPU process took 95 seconds").
+        if: always()
+        run: grep -m 8 -E "Command line invocation|Test Suite 'Selected tests' started|process .* took [0-9.]+ seconds to launch|\*\* TEST" tests.log || true
       - name: Flaky tests (passed on retry)
         # Never fails the job: a missing or unreadable result only gets a note.
         if: always()
@@ -181,17 +205,20 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: TestResults-ui-${{ github.run_id }}-${{ github.run_attempt }}.xcresult
+          name: TestResults-${{ matrix.shard }}-${{ github.run_id }}-${{ github.run_attempt }}.xcresult
           path: TestResults.xcresult
           retention-days: 14
           if-no-files-found: ignore
 
   release-build:
     # Catches Release-only compile errors (for example code behind `#if DEBUG`
-    # that Release still references) without any signing material.
+    # that Release still references) without any signing material. Full tier
+    # only: it failed once in 369 PR runs, and it would be a 4th macOS job.
     name: Release build (device, unsigned)
+    needs: [lint, project-drift, changes]
+    if: needs.changes.outputs.release == 'true'
     runs-on: ${{ vars.CI_MACOS_RUNNER || 'xcode-27' }}
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 
@@ -212,3 +239,26 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             | "${formatter[@]}"
+
+  # The one check to require: its name stays the same whatever the tier and
+  # shards. Skipped jobs pass (docs-only, PR tier); failed or cancelled fail.
+  ci:
+    name: CI
+    if: always()
+    needs: [lint, project-drift, changes, build, test, release-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: All jobs passed or were skipped
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+          TIER: ${{ needs.changes.outputs.tier }}
+          CODE: ${{ needs.changes.outputs.code }}
+        run: |
+          echo "tier=$TIER code=$CODE results: $RESULTS"
+          for r in $RESULTS; do
+            case "$r" in
+              success|skipped) ;;
+              *) echo "::error::A required job ended '$r'"; exit 1 ;;
+            esac
+          done

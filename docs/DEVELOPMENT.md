@@ -229,6 +229,23 @@ Notes:
 - To start from a clean slate, uninstall the app:
   `xcrun simctl uninstall <udid> io.github.kccarlos.wukongmind`.
 
+### Tests in CI
+
+Pull requests run the unit tests in two halves plus a short UI smoke set;
+`main`, tags, the nightly run and manual runs add the full CI UI suites and the
+Release build. The one check to require is `CI`. Tiers, shards and timings are
+in [CI.md](CI.md#ciyml). To run a CI shard's exact test selection on the Mac
+mini:
+
+```sh
+scripts/remote-test.sh $(scripts/ci/run-tests.sh unit-b+ui-smoke --print | grep -v allowance) \
+  -retry-tests-on-failure -test-iterations 3
+```
+
+Try workflow changes with `gh workflow run ci.yml --ref <branch> -f tier=pr`
+(or `-f tier=full`) and lint them with `actionlint` before pushing; push to the
+pull request once per finished change.
+
 ### Simulator builds and tests on the Mac mini
 
 `scripts/remote-test.sh` runs `xcodebuild` on the owner's Mac mini
