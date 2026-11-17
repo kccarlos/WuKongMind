@@ -135,7 +135,9 @@ if command -v xcbeautify >/dev/null; then formatter=(xcbeautify --renderer githu
 
 # Raw log lines get a wall-clock prefix (the beautified output arrives in
 # bursts, so its GitHub timestamps say little about where time went).
+# xcbeautify gets the lines without the prefix, or it can't parse them.
 stamp() { perl -MPOSIX -ne '$|=1; print strftime("%H:%M:%S ", localtime), $_'; }
+unstamp() { perl -pe '$|=1; s/^\d\d:\d\d:\d\d //'; }
 
 run_tests() {
   set -o pipefail
@@ -151,7 +153,7 @@ run_tests() {
     -test-timeouts-enabled YES \
     -maximum-test-execution-time-allowance "$allowance" \
     -resultBundlePath "$result" \
-    2>&1 | stamp | tee "$log" | "${formatter[@]}"
+    2>&1 | stamp | tee "$log" | unstamp | "${formatter[@]}"
 }
 
 # Retry the whole run once, only when the test runner never launched.

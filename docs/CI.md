@@ -95,12 +95,13 @@ the last job's end, all green):
 
 | Run | Before (WUKO-125 split) | After (PR tier) |
 | --- | --- | --- |
-| Whole run | 34.4 (run 43957715364), 32.7 (43950672043) | 23.3, 25.3, 25.5, 22.9 (43965192806, 43969487588, 43979411308, 43983192539) |
+| Whole run | 34.4 (run 43957715364), 32.7 (43950672043) | 23.3, 25.3, 25.5, 22.9, 28.5 (43965192806, 43969487588, 43979411308, 43983192539, 43986614364) |
 | Building | in every macOS job, 8-10 each | once, 3-4 |
-| Longest job | UI tests 33-34 (timeout 60) | 18-22 (timeout 40) |
+| Longest job | UI tests 33-34 (timeout 60) | 18-24 (timeout 40) |
 | macOS jobs | 3, plus Release build 5-8 | 3 |
 
-The target was about 20 minutes; PR runs land at 23-26. Full tier (run
+The target was about 20 minutes; PR runs land at 23-29, depending on the
+runners' speed that hour. Full tier (run
 43973737283, a slow-runner hour): build 2.6, Release build 6.6, "Unit tests"
 25.3 (timeout 50), "UI tests (1/2)" 30.1 and "UI tests (2/2)" 21.1 (timeout
 45), 35 in all. On a normal runner the UI shards take about 12 each.
