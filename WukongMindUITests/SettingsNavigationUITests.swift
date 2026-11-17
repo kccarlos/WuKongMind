@@ -188,8 +188,8 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertFalse(any(app, "modelRole-agent").exists, "Legacy Ask the forum role row must not appear.")
         XCTAssertTrue(agent.label.contains("deepseek-v4-flash"), "Got “\(agent.label)”.")
         XCTAssertTrue(assistant.label.contains("claude-sonnet-4-5"), "Got “\(assistant.label)”.")
-        XCTAssertTrue(any(app, "useSameModel-browserAgent").exists, "Different models offer “Use deepseek-v4-flash for both”.")
-        XCTAssertTrue(any(app, "useSameModel-assistant").exists)
+        XCTAssertFalse(any(app, "useSameModel-browserAgent").exists, "No “Use … for both” rows under Default models.")
+        XCTAssertFalse(any(app, "useSameModel-assistant").exists)
 
         // Summaries batching, custom instructions, and answer language live here.
         XCTAssertTrue(reveal(any(app, "summaryBatchLimit"), in: app))

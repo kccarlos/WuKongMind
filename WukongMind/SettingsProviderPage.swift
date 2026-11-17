@@ -7,18 +7,6 @@ struct SettingsProviderPage: View {
     @ObservedObject var app: AppModel
     @State private var choosing: FavoriteModel?
 
-    /// UI roles whose selection can be applied to both Agent and Summaries.
-    private var shareableRoles: [ModelRole] {
-        guard !app.uiRolesShareModel else { return [] }
-        return ModelRole.uiRoles.filter { role in
-            guard app.hasConfiguredModel(for: role) else { return false }
-            let selection = app.selection(for: role)
-            return app.isProviderSelectable(selection.provider)
-                && selection.provider.supportsToolCalling
-                && !selection.model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        }
-    }
-
     private var hasCustomInstructions: Bool {
         !app.settings.systemPrompt.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
@@ -33,21 +21,6 @@ struct SettingsProviderPage: View {
                         ModelRoleRow(app: app, role: role)
                     }
                     .accessibilityIdentifier("modelRole-\(role.rawValue)")
-                }
-                ForEach(shareableRoles) { role in
-                    Button {
-                        DCHaptics.tap()
-                        app.applyModelToBothUIRoles(app.selection(for: role))
-                    } label: {
-                        Label(
-                            String(
-                                localized: "Use \(app.providerSummary(for: role)) for both",
-                                comment: "Settings › Models: gives both Agent and Summaries this model. The placeholder is a provider and model, e.g. OpenRouter · kimi-k2."
-                            ),
-                            systemImage: "arrow.left.arrow.right"
-                        )
-                    }
-                    .accessibilityIdentifier("useSameModel-\(role.rawValue)")
                 }
             } header: {
                 Text("Default models", comment: "Settings › Models section header for the Agent, Summaries and Scripts roles")
