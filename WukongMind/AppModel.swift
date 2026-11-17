@@ -2671,6 +2671,7 @@ final class AppModel: ObservableObject {
             return
         }
         dismissHistoryIfNeeded()
+        showDrawerSummary(topicKey: record.topicKey)
         assistantMode = .summary
         browser.load(record.url)
         panelRoute = .topic
@@ -2679,6 +2680,8 @@ final class AppModel: ObservableObject {
 
     func open(session: TopicSession) {
         dismissHistoryIfNeeded()
+        // Opening a saved summary from History asks for it: show it again (WUKO-134).
+        showDrawerSummary(topicKey: session.topicKey)
         assistantMode = .summary
         browser.load(session.url)
         panelRoute = .topic

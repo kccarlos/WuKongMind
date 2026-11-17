@@ -460,6 +460,8 @@ final class DrawerUITests: DCUITestCase {
         XCTAssertTrue(waitForHittable(summarize), "The summarize suggestion is missing.")
         XCTAssertTrue(wait(timeout: 8) { state.label == "detent=medium" }, "Got \(state.label).")
         captureIfRequested("wuko134-1-opened")
+        let newConversation = app.buttons["agentNewConversationHeader"].firstMatch
+        XCTAssertTrue(newConversation.isEnabled, "New conversation must be able to clear a top summary alone.")
 
         summarize.tap()
         XCTAssertTrue(card.firstMatch.waitForExistence(timeout: 30), "Missing summary card under summarize_topic.")
@@ -490,7 +492,6 @@ final class DrawerUITests: DCUITestCase {
         XCTAssertTrue(app.buttons["retrySummary"].firstMatch.isHittable, "Retry is not reachable from the summary card.")
         captureIfRequested("wuko134-2b-card-actions")
 
-        let newConversation = app.buttons["agentNewConversationHeader"].firstMatch
         XCTAssertTrue(waitForHittable(newConversation), "New conversation is missing.")
         newConversation.tap()
         XCTAssertTrue(waitForGone(card.firstMatch, timeout: 5), "The conversation did not clear.")
@@ -499,6 +500,16 @@ final class DrawerUITests: DCUITestCase {
         XCTAssertFalse(app.staticTexts["Check for new replies"].exists, "New conversation left Check for new replies.")
         XCTAssertTrue(any(app, "agentEmptyState").waitForExistence(timeout: 5), "The cleared drawer is not empty.")
         captureIfRequested("wuko134-3-new-conversation")
+
+        // Read it uses the cached summary: a listen row, no top summary, no empty-state mascot over it.
+        let read = app.buttons["suggestion-readAloud"].firstMatch
+        XCTAssertTrue(read.waitForExistence(timeout: 10), "Read it to me is missing.")
+        for _ in 0..<4 where !read.isHittable { any(app, "suggestionRow").swipeLeft() }
+        XCTAssertTrue(waitForHittable(read), "Read it to me cannot be tapped.")
+        read.tap()
+        XCTAssertTrue(any(app, "capabilityListenRow").waitForExistence(timeout: 20), "Missing listen row under read_aloud.")
+        XCTAssertFalse(topSummary.exists, "Read it after New conversation brought back the top summary.")
+        XCTAssertFalse(any(app, "agentEmptyState").exists, "The empty-state mascot shows over a conversation.")
     }
 
     // MARK: Helpers

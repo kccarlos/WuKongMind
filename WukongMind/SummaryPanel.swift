@@ -533,6 +533,16 @@ struct AssistantPanel: View {
         browserAgent.resetConversation()
     }
 
+    /// Something in the drawer to clear: the conversation, or the top summary (its text,
+    /// progress or error) even when the conversation is still empty (WUKO-134).
+    private var canStartNewConversation: Bool {
+        if !browserAgent.runs.isEmpty || !browserAgent.messages.isEmpty || browserAgent.isRunning { return true }
+        let placement = summaryPlacement
+        let showsTopSummary = !placement.hidesTop && !visibleSummary.isEmpty
+        let showsTopStatus = !placement.hidesTopStatus && (activeSummary != nil || isSummaryFailed)
+        return showsTopSummary || showsTopStatus
+    }
+
     private var newConversationButton: some View {
         Button {
             DCHaptics.tap()
@@ -543,7 +553,7 @@ struct AssistantPanel: View {
         .buttonStyle(DCIconButtonStyle())
         .accessibilityLabel(String(localized: "New conversation", comment: "Browser agent menu action: clear the conversation and start fresh"))
         .accessibilityIdentifier("agentNewConversationHeader")
-        .disabled(browserAgent.runs.isEmpty && browserAgent.messages.isEmpty && !browserAgent.isRunning)
+        .disabled(!canStartNewConversation)
     }
 
     private var drawerMoreMenu: some View {
@@ -590,7 +600,7 @@ struct AssistantPanel: View {
                     )
                 }
                 .accessibilityIdentifier("agentNewConversation")
-                .disabled(browserAgent.runs.isEmpty && browserAgent.messages.isEmpty && !browserAgent.isRunning)
+                .disabled(!canStartNewConversation)
             }
 
             Section {
@@ -1103,7 +1113,7 @@ struct AssistantPanel: View {
             } else if activePull == nil, !isSummaryFailed || placement.hidesTopStatus,
                       activeSummary == nil || placement.hidesTopStatus,
                       app.assistantPageState != .loading, app.currentTopic != nil,
-                      placement.cardRowID == nil {
+                      !browserAgent.hasConversation {
                 // The suggestion row offers the summary.
                 DCMascotView(pose: .wave, size: 128)
                     .padding(.vertical, 32)
