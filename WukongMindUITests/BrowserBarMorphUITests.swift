@@ -2,6 +2,8 @@ import UIKit
 import XCTest
 
 final class BrowserBarMorphUITests: DCUITestCase {
+    override var disablesAnimations: Bool { false }
+
     private struct BarDebugSnapshot {
         var progress: Double
         var displayProgress: Double
