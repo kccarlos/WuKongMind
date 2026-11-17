@@ -176,7 +176,7 @@ final class ScriptManagerUITests: DCUITestCase {
                 let detailApp = launch(base + ["-dc-sample", "-dc-show-settings", "scripts", "-dc-scripts-sample", "detail-error"])
                 XCTAssertTrue(waitOrDump(any(detailApp, "scriptErrorCard"), timeout: 15, in: detailApp))
                 RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-                capture("iphone-detail-error-light")
+                captureIfRequested("iphone-detail-error-light")
                 return
             }
 
@@ -189,20 +189,20 @@ final class ScriptManagerUITests: DCUITestCase {
                     XCTAssertTrue(waitForBarItem(activeBar.buttons["aiButton"], timeout: 15))
                     closeDrawer(in: activeBar)
                     RunLoop.current.run(until: Date().addingTimeInterval(1.0))
-                    capture("iphone-badge-active-light")
+                    captureIfRequested("iphone-badge-active-light")
                 }
 
                 let errorBar = launch(styleArgs + ["-dc-browser-agent-fixture-page", "-dc-scripts-sample", "page-error"])
                 XCTAssertTrue(waitForBarItem(errorBar.buttons["aiButton"], timeout: 15))
                 closeDrawer(in: errorBar)
                 RunLoop.current.run(until: Date().addingTimeInterval(1.0))
-                capture("iphone-badge-error-\(suffix)")
+                captureIfRequested("iphone-badge-error-\(suffix)")
 
                 // 2. Saved script card in Agent conversation
                 let cardApp = launch(styleArgs + ["-dc-browser-agent-demo", "saved-script", "-dc-drawer-detent", "large"])
                 XCTAssertTrue(waitOrDump(any(cardApp, "agentScriptCard"), timeout: 15, in: cardApp))
                 RunLoop.current.run(until: Date().addingTimeInterval(1.0))
-                capture("iphone-card-\(suffix)")
+                captureIfRequested("iphone-card-\(suffix)")
 
                 // 3. Scripts on this page popover (with active + error + CSS-only rows)
                 let popApp = launch(styleArgs + [
@@ -213,19 +213,19 @@ final class ScriptManagerUITests: DCUITestCase {
                 ])
                 XCTAssertTrue(waitOrDump(any(popApp, "pageScriptsPopover"), timeout: 15, in: popApp))
                 RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-                capture("iphone-popover-\(suffix)")
+                captureIfRequested("iphone-popover-\(suffix)")
 
                 // 4. Settings › Scripts manager
                 let mgrApp = launch(styleArgs + ["-dc-sample", "-dc-show-settings", "scripts", "-dc-scripts-sample", "manager"])
                 XCTAssertTrue(waitOrDump(any(mgrApp, "scriptManager"), timeout: 15, in: mgrApp))
                 RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-                capture("iphone-manager-\(suffix)")
+                captureIfRequested("iphone-manager-\(suffix)")
 
                 // 5. Script detail (with runtime error card)
                 let detailApp = launch(styleArgs + ["-dc-sample", "-dc-show-settings", "scripts", "-dc-scripts-sample", "detail-error"])
                 XCTAssertTrue(waitOrDump(any(detailApp, "scriptErrorCard"), timeout: 15, in: detailApp))
                 RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-                capture("iphone-detail-error-\(suffix)")
+                captureIfRequested("iphone-detail-error-\(suffix)")
 
                 // 6. Version history
                 let histApp = launch(styleArgs + [
@@ -236,7 +236,7 @@ final class ScriptManagerUITests: DCUITestCase {
                 ])
                 XCTAssertTrue(waitOrDump(any(histApp, "scriptVersionRow-1"), timeout: 15, in: histApp))
                 RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-                capture("iphone-history-\(suffix)")
+                captureIfRequested("iphone-history-\(suffix)")
 
                 if suffix == "dark" {
                     let editorApp = launch(styleArgs + [
@@ -247,7 +247,7 @@ final class ScriptManagerUITests: DCUITestCase {
                     ])
                     XCTAssertTrue(waitOrDump(any(editorApp, "scriptCodeEditor"), timeout: 15, in: editorApp))
                     RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-                    capture("iphone-editor-dark")
+                    captureIfRequested("iphone-editor-dark")
                 }
             }
         } else {
@@ -258,7 +258,7 @@ final class ScriptManagerUITests: DCUITestCase {
                 let splitCard = launch(styleArgs + ["-dc-browser-agent-demo", "saved-script"], orientation: .landscapeLeft)
                 XCTAssertTrue(waitOrDump(any(splitCard, "agentScriptCard"), timeout: 15, in: splitCard))
                 RunLoop.current.run(until: Date().addingTimeInterval(1.0))
-                capture("ipad-split-card-\(suffix)")
+                captureIfRequested("ipad-split-card-\(suffix)")
 
                 // 2. iPad split workspace: global-off grey badge + PageScriptsPopover
                 let popOff = launch(styleArgs + [
@@ -268,7 +268,7 @@ final class ScriptManagerUITests: DCUITestCase {
                 ], orientation: .landscapeLeft)
                 XCTAssertTrue(waitOrDump(any(popOff, "pageScriptsPopover"), timeout: 15, in: popOff))
                 RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-                capture("ipad-popover-off-\(suffix)")
+                captureIfRequested("ipad-popover-off-\(suffix)")
 
                 // 3. iPad Settings › Scripts sheet over dimmed browser
                 let sheetMgr = launch(styleArgs + [
@@ -278,14 +278,21 @@ final class ScriptManagerUITests: DCUITestCase {
                 ], orientation: .landscapeLeft)
                 XCTAssertTrue(waitOrDump(any(sheetMgr, "scriptManager"), timeout: 15, in: sheetMgr))
                 RunLoop.current.run(until: Date().addingTimeInterval(0.8))
-                capture("ipad-manager-sheet-\(suffix)")
+                captureIfRequested("ipad-manager-sheet-\(suffix)")
             }
         }
     }
 
     func testM4GMAiSettingsManagerAndDetailViews() throws {
         let base = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
-        for (suffix, style) in [("light", "Light"), ("dark", "Dark")] {
+        // The dark pass repeats the light pass's assertions (labels and
+        // presence, nothing colour-dependent) to take the dark screenshots, so
+        // it only runs when a screenshot directory is asked for.
+        var appearances = [("light", "Light")]
+        if ProcessInfo.processInfo.environment["DC_SCREENSHOT_DIR"] != nil {
+            appearances.append(("dark", "Dark"))
+        }
+        for (suffix, style) in appearances {
             let styleArgs = base + ["-AppleInterfaceStyle", style]
 
             // 1-3. Settings › Models, Settings › Models › Scripts, Settings › Scripts, and Script detail
@@ -301,13 +308,13 @@ final class ScriptManagerUITests: DCUITestCase {
             XCTAssertTrue(waitOrDump(scriptsRoleRow, timeout: 10, in: settingsApp), "Scripts model role row missing.")
             XCTAssertTrue(scriptsRoleRow.label.contains("Same as Summaries"), "Unexpected Scripts role label: \(scriptsRoleRow.label)")
             XCTAssertTrue(waitForHittable(scriptsRoleRow, timeout: 5))
-            capture("m4-models-\(suffix)")
+            captureIfRequested("m4-models-\(suffix)")
 
             scriptsRoleRow.tap()
             let sameToggle = settingsApp.switches["scriptsSameAsSummariesToggle"].firstMatch
             XCTAssertTrue(waitOrDump(sameToggle, timeout: 10, in: settingsApp), "Same as Summaries toggle missing on Scripts model page.")
             XCTAssertTrue(waitForHittable(sameToggle, timeout: 5))
-            capture("m4-models-scripts-\(suffix)")
+            captureIfRequested("m4-models-scripts-\(suffix)")
 
             for _ in 0..<3 where settingsApp.navigationBars["Scripts"].exists {
                 settingsApp.navigationBars.buttons.element(boundBy: 0).tap()
@@ -331,7 +338,7 @@ final class ScriptManagerUITests: DCUITestCase {
             let foldRow = settingsApp.buttons["scriptRow-fold-empty-replies"].firstMatch
             XCTAssertTrue(reveal(foldRow, in: settingsApp, swipes: 5), "Fold empty replies row missing.")
             XCTAssertTrue(foldRow.label.contains("Uses AI"), "Expected Uses AI in row label, got: \(foldRow.label)")
-            capture("m4-scripts-manager-\(suffix)")
+            captureIfRequested("m4-scripts-manager-\(suffix)")
 
             // 3. Script detail (Can use + AI use today + Clear AI cache)
             foldRow.tap()
@@ -345,7 +352,7 @@ final class ScriptManagerUITests: DCUITestCase {
             XCTAssertTrue(aiUseRow.label.contains("3 calls") && aiUseRow.label.contains("41 from cache"), "Unexpected AI use label: \(aiUseRow.label)")
             let clearBtn = settingsApp.buttons["scriptClearAICacheButton"].firstMatch
             XCTAssertTrue(reveal(clearBtn, in: settingsApp, swipes: 3), "Clear AI cache button missing in Script detail.")
-            capture("m4-script-detail-\(suffix)")
+            captureIfRequested("m4-script-detail-\(suffix)")
 
             if suffix == "light" {
                 clearBtn.tap()
@@ -371,7 +378,7 @@ final class ScriptManagerUITests: DCUITestCase {
             XCTAssertTrue(waitOrDump(popRow, timeout: 8, in: popApp), "Fold empty replies row missing in This page popover.")
             XCTAssertTrue(popRow.label.contains("Uses AI"), "Expected Uses AI in popover row label, got: \(popRow.label)")
             XCTAssertTrue(waitForHittable(popRow, timeout: 5))
-            capture("m4-this-page-\(suffix)")
+            captureIfRequested("m4-this-page-\(suffix)")
         }
     }
 }

@@ -389,6 +389,7 @@ extension AppModel {
     /// - `-dc-skip-onboarding`     marks the walkthrough done (UI tests)
     /// - `-dc-show-settings <page>` Settings on launch (root, provider, forums, …)
     /// - `-dc-panel-settings [page]` opens Settings (a sheet) once the page is up
+    /// - `-dc-no-animations`      turns UIKit/SwiftUI animations off (UI tests)
     /// - `-dc-keychain-sync-probe` also skips the walkthrough so the probe alert shows
     func applyOnboardingDebugArguments() {
         let arguments = OnboardingDebug.arguments
@@ -408,6 +409,10 @@ extension AppModel {
         if arguments.contains("-dc-skip-onboarding") || OnboardingDebug.settingsPage != nil
             || arguments.contains(KeychainSyncProbe.launchArgument) {
             settings.hasCompletedOnboarding = true
+        }
+        // UI tests: skip transitions so each tap settles at once (CI speed).
+        if arguments.contains("-dc-no-animations") {
+            UIView.setAnimationsEnabled(false)
         }
         applyDrawerDebugArguments()
     }

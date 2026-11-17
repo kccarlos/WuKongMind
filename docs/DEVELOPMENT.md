@@ -193,6 +193,14 @@ xcodebuild test-without-building -project WukongMind.xcodeproj -scheme WukongMin
 Use an iPad destination (for example `name=iPad Air 11-inch (M4)`) for the
 side-by-side layout tests; iPhone-only and iPad-only tests skip themselves.
 
+Keep UI tests fast (a CI runner is several times slower than a Mac mini):
+launch with the arguments that seed the state instead of tapping through
+setup; wait on a real condition, not a fixed `RunLoop` sleep; take screenshots
+with `captureIfRequested`, which does nothing unless `DC_SCREENSHOT_DIR`
+(`TEST_RUNNER_DC_SCREENSHOT_DIR`) is set, and keep passes whose only extra is
+a screenshot (the dark pass of `testM4GMAiSettingsManagerAndDetailViews`)
+behind the same variable.
+
 **Offline subset** (no network and no AI; uses the DEBUG sample data):
 
 ```sh
@@ -445,6 +453,7 @@ runs are labeled as Apple Intelligence runs and it is the selected provider.
 | `-dc-onboarding-step <n\|name>` | Opens the first run on a step: 1-based number, or `model`, `site`, `tryAgent`. Step 3 (`tryAgent`) runs over the browser, not in the cover. |
 | `-dc-scroll-bottom`, `-dc-focus` | Walkthrough: scroll to the bottom / focus the key field. |
 | `-dc-skip-onboarding` | Marks the walkthrough done. |
+| `-dc-no-animations` | Turns animations off. `DCUITestCase.launch` adds it to every UI test (a suite whose subject is an animation overrides `disablesAnimations`). |
 | `-dc-show-settings <page>` | Presents Settings: `root`, or a page: `provider` (AI models), `sync`, `forums`, `summaries`, `agent`, `watched`, `digest`, `browser`, `data`, `help`, `sharing`, `about`, `acknowledgements`. |
 | `-dc-panel-settings [page]` | Opens Settings (a sheet) once the page is up, on that sub-page if given. |
 
