@@ -3,7 +3,7 @@ import XCTest
 
 /// Learn on ask acceptance check 10, live: on a learned site's thread, "summarize this thread" said to Gemini Live
 /// (Vertex first) reaches the summary through the hand-off to the Agent. The page is a learned thread of the fixture
-/// forum; the hand-off is scripted here because the Agent half is replayed by `LearningPromptTests` (check 2).
+/// forum, learned in the app's own stores; the hand-off is scripted here because the Agent half is replayed by `LearningPromptTests` (check 2).
 /// Opt-in: needs TEST_RUNNER_VERTEX_API_KEY (or TEST_RUNNER_GEMINI_LIVE_KEY); goes through the live test budget.
 @MainActor
 final class LearnOnAskVoiceLiveTests: XCTestCase {
@@ -29,7 +29,13 @@ final class LearnOnAskVoiceLiveTests: XCTestCase {
         navigator.pageContext = PageContext(url: URL(string: "https://forum.example.org/thread-101")!, state: .notForum)
         navigator.explicitPageTitle = "Cooling Fan Hysteresis and Paste"
         navigator.readableText = "Cooling Fan Hysteresis and Paste\n\nalice: Thermal paste dropped idle temperatures by twelve degrees."
+        // The site is learned in the app's own stores, so `summarize_topic` on this thread is the learned-thread refusal.
+        let script = try app.scriptStore.create(id: "reader.fixture", name: "Reads forum.example.org", matchRules: ["*://forum.example.org/*"], js: "1;", source: .imported, provides: ["read_topic"])
+        var learnedState = SiteToolState(host: "forum.example.org")
+        learnedState.setSlot(SiteSlotState(status: .learned, scriptID: script.id), for: .readTopic)
+        try app.siteToolStateStore.save(learnedState)
         app.browser.setPageContext(navigator.pageContext)
+        navigator.openPageIsLearnedThread = app.openPageIsLearnedThread
         var settings = VoiceSettings()
         settings.sessionLimitMinutes = 0; settings.dailyLimitMinutes = 0
         let session = VoiceSession(
@@ -47,6 +53,7 @@ final class LearnOnAskVoiceLiveTests: XCTestCase {
         try await waitUntil(session, timeout: 40) { session.state.isOver || (!replies.isEmpty && session.state == .listening) }
         print("[LEARN-VOICE] calls=\(navigator.calls) reply=\(replies.last ?? "")")
         session.stop()
+        XCTAssertTrue(navigator.openPageIsLearnedThread, "the app knows the fixture page is a learned thread")
         XCTAssertTrue(navigator.calls.contains { $0.hasPrefix("hand off ") }, "the summary came through the hand-off: \(navigator.calls)")
     }
 

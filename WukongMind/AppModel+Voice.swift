@@ -114,6 +114,11 @@ extension AppModel: VoiceNavigator {
         !browser.showsForumsHome && (browser.webView.url != nil || browser.currentURL != nil)
     }
 
+    var openPageIsLearnedThread: Bool {
+        guard let url = pageContext.url?.absoluteString else { return false }
+        return LearnedThreadReader.isLearnedThread(url, learned: makeLearnedSiteContext(), scriptStore: scriptStore)
+    }
+
     func pageReadableText() async -> String? {
         guard hasOpenPage,
               let body = (try? await browser.agentBridge.readablePageText())?
