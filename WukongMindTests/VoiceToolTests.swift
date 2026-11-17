@@ -670,25 +670,36 @@ final class VoiceToolTests: XCTestCase {
         app.browser.setPageContext(PageContext(url: app.browser.webView.url, state: .notForum))
 
         func scrollY() async throws -> Double { ((try await app.browser.webView.evaluateJavaScript("window.scrollY")) as? NSNumber)?.doubleValue ?? 0 }
+        /// The move returns after at most 200 ms of settling; on a slow runner the
+        /// scroll lands later, so wait on the position instead of reading it once.
+        func settledY(_ matches: (Double) -> Bool) async throws -> Double {
+            let deadline = Date().addingTimeInterval(10)
+            var y = try await scrollY()
+            while !matches(y), Date() < deadline {
+                try await Task.sleep(nanoseconds: 100_000_000)
+                y = try await scrollY()
+            }
+            return y
+        }
         func move(_ action: String) async -> VoiceToolOutcome { await bridge.handle(.init(id: action, name: "browse_move", args: ["action": .string(action)]), eyesFree: false) }
 
         let initialY = try await scrollY()
         XCTAssertEqual(initialY, 0, accuracy: 2)
         let down = await move("down")
         XCTAssertEqual(down.response["status"], "moved")
-        let afterDown = try await scrollY()
+        let afterDown = try await settledY { $0 > 400 }
         XCTAssertGreaterThan(afterDown, 400)
         let up = await move("up")
         XCTAssertEqual(up.response["status"], "moved")
-        let afterUp = try await scrollY()
+        let afterUp = try await settledY { abs($0) <= 2 }
         XCTAssertEqual(afterUp, 0, accuracy: 2)
         let bottom = await move("bottom")
         XCTAssertEqual(bottom.response["status"], "moved")
-        let afterBottom = try await scrollY()
+        let afterBottom = try await settledY { $0 > 2_000 }
         XCTAssertGreaterThan(afterBottom, 2_000)
         let top = await move("top")
         XCTAssertEqual(top.response["status"], "moved")
-        let afterTop = try await scrollY()
+        let afterTop = try await settledY { abs($0) <= 2 }
         XCTAssertEqual(afterTop, 0, accuracy: 2)
 
         let openedTwo = await bridge.handle(.init(id: "p2", name: "open_page", args: ["target": .string("127.0.0.1:\(server.port)/two")]), eyesFree: false)
