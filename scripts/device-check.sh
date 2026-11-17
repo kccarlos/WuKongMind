@@ -333,7 +333,7 @@ mode_launch() {
   : >"$out/launch.log"
   LAUNCHED=1
   xcrun devicectl device process launch --console --terminate-existing \
-    --device "$udid" "$APP_BUNDLE_ID" "$@" >>"$out/launch.log" 2>&1 &
+    --device "$udid" "$APP_BUNDLE_ID" ${1:+--} "$@" >>"$out/launch.log" 2>&1 &
   CHILD_PID=$!
   sleep "$secs" & local sp=$!
   wait "$sp" 2>/dev/null
