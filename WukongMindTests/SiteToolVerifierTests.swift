@@ -14,7 +14,9 @@ final class SiteToolVerifierTests: XCTestCase {
         weak var webView: WKWebView?
         private var continuation: CheckedContinuation<Void, Error>?
 
-        func load(_ wv: WKWebView, url: URL, timeout: Double = 20) async throws {
+        // Returns on didFinish, so a long limit costs nothing when WebKit is fast; the cold
+        // WebContent launch on a CI runner has taken longer than 20 s (-1001 on main).
+        func load(_ wv: WKWebView, url: URL, timeout: Double = 90) async throws {
             try await navigate(wv, timeout: timeout) { wv.load(URLRequest(url: url)) }
         }
         func agentLoad(_ url: URL, wait: Bool, timeout: TimeInterval) async throws -> AgentNavigationOutcome {
