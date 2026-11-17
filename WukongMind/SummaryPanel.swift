@@ -162,9 +162,6 @@ struct AssistantPanel: View {
         // In the drawer the system sheet's glass shows through at medium
         // (opaque at large by itself).
         .background(Color.clear)
-        #if DEBUG
-        .overlay(alignment: .topLeading) { if AssistantDebug.has("-dc-perf-probe") { PerfProbeState(app: app) } }
-        #endif
         .dcKeyboardVisible($isKeyboardVisible)
         .environment(\.activeCitation, app.citationJump?.number)
         // A pointer over a citation pre-highlights the post on the page.
@@ -2132,10 +2129,12 @@ struct WorkProgressCard: View {
 #if DEBUG
 /// `-dc-perf-probe`: the probe's cumulative numbers as an accessibility element
 /// (`perfProbeState`) for the long-thread UI test, refreshed twice a second.
-private struct PerfProbeState: View {
+struct PerfProbeState: View {
     @ObservedObject var app: AppModel
+    @State private var state = ""
+    private let ticks = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
 
-    private var state: String {
+    private func currentState() -> String {
         let main = PerfProbe.mainThreadReport
         let probe = PerfProbe.snapshot
         let session = app.currentSession
@@ -2149,7 +2148,8 @@ private struct PerfProbeState: View {
             fields.append("n:\(name)=\(probe.counts[name] ?? 0)")
         }
         for name in ["AssistantPanel.exportText", "DrawerSummarySections.parsed", "AssistantPanel.strippedSummary",
-                     "AssistantPanel.summaryPlacement", "BrowserAgentRunsView.forumSources"] {
+                     "AssistantPanel.summaryPlacement", "BrowserAgentRunsView.forumSources",
+                     "AssistantPanel.buildHeader", "AssistantPanel.buildThread", "AssistantPanel.buildFooter"] {
             fields.append("n:\(name)=\(probe.counts[name] ?? 0)")
             fields.append("us:\(name)=\(Int((probe.seconds[name] ?? 0) * 1_000_000))")
         }
@@ -2161,17 +2161,18 @@ private struct PerfProbeState: View {
     }
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 0.5)) { _ in
-            let state = state
-            Text(verbatim: state)
-                .font(.system(size: 2))
-                .frame(width: 4, height: 4)
-                .opacity(0.02)
-                .allowsHitTesting(false)
-                .accessibilityLabel(Text(verbatim: state))
-                .accessibilityIdentifier("perfProbeState")
-        }
-        .onAppear { PerfProbe.startMainThreadMonitor() }
+        Text(verbatim: state)
+            .font(.system(size: 2))
+            .frame(width: 4, height: 4)
+            .opacity(0.02)
+            .allowsHitTesting(false)
+            .accessibilityLabel(Text(verbatim: state))
+            .accessibilityIdentifier("perfProbeState")
+            .onAppear {
+                PerfProbe.startMainThreadMonitor()
+                state = currentState()
+            }
+            .onReceive(ticks) { _ in state = currentState() }
     }
 }
 

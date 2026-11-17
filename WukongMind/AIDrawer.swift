@@ -282,7 +282,12 @@ private struct AIDrawerContent: View {
         .accessibilityElement(children: .contain)
         .accessibilityAction(.escape) { router.closeDrawer() }
         #if DEBUG
-        .overlay(alignment: .topLeading) { DrawerDebugState(router: router) }
+        .overlay(alignment: .topLeading) {
+            VStack(alignment: .leading, spacing: 0) {
+                DrawerDebugState(router: router)
+                if AssistantDebug.has("-dc-perf-probe") { PerfProbeState(app: app) }
+            }
+        }
         #endif
         .ignoresSafeArea(.container, edges: .bottom)
         .onAppear { bottomInset = Self.windowBottomInset() }

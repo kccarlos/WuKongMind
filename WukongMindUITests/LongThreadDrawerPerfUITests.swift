@@ -47,7 +47,8 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
     /// The probe's numbers (cumulative since launch).
     private func probe(_ app: XCUIApplication) -> [String: Int] {
         let element = any(app, "perfProbeState")
-        XCTAssertTrue(element.waitForExistence(timeout: 10), "The perf probe element is missing (-dc-perf-probe)")
+        if !element.waitForExistence(timeout: 10) { attachTree(app, named: "No perf probe") }
+        XCTAssertTrue(element.exists, "The perf probe element is missing (-dc-perf-probe)")
         var values: [String: Int] = [:]
         for field in element.label.split(separator: " ") {
             let parts = field.split(separator: "=", maxSplits: 1)
@@ -126,9 +127,10 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
 
         // Closing and opening the drawer (phones and narrow windows).
         if usesDrawerLayout(app) {
+            // The probe lives in the drawer: read it before closing, so this covers close and reopen.
+            before = probe(app)
             closeDrawer(in: app)
             RunLoop.current.run(until: Date().addingTimeInterval(1))
-            before = probe(app)
             let openStarted = Date()
             showAssistant(in: app)
             XCTAssertTrue(any(app, "askBox").waitForExistence(timeout: 20), "The drawer did not reopen")
@@ -136,7 +138,7 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
             RunLoop.current.run(until: Date().addingTimeInterval(1.5))
             after = probe(app)
             report.append("reopen_wall_seconds=\(String(format: "%.2f", openSeconds))")
-            report.append(delta(before, after, per: 1, named: "reopening the drawer"))
+            report.append(delta(before, after, per: 1, named: "closing and reopening the drawer"))
         }
 
         let text = report.joined(separator: "\n")
