@@ -110,10 +110,16 @@ final class SuggestionRowUITests: DCUITestCase {
         follow.tap()
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
         let allow = springboard.buttons["Allow"]
-        if allow.waitForExistence(timeout: 3) { allow.tap() }
         let reply = app.staticTexts.matching(label(contains: "Following.")).firstMatch
-        XCTAssertTrue(waitOrDump(reply, timeout: 15, in: app), "No Following confirmation.")
-        if allow.exists { allow.tap() }
+        // A fresh simulator asks for notification permission, and the agent
+        // waits for the answer. The alert can come late on a slow runner, so
+        // tap Allow whenever it shows up while waiting for the reply.
+        let followed = wait(timeout: 60) {
+            if allow.exists { allow.tap() }
+            return reply.exists
+        }
+        if !followed { attachTree(app) }
+        XCTAssertTrue(followed, "No Following confirmation.")
         XCTAssertTrue(waitForGone(follow, timeout: 5), "Notify me stays after following.")
         captureIfRequested("suggestion-following")
 
