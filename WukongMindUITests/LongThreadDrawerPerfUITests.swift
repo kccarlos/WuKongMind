@@ -38,10 +38,10 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
     }
 
     private static func comment(_ index: Int) -> String {
-        "<p>Data point \(index): opened the account in branch, funded it the same week and the bonus posted "
+        "<p>Data point \(index): opened the account in branch, funded it the same week — the bonus posted "
             + "after about \(60 + index % 40) days. My direct deposit came from a brokerage transfer of "
             + "$\(500 + index % 9 * 250) and it counted. The representative said the terms changed in the spring, "
-            + "but the offer page still shows the old ones.</p>"
+            + "but the offer page still shows the “old” ones, so I’m not sure 😕.</p>"
     }
 
     /// The probe's numbers (cumulative since launch).

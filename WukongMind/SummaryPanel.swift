@@ -102,7 +102,9 @@ struct AssistantPanel: View {
     }
 
     private var exportDisabled: Bool {
-        activePull != nil || !payload.hasContent(options: app.exportOptions)
+        PerfProbe.time("AssistantPanel.exportDisabled") {
+            activePull != nil || !payload.hasContent(options: app.exportOptions)
+        }
     }
 
     private var providerSetupRole: ModelRole? {
@@ -2147,7 +2149,7 @@ struct PerfProbeState: View {
         for name in ["AssistantPanel.body", "ChatThread.body", "BrowserAgentRunsView.runSection", "MarkdownBlockView.body"] {
             fields.append("n:\(name)=\(probe.counts[name] ?? 0)")
         }
-        for name in ["AssistantPanel.exportText", "DrawerSummarySections.parsed", "AssistantPanel.strippedSummary",
+        for name in ["AssistantPanel.exportText", "AssistantPanel.exportDisabled", "DrawerSummarySections.parsed", "AssistantPanel.strippedSummary",
                      "AssistantPanel.summaryPlacement", "BrowserAgentRunsView.forumSources",
                      "AssistantPanel.buildHeader", "AssistantPanel.buildThread", "AssistantPanel.buildFooter"] {
             fields.append("n:\(name)=\(probe.counts[name] ?? 0)")

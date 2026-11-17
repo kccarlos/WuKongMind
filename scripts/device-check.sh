@@ -45,7 +45,7 @@ Options:
   --timeout <seconds>    limit for the test run (default 1800)
   --seconds <seconds>    launch mode: how long to capture the console (default 20)
   --skip-build           reuse the build already in the derived-data dir
-  --xctrace <template>   test mode: record an Instruments trace of the app (e.g. SwiftUI,
+  --xctrace <template>   test mode: record an Instruments trace, all processes (e.g. SwiftUI,
                          'Time Profiler', 'Animation Hitches') from the first line
                          `XCTRACE-START` the tests print, for --xctrace-seconds
                          (default 45), into <out>/perf.trace; log in <out>/xctrace.log
@@ -319,14 +319,9 @@ xctrace_watch() {
     sleep 1
   done
   grep -aq 'XCTRACE-START' "$out/test.log" 2>/dev/null || return 0
-  local f pid
-  f="$(mktemp -t devcheck-procs)"
-  xcrun devicectl device info processes --device "$udid" --json-output "$f" >/dev/null 2>&1
-  pid="$(json_get "$f" 'next((p["processIdentifier"] for p in d.get("result", {}).get("runningProcesses", []) if "/WukongMind.app/" in p.get("executable", "")), "")' 2>/dev/null)"
-  rm -f "$f"
-  [[ -n "$pid" ]] || { log "xctrace: the app is not running; no recording"; return 0; }
-  log "recording '$XCTRACE_TEMPLATE' of pid $pid for ${XCTRACE_SECONDS}s; log: $out/xctrace.log"
-  xcrun xctrace record --device "$udid" --template "$XCTRACE_TEMPLATE" --attach "$pid" \
+  # All processes: xctrace cannot attach by name or pid to an app the test runner launched.
+  log "recording '$XCTRACE_TEMPLATE' for ${XCTRACE_SECONDS}s; log: $out/xctrace.log"
+  xcrun xctrace record --device "$udid" --template "$XCTRACE_TEMPLATE" --all-processes \
     --time-limit "${XCTRACE_SECONDS}s" --output "$out/perf.trace" --no-prompt >"$out/xctrace.log" 2>&1
 }
 

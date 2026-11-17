@@ -30,11 +30,12 @@ final class DrawerPerformanceTests: XCTestCase {
 
     static func post(_ number: Int) -> String {
         "Post #\(number) by user\(number % 97) (2026-11-\(String(format: "%02d", number % 28 + 1))):\n"
-            + "I tried the workaround from the earlier reply on build \(number) and it behaves differently "
+            // Real comments are not plain ASCII (curly quotes, dashes, the odd emoji): that is slower to copy and trim.
+            + "I tried the workaround from the earlier reply on build \(number) and it doesn’t behave the same — "
             + "when the sidebar is collapsed. The header jumps by a few points, the avatar row wraps and the "
             + "composer loses focus after the first keystroke. Steps: open the topic, scroll to the middle, "
-            + "rotate the phone, type one character. Expected: nothing moves. Actual: the list scrolls to the "
-            + "top and the draft is cleared. Logs are attached; the relevant line is `layout pass \(number * 7)`."
+            + "rotate the phone, type one character. Expected: “nothing moves”. Actual: the list scrolls to the "
+            + "top and the draft is cleared 😕. Logs are attached; the relevant line is `layout pass \(number * 7)`."
     }
 
     static func source(posts: Int) -> String {
@@ -295,7 +296,7 @@ final class DrawerPerformanceTests: XCTestCase {
         }
         for name in [
             "AssistantPanel.buildHeader", "AssistantPanel.buildThread", "AssistantPanel.buildFooter",
-            "AssistantPanel.exportText", "DrawerSummarySections.parsed", "AssistantPanel.summaryPlacement",
+            "AssistantPanel.exportText", "AssistantPanel.exportDisabled", "DrawerSummarySections.parsed", "AssistantPanel.summaryPlacement",
             "AssistantPanel.strippedSummary", "BrowserAgentRunsView.timeline", "BrowserAgentRunsView.forumSources"
         ] {
             record(fixture.name, "per_key_ms:\(name)", (typing.seconds[name] ?? 0) * 1_000 / Double(typed))
