@@ -11,6 +11,17 @@ import XCTest
 /// No network, no model: the thread, the summary and the conversation are generated here.
 @MainActor
 final class DrawerPerformanceTests: XCTestCase {
+    override func setUp() {
+        super.setUp()
+        PerfProbe.isEnabled = true
+    }
+
+    override func tearDown() {
+        PerfProbe.isEnabled = false
+        PerfProbe.reset()
+        super.tearDown()
+    }
+
     // MARK: Fixture
 
     struct Fixture {

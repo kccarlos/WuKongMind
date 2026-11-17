@@ -247,8 +247,8 @@ TEST_RUNNER_DC_PERF_TRACE=1 scripts/device-check.sh test --xctrace SwiftUI --xct
 
 - `DrawerPerformanceTests` prints `PERF<tab>case<tab>metric<tab>value` lines (also attached as
   `drawer-perf.tsv`). Times are main-thread milliseconds for one action, measured around the run
-  loop pass that renders it; counts are view body evaluations from `PerfProbe` (DEBUG only,
-  `WukongMind/PerfProbe.swift`, which also emits signposts in the subsystem
+  loop pass that renders it; counts are view body evaluations from `PerfProbe` (DEBUG only and off unless
+  `-dc-perf-probe` or a test turns it on; `WukongMind/PerfProbe.swift`, which also emits signposts in the subsystem
   `io.github.kccarlos.wukongmind.perf`).
 - `LongThreadDrawerPerfUITests` prints `LONG-THREAD-PERF` lines from the app's own probe
   (`-dc-perf-probe`). `testRealLongThread` reads a real page's comments

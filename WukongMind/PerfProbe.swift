@@ -3,8 +3,9 @@ import os
 
 /// Counts and times the drawer's hot paths (docs/wukongmind/design-performance-and-state.md).
 ///
-/// DEBUG only: in Release every call is an inlined no-op. `hit` counts a view body
-/// evaluation, `time` adds the wall time of a block; both also emit signposts
+/// DEBUG only: in Release every call is an inlined no-op, and in Debug it does nothing
+/// until `isEnabled` is set (the `-dc-perf-probe` launch argument, or a test). `hit` counts
+/// a view body evaluation, `time` adds the wall time of a block; both also emit signposts
 /// (subsystem `io.github.kccarlos.wukongmind.perf`) so Instruments shows them on a
 /// device. `DrawerPerformanceTests` reads the numbers; nothing in the app does.
 enum PerfProbe {
@@ -17,13 +18,18 @@ enum PerfProbe {
     private static let state = OSAllocatedUnfairLock(initialState: Snapshot())
     private static let signposter = OSSignposter(subsystem: "io.github.kccarlos.wukongmind.perf", category: "drawer")
 
+    /// Off by default so an ordinary Debug run does no extra work in its view bodies.
+    nonisolated(unsafe) static var isEnabled = ProcessInfo.processInfo.arguments.contains("-dc-perf-probe")
+
     static func hit(_ name: StaticString) {
+        guard isEnabled else { return }
         signposter.emitEvent(name)
         let key = "\(name)"
         state.withLock { $0.counts[key, default: 0] += 1 }
     }
 
     static func time<T>(_ name: StaticString, _ body: () throws -> T) rethrows -> T {
+        guard isEnabled else { return try body() }
         let interval = signposter.beginInterval(name)
         let start = DispatchTime.now().uptimeNanoseconds
         defer {
