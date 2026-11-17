@@ -184,9 +184,9 @@ final class WordPressUITests: DCUITestCase {
         XCTAssertTrue(waitForHittable(summarize))
         summarize.tap()
 
-        let summary = any(app, "summaryContent")
-        XCTAssertTrue(waitOrDump(summary, timeout: 60, in: app), "The summary did not appear.")
-        XCTAssertTrue(any(app, "capabilityThreadSummaryCard").waitForExistence(timeout: 30), "Missing summary card under summarize_topic.")
+        XCTAssertTrue(waitOrDump(any(app, "capabilityThreadSummaryCard"), timeout: 90, in: app), "Missing summary card under summarize_topic.")
+        // One summary on screen: the card, not also the top section (WUKO-134).
+        XCTAssertFalse(any(app, "summaryContent").exists, "The summary shows twice.")
         XCTAssertTrue(
             wait(timeout: 30) { self.server.modelRequests.contains { $0.contains("Comment number 250") } },
             "The model was not handed the last comment; requests: \(server.modelRequests.map(\.count))"

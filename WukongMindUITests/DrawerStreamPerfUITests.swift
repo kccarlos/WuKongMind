@@ -52,7 +52,9 @@ final class DrawerStreamPerfUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(summarize, timeout: 40, in: app), "No summary offered.")
         XCTAssertTrue(waitForHittable(summarize))
         summarize.tap()
-        XCTAssertTrue(waitOrDump(any(app, "summaryContent"), timeout: 60, in: app), "The summary did not appear.")
+        // It streams at the top, then shows as the conversation's card (WUKO-134).
+        XCTAssertTrue(wait(timeout: 60) { self.any(app, "summaryContent").exists || self.any(app, "capabilityThreadSummaryCard").exists },
+                      "The summary did not appear.")
         return app
     }
 

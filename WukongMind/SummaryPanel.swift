@@ -993,7 +993,8 @@ struct AssistantPanel: View {
     private struct SummaryPlacement {
         /// The conversation's newest summary card for this thread, which carries its actions.
         var cardRowID: UUID?
-        /// The top section shows no summary: a card has it, one is on the way, or New conversation hid it.
+        /// The top section shows no summary: a card has it, New conversation hid it, or a
+        /// summarize call is on its way (a fresh run still streams at the top until its card shows).
         var hidesTop = false
         /// The top section shows no progress or error either (they go under the card, or were cleared).
         var hidesTopStatus = false
@@ -1006,7 +1007,7 @@ struct AssistantPanel: View {
         let pending = BrowserAgentRunsView.hasRunningThreadSummary(in: browserAgent.runs)
         return SummaryPlacement(
             cardRowID: cardRowID,
-            hidesTop: cardRowID != nil || pending || hiddenByReset,
+            hidesTop: cardRowID != nil || hiddenByReset || (pending && activeSummary == nil),
             hidesTopStatus: cardRowID != nil || hiddenByReset
         )
     }
