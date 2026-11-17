@@ -2146,7 +2146,9 @@ struct PerfProbeState: View {
         for (index, threshold) in PerfProbe.MainThreadReport.thresholds.enumerated() {
             fields.append("over\(Int(threshold * 1_000))=\(main.over[index])")
         }
-        for name in ["AssistantPanel.body", "ChatThread.body", "BrowserAgentRunsView.runSection", "MarkdownBlockView.body"] {
+        for name in ["AssistantPanel.body", "ChatThread.body", "BrowserAgentRunsView.runSection", "MarkdownBlockView.body",
+                     "publish.AppModel", "publish.ForumBrowserModel", "publish.StreamStore", "publish.VoiceController",
+                     "publish.PresentationRouter"] {
             fields.append("n:\(name)=\(probe.counts[name] ?? 0)")
         }
         for name in ["AssistantPanel.exportText", "AssistantPanel.exportDisabled", "DrawerSummarySections.parsed", "AssistantPanel.strippedSummary",
@@ -2175,6 +2177,12 @@ struct PerfProbeState: View {
                 state = currentState()
             }
             .onReceive(ticks) { _ in state = currentState() }
+            // Who publishes: every one of these re-evaluates each view that observes the object.
+            .onReceive(app.objectWillChange) { _ in PerfProbe.hit("publish.AppModel") }
+            .onReceive(app.browser.objectWillChange) { _ in PerfProbe.hit("publish.ForumBrowserModel") }
+            .onReceive(app.streams.objectWillChange) { _ in PerfProbe.hit("publish.StreamStore") }
+            .onReceive(app.voice.objectWillChange) { _ in PerfProbe.hit("publish.VoiceController") }
+            .onReceive(app.router.objectWillChange) { _ in PerfProbe.hit("publish.PresentationRouter") }
     }
 }
 
