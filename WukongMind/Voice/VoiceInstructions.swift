@@ -85,7 +85,7 @@ enum VoiceInstructions {
         case .short:
             lead = "Answer briefly but completely: the answer first, plus the one or two concrete details the user needs (a number, a name, a step), in one to three sentences. Skip background unless it changes the answer; the user can ask for more. A short answer is still an answer, not a teaser."
         case .normal:
-            lead = "Give a useful answer the first time: what the answer is, then the specifics behind it (reasons, numbers, names, steps, any caveat that matters), usually a few sentences. Don't hold back the substance for follow-up questions, and don't finish by offering to say more when you could just say it."
+            lead = "Give a useful answer the first time: what the answer is, then the specifics behind it (reasons, numbers, names, steps, any caveat that matters), usually two to four sentences. Don't hold back the substance for follow-up questions, and don't finish by offering to say more when you could just say it."
         case .detailed:
             lead = "Go into depth: the answer, why it holds, the specifics and steps that matter, and the caveats worth knowing. Don't finish by offering to say more when you could just say it."
         }

@@ -29,6 +29,8 @@ final class VoiceController: ObservableObject {
     private var engine: VoiceAudioIO?
     private var stateSubscription: AnyCancellable?
     private var lastStartedAt: ContinuousClock.Instant?
+    /// Left by a session that closed for quiet: the next tap resumes it.
+    private var resumption: VoiceSession.Resumption?
 
     init(app: AppModel) {
         self.app = app
@@ -109,7 +111,9 @@ final class VoiceController: ObservableObject {
                 if state.isOver { self?.sessionEnded() }
             }
             audioEngine?.onStopped = { [weak session] _ in session?.audioFailed() }
-            Task { await session.start() }
+            let previous = resumption
+            resumption = nil
+            Task { await session.start(resuming: previous) }
         }
     }
 
@@ -195,6 +199,7 @@ final class VoiceController: ObservableObject {
         // publish: views that only observe the controller (the drawer's
         // status row) look again.
         objectWillChange.send()
+        resumption = session?.resumption
         app?.voiceSessionEnded()
         finished()
     }

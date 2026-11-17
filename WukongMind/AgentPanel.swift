@@ -300,7 +300,7 @@ struct BrowserAgentRunsView: View {
                 ?? argsObj?["match_rules"]?.arrayValue?.first?.stringValue
                 ?? ""
             let repairTarget: ScriptRepairTarget? = isUpdate
-                ? (run.repairTarget?.scriptID == scriptID ? run.repairTarget : nil)
+                ? (run.repairTarget?.scriptID == scriptID ? run.repairTarget : ScriptRepairTarget(scriptID: scriptID, payload: obj))
                 : nil
             let entry = SavedScriptCardEntry(
                 scriptID: scriptID,
@@ -617,6 +617,25 @@ struct BrowserAgentRunsView: View {
         }
     }
 
+    /// The newest finished `summarize_topic` card for `topicKey`: the one place
+    /// the drawer shows that thread's summary while the conversation has it (WUKO-134).
+    static func latestThreadSummaryRowID(in runs: [BrowserAgentRun], topicKey: String, app: AppModel) -> UUID? {
+        guard !topicKey.isEmpty else { return nil }
+        for run in runs.reversed() {
+            for row in run.toolCalls.reversed() where row.toolName == "summarize_topic" && !row.isRunning && !row.isError {
+                if case .thread(let thread) = row.shape, app.session(forThreadShape: thread)?.topicKey == topicKey {
+                    return row.id
+                }
+            }
+        }
+        return nil
+    }
+
+    /// A `summarize_topic` call still running: its card is on the way.
+    static func hasRunningThreadSummary(in runs: [BrowserAgentRun]) -> Bool {
+        runs.contains { $0.toolCalls.contains { $0.toolName == "summarize_topic" && $0.isRunning } }
+    }
+
     static func capabilityEntries(in rows: [BrowserAgentToolCallRow]) -> [CapabilityResultEntry] {
         rows.compactMap(capabilityEntry(for:))
     }
@@ -667,8 +686,8 @@ struct BrowserAgentRunsView: View {
     @ViewBuilder
     private func capabilityCard(for entry: CapabilityResultEntry) -> some View {
         switch entry {
-        case .threadSummary(_, let thread, let fallbackText):
-            CapabilityThreadSummaryCard(app: app, thread: thread, fallbackText: fallbackText)
+        case .threadSummary(let id, let thread, let fallbackText):
+            CapabilityThreadSummaryCard(app: app, rowID: id, thread: thread, fallbackText: fallbackText)
         case .textSummary(_, let title, let markdown):
             DCResultCard(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text") {
                 if !title.isEmpty { Text(verbatim: title).font(.caption).lineLimit(1) }
@@ -683,10 +702,23 @@ struct BrowserAgentRunsView: View {
     }
 }
 
+/// Actions under the open thread's newest summary card (Retry, Check for new
+/// replies, progress), given by the drawer that owns them (WUKO-134).
+struct ThreadSummaryCardFooter {
+    let rowID: UUID
+    let content: (TopicSession) -> AnyView
+}
+
+extension EnvironmentValues {
+    @Entry var threadSummaryCardFooter: ThreadSummaryCardFooter?
+}
+
 private struct CapabilityThreadSummaryCard: View {
     @ObservedObject var app: AppModel
+    let rowID: UUID
     let thread: ThreadShape
     let fallbackText: String
+    @Environment(\.threadSummaryCardFooter) private var footer
 
     var body: some View {
         let session = app.session(forThreadShape: thread)
@@ -714,6 +746,9 @@ private struct CapabilityThreadSummaryCard: View {
                 return .handled
             })
             .accessibilityIdentifier("capabilityThreadSummaryCard")
+            if let footer, footer.rowID == rowID, let session, session.topicKey == app.currentTopic?.topicKey {
+                footer.content(session)
+            }
         }
     }
 }

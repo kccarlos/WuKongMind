@@ -16,8 +16,17 @@ extension ToolRegistry {
     /// (`search_forum` is the card tool in `ToolRegistry+Browse.swift`).
     static func forumTools(context: AgentToolContext, surface: ToolSurface = .text) -> [AgentTool] {
         guard surface == .text else {
-            var voiceReadTopic = readTopicDefinition(topic: "thread", urlHint: "Thread or post URL on the current site")
-            voiceReadTopic.description += " Only works when the screen note says the user is on a forum; elsewhere it refuses."
+            // Short for voice: every model turn re-bills the declarations (voice-cost.md).
+            let voiceReadTopic = AgentToolDefinition(
+                name: ForumToolName.readTopic,
+                description: "Pull a forum thread's posts: the open one, or topic_id or url; page for a part of a long thread, query to filter posts.",
+                parameters: [
+                    ToolParameterSchema(name: "topic_id", type: .string, description: "Thread id."),
+                    ToolParameterSchema(name: "url", type: .string, description: "Thread or post URL."),
+                    ToolParameterSchema(name: "page", type: .integer, description: "Part of a long thread, \(RawForumPage.size) posts each."),
+                    ToolParameterSchema(name: "query", type: .string, description: "Words to filter posts by.")
+                ]
+            )
             if let forum = context.forum {
                 return [makeReadTopicTool(forum: forum, definition: voiceReadTopic)]
             }

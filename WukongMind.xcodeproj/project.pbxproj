@@ -218,6 +218,7 @@
 		446F1AE31C691AD26A05DF476EC982BD /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-0a3217c0db3a.json in Resources */ = {isa = PBXBuildFile; fileRef = 51938116BE7DFEA91608179DB3E40F33 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-0a3217c0db3a.json */; };
 		45330E2F229C6267138608E002C37913 /* discourse-meta-appinn-net-search-json-e3ea1500d129.json in Resources */ = {isa = PBXBuildFile; fileRef = FD73157C2614D72878254CF5736E2A15 /* discourse-meta-appinn-net-search-json-e3ea1500d129.json */; };
 		46127C5482FA61B2FF27B731AAC7F3F0 /* ScriptStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 631A00951BD9A89EAF5F5B1B1474EF8A /* ScriptStore.swift */; };
+		461E9B28DCF42133C8F4FFC6E8533B17 /* LearnOnAskVoiceLiveTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78BAB0FA690B9B07B8BF865EA8CB7FA9 /* LearnOnAskVoiceLiveTests.swift */; };
 		46662DDBC2EAF6819C38C5BE1D01D720 /* PageFactsProbe.js in Resources */ = {isa = PBXBuildFile; fileRef = 6DB62B52E30088BF4E7CEA7B3F6B1B7C /* PageFactsProbe.js */; };
 		46894B8BBB9B3CDDB810C2C0C97D4257 /* ProviderModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6E11F3BB41B93049BC23C2097EAEAE1 /* ProviderModels.swift */; };
 		4695989EC10F7C4F916B46EB73C40564 /* AgentWorkspaceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 788E5004281BC54D493160D0C4983732 /* AgentWorkspaceTests.swift */; };
@@ -255,6 +256,7 @@
 		5409394DB0D315D1CBDC4B33022E3B9A /* page-13.html in Resources */ = {isa = PBXBuildFile; fileRef = 3AC2E21E18BA2EF6546AFAF358B3C291 /* page-13.html */; };
 		546B87AEA23BAB7BB63354759A1D64ED /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-4a36b0cce311.json in Resources */ = {isa = PBXBuildFile; fileRef = 1F6007D5BD74EA7A4BAB8F5F51B7A6CC /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-4a36b0cce311.json */; };
 		54D6D85D1689DB6EDBACCD50C0BAEE3A /* SettingsPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 29E0E644FE41CC94CF9D5C7D9B20ED6E /* SettingsPanel.swift */; };
+		554FD87AF905AEF132AE94A7E938C092 /* VoicePromptSizeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 54619FD77CA07FDCE55D19209608620A /* VoicePromptSizeTests.swift */; };
 		55B70F3B0C8705839203DF4D8C8BD1AE /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-aad2545597c8.json in Resources */ = {isa = PBXBuildFile; fileRef = EF6D947A5B3A5A68C05B359B92497B75 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-aad2545597c8.json */; };
 		562B66EA43F8D657B8E6B6EFBD52485B /* speech-d.wav in Resources */ = {isa = PBXBuildFile; fileRef = 1099FD69F91DA8B9654A020C7A5F21CE /* speech-d.wav */; };
 		5658C5882243BDC1D19FC890469C565C /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-4dab23780800.json in Resources */ = {isa = PBXBuildFile; fileRef = E5D2B68C99F7DC46ABE554F3FA5EF973 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-4dab23780800.json */; };
@@ -522,6 +524,7 @@
 		B050449A524447732BC64FAF47990313 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-f2eb01efcb75.json in Resources */ = {isa = PBXBuildFile; fileRef = A982FF6CF87E573EFED13D7DD00E86DC /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-f2eb01efcb75.json */; };
 		B0557F2FB4E24BD662FAFDF428296F63 /* LearningPromptTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F42A8107B554C6601ECDA87A478C4816 /* LearningPromptTests.swift */; };
 		B104B16860EE786EEB8CDA1EBE98C11D /* gate2-wordpress-www-doctorofcredit-com-wp-json-wp-v2-65559d5be774.json in Resources */ = {isa = PBXBuildFile; fileRef = 48500B176A010E8485D1199FC2FA21B9 /* gate2-wordpress-www-doctorofcredit-com-wp-json-wp-v2-65559d5be774.json */; };
+		B14E20AA5C69C7F5D20FE17CE76BFAC1 /* LearnOnAskAcceptanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F08D59046F412BBD558ADDC19D66487 /* LearnOnAskAcceptanceTests.swift */; };
 		B16E9B269FFDE23369D5B8755F344977 /* AppModel+StateDebug.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0743D57BFC229854302B3DA2C7ACED31 /* AppModel+StateDebug.swift */; };
 		B1F3ECBEDA667A16E654161D3BD794B6 /* hackernews-hn-algolia-com-api-v1-items-49501147-64034383ba3f.json in Resources */ = {isa = PBXBuildFile; fileRef = 0AB2C0C5F34F05F3733BE584D4B44A0B /* hackernews-hn-algolia-com-api-v1-items-49501147-64034383ba3f.json */; };
 		B237FB19A00BE101C21D545BC9DFCFD9 /* M3LiveAcceptanceUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C1786083E0440C2BB771A21E0515729 /* M3LiveAcceptanceUITests.swift */; };
@@ -1041,6 +1044,7 @@
 		4D6047907AA24ADADD0C72A163D0D9A3 /* wordpress-home.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-home.json"; path = "Fixtures/PageFacts/wordpress-home.json"; sourceTree = "<group>"; };
 		4DE486C830E760855F28F612D4C2FE0F /* FakeSiteAdapter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = FakeSiteAdapter.swift; path = Sites/FakeSiteAdapter.swift; sourceTree = "<group>"; };
 		4E1C22AB3C4FD67629D42B8C1C8B162D /* discourse-meta-appinn-net-search-json-045a3eb2b366.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-meta-appinn-net-search-json-045a3eb2b366.json"; path = "Fixtures/Comparison/discourse/discourse-meta-appinn-net-search-json-045a3eb2b366.json"; sourceTree = "<group>"; };
+		4F08D59046F412BBD558ADDC19D66487 /* LearnOnAskAcceptanceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LearnOnAskAcceptanceTests.swift; sourceTree = "<group>"; };
 		5073585B13344F368D739E84D83A0937 /* DiscourseRecognizer.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseRecognizer.swift; path = Sites/Recognition/DiscourseRecognizer.swift; sourceTree = "<group>"; };
 		50EB265697F82AF4AEF5D348A0C73F37 /* ScriptStoreWebTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ScriptStoreWebTests.swift; sourceTree = "<group>"; };
 		514228D7C2B8964E9164E10C1E143698 /* CloudSyncTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CloudSyncTests.swift; sourceTree = "<group>"; };
@@ -1048,6 +1052,7 @@
 		51938116BE7DFEA91608179DB3E40F33 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-0a3217c0db3a.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-0a3217c0db3a.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-0a3217c0db3a.json"; sourceTree = "<group>"; };
 		527DA8FED3478F1F4C7649330DD9A967 /* PhysicalDeviceSmokeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PhysicalDeviceSmokeTests.swift; sourceTree = "<group>"; };
 		53146E0DCF9C8EC3BE91A9A921835085 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-a7e9d85d3642.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-a7e9d85d3642.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-a7e9d85d3642.json"; sourceTree = "<group>"; };
+		54619FD77CA07FDCE55D19209608620A /* VoicePromptSizeTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = VoicePromptSizeTests.swift; sourceTree = "<group>"; };
 		54CC15F51475A05F932DD596B17CCDC3 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-112eac202e11.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-112eac202e11.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-112eac202e11.json"; sourceTree = "<group>"; };
 		54F887C08CD8148FA84574C8707A88E8 /* gate2-hackernews-hn-algolia-com-api-v1-items-50498151-78d63010151c.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "gate2-hackernews-hn-algolia-com-api-v1-items-50498151-78d63010151c.json"; path = "Fixtures/Comparison/gate2/hackernews/gate2-hackernews-hn-algolia-com-api-v1-items-50498151-78d63010151c.json"; sourceTree = "<group>"; };
 		551EDA3600720A423D61C56E7238F390 /* gate2-wordpress-www-doctorofcredit-com-wp-json-wp-v2-a173844b009e.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "gate2-wordpress-www-doctorofcredit-com-wp-json-wp-v2-a173844b009e.json"; path = "Fixtures/Comparison/gate2/wordpress/gate2-wordpress-www-doctorofcredit-com-wp-json-wp-v2-a173844b009e.json"; sourceTree = "<group>"; };
@@ -1157,6 +1162,7 @@
 		788BFB36EB704BBDA3C18F3A823BC730 /* NetworkFailure.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NetworkFailure.swift; sourceTree = "<group>"; };
 		788E5004281BC54D493160D0C4983732 /* AgentWorkspaceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentWorkspaceTests.swift; sourceTree = "<group>"; };
 		789DF08992EF4BB7EA7FB74B237BFB5A /* hackernews-hn-algolia-com-api-v1-items-48326802-56124c4f8886.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "hackernews-hn-algolia-com-api-v1-items-48326802-56124c4f8886.json"; path = "Fixtures/Comparison/hackernews/hackernews-hn-algolia-com-api-v1-items-48326802-56124c4f8886.json"; sourceTree = "<group>"; };
+		78BAB0FA690B9B07B8BF865EA8CB7FA9 /* LearnOnAskVoiceLiveTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LearnOnAskVoiceLiveTests.swift; sourceTree = "<group>"; };
 		795C22282CC90AC13630DD9FF1A50267 /* discourse-meta-appinn-net-raw-88672-d5ffa82ed63c.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-meta-appinn-net-raw-88672-d5ffa82ed63c.json"; path = "Fixtures/Comparison/discourse/discourse-meta-appinn-net-raw-88672-d5ffa82ed63c.json"; sourceTree = "<group>"; };
 		7987766F9975AA89F001B475881A17E3 /* BrowserTabs.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserTabs.swift; sourceTree = "<group>"; };
 		7AB96F29B8D54289D42AB8D92A02C104 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-d89eae096fd0.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-d89eae096fd0.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-d89eae096fd0.json"; sourceTree = "<group>"; };
@@ -1960,6 +1966,8 @@
 				4BDA17EE0B24B071D63CA3AA13B40C08 /* IPadLayoutTests.swift */,
 				EAF5DDF9DF30237F043D7BDE1646076B /* IncomingLinkTests.swift */,
 				3387004FC0363D685551305BDE1D2EA5 /* KeychainSyncTests.swift */,
+				4F08D59046F412BBD558ADDC19D66487 /* LearnOnAskAcceptanceTests.swift */,
+				78BAB0FA690B9B07B8BF865EA8CB7FA9 /* LearnOnAskVoiceLiveTests.swift */,
 				CB03948E38A179797FB3E4FB64200C33 /* LearnedSiteRepairTests.swift */,
 				1CA5F44A428E56B8791C0BFD74D9C24F /* LearnedSiteToolsTests.swift */,
 				F42A8107B554C6601ECDA87A478C4816 /* LearningPromptTests.swift */,
@@ -2030,6 +2038,7 @@
 				BEE5ED42E693A86905D51D9E8BA12E07 /* VoiceAudioHealthTests.swift */,
 				98F07EF460B9877232CC2B21D6218424 /* VoiceFakes.swift */,
 				572C267838FEB5CAC59E33A1F6C11C4C /* VoiceLiveCostTests.swift */,
+				54619FD77CA07FDCE55D19209608620A /* VoicePromptSizeTests.swift */,
 				6A30F9D46F1D1DE9CDE69CC3D8270F13 /* VoiceProtocolTests.swift */,
 				B36630B4C78CDC352CF516FA1F9F6CD9 /* VoiceSessionTests.swift */,
 				E5294967BFFD9197450DD5FDA36D6076 /* VoiceToolTests.swift */,
@@ -3064,6 +3073,8 @@
 				FF675C257CFBE930D866393A83D509CB /* IPadLayoutTests.swift in Sources */,
 				40FD63E7AE2B01F88527C6D6198573B7 /* IncomingLinkTests.swift in Sources */,
 				F736E541F4B674485FFECD3C8B0452D6 /* KeychainSyncTests.swift in Sources */,
+				B14E20AA5C69C7F5D20FE17CE76BFAC1 /* LearnOnAskAcceptanceTests.swift in Sources */,
+				461E9B28DCF42133C8F4FFC6E8533B17 /* LearnOnAskVoiceLiveTests.swift in Sources */,
 				6EF5CDE64150A29112577BF5BAD17DA3 /* LearnedSiteRepairTests.swift in Sources */,
 				DF35304E12EFB79959A7B15E02EA0F73 /* LearnedSiteToolsTests.swift in Sources */,
 				B0557F2FB4E24BD662FAFDF428296F63 /* LearningPromptTests.swift in Sources */,
@@ -3134,6 +3145,7 @@
 				B58A5AD055E19FB24AA945E7785981C8 /* VoiceAudioHealthTests.swift in Sources */,
 				0EC89464EBB3A72CC847936DDC1317C2 /* VoiceFakes.swift in Sources */,
 				38484B9419A6DF8BE1551CF493453838 /* VoiceLiveCostTests.swift in Sources */,
+				554FD87AF905AEF132AE94A7E938C092 /* VoicePromptSizeTests.swift in Sources */,
 				EC789CB341786EA97EE41FD3E895354F /* VoiceProtocolTests.swift in Sources */,
 				76312B6CBFDE3E075784E84117011908 /* VoiceSessionTests.swift in Sources */,
 				0407E0CBD5B08C2C00D5D8462D538144 /* VoiceToolTests.swift in Sources */,
@@ -3473,6 +3485,36 @@
 			};
 			name = Debug;
 		};
+		33536128ACEE22A38A26D689D411C05C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMind/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.5.0;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		3DBADB521FFCFACAEDD12716EB9A43F4 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -3547,27 +3589,26 @@
 			};
 			name = Release;
 		};
-		6FF601F8C19EF714970ADFEE03EAE645 /* Debug */ = {
+		8EEDFE12FCC58B7A3E88D9E141037ADC /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
 				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
 				DEVELOPMENT_TEAM = GV776BZVA8;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMind/Info.plist;
+				INFOPLIST_FILE = WukongMindShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.4.0;
-				OTHER_SWIFT_FLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.5.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -3590,6 +3631,37 @@
 				SDKROOT = macosx;
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		A7B37A8CEEFFA04BB6E9A02030695F15 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMind/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.5.0;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
@@ -3628,65 +3700,6 @@
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
-		};
-		BAA2433F2484D38AA400F4BA194C3374 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
-				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
-				DEVELOPMENT_TEAM = GV776BZVA8;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMindShare/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.4.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		CBE6FC7E05CEF17F453B93EDA71B382F /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
-				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
-				DEVELOPMENT_TEAM = GV776BZVA8;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMindShare/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.4.0;
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
 		};
 		CE45AAF706AD2D3DF7D7F241BF21C72E /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -3729,27 +3742,26 @@
 			};
 			name = Release;
 		};
-		EC4ECF4B68F61E1C0183CE01FE56B292 /* Release */ = {
+		FEE7B8C5773FD6F89061C7A4C07C1243 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
 				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
 				DEVELOPMENT_TEAM = GV776BZVA8;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMind/Info.plist;
+				INFOPLIST_FILE = WukongMindShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.4.0;
-				OTHER_SWIFT_FLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.5.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -3775,8 +3787,8 @@
 		7F47FA70E98716F0343E66C51BF1D32A /* Build configuration list for PBXNativeTarget "WukongMind" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				EC4ECF4B68F61E1C0183CE01FE56B292 /* Release */,
-				6FF601F8C19EF714970ADFEE03EAE645 /* Debug */,
+				A7B37A8CEEFFA04BB6E9A02030695F15 /* Release */,
+				33536128ACEE22A38A26D689D411C05C /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3811,8 +3823,8 @@
 		E4F9F055622E051509E620676B2CAF91 /* Build configuration list for PBXNativeTarget "WukongMindShare" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				CBE6FC7E05CEF17F453B93EDA71B382F /* Release */,
-				BAA2433F2484D38AA400F4BA194C3374 /* Debug */,
+				FEE7B8C5773FD6F89061C7A4C07C1243 /* Release */,
+				8EEDFE12FCC58B7A3E88D9E141037ADC /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

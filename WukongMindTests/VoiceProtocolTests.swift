@@ -44,7 +44,7 @@ final class VoiceProtocolTests: XCTestCase {
         XCTAssertNotNil(body["outputAudioTranscription"] as? [String: Any])
         let compression = try XCTUnwrap(body["contextWindowCompression"] as? [String: Any])
         // int64 in proto JSON: strings.
-        XCTAssertEqual(compression["triggerTokens"] as? String, "16000")
+        XCTAssertEqual(compression["triggerTokens"] as? String, "10000")
         XCTAssertEqual((compression["slidingWindow"] as? [String: Any])?["targetTokens"] as? String, "4000")
         // An empty object opts in to resumption handles.
         XCTAssertEqual((body["sessionResumption"] as? [String: Any])?.count, 0)

@@ -24727,23 +24727,6 @@
         }
       }
     },
-    "Use %@ for both" : {
-      "comment" : "Settings › Models: gives both Agent and Summaries this model. The placeholder is a provider and model, e.g. OpenRouter · kimi-k2.",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "两者都使用 %@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "兩者都使用 %@"
-          }
-        }
-      }
-    },
     "Use a Vertex AI API key. The model list is built in; you can also type any Gemini model ID that your project can use." : {
       "localizations" : {
         "zh-Hans" : {
