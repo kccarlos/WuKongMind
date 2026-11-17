@@ -38,6 +38,12 @@ UNIT_A=(
   PageFeedbackTests         # ~38 s
   AgentPageCaptureTests     # ~30-86 s
   LiveReplayTests           # ~30 s
+  ContentBlockerWebKitTests # ~22-35 s
+  TabsToolTests             # ~18-20 s
+  ScriptImportTests         # ~15-27 s
+  CapabilityToolsTests      # ~12-29 s
+  LearnedSiteRepairWebTests # ~14-19 s
+  LookLikeThreadProbeTests  # ~15-17 s
 )
 
 UI_SUITES=(SuggestionRowUITests ScriptManagerUITests)
@@ -49,11 +55,13 @@ UI_1=(
   ScriptManagerUITests/testAutoDisabledScriptShowsReasonAndFixButtonInThisPage # ~120 s
 )
 
-# Pull request UI smoke set (~2.5 min): quick, stable tests that cover the
+# Pull request UI smoke set (~2.5 min): quick tests that cover the
 # main surfaces. The suggestion row on a forum thread and on an ordinary page,
 # handing a search to the agent, the page-scripts popover, and the script
-# manager with its history. Known flaky or slow tests (testNotifyMeFollowsTheThread,
-# the UI_1 tests) stay out; they run on main, nightly and tags.
+# manager with its history. The slowest and most often retried tests
+# (testNotifyMeFollowsTheThread, the UI_1 tests) stay out; they run on main,
+# nightly and tags. testSearchThisForum... and testPageScriptsPopover... have
+# needed a retry too (WUKO-126/127 own flaky tests).
 UI_SMOKE=(
   SuggestionRowUITests/testForumThreadShowsFourSuggestions
   SuggestionRowUITests/testOrdinaryPageShowsPageSuggestions

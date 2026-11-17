@@ -133,12 +133,16 @@ jobs:
       - name: Raw xcodebuild tail
         if: failure()
         run: tail -n 60 build.log || true
+      # No run_attempt in the name: "Re-run failed jobs" re-runs only the test
+      # jobs, which must find the first attempt's products. A full re-run
+      # rebuilds and overwrites them.
       - name: Upload test products
         uses: actions/upload-artifact@v7
         with:
-          name: test-products-${{ github.run_id }}-${{ github.run_attempt }}
+          name: test-products-${{ github.run_id }}
+          overwrite: true
           path: test-products.zip
-          retention-days: 1
+          retention-days: 3
           compression-level: 0
           if-no-files-found: error
 
@@ -161,7 +165,7 @@ jobs:
       - name: Download test products
         uses: actions/download-artifact@v7
         with:
-          name: test-products-${{ github.run_id }}-${{ github.run_attempt }}
+          name: test-products-${{ github.run_id }}
       - name: Unpack test products
         run: |
           mkdir -p DerivedData/Build/Products

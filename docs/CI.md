@@ -36,7 +36,7 @@ flowchart LR
 | `lint` | `ubuntu-latest` | Validates tracked `.plist`, `.entitlements`, and `.xcprivacy` files (`lint-plists.sh`); ShellChecks `scripts/ci` and `scripts/adblock`; checks `fastlane/Fastfile` syntax; runs the ad-blocking converter tests; runs `actionlint`. |
 | `project-drift` | `ubuntu-latest` | Runs `scripts/generate_project.rb` in a temporary copy and fails if the committed `WukongMind.xcodeproj` differs (`check-project-drift.sh`); checks the site-adapter layering boundary (`check-site-layering.sh`). |
 | `changes` ("Plan (tier, docs-only)") | `ubuntu-latest` | `scripts/ci/plan.sh`: picks the tier and the test matrix, and sets `code=false` for a pull request that only touches `*.md`, `docs/**` or images. |
-| `build` ("Build for testing") | `xcode-27` | `scripts/ci/build-for-testing.sh`: one unsigned `xcodebuild build-for-testing` for the runner's simulator, then zips `Debug-iphonesimulator/` and the `.xctestrun` (about 35 MB) as a one-day artifact. 25 min timeout. |
+| `build` ("Build for testing") | `xcode-27` | `scripts/ci/build-for-testing.sh`: one unsigned `xcodebuild build-for-testing` for the runner's simulator, then zips `Debug-iphonesimulator/` and the `.xctestrun` (about 35 MB) as a three-day artifact named `test-products-<run id>` (no attempt number, so "Re-run failed jobs" finds it). 25 min timeout. |
 | `test` (one job per shard) | `xcode-27` | Downloads and unpacks the products, picks and boots its own simulator (UDIDs differ per runner; the `.xctestrun` isn't tied to one), then `scripts/ci/run-tests.sh <shard>` runs `xcodebuild test-without-building -xctestrun …`. Retries the run once if the test runner never launched ("Lost pending connection"). Prints the raw xcodebuild tail and uploads the `.xcresult` on failure. |
 | `release-build` | `xcode-27` | Full tier only. Builds the **Release** configuration for a generic iOS device, unsigned, to catch errors that only show up in Release (for example, code that is only compiled in DEBUG). |
 | `ci` ("CI") | `ubuntu-latest` | The summary check above. |
@@ -61,7 +61,8 @@ only queue. Run either tier by hand with
 (the suite minus that list with `-skip-testing`), so a new or renamed test
 always runs somewhere:
 
-- `unit-a`: the eight slowest unit suites (about 600 of 1,100 s);
+- `unit-a`: the slowest unit suites (16 of them; together with the warm-up the
+  `unit-b` job pays first, the two PR jobs come out about even);
   `unit-b`: all other unit tests; `unit`: all of `WukongMindTests`.
 - `ui-1`: the three long `ScriptManagerUITests` tests (about 500 s);
   `ui-2`: the rest of `SuggestionRowUITests` and `ScriptManagerUITests`.
@@ -69,8 +70,9 @@ always runs somewhere:
 - `ui-smoke` (with `unit-b` on pull requests, about 2.5 min): the suggestion
   row on a forum thread and on an ordinary page, handing a search to the
   agent, the page-scripts popover, and the script manager with its history.
-  Slow or known-flaky tests stay out of it and run on `main`, nightly and tags,
-  so a UI regression outside the smoke set shows up there, not on the PR.
+  The slowest and most often retried UI tests stay out of it and run on
+  `main`, nightly and tags, so a UI regression outside the smoke set shows up
+  there, not on the PR.
 
 Only `SuggestionRowUITests` and `ScriptManagerUITests` run in CI; the longer
 multi-launch, perf and live suites stay local
@@ -89,27 +91,32 @@ auto-merge. Pushes to `main` always run in full: a newer run can replace a
 waiting one there, and a docs-only push must not stand in for a code push.
 
 **Timings** (GitHub `xcode-27` runners, minutes, from the run's creation to
-the last job's end; the proof on the WUKO-128 pull request has every run):
+the last job's end, all green):
 
-| Run | Before (WUKO-125 split, runs 43950672043 and 43957715364) | After (PR tier) |
+| Run | Before (WUKO-125 split) | After (PR tier) |
 | --- | --- | --- |
-| Whole run | 33-35 | 23-25 |
-| Building | in every macOS job, 8-10 each | once, 3 |
-| Longest job | UI tests 33-34 (timeout 60) | 15-21 (timeout 40) |
+| Whole run | 34.4 (run 43957715364), 32.7 (43950672043) | 23.3, 25.3, 25.5, 22.9 (43965192806, 43969487588, 43979411308, 43983192539) |
+| Building | in every macOS job, 8-10 each | once, 3-4 |
+| Longest job | UI tests 33-34 (timeout 60) | 18-22 (timeout 40) |
 | macOS jobs | 3, plus Release build 5-8 | 3 |
 
-Full tier (run 43973737283, a slow-runner hour): build 2.6, Release build 6.6,
-"Unit tests" 25.3 (timeout 50), "UI tests (1/2)" 30.1 and "UI tests (2/2)" 21.1
-(timeout 45), 35 in all. On a normal runner the UI shards take about 12 each;
-that hour WebKit's first launch took 4 minutes and one long UI test needed a
-retry.
+The target was about 20 minutes; PR runs land at 23-26. Full tier (run
+43973737283, a slow-runner hour): build 2.6, Release build 6.6, "Unit tests"
+25.3 (timeout 50), "UI tests (1/2)" 30.1 and "UI tests (2/2)" 21.1 (timeout
+45), 35 in all. On a normal runner the UI shards take about 12 each.
 
-Where the test-job minutes go: about 1.5 to boot the simulator, about 1 for
-xcodebuild to reach the first test, then 1-3 while WebKit launches for the
-first time on the fresh simulator ("GPU process took 95 seconds to launch");
-the first test that loads a page pays it (the known `AIViewIntentTests` flake
-times out there and passes on retry). Booting the simulator during the download
-was tried and made the download and unzip take minutes instead.
+Where a PR test job's minutes go (about 18-22): 1-2 to set up and download,
+1.5 to boot the simulator, then **2.5-5.5 between starting xcodebuild and its
+first line**, about 1 more to the first test, and 2-3 for WebKit's first
+launch ("GPU process took 166 seconds to launch"). Whatever runs right after
+the simulator's first boot crawls while the 3-vCPU runner finishes first-boot
+work; the tests themselves are about 9-11 of it, plus retries of flaky tests
+(the known `AIViewIntentTests` flake waits out WebKit's launch, fails, and
+passes on retry). Booting the simulator during the download was tried: the
+download and unzip then took minutes instead. Next step if PRs must get under
+20: let the test jobs start with the build and boot their simulator while it
+runs (they would wait for the products artifact themselves instead of
+`needs: build`), so first-boot work overlaps the build's 3-4 minutes.
 
 **Test retries.** Every test job runs `xcodebuild test-without-building` with
 `-retry-tests-on-failure -test-iterations 3`: a test passes if any of up to 3
