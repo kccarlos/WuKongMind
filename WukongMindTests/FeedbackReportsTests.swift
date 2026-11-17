@@ -176,11 +176,21 @@ final class FeedbackReportsTests: XCTestCase {
     func testAFailedRunSavesItself() async throws {
         let records = TaskRecordStore(directory: try temporaryDirectory(), cookieSource: NoCookies())
         let session = makeSession(client: FailingClient(), records: records)
-        var ended: [BrowserAgentRunState] = []
-        session.onRunEndedWithError = { ended.append($1) }
+        var ended: [(String, BrowserAgentRunState)] = []
+        session.onRunEndedWithError = { ended.append(($0, $1)) }
         await session.sendAndWait("Read the page")
         guard case .failed = session.runState else { return XCTFail("\(session.runState)") }
         XCTAssertEqual(ended.count, 1)
+
+        // The record has a request and no response: it still exports and saves.
+        let taskID = try XCTUnwrap(ended.first?.0)
+        let file = try await TaskExport.file(taskID: taskID, store: records, cookieSource: NoCookies(), secrets: [Self.key])
+        let saved = try FeedbackReportStore(ubiquityContainer: { nil }, localDocuments: try temporaryDirectory())
+            .save(data: file.data, host: file.host)
+        XCTAssertEqual(saved.location, .local)
+        let document = try TaskExport.load(try Data(contentsOf: saved.url))
+        XCTAssertEqual(document.turns.count, 1)
+        XCTAssertNil(document.turns.first?.response)
     }
 
     // MARK: Helpers

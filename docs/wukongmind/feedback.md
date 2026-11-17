@@ -5,7 +5,7 @@ The owner sends feedback with TestFlight's screenshot feedback; the matching tas
 ## What saves a report
 
 - **⋯ › Report a problem** in the Agent drawer (every build, not only developer mode): the same alert, redaction and refusals as ⋯ › Export task (API keys and cookies removed; a task whose cookies can't be removed is refused). It saves the last finished task and shows a short toast.
-- **A task that ends in an error** saves itself when Settings › Agent › Developer › **Save failed tasks for feedback** is on: an API or network error, a refusal that ends the run, or the step limit. A completed task, or one stopped with Stop, doesn't. The switch is on by default in TestFlight builds and off elsewhere, and it stays on each device (it doesn't sync). An automatic save shows no toast; a task whose export is refused is skipped.
+- **A task that ends in an error** saves itself when Settings › Agent › Developer › **Save failed tasks for feedback** is on: an API or network error (the run ends as failed) or the step limit. A completed task, or one stopped with Stop, doesn't. A "Don't allow" on a confirmation card doesn't end a run (the model is told and carries on), so it never saves by itself; nor does a run refused before it starts (no model or no API key), which has no task record. The switch is on by default in TestFlight builds and off elsewhere, and it stays on each device (it doesn't sync). An automatic save shows no toast; a task whose export is refused is skipped.
 
 ## Where reports land
 

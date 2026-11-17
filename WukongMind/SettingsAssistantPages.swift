@@ -288,7 +288,7 @@ struct SettingsAgentPage: View {
                 )) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Save failed tasks for feedback", comment: "Settings › Agent › Developer switch: save the export of a task that ends in an error")
-                        Text("A task that ends in an error is saved to iCloud Drive for TestFlight feedback", comment: "Settings › Agent subtitle for Save failed tasks for feedback")
+                        Text("A task that ends in an error is saved for TestFlight feedback", comment: "Settings › Agent subtitle for Save failed tasks for feedback")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }

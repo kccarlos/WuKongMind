@@ -27510,19 +27510,19 @@
         }
       }
     },
-    "A task that ends in an error is saved to iCloud Drive for TestFlight feedback" : {
+    "A task that ends in an error is saved for TestFlight feedback" : {
       "comment" : "Settings › Agent subtitle for Save failed tasks for feedback",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "出错结束的任务会保存到 iCloud 云盘，用于 TestFlight 反馈"
+            "value" : "出错结束的任务会被保存，用于 TestFlight 反馈"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "以錯誤結束的任務會儲存到 iCloud 雲碟，以供 TestFlight 回饋"
+            "value" : "以錯誤結束的任務會被儲存，以供 TestFlight 回饋"
           }
         }
       }

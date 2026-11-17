@@ -148,8 +148,9 @@ struct FeedbackReportStore: Sendable {
 
     // MARK: When a task saves itself
 
-    /// A task that ended in an error saves its export when the setting is on: an API error or a
-    /// refusal that ends the run (`.failed`) and the step limit. Completed and stopped runs don't.
+    /// A task that ended in an error saves its export when the setting is on: an API or network
+    /// error (`.failed`) and the step limit. Completed and stopped runs don't; a declined
+    /// confirmation goes back to the model as a tool result and doesn't end the run.
     static func savesAutomatically(after state: BrowserAgentRunState, enabled: Bool) -> Bool {
         guard enabled else { return false }
         switch state {
