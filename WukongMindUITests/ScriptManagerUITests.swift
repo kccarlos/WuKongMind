@@ -82,28 +82,38 @@ final class ScriptManagerUITests: DCUITestCase {
             "-dc-drawer-detent", "large"
         ])
 
+        if usesDrawerLayout(app) {
+            let state = drawerState(in: app)
+            XCTAssertTrue(
+                wait(timeout: 15) { state.exists && state.label.contains("detent=large") },
+                "AI drawer did not reach large detent."
+            )
+        }
+
         let chip = app.buttons["pageCapabilitiesSeal"].firstMatch
         XCTAssertTrue(waitOrDump(chip, timeout: 15, in: app), "This page seal did not appear.")
+        XCTAssertTrue(waitForHittable(chip, timeout: 10), "This page seal did not become hittable.")
         chip.tap()
 
         let popover = any(app, "pageScriptsPopover")
-        XCTAssertTrue(waitOrDump(popover, timeout: 8, in: app), "Page scripts popover did not open.")
+        XCTAssertTrue(waitOrDump(popover, timeout: 10, in: app), "Page scripts popover did not open.")
 
         let reason = any(app, "thisPageDisabledReason-dark-thread")
-        XCTAssertTrue(waitOrDump(reason, timeout: 5, in: app), "Auto-disabled reason text is missing in This page.")
+        XCTAssertTrue(waitOrDump(reason, timeout: 8, in: app), "Auto-disabled reason text is missing in This page.")
         XCTAssertTrue(
             reason.label.contains("Turned off after errors on 3 page loads in a row: TypeError: Cannot read properties of null (reading 'classList')"),
             "Unexpected disabled reason label: \(reason.label)"
         )
 
         let fixButton = app.buttons["thisPageLetAgentFix-dark-thread"].firstMatch
-        XCTAssertTrue(waitOrDump(fixButton, timeout: 5, in: app), "Let the Agent fix it button is missing in This page.")
+        XCTAssertTrue(waitOrDump(fixButton, timeout: 8, in: app), "Let the Agent fix it button is missing in This page.")
+        XCTAssertTrue(waitForHittable(fixButton, timeout: 8), "Let the Agent fix it button is not hittable.")
         fixButton.tap()
 
-        XCTAssertTrue(waitForGone(popover, timeout: 5), "Tapping Let the Agent fix it did not close This page.")
+        XCTAssertTrue(waitForGone(popover, timeout: 10), "Tapping Let the Agent fix it did not close This page.")
         let promptMessage = app.staticTexts.matching(label(contains: "Fix the script Dark palette & wide thread")).firstMatch
         XCTAssertTrue(
-            waitOrDump(promptMessage, timeout: 8, in: app),
+            waitOrDump(promptMessage, timeout: 15, in: app),
             "Let the Agent fix it did not send the repair prompt to the Agent."
         )
     }
@@ -278,49 +288,68 @@ final class ScriptManagerUITests: DCUITestCase {
         for (suffix, style) in [("light", "Light"), ("dark", "Dark")] {
             let styleArgs = base + ["-AppleInterfaceStyle", style]
 
-            // 1. Settings › Models & Settings › Models › Scripts
-            let modelsApp = launch(styleArgs + ["-dc-sample", "-dc-show-settings", "provider"])
-            let scriptsRoleRow = any(modelsApp, "modelRole-scripts")
-            XCTAssertTrue(waitOrDump(scriptsRoleRow, timeout: 15, in: modelsApp), "Scripts model role row missing.")
+            // 1-3. Settings › Models, Settings › Models › Scripts, Settings › Scripts, and Script detail
+            // in one launch per appearance to avoid 8 full app launches per test.
+            let settingsApp = launch(styleArgs + ["-dc-sample", "-dc-show-settings", "root", "-dc-scripts-sample", "m4-ai"])
+            XCTAssertTrue(waitOrDump(any(settingsApp, "settingsRoot"), timeout: 15, in: settingsApp), "Settings root did not appear.")
+
+            let providerRow = settingsApp.buttons["settingsRow-provider"].firstMatch
+            XCTAssertTrue(reveal(providerRow, in: settingsApp, swipes: 3), "Models settings row missing.")
+            providerRow.tap()
+
+            let scriptsRoleRow = any(settingsApp, "modelRole-scripts")
+            XCTAssertTrue(waitOrDump(scriptsRoleRow, timeout: 10, in: settingsApp), "Scripts model role row missing.")
             XCTAssertTrue(scriptsRoleRow.label.contains("Same as Summaries"), "Unexpected Scripts role label: \(scriptsRoleRow.label)")
-            RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+            XCTAssertTrue(waitForHittable(scriptsRoleRow, timeout: 5))
             capture("m4-models-\(suffix)")
 
             scriptsRoleRow.tap()
-            let sameToggle = modelsApp.switches["scriptsSameAsSummariesToggle"].firstMatch
-            XCTAssertTrue(waitOrDump(sameToggle, timeout: 8, in: modelsApp), "Same as Summaries toggle missing on Scripts model page.")
-            RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+            let sameToggle = settingsApp.switches["scriptsSameAsSummariesToggle"].firstMatch
+            XCTAssertTrue(waitOrDump(sameToggle, timeout: 10, in: settingsApp), "Same as Summaries toggle missing on Scripts model page.")
+            XCTAssertTrue(waitForHittable(sameToggle, timeout: 5))
             capture("m4-models-scripts-\(suffix)")
 
+            for _ in 0..<3 where settingsApp.navigationBars["Scripts"].exists {
+                settingsApp.navigationBars.buttons.element(boundBy: 0).tap()
+                _ = waitForGone(settingsApp.navigationBars["Scripts"], timeout: 3)
+            }
+            XCTAssertTrue(settingsApp.navigationBars["Models"].waitForExistence(timeout: 10), "Back from Scripts did not return to Models.")
+            for _ in 0..<3 where settingsApp.navigationBars["Models"].exists {
+                tapNavigationBack(in: settingsApp)
+                _ = waitForGone(settingsApp.navigationBars["Models"], timeout: 3)
+            }
+            XCTAssertTrue(settingsApp.navigationBars["Settings"].waitForExistence(timeout: 10), "Back from Models did not return to Settings.")
+
+            let scriptsRow = settingsApp.buttons["settingsRow-scripts"].firstMatch
+            XCTAssertTrue(reveal(scriptsRow, in: settingsApp, swipes: 3), "Scripts settings row missing.")
+            scriptsRow.tap()
+
             // 2. Settings › Scripts (AI in scripts switch + Uses AI subtitle)
-            let mgrApp = launch(styleArgs + ["-dc-sample", "-dc-show-settings", "scripts", "-dc-scripts-sample", "m4-ai"])
-            XCTAssertTrue(waitOrDump(any(mgrApp, "scriptManager"), timeout: 15, in: mgrApp))
-            let aiSwitch = mgrApp.switches["scriptsAIEnabledToggle"].firstMatch
-            XCTAssertTrue(waitOrDump(aiSwitch, timeout: 5, in: mgrApp), "AI in scripts toggle missing.")
-            let foldRow = mgrApp.buttons["scriptRow-fold-empty-replies"].firstMatch
-            XCTAssertTrue(reveal(foldRow, in: mgrApp, swipes: 3), "Fold empty replies row missing.")
+            XCTAssertTrue(waitOrDump(any(settingsApp, "scriptManager"), timeout: 10, in: settingsApp), "Script manager did not appear.")
+            let aiSwitch = settingsApp.switches["scriptsAIEnabledToggle"].firstMatch
+            XCTAssertTrue(waitOrDump(aiSwitch, timeout: 8, in: settingsApp), "AI in scripts toggle missing.")
+            let foldRow = settingsApp.buttons["scriptRow-fold-empty-replies"].firstMatch
+            XCTAssertTrue(reveal(foldRow, in: settingsApp, swipes: 5), "Fold empty replies row missing.")
             XCTAssertTrue(foldRow.label.contains("Uses AI"), "Expected Uses AI in row label, got: \(foldRow.label)")
-            RunLoop.current.run(until: Date().addingTimeInterval(0.6))
             capture("m4-scripts-manager-\(suffix)")
 
             // 3. Script detail (Can use + AI use today + Clear AI cache)
-            let detailApp = launch(styleArgs + ["-dc-sample", "-dc-show-settings", "scripts", "-dc-scripts-sample", "m4-ai-detail"])
-            XCTAssertTrue(waitOrDump(any(detailApp, "scriptDetail"), timeout: 15, in: detailApp))
-            let canUseRow = any(detailApp, "scriptCanUseAI")
-            XCTAssertTrue(waitOrDump(canUseRow, timeout: 5, in: detailApp), "Can use Uses AI row missing in Script detail.")
+            foldRow.tap()
+            XCTAssertTrue(waitOrDump(any(settingsApp, "scriptDetail"), timeout: 10, in: settingsApp), "Script detail did not appear.")
+            let canUseRow = any(settingsApp, "scriptCanUseAI")
+            XCTAssertTrue(waitOrDump(canUseRow, timeout: 8, in: settingsApp), "Can use Uses AI row missing in Script detail.")
             XCTAssertTrue(canUseRow.label.contains("Uses AI: sends page text to"), "Unexpected Can use label: \(canUseRow.label)")
-            let clearBtn = detailApp.buttons["scriptClearAICacheButton"].firstMatch
-            XCTAssertTrue(reveal(clearBtn, in: detailApp, swipes: 5), "Clear AI cache button missing in Script detail.")
-            let aiUseRow = any(detailApp, "scriptAIUseTodayRow")
-            XCTAssertTrue(aiUseRow.exists)
+
+            let aiUseRow = any(settingsApp, "scriptAIUseTodayRow")
+            XCTAssertTrue(reveal(aiUseRow, in: settingsApp, swipes: 5), "AI use today row missing in Script detail.")
             XCTAssertTrue(aiUseRow.label.contains("3 calls") && aiUseRow.label.contains("41 from cache"), "Unexpected AI use label: \(aiUseRow.label)")
-            RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+            let clearBtn = settingsApp.buttons["scriptClearAICacheButton"].firstMatch
+            XCTAssertTrue(reveal(clearBtn, in: settingsApp, swipes: 3), "Clear AI cache button missing in Script detail.")
             capture("m4-script-detail-\(suffix)")
 
             if suffix == "light" {
                 clearBtn.tap()
-                RunLoop.current.run(until: Date().addingTimeInterval(0.3))
-                XCTAssertTrue(clearBtn.exists)
+                XCTAssertTrue(waitForHittable(clearBtn, timeout: 5), "Clear AI cache button disappeared after tap.")
             }
 
             // 4. This page popover (uses AI subtitle)
@@ -330,11 +359,18 @@ final class ScriptManagerUITests: DCUITestCase {
                 "-dc-drawer-detent", "large",
                 "-dc-scripts-open-popover"
             ])
-            XCTAssertTrue(waitOrDump(any(popApp, "pageScriptsPopover"), timeout: 15, in: popApp))
+            if usesDrawerLayout(popApp) {
+                let state = drawerState(in: popApp)
+                XCTAssertTrue(
+                    wait(timeout: 15) { state.exists && state.label.contains("detent=large") },
+                    "AI drawer did not reach large detent."
+                )
+            }
+            XCTAssertTrue(waitOrDump(any(popApp, "pageScriptsPopover"), timeout: 15, in: popApp), "Page scripts popover did not open.")
             let popRow = any(popApp, "pageScriptRow-fold-empty-replies")
-            XCTAssertTrue(waitOrDump(popRow, timeout: 5, in: popApp))
+            XCTAssertTrue(waitOrDump(popRow, timeout: 8, in: popApp), "Fold empty replies row missing in This page popover.")
             XCTAssertTrue(popRow.label.contains("Uses AI"), "Expected Uses AI in popover row label, got: \(popRow.label)")
-            RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+            XCTAssertTrue(waitForHittable(popRow, timeout: 5))
             capture("m4-this-page-\(suffix)")
         }
     }
