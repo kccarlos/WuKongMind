@@ -2917,7 +2917,7 @@ extension ToolRegistry {
         }
 
         if !confirmChange, let beforeSnapshot {
-            let afterSnapshot = await bridge.pageSnapshot()
+            let afterSnapshot = await PageFeedbackRules.settledSnapshot(before: beforeSnapshot, bridge: bridge)
             let report = PageFeedbackRules.compare(before: beforeSnapshot, after: afterSnapshot)
             if report.isWarning {
                 let reasons = report.reasons.joined(separator: "; ")
