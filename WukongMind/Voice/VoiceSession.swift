@@ -29,6 +29,9 @@ import Foundation
 //   reconnect opens a fresh session seeded with the context.
 // - A turn that gets no server message for 10 s is a stall: the connection
 //   is recycled with the handle.
+// - Quiet for the idle timeout (20 s by default) closes the socket; the
+//   next tap within 5 minutes resumes with the handle (`Resumption`), so
+//   nothing stays open and billed between requests.
 // - Watchdogs: a hand-off call the model didn't acknowledge within 1.5 s
 //   gets a nudge; a result unspoken for 6 s is re-sent as a turn; tool-call
 //   markup spoken as text is cut off and corrected.
@@ -115,6 +118,25 @@ final class VoiceSession: ObservableObject {
         /// The cost guard's limits in seconds (nil: no limit).
         var sessionLimit: TimeInterval? { VoiceSettings.limit(settings.sessionLimitMinutes) }
         var dailyLimit: TimeInterval? { VoiceSettings.limit(settings.dailyLimitMinutes) }
+    }
+
+    /// What a session that closed for quiet leaves for the next tap: its
+    /// handle, so the next session resumes the conversation instead of this
+    /// one staying open and billed (WUKO-124, voice-cost.md). A resumed
+    /// session re-bills the old turns, so the handle is kept only briefly.
+    struct Resumption {
+        static let window: TimeInterval = 5 * 60
+        var handle: String
+        var endedAt: Date
+        /// When the model session was opened fresh (AI Studio's 60 minutes).
+        var freshAt: Date?
+        var endpoint: GeminiLive.Endpoint
+        var apiKey: String
+
+        func usable(by configuration: Configuration, at now: Date) -> Bool {
+            endpoint == configuration.endpoint && apiKey == configuration.apiKey
+                && now.timeIntervalSince(endedAt) < Self.window
+        }
     }
 
     /// Timers, as named constants so tests and tuning see them.
@@ -278,8 +300,13 @@ final class VoiceSession: ObservableObject {
 
     // MARK: Lifecycle
 
-    /// Opens the session (on demand: the first tap).
-    func start() async {
+    /// The handle the next tap may resume with: only after an idle close,
+    /// and on Vertex only a fresh connection's (a resumed one's is dropped).
+    private(set) var resumption: Resumption?
+
+    /// Opens the session (on demand: the first tap), resuming the previous
+    /// one when it closed for quiet a moment ago.
+    func start(resuming previous: Resumption? = nil) async {
         guard state == .idle else { return }
         guard !configuration.apiKey.isEmpty else {
             state = .failed(.noKey)
@@ -308,7 +335,15 @@ final class VoiceSession: ObservableObject {
                 }
             }
         }
-        await connect(handle: nil)
+        // A dead handle falls back to a fresh session (`connectionEnded`).
+        // The carried `freshAt` also makes `setupCompleted` send the page
+        // note: this session's context is new.
+        if let previous, previous.usable(by: configuration, at: clock.now) {
+            freshAt = previous.freshAt ?? clock.now
+            await connect(handle: previous.handle)
+        } else {
+            await connect(handle: nil)
+        }
     }
 
     /// The user ended the session.
@@ -323,6 +358,12 @@ final class VoiceSession: ObservableObject {
 
     private func end(_ reason: EndReason) {
         guard !state.isOver else { return }
+        if reason == .idle, let handle = resumptionHandle {
+            resumption = Resumption(
+                handle: handle, endedAt: clock.now, freshAt: freshAt,
+                endpoint: configuration.endpoint, apiKey: configuration.apiKey
+            )
+        }
         finish(.ended(reason))
     }
 
@@ -1076,7 +1117,10 @@ final class VoiceSession: ObservableObject {
             }
         }
 
-        // Idle: nobody spoke for the timeout.
+        // Idle: nobody spoke for the timeout, counted from when it went quiet
+        // (a reply plays out long after its last frame, about 4x faster than
+        // real time; a tool or hand-off may run longer than the timeout).
+        if !isQuiet || navigator?.isHandingOff == true { lastActivityAt = now }
         if let last = lastActivityAt, now.timeIntervalSince(last) >= configuration.settings.idleTimeout, isQuiet,
            navigator?.isHandingOff != true {
             end(.idle)

@@ -293,6 +293,51 @@ final class CapabilityToolsTests: XCTestCase {
         XCTAssertGreaterThan(notifyRowY, watchRowY)
     }
 
+    /// WUKO-134: the newest summarize_topic card for the open thread owns its summary,
+    /// New conversation hides the saved summary, and asking again shows it.
+    func testThreadSummaryCardOwnershipAndNewConversationHide() async throws {
+        let h = makeHarness(gatedAI: false)
+        selectTopic(h.app, id: "1")
+        let topicKey = try XCTUnwrap(h.app.currentTopic?.topicKey)
+        let summarize = AgentModelToolCall(id: "c1", name: "summarize_topic", arguments: ["topic_id": .string("1")])
+        let client = RecordedModelClient([
+            .success(AgentModelTurnResponse(text: "", toolCalls: [summarize])),
+            .success(AgentModelTurnResponse(text: "Summarized the thread.")),
+            .success(AgentModelTurnResponse(text: "", toolCalls: [AgentModelToolCall(id: "c2", name: "summarize_topic", arguments: ["topic_id": .string("1")])])),
+            .success(AgentModelTurnResponse(text: "Summarized again."))
+        ])
+        let agentSession = BrowserAgentSession(
+            pageDriver: FixturePageDriver(page: .init(url: site, title: "Stub")), modelClient: client,
+            configProvider: {
+                var cfg = ProviderConfiguration(provider: .ollama); cfg.model = "agent-model"
+                return BrowserAgentRuntimeConfig(selection: ModelSelection(provider: .ollama, model: "agent-model"), configuration: cfg, maxSteps: 6, truncationLimit: 20_000, customInstructions: "", redactedSecrets: [])
+            },
+            registryBuilder: { _, _, _ in self.makeRegistry(h.app) }
+        )
+        XCTAssertNil(BrowserAgentRunsView.latestThreadSummaryRowID(in: agentSession.runs, topicKey: topicKey, app: h.app))
+
+        agentSession.send("Summarize this thread")
+        try await waitUntil { !agentSession.isRunning && agentSession.runs.count == 1 }
+        let first = try XCTUnwrap(agentSession.runs[0].toolCalls.first { $0.toolName == "summarize_topic" })
+        XCTAssertFalse(BrowserAgentRunsView.hasRunningThreadSummary(in: agentSession.runs))
+        XCTAssertEqual(BrowserAgentRunsView.latestThreadSummaryRowID(in: agentSession.runs, topicKey: topicKey, app: h.app), first.id)
+        XCTAssertNil(BrowserAgentRunsView.latestThreadSummaryRowID(in: agentSession.runs, topicKey: "other", app: h.app))
+
+        // New conversation hides the saved summary; the cache stays.
+        h.app.hideDrawerSummaryForNewConversation()
+        agentSession.resetConversation()
+        XCTAssertTrue(h.app.drawerSummaryHiddenTopicKeys.contains(topicKey))
+        XCTAssertNil(BrowserAgentRunsView.latestThreadSummaryRowID(in: agentSession.runs, topicKey: topicKey, app: h.app))
+        XCTAssertEqual(h.app.currentSession?.hasSummary, true, "New conversation must keep the saved summary.")
+
+        // Asking again shows it, and the newest card owns it.
+        agentSession.send("Summarize this thread")
+        try await waitUntil { !agentSession.isRunning && agentSession.runs.count == 1 }
+        XCTAssertFalse(h.app.drawerSummaryHiddenTopicKeys.contains(topicKey))
+        let second = try XCTUnwrap(agentSession.runs[0].toolCalls.first { $0.toolName == "summarize_topic" })
+        XCTAssertEqual(BrowserAgentRunsView.latestThreadSummaryRowID(in: agentSession.runs, topicKey: topicKey, app: h.app), second.id)
+    }
+
     // MARK: - Helpers
 
     private struct Harness { let app: AppModel; let ai: CapabilityAIStub }

@@ -443,6 +443,75 @@ final class DrawerUITests: DCUITestCase {
         XCTAssertFalse(retry.exists, "The failure stays after a successful run.")
     }
 
+    /// WUKO-134: a thread with a saved summary shows it at the top; the summarize
+    /// suggestion then shows exactly one Summary (the conversation card, with
+    /// "Check for new replies" under it), and New conversation clears it all.
+    func testSummarizeShowsOneSummaryAndNewConversationClearsIt() throws {
+        try skipUnlessPhone("The AI drawer is an iPhone behavior.")
+        let app = launch(sample + ["-dc-fake-summary", "-AppleInterfaceStyle", "Dark"])
+        let state = drawerState(in: app)
+        XCTAssertTrue(waitOrDump(state, timeout: 20, in: app), "The sample did not open the drawer.")
+        let topSummary = any(app, "summaryContent")
+        let card = app.descendants(matching: .any).matching(identifier: "capabilityThreadSummaryCard")
+        let checkForReplies = app.buttons["createSummary"].firstMatch
+        // An empty conversation on a thread with a saved summary keeps it at the top.
+        XCTAssertTrue(waitOrDump(topSummary, timeout: 20, in: app), "The saved summary is not shown.")
+        let summarize = app.buttons["suggestion-summarizeThread"].firstMatch
+        XCTAssertTrue(waitForHittable(summarize), "The summarize suggestion is missing.")
+        XCTAssertTrue(wait(timeout: 8) { state.label == "detent=medium" }, "Got \(state.label).")
+        captureIfRequested("wuko134-1-opened")
+        let newConversation = app.buttons["agentNewConversationHeader"].firstMatch
+        XCTAssertTrue(newConversation.isEnabled, "New conversation must be able to clear a top summary alone.")
+
+        summarize.tap()
+        XCTAssertTrue(card.firstMatch.waitForExistence(timeout: 30), "Missing summary card under summarize_topic.")
+        captureIfRequested("wuko134-2a-landed")
+        // The transcript is lazy: scroll up to the person's message, right under where
+        // a top summary would be, so it would load. At large, short slow drags scroll
+        // the text (a swipe down at medium would close the drawer).
+        let scroll = any(app, "agentScroll")
+        let userMessage = any(app, "agentUserMessage")
+        dragDrawer(in: app, to: 0.08)
+        XCTAssertTrue(wait(timeout: 5) { state.label == "detent=large" }, "Got \(state.label), wanted large.")
+        for _ in 0..<12 where state.label == "detent=large" && !userMessage.isHittable {
+            scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.4)).press(
+                forDuration: 0.05,
+                thenDragTo: scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.6)),
+                withVelocity: .slow,
+                thenHoldForDuration: 0.2
+            )
+        }
+        XCTAssertTrue(userMessage.isHittable, "Did not reach the top of the conversation.")
+        XCTAssertFalse(topSummary.exists, "The summary shows twice: at the top and in the conversation.")
+        // Each Summary block has one jade "Summary" header (the card's id also tags its children).
+        let summaryHeaders = app.staticTexts.matching(NSPredicate(format: "label == %@", "Summary"))
+        XCTAssertEqual(summaryHeaders.count, 1, "Expected exactly one Summary block.")
+        captureIfRequested("wuko134-2-summarized")
+        for _ in 0..<6 where !checkForReplies.isHittable { scroll.swipeUp() }
+        XCTAssertTrue(checkForReplies.isHittable, "Check for new replies is not reachable from the summary card.")
+        XCTAssertTrue(app.buttons["retrySummary"].firstMatch.isHittable, "Retry is not reachable from the summary card.")
+        captureIfRequested("wuko134-2b-card-actions")
+
+        XCTAssertTrue(waitForHittable(newConversation), "New conversation is missing.")
+        newConversation.tap()
+        XCTAssertTrue(waitForGone(card.firstMatch, timeout: 5), "The conversation did not clear.")
+        XCTAssertFalse(topSummary.exists, "New conversation left the top summary.")
+        XCTAssertFalse(checkForReplies.exists, "New conversation left Check for new replies.")
+        XCTAssertFalse(app.staticTexts["Check for new replies"].exists, "New conversation left Check for new replies.")
+        XCTAssertTrue(any(app, "agentEmptyState").waitForExistence(timeout: 5), "The cleared drawer is not empty.")
+        captureIfRequested("wuko134-3-new-conversation")
+
+        // Read it uses the cached summary: a listen row, no top summary, no empty-state mascot over it.
+        let read = app.buttons["suggestion-readAloud"].firstMatch
+        XCTAssertTrue(read.waitForExistence(timeout: 10), "Read it to me is missing.")
+        for _ in 0..<4 where !read.isHittable { any(app, "suggestionRow").swipeLeft() }
+        XCTAssertTrue(waitForHittable(read), "Read it to me cannot be tapped.")
+        read.tap()
+        XCTAssertTrue(any(app, "capabilityListenRow").waitForExistence(timeout: 20), "Missing listen row under read_aloud.")
+        XCTAssertFalse(topSummary.exists, "Read it after New conversation brought back the top summary.")
+        XCTAssertFalse(any(app, "agentEmptyState").exists, "The empty-state mascot shows over a conversation.")
+    }
+
     // MARK: Helpers
 
     private func launchWithDrawer(presenting kind: String, at detent: String) throws -> XCUIApplication {

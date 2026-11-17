@@ -192,12 +192,10 @@ extension ToolRegistry {
             definition: AgentToolDefinition(
                 name: BrowseToolName.openPage,
                 description: """
-                Open a page for the user: an address they said ("bbc.com"), the name of a site they use ("BBC News", "GitHub"), \
-                or plain words, which become a web search. Pass the user's words as they said them; never add an address of your \
-                own. Not for a link that is on the page now (use open_link) and not for a forum search. It works on any \
-                page, and it is how "open X", "go to X" and "search the web for X" are done. It returns once the page has started \
-                to load, and says whether it opened a site or ran a search: tell the user which, and the title and host once \
-                known. If several sites match, it returns a short list: ask which one.
+                Open a page: an address the user said ("bbc.com"), a site name ("BBC News") or plain words, which become a web \
+                search. Pass the user's words as said; never add an address of your own. Not for a link on the page (open_link) \
+                or a forum search. It says whether it opened a site or ran a search: tell the user which, with title and host. If \
+                several sites match, it returns a short list: ask which one.
                 """,
                 parameters: [
                     ToolParameterSchema(
@@ -223,15 +221,14 @@ extension ToolRegistry {
             definition: AgentToolDefinition(
                 name: BrowseToolName.openLink,
                 description: """
-                Follow a link that is on the page now, by its number or by the words the user used for it ("the third link", \
-                "the one about tariffs"). You never pass an address. If one link matches it opens. If several match, it returns up \
-                to five numbered candidates with their text and host: say them and let the user pick, then call it again with the \
-                number. Say the page it opened by title and host, and say the host when it differs from the site the user was on. \
-                It only follows plain links; buttons, forms and anything that needs a click go to hand_off_to_agent.
+                Follow a link on the page now, by number or by the user's words for it ("the third link", "the one about \
+                tariffs"); never pass an address. Several matches return up to five numbered candidates: say them, then call it \
+                again with the number the user picks. Say the page it opened by title and host. Plain links only; buttons and \
+                forms go to hand_off_to_agent.
                 """,
                 parameters: [
                     ToolParameterSchema(name: "words", type: .string, description: "What the user called the link, in their words.", minLength: 1),
-                    ToolParameterSchema(name: "number", type: .integer, description: "A link number from the last list this tool returned; with no list, the Nth link on screen from the top.", minimum: 1, maximum: Double(AgentBridge.maxPageLinks))
+                    ToolParameterSchema(name: "number", type: .integer, description: "A number from this tool's last list; with no list, the Nth link on screen.", minimum: 1, maximum: Double(AgentBridge.maxPageLinks))
                 ]
             ),
             summarizeArguments: { $0["number"]?.intValue.map { "#\($0)" } ?? $0["words"]?.stringValue ?? "" },
@@ -254,19 +251,16 @@ extension ToolRegistry {
             definition: AgentToolDefinition(
                 name: ForumToolName.searchForum,
                 description: """
-                Search the forum the user is on, or only the open topic, and show the hits on screen as numbered cards, best first. \
-                Call it when the user asks to find, look for or search something, or asks whether anyone wrote about something. It \
-                only shows cards: questions about what people think or recommend go to hand_off_to_agent. Pass a few distinctive \
-                words in the forum's language (the screen note says which): \(VoiceSiteProfile.neutral.findHint) Scope "topic" \
-                searches inside the open topic ("where did someone mention the firmware version"). The result lists the hits by \
-                number with title, author and a line. If one hit clearly fits, call browse_open with its card number right away, \
-                without asking. If several could fit, say the titles of the top two or three and let the user pick; they are on \
-                the cards. If nothing matched, say so and offer other words. Never read out ids, post numbers in bulk or URLs. \
-                Only works when the screen note says the user is on a forum; elsewhere it refuses.
+                Search the forum the user is on, or only the open topic, and show the hits as numbered cards, best first. Call it \
+                when the user asks to find, look for or search something. It only shows cards: questions about what people think \
+                or recommend go to hand_off_to_agent. Pass a few distinctive words in the forum's language (the screen note says \
+                which): \(VoiceSiteProfile.neutral.findHint) If one hit clearly fits, call browse_open with its card number right \
+                away. If several could fit, say the top two or three titles and let the user pick. If nothing matched, say so. \
+                Never read out ids or URLs.
                 """,
                 parameters: [
-                    ToolParameterSchema(name: "query", type: .string, description: "A few distinctive search words, in the forum's language.", minLength: 1),
-                    ToolParameterSchema(name: "scope", type: .string, description: "\"forum\" (default) or \"topic\" for the open topic only.", enumValues: ["forum", "topic"])
+                    ToolParameterSchema(name: "query", type: .string, description: "A few distinctive words.", minLength: 1),
+                    ToolParameterSchema(name: "scope", type: .string, description: "\"topic\" searches only the open topic.", enumValues: ["forum", "topic"])
                 ],
                 required: ["query"]
             ),
@@ -307,11 +301,11 @@ extension ToolRegistry {
             definition: AgentToolDefinition(
                 name: "read_page",
                 description: """
-                Read the page on screen as a short structure list: headings, text, links and controls. Call it when the user asks \
-                about a page that isn't a forum topic, or what is on screen. Answer only from what it returns.
+                Read the page on screen as a short structure list (headings, text, links, controls): for a page that isn't a \
+                forum topic, or what is on screen. Answer only from what it returns.
                 """,
                 parameters: [
-                    ToolParameterSchema(name: "selector", type: .string, description: "Optional CSS selector to read only part of the page.", minLength: 1)
+                    ToolParameterSchema(name: "selector", type: .string, description: "Optional CSS selector for part of the page.", minLength: 1)
                 ]
             ),
             summarizeArguments: { $0["selector"]?.stringValue ?? "structure" },
@@ -329,32 +323,27 @@ extension ToolRegistry {
             return AgentToolDefinition(
                 name: name,
                 description: """
-                Open a topic and land on a post. Pass card for a card from the last search_forum or hand-off, or topic_id for a \
-                topic whose id you got from a result; pass neither to stay in the open topic. at says where to land: "post" with \
-                post, "solution" for the accepted answer, "last" for the newest post, "top" for the most liked posts, "unread" for \
-                the first post the user hasn't seen. Call it at once when the user asks to go somewhere ("take me to the solution", \
-                "open the second one", "show me the latest reply"); navigation can be undone, so don't ask first. The result says \
-                what is on screen and carries the landing post's text. Tell the user in a few words where you are and give the \
-                gist; the post is on screen, so don't read it out unless the result says reading is fine. Only works when the \
-                screen note says the user is on a forum; elsewhere it refuses.
+                Open a topic and land on a post. card: a card from the last search_forum or hand-off; topic_id: an id from a \
+                result; neither: the open topic. at: "post" (with post), "solution" (accepted answer), "last" (newest), "top" \
+                (most liked), "unread" (first unseen). Call it at once for "take me to the solution", "open the second one" or \
+                "show me the latest reply". The result carries the landing post's text: say where you are and the gist, without \
+                reading it out unless the result says reading is fine.
                 """,
                 parameters: [
-                    ToolParameterSchema(name: "card", type: .integer, description: "A card number from the last search, like 2.", minimum: 1),
-                    ToolParameterSchema(name: "topic_id", type: .string, description: "A topic id from a result. Leave out for the open topic."),
+                    ToolParameterSchema(name: "card", type: .integer, description: "A card number from the last search.", minimum: 1),
+                    ToolParameterSchema(name: "topic_id", type: .string, description: "A topic id from a result."),
                     ToolParameterSchema(name: "at", type: .string, description: "Where to land.", enumValues: ["post", "solution", "last", "top", "unread"]),
-                    ToolParameterSchema(name: "post", type: .integer, description: "The post number, with at \"post\".", minimum: 1)
+                    ToolParameterSchema(name: "post", type: .integer, description: "Post number, with at \"post\".", minimum: 1)
                 ]
             )
         case BrowseToolName.move:
             return AgentToolDefinition(
                 name: name,
                 description: """
-                Move around: "back" and "forward" in browser history, or scroll to the "top" or "bottom", or "down" or "up" one \
-                screen. These work on any page (on an open forum topic, "top" and "bottom" jump to the first and last post). On a \
-                forum, "next" and "previous" move along the current list (the cards from the last search or focus), and "post" \
-                with post goes to post N of the open topic. Call it right away for "next", "go back", "scroll down", "to the \
-                top", "post 37" or "the first post". Say in a few words where you are now, without reading posts out. At the end \
-                of a list or page, say so.
+                Move: "back" or "forward" in history, scroll to "top" or "bottom", or one screen "down" or "up" (any page; on a \
+                forum topic "top" and "bottom" jump to the first and last post). On a forum, "next" and "previous" move along \
+                the current list (last search or focus), and "post" with post goes to post N. Call it right away. Say in a few \
+                words where you are now; at the end of a list or page, say so.
                 """,
                 parameters: [
                     ToolParameterSchema(
@@ -363,7 +352,7 @@ extension ToolRegistry {
                         description: "Where to move.",
                         enumValues: ["next", "previous", "back", "forward", "post", "top", "bottom", "down", "up"]
                     ),
-                    ToolParameterSchema(name: "post", type: .integer, description: "The post number, with action \"post\".", minimum: 1)
+                    ToolParameterSchema(name: "post", type: .integer, description: "Post number, with action \"post\".", minimum: 1)
                 ],
                 required: ["action"]
             )
@@ -371,17 +360,14 @@ extension ToolRegistry {
             return AgentToolDefinition(
                 name: name,
                 description: """
-                Narrow the open topic. mode: "user" with user shows only that author's posts; "op" only the opening poster's; \
-                "top" the most liked posts; "posts" with posts highlights those posts as a tour, starting at the first; "clear" \
-                shows the whole topic again. The focused posts become the current list, so "next" moves along them. Call it for \
-                "only what the original poster said", "just alice's posts", "show me the best answers" or "back to everything". \
-                The result says how many posts there are and carries the first one's text: give the user the count and the gist. \
-                Only works when the screen note says the user is on a forum; elsewhere it refuses.
+                Narrow the open topic. mode "user" (with user): one author's posts; "op": the opening poster's; "top": the most \
+                liked; "posts" (with posts): a tour of those posts; "clear": the whole topic again. The focused posts become the \
+                current list for "next". Give the user the count and the gist of the first post.
                 """,
                 parameters: [
                     ToolParameterSchema(name: "mode", type: .string, description: "What to show.", enumValues: VoiceSite.allFocusModes),
-                    ToolParameterSchema(name: "user", type: .string, description: "The author's username, with mode \"user\"."),
-                    ToolParameterSchema(name: "posts", type: .array, description: "Post numbers to highlight, with mode \"posts\".", itemsType: .integer)
+                    ToolParameterSchema(name: "user", type: .string, description: "Username, with mode \"user\"."),
+                    ToolParameterSchema(name: "posts", type: .array, description: "Post numbers, with mode \"posts\".", itemsType: .integer)
                 ],
                 required: ["mode"]
             )
@@ -389,14 +375,13 @@ extension ToolRegistry {
             return AgentToolDefinition(
                 name: BrowseToolName.readPost,
                 description: """
-                Get the full text of a post in the open topic: post N, or the current post when post is left out; scope "visible" \
-                returns every post on screen. Only call it when the user asks about a post whose text you haven't received in a \
-                note or a tool result; posts you navigated to already came with their text. Answer only from what it returns, \
-                never from a guess. Only works when the screen note says the user is on a forum; elsewhere it refuses.
+                Full text of a post in the open topic: post N, or the current post when left out; scope "visible" returns every \
+                post on screen. Only for a post whose text you haven't received; posts you navigated to came with their text. \
+                Answer only from what it returns.
                 """,
                 parameters: [
-                    ToolParameterSchema(name: "post", type: .integer, description: "The post number; leave out for the current post.", minimum: 1),
-                    ToolParameterSchema(name: "scope", type: .string, description: "\"post\" (default) or \"visible\" for every post on screen.", enumValues: ["post", "visible"])
+                    ToolParameterSchema(name: "post", type: .integer, description: "Post number; leave out for the current one.", minimum: 1),
+                    ToolParameterSchema(name: "scope", type: .string, description: "\"visible\" for every post on screen.", enumValues: ["post", "visible"])
                 ]
             )
         }

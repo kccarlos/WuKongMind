@@ -410,9 +410,10 @@ final class PageFeedbackTests: XCTestCase {
     private func makeVerifiedBrowserHarness(
         baseline: (@MainActor @Sendable () -> PageStateSnapshot?)? = nil,
         baselineImage: (@MainActor @Sendable () -> AgentImage?)? = nil,
-        supportsImageInput: Bool = false
+        supportsImageInput: Bool = false,
+        html: String? = nil
     ) async throws -> (ForumBrowserModel, ScriptStore, ScriptWebController, ToolRegistry, URL) {
-        let server = try ArticleFixtureServer(html: Self.articleHTML)
+        let server = try ArticleFixtureServer(html: html ?? Self.articleHTML)
         try await server.start()
         activeServers.append(server)
 
@@ -695,5 +696,73 @@ final class PageFeedbackTests: XCTestCase {
         XCTAssertNotNil(session.pageBaselineImage)
         XCTAssertEqual(store.scripts.count, 1)
         XCTAssertEqual(store.scripts.first?.css, "#boom { display: none !important; }")
+    }
+
+    // MARK: WUKO-132
+
+    /// The page renders its content with JS 500 ms after load, like x.com.
+    private static let lateRenderHTML = """
+    <!doctype html>
+    <html><head><meta name="viewport" content="width=device-width"><title>Late</title></head>
+    <body><div id="root"></div>
+    <script>
+      setTimeout(() => {
+        const root = document.getElementById('root');
+        root.innerHTML = '<main id="article"><h1>Late article</h1><p>' + 'word '.repeat(400) + '</p>'
+          + Array.from({length: 10}, (_, i) => '<a href="/p/' + i + '">L' + i + '</a>').join(' ')
+          + '<form><input name="q"><input name="r"></form><div style="height:4000px"></div></main>';
+      }, 500);
+    </script></body></html>
+    """
+
+    func testScriptSaveWaitsForLateRenderingPageButStillRefusesBlankedPage() async throws {
+        let (_, store, _, registry, _) = try await makeVerifiedBrowserHarness(html: Self.lateRenderHTML)
+        try await Task.sleep(for: .seconds(1.5))
+
+        let saved = try await registry.dispatch(toolName: "script_save", arguments: [
+            "name": .string("Late Harmless"),
+            "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "css": .string("h1 { color: rgb(20, 40, 80); }")
+        ])
+        XCTAssertFalse(saved.isError, saved.output)
+        XCTAssertEqual(store.scripts.count, 1)
+
+        let refused = try await registry.dispatch(toolName: "script_save", arguments: [
+            "name": .string("Late Blank"),
+            "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "css": .string("#root { display: none !important; }")
+        ])
+        XCTAssertTrue(refused.isError, refused.output)
+        XCTAssertTrue(refused.output.contains("visible text dropped"), refused.output)
+        XCTAssertEqual(store.scripts.count, 1)
+    }
+
+    func testAnthropicEncoderNeverSendsNonTextContentWithIsErrorTrue() throws {
+        let image = AgentImage(data: "AAAA")
+        let turns: [AgentModelTurn] = [
+            .user("hi"),
+            .assistant(text: "", toolCalls: [
+                AgentModelToolCall(id: "a", name: "script_save", arguments: [:]),
+                AgentModelToolCall(id: "b", name: "x", arguments: [:])
+            ]),
+            .toolResults([
+                AgentModelToolResult(toolCallID: "a", toolName: "script_save", content: "Error: Not saved: text dropped", isError: true, images: [image, image]),
+                AgentModelToolResult(toolCallID: "b", toolName: "x", content: "Error: plain", isError: true)
+            ])
+        ]
+        let messages = AIService.anthropicMessages(from: turns)
+        let blocks = try XCTUnwrap(messages.last?["content"] as? [[String: Any]])
+        for block in blocks where block["type"] as? String == "tool_result" {
+            if block["is_error"] as? Bool == true {
+                XCTAssertTrue(block["content"] is String, "is_error true must carry text only")
+            }
+        }
+        let withImages = try XCTUnwrap(blocks.first { $0["tool_use_id"] as? String == "a" })
+        XCTAssertEqual(withImages["is_error"] as? Bool, false)
+        let parts = try XCTUnwrap(withImages["content"] as? [[String: Any]])
+        XCTAssertEqual(parts.first?["text"] as? String, "Error: Not saved: text dropped")
+        XCTAssertEqual(parts.count, 3)
+        let plain = try XCTUnwrap(blocks.first { $0["tool_use_id"] as? String == "b" })
+        XCTAssertEqual(plain["is_error"] as? Bool, true)
     }
 }

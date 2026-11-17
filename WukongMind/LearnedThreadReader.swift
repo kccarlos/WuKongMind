@@ -21,9 +21,23 @@ enum LearnedThreadReader {
     @MainActor
     static func isLearnedThread(_ rawURL: String, learned: LearnedSiteContext?, scriptStore: ScriptStore) -> Bool {
         guard let learned, learned.pageToolBridge.isEnabled, SiteToolState.sameSiteURL(rawURL, host: learned.host) != nil else { return false }
-        let slotState = (learned.stateStore?.state(forHost: learned.host) ?? learned.state).slot(.readTopic)
+        let state = learned.stateStore?.state(forHost: learned.host) ?? learned.state
+        let slotState = state.slot(.readTopic)
         return slotState.scriptID.flatMap { scriptStore.script(id: $0) } != nil
             && [.learned, .broken, .failed].contains(slotState.status)
+    }
+
+    /// True when the reader is usable for the open page: a thread of the site (by `thread_match`), a reader that is
+    /// on, the userscripts switch on, and a slot that is not failed.
+    @MainActor
+    static func canReadOpenThread(_ rawURL: String, learned: LearnedSiteContext?, scriptStore: ScriptStore) -> Bool {
+        guard isLearnedThread(rawURL, learned: learned, scriptStore: scriptStore), let learned, scriptStore.isGlobalEnabled,
+              let url = URL(string: rawURL) else { return false }
+        let state = learned.stateStore?.state(forHost: learned.host) ?? learned.state
+        let slotState = state.slot(.readTopic)
+        guard slotState.status != .failed, let script = slotState.scriptID.flatMap({ scriptStore.script(id: $0) }), script.isEnabled else { return false }
+        let patterns = (!state.threadMatch.isEmpty ? state.threadMatch : script.metadata.threadMatches).compactMap { try? MatchPattern.parse($0) }
+        return patterns.isEmpty || patterns.contains { $0.matches(url: url) }
     }
 
     static func read(

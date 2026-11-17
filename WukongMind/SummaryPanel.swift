@@ -538,17 +538,34 @@ struct AssistantPanel: View {
         return readiness.title
     }
 
+    /// Clears everything the drawer shows, the top summary too; the saved summary
+    /// stays, hidden until the person asks for it again (WUKO-134).
+    private func startNewConversation() {
+        app.hideDrawerSummaryForNewConversation()
+        browserAgent.resetConversation()
+    }
+
+    /// Something in the drawer to clear: the conversation, or the top summary (its text,
+    /// progress or error) even when the conversation is still empty (WUKO-134).
+    private var canStartNewConversation: Bool {
+        if !browserAgent.runs.isEmpty || !browserAgent.messages.isEmpty || browserAgent.isRunning { return true }
+        let placement = summaryPlacement
+        let showsTopSummary = !placement.hidesTop && !visibleSummary.isEmpty
+        let showsTopStatus = !placement.hidesTopStatus && (activeSummary != nil || isSummaryFailed)
+        return showsTopSummary || showsTopStatus
+    }
+
     private var newConversationButton: some View {
         Button {
             DCHaptics.tap()
-            browserAgent.resetConversation()
+            startNewConversation()
         } label: {
             Image(systemName: "plus.bubble")
         }
         .buttonStyle(DCIconButtonStyle())
         .accessibilityLabel(String(localized: "New conversation", comment: "Browser agent menu action: clear the conversation and start fresh"))
         .accessibilityIdentifier("agentNewConversationHeader")
-        .disabled(browserAgent.runs.isEmpty && browserAgent.messages.isEmpty && !browserAgent.isRunning)
+        .disabled(!canStartNewConversation)
     }
 
     private var drawerMoreMenu: some View {
@@ -587,7 +604,7 @@ struct AssistantPanel: View {
 
                 Button {
                     DCHaptics.tap()
-                    browserAgent.resetConversation()
+                    startNewConversation()
                 } label: {
                     Label(
                         String(localized: "New conversation", comment: "Browser agent menu action: clear the conversation and start fresh"),
@@ -595,7 +612,7 @@ struct AssistantPanel: View {
                     )
                 }
                 .accessibilityIdentifier("agentNewConversation")
-                .disabled(browserAgent.runs.isEmpty && browserAgent.messages.isEmpty && !browserAgent.isRunning)
+                .disabled(!canStartNewConversation)
             }
 
             Section {
@@ -1006,22 +1023,48 @@ struct AssistantPanel: View {
         activeSummary != nil ? (streamedSummary ?? "") : (app.currentSession?.summary ?? "")
     }
 
+    /// Where the open thread's summary shows (WUKO-134): one place per request.
+    private struct SummaryPlacement {
+        /// The conversation's newest summary card for this thread, which carries its actions.
+        var cardRowID: UUID?
+        /// The top section shows no summary: a card has it, New conversation hid it, or a
+        /// summarize call is on its way (a fresh run still streams at the top until its card shows).
+        var hidesTop = false
+        /// The top section shows no progress or error either (they go under the card, or were cleared).
+        var hidesTopStatus = false
+    }
+
+    private var summaryPlacement: SummaryPlacement {
+        let topicKey = app.currentTopic?.topicKey ?? ""
+        let cardRowID = BrowserAgentRunsView.latestThreadSummaryRowID(in: browserAgent.runs, topicKey: topicKey, app: app)
+        let hiddenByReset = app.drawerSummaryHiddenTopicKeys.contains(topicKey)
+        let pending = BrowserAgentRunsView.hasRunningThreadSummary(in: browserAgent.runs)
+        return SummaryPlacement(
+            cardRowID: cardRowID,
+            hidesTop: cardRowID != nil || hiddenByReset || (pending && activeSummary == nil),
+            hidesTopStatus: cardRowID != nil || hiddenByReset
+        )
+    }
+
     private var drawerThread: some View {
-        let streamInput = streamedSummary.map {
+        let placement = summaryPlacement
+        let streamInput = placement.hidesTop ? nil : streamedSummary.map {
             DrawerSummarySections.Input(text: $0, maximumPost: app.currentSession?.totalPosts)
         }
         let parsed: (sections: Int, hasCitations: Bool, rows: [MarkdownRow]) = if streamInput != nil,
             let renderedSummary,
             !renderedSummary.output.rows.isEmpty {
             renderedSummary.output
-        } else if visibleSummary.isEmpty {
+        } else if visibleSummary.isEmpty || placement.hidesTop {
             (0, false, [])
         } else {
             DrawerSummarySections.parsed(
                 for: .init(text: visibleSummary, maximumPost: app.currentSession?.totalPosts)
             )
         }
-        let hasSummarySection = !parsed.rows.isEmpty || activeSummary != nil || activePull != nil || isSummaryFailed
+        let showsTopStatus = !placement.hidesTopStatus
+        let hasSummarySection = !parsed.rows.isEmpty || activePull != nil
+            || (showsTopStatus && (activeSummary != nil || isSummaryFailed))
         let hasLeadingContent = providerSetupRole != nil
             || hasSummarySection
             || app.currentTopic != nil
@@ -1036,8 +1079,11 @@ struct AssistantPanel: View {
             expandedToolRowIDs: $expandedToolRowIDs,
             onOpenURL: openInBrowser
         ) {
-            drawerSummary(rows: parsed.rows, hasSummarySection: hasSummarySection)
+            drawerSummary(rows: parsed.rows, hasSummarySection: hasSummarySection, placement: placement)
         }
+        .environment(\.threadSummaryCardFooter, placement.cardRowID.map { rowID in
+            ThreadSummaryCardFooter(rowID: rowID) { session in AnyView(summaryCardFooter(session)) }
+        })
         .animation(DCMotion.respecting(reduceMotion), value: activeSummary?.id)
         .animation(DCMotion.respecting(reduceMotion), value: activePull?.id)
         .animation(DCMotion.respecting(reduceMotion), value: summaryRun)
@@ -1066,7 +1112,7 @@ struct AssistantPanel: View {
     }
 
     @ViewBuilder
-    private func drawerSummary(rows: [MarkdownRow], hasSummarySection: Bool) -> some View {
+    private func drawerSummary(rows: [MarkdownRow], hasSummarySection: Bool, placement: SummaryPlacement) -> some View {
         if let setupRole = providerSetupRole, app.assistantPageState != .loading {
             ProviderSetupCard(app: app, role: setupRole)
                 .padding(.top, 4)
@@ -1080,24 +1126,18 @@ struct AssistantPanel: View {
                 .padding(.top, 4)
                 .transition(.opacity)
         }
-        if let record = activeSummary {
-            WorkProgressCard(record: record, progress: app.progress) { app.cancel(record: record) }
-                .padding(.top, 4)
-                .transition(.opacity)
-        }
-        if case .failed(let message) = summaryRun {
-            SummaryFailedCard(message: message, canRetry: activePull == nil) {
-                app.startSummary(regenerate: true)
-            }
-            .padding(.top, 4)
-            .transition(.opacity)
+        if !placement.hidesTopStatus {
+            summaryStatusCards
         }
         if rows.isEmpty {
-            if activeSummary != nil {
+            if activeSummary != nil, !placement.hidesTop {
                 SummaryPlaceholder()
                     .padding(.top, 4)
                     .transition(.asymmetric(insertion: .opacity, removal: .identity))
-            } else if activePull == nil, !isSummaryFailed, app.assistantPageState != .loading, app.currentTopic != nil {
+            } else if activePull == nil, !isSummaryFailed || placement.hidesTopStatus,
+                      activeSummary == nil || placement.hidesTopStatus,
+                      app.assistantPageState != .loading, app.currentTopic != nil,
+                      !browserAgent.hasConversation {
                 // The suggestion row offers the summary.
                 DCMascotView(pose: .wave, size: 128)
                     .padding(.vertical, 32)
@@ -1141,6 +1181,42 @@ struct AssistantPanel: View {
                     .transition(.asymmetric(insertion: .opacity, removal: .identity))
             }
         }
+    }
+
+    /// The summary run's progress and failure, at the top or under the summary card.
+    @ViewBuilder
+    private var summaryStatusCards: some View {
+        if let record = activeSummary {
+            WorkProgressCard(record: record, progress: app.progress) { app.cancel(record: record) }
+                .padding(.top, 4)
+                .transition(.opacity)
+        }
+        if case .failed(let message) = summaryRun {
+            SummaryFailedCard(message: message, canRetry: activePull == nil) {
+                app.startSummary(regenerate: true)
+            }
+            .padding(.top, 4)
+            .transition(.opacity)
+        }
+    }
+
+    /// Under the conversation's summary card for the open thread: what the top
+    /// section had around its summary (WUKO-134), so there is one summary on screen.
+    @ViewBuilder
+    private func summaryCardFooter(_ session: TopicSession) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            summaryStatusCards
+            if activeSummary == nil {
+                drawerSummaryMeta(session)
+                if session.hasStaleSummary {
+                    DrawerStaleBanner(session: session) { app.startSummary() }
+                        .disabled(activePull != nil)
+                }
+                if showsCitationTip { citationTip }
+                summarizeControl(prominent: false)
+            }
+        }
+        .transition(.opacity)
     }
 
     /// Meta chips: model, post count, age, Kept.
