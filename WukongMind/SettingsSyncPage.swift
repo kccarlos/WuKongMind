@@ -142,7 +142,11 @@ struct SettingsSyncPage: View {
     }
 
     private var status: CloudSyncController.Status { SyncDebug.status(actual: sync.status) }
-    private var isEnabled: Bool { SyncDebug.isEnabled(actual: sync.isEnabled) }
+    /// This build has no CloudKit transport: the switch shows off and is
+    /// disabled (the stored preference is kept for a CloudKit build). A DEBUG
+    /// `-dc-sync-status` override wins so screenshots can show every state.
+    private var lacksICloud: Bool { !SyncDebug.isOverridden && sync.transport == nil }
+    private var isEnabled: Bool { SyncPageState.switchIsOn(sync: sync) }
     private var presentation: SyncStatusPresentation { SyncStatusPresentation(status) }
     private var lastSyncedAt: Date? { SyncDebug.lastSyncedAt(actual: sync.lastSyncedAt) }
     /// On, with an account that can sync (Last synced and Sync now apply).
@@ -160,6 +164,7 @@ struct SettingsSyncPage: View {
                     get: { isEnabled },
                     set: { sync.setEnabled($0) }
                 ))
+                .disabled(lacksICloud)
                 .accessibilityIdentifier("syncEnabled")
                 SyncStatusRow(presentation: presentation) { sync.syncNow() }
                 if canSync {
@@ -305,6 +310,17 @@ struct SyncStatusRow: View {
     }
 }
 
+/// What the "Sync with iCloud" switch shows (unit-tested).
+enum SyncPageState {
+    @MainActor static func switchIsOn(sync: CloudSyncController) -> Bool {
+        (SyncDebug.isOverridden || sync.transport != nil) && SyncDebug.isEnabled(actual: sync.isEnabled)
+    }
+
+    @MainActor static func switchIsEnabled(sync: CloudSyncController) -> Bool {
+        SyncDebug.isOverridden || sync.transport != nil
+    }
+}
+
 // MARK: - DEBUG screenshots
 
 /// DEBUG `-dc-sync-status <off|noAccount|restricted|unavailable|syncing|upToDate|error>`
@@ -317,6 +333,8 @@ enum SyncDebug {
         #endif
         return nil
     }
+
+    static var isOverridden: Bool { override != nil }
 
     static func status(actual: CloudSyncController.Status) -> CloudSyncController.Status {
         override ?? actual

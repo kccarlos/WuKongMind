@@ -542,7 +542,7 @@ final class ScriptSyncTests: XCTestCase {
         )
         let unsignedApp = AppModel(store: unsignedStore, cloudSync: unsignedSync)
         unsignedApp.browser.onPageContextChanged = nil
-        XCTAssertEqual(unsignedSync.status, .unavailable("Sync needs a signed build"))
+        XCTAssertEqual(unsignedSync.status, .unavailable("This build doesn't include iCloud"))
         _ = try unsignedApp.scriptStore.create(
             id: "local-only",
             name: "Local Only",
