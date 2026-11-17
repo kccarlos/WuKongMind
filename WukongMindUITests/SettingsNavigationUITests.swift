@@ -247,7 +247,11 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(app.navigationBars["Audit log"].waitForExistence(timeout: 10))
         if !any(app, "auditLogEmptyState").waitForExistence(timeout: 2) {
             let clear = app.buttons["auditClear"]
-            XCTAssertTrue(reveal(clear, in: app))
+            // Audit logs persist across simulator runs, so many pages of tasks can sit above Clear.
+            for _ in 0..<60 where !(clear.exists && clear.isHittable) {
+                app.swipeUp(velocity: .fast)
+            }
+            XCTAssertTrue(reveal(clear, in: app, swipes: 4))
             clear.tap()
             let confirm = app.buttons.matching(NSPredicate(format: "label == 'Clear audit log' AND identifier != 'auditClear'")).firstMatch
             XCTAssertTrue(confirm.waitForExistence(timeout: 5))
@@ -279,12 +283,18 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(reveal(openRouter, in: app))
         openRouter.tap()
         let testButton = app.buttons["testProvider"]
-        XCTAssertTrue(testButton.waitForExistence(timeout: 5))
+        XCTAssertTrue(reveal(testButton, in: app, swipes: 4))
+        let windowMaxY = app.windows.firstMatch.frame.maxY
+        // Models sits above Test & Save now, which can leave it clipped at the bottom edge of the viewport.
+        for _ in 0..<2 where testButton.frame.maxY > windowMaxY - 40 {
+            app.swipeUp()
+        }
+        XCTAssertTrue(testButton.isHittable)
         capture("base_phone_provider-openrouter")
         XCTAssertGreaterThanOrEqual(testButton.frame.height, 50, "Test & Save button height was clipped below standard Form row height.")
         testButton.tap()
         let failure = any(app, "providerTestFailure")
-        XCTAssertTrue(failure.waitForExistence(timeout: 5))
+        XCTAssertTrue(reveal(failure, in: app, swipes: 2))
         XCTAssertGreaterThanOrEqual(testButton.frame.height, 50, "Test & Save button must keep its full 52pt row height when test status is shown.")
     }
 
