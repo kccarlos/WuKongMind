@@ -150,6 +150,9 @@ final class AppModel: ObservableObject {
     }
     @Published private(set) var activities: [WorkRecord]
     @Published private(set) var currentTopic: ForumTopic?
+    /// Topics whose saved summary New conversation hid from the drawer (WUKO-134).
+    /// In memory only: the saved summary stays; asking for one again shows it.
+    @Published private(set) var drawerSummaryHiddenTopicKeys: Set<String> = []
     @Published var panelRoute: PanelRoute = .topic
     /// Shared between the inline panel and its full-screen copy so opening the
     /// assistant full screen keeps the same mode.
@@ -1793,6 +1796,17 @@ final class AppModel: ObservableObject {
     /// Starts a summary; `batchLimit` overrides the hierarchical-summary batch
     /// size for this run only.
     /// `regenerate`: write it again even when no reply is new (Retry).
+    /// New conversation: hide the open thread's saved summary from the drawer
+    /// until the person asks for it again (`startSummary`, `summarizeForTool`).
+    func hideDrawerSummaryForNewConversation() {
+        guard let key = currentTopic?.topicKey else { return }
+        drawerSummaryHiddenTopicKeys.insert(key)
+    }
+
+    private func showDrawerSummary(topicKey: String) {
+        if drawerSummaryHiddenTopicKeys.contains(topicKey) { drawerSummaryHiddenTopicKeys.remove(topicKey) }
+    }
+
     func startSummary(batchLimit: Int? = nil, regenerate: Bool = false) {
         guard let topic = currentTopic else {
             presentError(AssistantError.noTopic.localizedDescription)
@@ -1804,6 +1818,7 @@ final class AppModel: ObservableObject {
             return
         }
         router.summarizeTipSeen()
+        showDrawerSummary(topicKey: topic.topicKey)
         let shouldRegenerate = regenerate || (batchLimit != nil && currentSession?.hasSummary == true)
         enqueueSummary(for: topic, batchLimit: batchLimit, regenerate: shouldRegenerate)
     }
@@ -2656,6 +2671,7 @@ final class AppModel: ObservableObject {
             return
         }
         dismissHistoryIfNeeded()
+        showDrawerSummary(topicKey: record.topicKey)
         assistantMode = .summary
         browser.load(record.url)
         panelRoute = .topic
@@ -2664,6 +2680,8 @@ final class AppModel: ObservableObject {
 
     func open(session: TopicSession) {
         dismissHistoryIfNeeded()
+        // Opening a saved summary from History asks for it: show it again (WUKO-134).
+        showDrawerSummary(topicKey: session.topicKey)
         assistantMode = .summary
         browser.load(session.url)
         panelRoute = .topic
@@ -3864,6 +3882,8 @@ final class AppModel: ObservableObject {
 
     /// Runs or joins a thread summary job and awaits its completion without cancelling it on Stop.
     func summarizeForTool(_ topic: ForumTopic) async throws -> TopicSession {
+        // Asking again (a card, a voice turn, Read it) shows the summary that New conversation hid.
+        showDrawerSummary(topicKey: topic.topicKey)
         let recordID: UUID
         if let active = activities.first(where: { $0.topicKey == topic.topicKey && $0.type == .summary && !$0.status.isTerminal }) {
             recordID = active.id
