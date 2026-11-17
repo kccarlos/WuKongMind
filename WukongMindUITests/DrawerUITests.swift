@@ -463,6 +463,7 @@ final class DrawerUITests: DCUITestCase {
 
         summarize.tap()
         XCTAssertTrue(card.firstMatch.waitForExistence(timeout: 30), "Missing summary card under summarize_topic.")
+        captureIfRequested("wuko134-2a-landed")
         // The transcript is lazy: scroll up to the person's message, right under where
         // a top summary would be, so it would load. At large, short slow drags scroll
         // the text (a swipe down at medium would close the drawer).

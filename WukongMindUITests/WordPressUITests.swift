@@ -105,16 +105,19 @@ final class WordPressUITests: DCUITestCase {
             for _ in 0..<12 where chip.exists && chip.frame.maxY > any(app, "askBox").frame.minY + 300 {
                 any(app, "agentScroll").swipeUp(velocity: .fast)
             }
-            for _ in 0..<12 {
+            // The conversation rests at the end of a long summary card (WUKO-134), so #1 can
+            // start ~2,000 pt up: fast drags while it is far, then slow ones to land it.
+            for _ in 0..<24 {
                 let top = any(app, "drawerHeader").frame.maxY
                 let bottom = any(app, "askBox").frame.minY
                 if chip.frame.minY >= top && chip.frame.maxY <= bottom { break }
                 let start = app.windows.firstMatch.coordinate(withNormalizedOffset: .zero)
                     .withOffset(CGVector(dx: app.frame.width * 0.75, dy: (top + bottom) / 2))
                 let distance = min(160, (bottom - top) / 3)
+                let far = chip.frame.maxY < top - 600 || chip.frame.minY > bottom + 600
                 start.press(forDuration: 0.01, thenDragTo: start.withOffset(
                     CGVector(dx: 0, dy: chip.frame.minY < top ? distance : -distance)),
-                    withVelocity: .slow, thenHoldForDuration: 0)
+                    withVelocity: far ? .fast : .slow, thenHoldForDuration: 0)
             }
             XCTAssertGreaterThanOrEqual(chip.frame.minY, any(app, "drawerHeader").frame.maxY, "\(scenario): citation-\(number) is above the drawer content")
             XCTAssertLessThanOrEqual(chip.frame.maxY, any(app, "askBox").frame.minY, "\(scenario): citation-\(number) is below the drawer content")
