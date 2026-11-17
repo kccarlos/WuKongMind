@@ -175,7 +175,7 @@ final class SettingsNavigationUITests: DCUITestCase {
     /// Settings › Models lists Agent, Summaries, and the M4 Scripts placeholder,
     /// plus summary batching, custom instructions, and answer language.
     func testAIModelsPageShowsBothRolesAndOpensARolesPicker() throws {
-        let app = launch(["-dc-sample", "-dc-show-settings", "provider", "-dc-agent-model", "deepseek:deepseek-v4-flash"])
+        let app = launch(["-AppleInterfaceStyle", "Dark", "-dc-sample", "-dc-show-settings", "provider", "-dc-agent-model", "deepseek:deepseek-v4-flash"])
 
         XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 20))
         let agent = any(app, "modelRole-browserAgent")
@@ -190,6 +190,7 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(assistant.label.contains("claude-sonnet-4-5"), "Got “\(assistant.label)”.")
         XCTAssertFalse(any(app, "useSameModel-browserAgent").exists, "No “Use … for both” rows under Default models.")
         XCTAssertFalse(any(app, "useSameModel-assistant").exists)
+        captureIfRequested("models-page-dark")
 
         // Summaries batching, custom instructions, and answer language live here.
         XCTAssertTrue(reveal(any(app, "summaryBatchLimit"), in: app))
