@@ -37,13 +37,13 @@ The session is replayed offline from `WukongMindTests/Fixtures/LiveReplay/record
 
 The spike's token runs (`one-loop-spike/results/anywhere-tokens.json`, AI Studio) agree: the fixed 14-tool set with today's instruction costs 4,316 to 4,547 prompt tokens on the first turn.
 
-## Where the cost goes
+## Where the cost went (before WUKO-124)
 
 1. **The fixed prompt is about 90 % of the tokens** (5 × ~3,600 of 19,752). About 3,600 tokens of instruction and tool declarations are re-billed on every model turn. A tool call doubles the turns: 3 short requests cost 5 turns, about 19k prompt tokens. Trimming tool descriptions and the instruction is the biggest token lever.
 2. **Model speech is re-billed.** Each reply's audio (12 s for three short answers here) is billed once as output and then again as prompt audio on every later turn. Shorter answers save twice.
-3. **Compression does not help short sessions.** It starts at 16k tokens (`Setup.triggerTokens`) and slides back to 4k. A typical session never reaches 16k, so a lower trigger matters only for long sessions.
+3. **Compression does not help short sessions.** It started at 16k tokens (10k since WUKO-124) (`Setup.triggerTokens`) and slides back to 4k. A typical session never reaches 16k, so a lower trigger matters only for long sessions.
 4. **The microphone is already gated.** On-device VAD (`CaptureGate`) sends only speech plus 100 ms pre-roll and 400 ms hangover. When the gate closes, about 1 s of comfort noise follows, then `audioStreamEnd`. That is roughly 1.5 s of billed non-speech per utterance. Not measured live here.
-5. **Idle sessions already close.** The idle timeout is 60 s by default, and the socket closes on `.idle`. An open session with the microphone gated sends no audio. The cost of a long idle timeout is noise that opens the gate and the context it adds.
+5. **Idle sessions already close.** The idle timeout was 60 s by default (20 s since WUKO-124), and the socket closes on `.idle`. An open session with the microphone gated sends no audio. The cost of a long idle timeout is noise that opens the gate and the context it adds.
 6. **Barge-in already flushes playback** on `interrupted`, and the server stops generating.
 
 ## After (WUKO-124, measured)
@@ -75,7 +75,7 @@ Answers were already short in this script, so the answer-length change doesn't s
 
   The spike Q3 rule (`opinionRule`) and the instruction are unchanged. Voice now has its own short descriptions for `summarize_topic`, `read_aloud` and `read_topic`, so the text Agent's prompt is unchanged.
 - **Spoken answers (item 6).** The `normal` length asks for "usually two to four sentences" (was "a few"). Barge-in was already handled: `interrupted` flushes playback (`testModelAudioPlaysAndInterruptionFlushes`), and the server stops generating.
-- **Idle (item 4).** "Close when quiet" defaults to 20 s (was 60 s; 20 s is now also offered in Settings). A saved 60 from before is moved to 20 once (`idleTimeoutRevision`).
+- **Idle (item 4).** "Close when quiet" counts from when the session goes quiet: a reply still playing or a hand-off still running does not count. It defaults to 20 s (was 60 s; 20 s is now also offered in Settings). A saved 60 from before is moved to 20 once (`idleTimeoutRevision`).
   - When a session closes for quiet, it leaves its resumption handle. The next tap within 5 minutes resumes that conversation instead of the session staying open (`VoiceSession.Resumption`, kept by `VoiceController`).
   - The two traps from Part A are handled. On Vertex, only a fresh connection leaves a handle, so a resumed session leaves none. The resumed session sends the current page note itself (the carried `freshAt` makes `setupCompleted` treat it as the first connection).
   - A dead handle falls back to a fresh session. A user's own stop, a handle older than 5 minutes, or another key or endpoint also starts fresh.
@@ -94,7 +94,7 @@ Answers were already short in this script, so the answer-length change doesn't s
 - "Search for firmware rollback." called `search_forum`.
 - The session then closed as idle, and a new session resumed with the handle (connection generation 1).
 - To "What did I ask you to search for a moment ago?" it answered "You asked me to search for firmware rollback."
-- **The resume trade-off is measured.** The resumed connection's first turn billed 3,684 prompt tokens. A fresh session's first turn bills about 2,870, so resuming costs about 800 more tokens there. That is the earlier conversation, and the reason the handle expires after 5 minutes. Holding the session open instead would bill the same context on every later turn as well, plus connected time.
+- **The resume trade-off is measured.** The resumed connection's first turn billed 3,684 prompt tokens. A fresh session's first turn bills about 2,870, so resuming costs about 800 more tokens there. That is the earlier conversation, and the reason the handle expires after 5 minutes. Holding the session open instead would bill the same context on every later turn as well. The open time would also count against the voice-minutes limit in Settings.
 
 Live sessions used in this task: 3 of 3 (17.2 s, 20.3 s and 4.5 s; `[LIVE-BUDGET]` lines in the test logs).
 
