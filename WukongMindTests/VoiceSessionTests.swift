@@ -615,6 +615,37 @@ final class VoiceSessionTests: XCTestCase {
         XCTAssertNil(third.resumption, "A resumed Vertex connection's handle is never used")
     }
 
+    /// The idle clock starts when the session goes quiet: a reply still
+    /// playing, or a hand-off still running, never counts toward it.
+    func testIdleCountsFromTheEndOfPlaybackAndOfAHandOff() async throws {
+        let session = try await started()
+        session.receive(audioFrame())
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        audio.isPlaying = true
+        clock.advance(25)
+        session.tick()
+        XCTAssertEqual(session.state, .speaking)
+        audio.isPlaying = false
+        clock.advance(0.1)
+        session.tick()
+        XCTAssertEqual(session.state, .listening, "Not closed as the reply ends")
+        clock.advance(VoiceSettings.defaultIdleTimeout - 1)
+        session.tick()
+        XCTAssertEqual(session.state, .listening)
+
+        // A hand-off running longer than the timeout keeps it open.
+        navigator.holdsHandOff = true
+        session.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"call_h","name":"hand_off_to_agent","args":{"request":"dark mode"}}]}}"#))
+        await settle()
+        session.receive(frame(#"{"serverContent":{"turnComplete":true}}"#))
+        clock.advance(30)
+        session.tick()
+        XCTAssertFalse(session.state.isOver, "A hand-off still running is not idle")
+        navigator.releaseHandOff()
+        await settle()
+        session.stop()
+    }
+
     func testIdleDefaultIsShortAndAnOldSavedDefaultMovesToIt() throws {
         XCTAssertEqual(VoiceSettings().idleTimeout, 20)
         let old = try JSONDecoder().decode(VoiceSettings.self, from: Data(#"{"idleTimeout":60}"#.utf8))

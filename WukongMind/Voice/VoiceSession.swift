@@ -1117,7 +1117,10 @@ final class VoiceSession: ObservableObject {
             }
         }
 
-        // Idle: nobody spoke for the timeout.
+        // Idle: nobody spoke for the timeout, counted from when it went quiet
+        // (a reply plays out long after its last frame, about 4x faster than
+        // real time; a tool or hand-off may run longer than the timeout).
+        if !isQuiet || navigator?.isHandingOff == true { lastActivityAt = now }
         if let last = lastActivityAt, now.timeIntervalSince(last) >= configuration.settings.idleTimeout, isQuiet,
            navigator?.isHandingOff != true {
             end(.idle)
