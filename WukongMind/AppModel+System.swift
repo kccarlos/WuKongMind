@@ -139,6 +139,16 @@ extension AppModel: SystemEntryRouting {
     /// The unit-test host: XCTest is loaded, or about to be (the test
     /// runner sets the configuration path before launch). Tests run Debug
     /// builds; a Release build never checks its environment.
+    /// `-dc-notifications-granted` (DEBUG): notifications count as allowed and nothing is
+    /// posted, so a UI test never waits on the system permission alert.
+    nonisolated static var notificationsGrantedForUITests: Bool {
+        #if DEBUG
+        ProcessInfo.processInfo.arguments.contains("-dc-notifications-granted")
+        #else
+        false
+        #endif
+    }
+
     nonisolated static var isRunningTests: Bool {
         #if DEBUG
         NSClassFromString("XCTestCase") != nil

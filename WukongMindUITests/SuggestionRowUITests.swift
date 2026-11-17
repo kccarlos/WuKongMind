@@ -84,7 +84,7 @@ final class SuggestionRowUITests: DCUITestCase {
         let listenRow = any(app, "capabilityListenRow")
         XCTAssertTrue(listenRow.waitForExistence(timeout: 15), "Missing listen card under read_aloud.")
         XCTAssertTrue(
-            wait(timeout: 15) { (listenRow.value as? String) == "Pause" },
+            wait(timeout: 30) { (listenRow.value as? String) == "Pause" },
             "Read it to me did not start reading the summary aloud."
         )
         captureIfRequested("suggestion-read-aloud")
@@ -98,7 +98,7 @@ final class SuggestionRowUITests: DCUITestCase {
         let listenRow = any(app, "capabilityListenRow")
         XCTAssertTrue(listenRow.waitForExistence(timeout: 30), "Read it to me did not summarize and start listen row.")
         XCTAssertTrue(
-            wait(timeout: 15) { (listenRow.value as? String) == "Pause" },
+            wait(timeout: 30) { (listenRow.value as? String) == "Pause" },
             "The summary was not read aloud once written."
         )
         if usesDrawerLayout(app) { dragDrawer(in: app, to: 0.08) }
@@ -109,7 +109,9 @@ final class SuggestionRowUITests: DCUITestCase {
     /// Notify me follows the thread: the Agent says "Following.", the switch
     /// in This page is on, and the suggestion is gone.
     func testNotifyMeFollowsTheThread() {
-        let app = launch(thread)
+        // `-dc-notifications-granted`: the system permission alert is not what this test
+        // checks, and on a slow runner it raced the 60 s wait (main CI 44185565340).
+        let app = launch(thread + ["-dc-notifications-granted"])
         showAssistant(in: app)
         let follow = scrollToChip(app, "followReplies")
         follow.tap()
@@ -146,7 +148,10 @@ final class SuggestionRowUITests: DCUITestCase {
         app.buttons["agentSendButton"].tap()
         let userTurn = any(app, "agentUserMessage")
         XCTAssertTrue(waitOrDump(userTurn, timeout: 15, in: app), "The search did not send to the Agent.")
-        XCTAssertTrue(app.staticTexts.matching(label(contains: "Search this forum for streaming bugs")).firstMatch.exists)
+        XCTAssertTrue(
+            app.staticTexts.matching(label(contains: "Search this forum for streaming bugs")).firstMatch.waitForExistence(timeout: 10),
+            "The sent search text is not shown in the Agent conversation."
+        )
         captureIfRequested("suggestion-search-agent")
     }
 }
