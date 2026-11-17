@@ -319,8 +319,14 @@ xctrace_watch() {
     sleep 1
   done
   grep -aq 'XCTRACE-START' "$out/test.log" 2>/dev/null || return 0
-  log "recording '$XCTRACE_TEMPLATE' for ${XCTRACE_SECONDS}s; log: $out/xctrace.log"
-  xcrun xctrace record --device "$udid" --template "$XCTRACE_TEMPLATE" --attach WukongMind \
+  local f pid
+  f="$(mktemp -t devcheck-procs)"
+  xcrun devicectl device info processes --device "$udid" --json-output "$f" >/dev/null 2>&1
+  pid="$(json_get "$f" 'next((p["processIdentifier"] for p in d.get("result", {}).get("runningProcesses", []) if "/WukongMind.app/" in p.get("executable", "")), "")' 2>/dev/null)"
+  rm -f "$f"
+  [[ -n "$pid" ]] || { log "xctrace: the app is not running; no recording"; return 0; }
+  log "recording '$XCTRACE_TEMPLATE' of pid $pid for ${XCTRACE_SECONDS}s; log: $out/xctrace.log"
+  xcrun xctrace record --device "$udid" --template "$XCTRACE_TEMPLATE" --attach "$pid" \
     --time-limit "${XCTRACE_SECONDS}s" --output "$out/perf.trace" --no-prompt >"$out/xctrace.log" 2>&1
 }
 

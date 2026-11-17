@@ -82,16 +82,23 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
         XCTAssertTrue(wait(timeout: summaryTimeout) {
             self.any(app, "summaryContent").exists || self.any(app, "capabilityThreadSummaryCard").exists
         }, "The summary did not appear.")
+        // The card shows while the thread is still being read: wait for the saved summary.
+        let saved = wait(timeout: summaryTimeout) { (self.probe(app)["summary_chars"] ?? 0) > 0 }
         let status = any(app, "agentStatusLine")
         _ = wait(timeout: 120) { !status.exists }
-        var report = ["case=\(name)", "summarize_seconds=\(Int(Date().timeIntervalSince(started)))"]
+        var report: [String] = []
+        func note(_ line: String) {
+            report.append(line)
+            print("LONG-THREAD-PERF \(name) | " + line.replacingOccurrences(of: "\n", with: "\nLONG-THREAD-PERF \(name) | "))
+        }
+        note("case=\(name) summary_saved=\(saved) summarize_seconds=\(Int(Date().timeIntervalSince(started)))")
         RunLoop.current.run(until: Date().addingTimeInterval(3))
 
         // Nothing asked of the app: what the meter reads by itself.
         var before = probe(app)
         RunLoop.current.run(until: Date().addingTimeInterval(5))
         var after = probe(app)
-        report.append(delta(before, after, per: 1, named: "idle 5 s"))
+        note(delta(before, after, per: 1, named: "idle 5 s"))
 
         // Typing, one character at a time.
         let box = any(app, "askBox")
@@ -113,17 +120,17 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
         let typingSeconds = Date().timeIntervalSince(typingStarted)
         RunLoop.current.run(until: Date().addingTimeInterval(1))
         after = probe(app)
-        report.append("typing_wall_seconds=\(String(format: "%.1f", typingSeconds))")
-        report.append(delta(before, after, per: keys, named: "typing"))
+        note("typing_wall_seconds=\(String(format: "%.1f", typingSeconds))")
+        note(delta(before, after, per: keys, named: "typing"))
 
         // Scrolling the transcript.
         let scroll = any(app, "agentScroll")
         before = probe(app)
-        for _ in 0..<6 { scroll.swipeUp() }
-        for _ in 0..<6 { scroll.swipeDown() }
+        // Up only: a swipe down at the top would drag the drawer shut.
+        for _ in 0..<8 { scroll.swipeUp() }
         RunLoop.current.run(until: Date().addingTimeInterval(1))
         after = probe(app)
-        report.append(delta(before, after, per: 12, named: "scrolling"))
+        note(delta(before, after, per: 8, named: "scrolling"))
 
         // Closing and opening the drawer (phones and narrow windows).
         if usesDrawerLayout(app) {
@@ -137,13 +144,11 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
             let openSeconds = Date().timeIntervalSince(openStarted)
             RunLoop.current.run(until: Date().addingTimeInterval(1.5))
             after = probe(app)
-            report.append("reopen_wall_seconds=\(String(format: "%.2f", openSeconds))")
-            report.append(delta(before, after, per: 1, named: "closing and reopening the drawer"))
+            note("reopen_wall_seconds=\(String(format: "%.2f", openSeconds))")
+            note(delta(before, after, per: 1, named: "closing and reopening the drawer"))
         }
 
-        let text = report.joined(separator: "\n")
-        attachText(text, named: "long-thread-perf-\(name).txt")
-        print("LONG-THREAD-PERF-BEGIN\n\(text)\nLONG-THREAD-PERF-END")
+        attachText(report.joined(separator: "\n"), named: "long-thread-perf-\(name).txt")
     }
 
     /// The control: the same steps on a thread of 20 comments.
