@@ -87,6 +87,15 @@ extension ToolRegistry {
         ToolParameterSchema(name: "text", type: .string, description: "Plain text to process directly.", minLength: 1)
     ]
 
+    /// The same inputs, described briefly for voice: every model turn re-bills
+    /// the declarations (voice-cost.md).
+    private static let voiceContentParameters: [ToolParameterSchema] = [
+        ToolParameterSchema(name: "topic_id", type: .string, description: "Thread id on the open forum.", minLength: 1),
+        ToolParameterSchema(name: "url", type: .string, description: "Thread URL.", minLength: 1),
+        ToolParameterSchema(name: "path", type: .string, description: "Workspace file path.", minLength: 1),
+        ToolParameterSchema(name: "text", type: .string, description: "Plain text.", minLength: 1)
+    ]
+
     private static func parseSingleInput(_ args: [String: JSONValue], keys: [String], toolName: String) throws -> (key: String, value: String) {
         var provided: [(String, String)] = []
         for key in keys {
@@ -139,13 +148,13 @@ extension ToolRegistry {
     ) -> AgentTool {
         let keys = ["topic_id", "url", "path", "text"]
         let description = surface == .voice
-            ? "Summarize what the user is looking at. With no input it summarizes the open thread on a forum topic, and on any other page the page's readable text (\"summarize this\", \"what's this page about\"); leave all parameters out for the current page instead of passing 'text'. Also takes a forum thread ('topic_id' or 'url'), a workspace file ('path'), or plain 'text'. Give the gist in a few spoken sentences."
+            ? "Summarize what the user is looking at. With no input: the open thread on a forum topic, else the page's readable text (\"summarize this\", \"what's this page about\"); leave all parameters out for the current page rather than passing 'text'. Also takes 'topic_id', 'url', a workspace 'path' or plain 'text'. Give the gist in a few spoken sentences."
             : "Summarize a forum thread ('topic_id' on the open forum or 'url' on any supported Discourse, Hacker News, or WordPress thread, or a thread of a site whose reading was learned), a workspace file ('path'), or plain 'text'."
         return AgentTool(
             definition: AgentToolDefinition(
                 name: "summarize_topic",
                 description: description,
-                parameters: capabilityContentParameters
+                parameters: surface == .voice ? voiceContentParameters : capabilityContentParameters
             ),
             customValidate: { _ = try parseSingleInput($0, keys: keys, toolName: "summarize_topic") },
             summarizeArguments: { summarizeContentArgs($0) },
@@ -187,13 +196,13 @@ extension ToolRegistry {
     ) -> AgentTool {
         let keys = ["topic_id", "url", "path", "text"]
         let description = surface == .voice
-            ? "Start reading aloud in the audio player and return immediately with the length. With no input it reads the open thread's summary on a forum topic (summarizing first if needed), and on any other page the page's readable text (\"read it to me\", \"listen to this page\"); leave all parameters out for the current page instead of passing 'text'. Also takes a forum thread ('topic_id' or 'url'), a workspace file ('path'), or plain 'text'."
+            ? "Start reading aloud in the audio player; it returns at once with the length. With no input: the open thread's summary on a forum topic, else the page's readable text (\"read it to me\"); leave all parameters out for the current page. Also takes 'topic_id', 'url', a workspace 'path' or plain 'text'."
             : "Start reading a forum thread summary ('topic_id' or 'url', summarizing first if needed), a workspace file ('path'), or plain 'text' aloud in the audio player and return immediately."
         return AgentTool(
             definition: AgentToolDefinition(
                 name: "read_aloud",
                 description: description,
-                parameters: capabilityContentParameters
+                parameters: surface == .voice ? voiceContentParameters : capabilityContentParameters
             ),
             customValidate: { _ = try parseSingleInput($0, keys: keys, toolName: "read_aloud") },
             summarizeArguments: { summarizeContentArgs($0) },

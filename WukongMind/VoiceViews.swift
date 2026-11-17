@@ -484,7 +484,7 @@ struct SettingsVoicePage: View {
                     }
                 }
                 Picker("Close when quiet", selection: $app.settings.voice.idleTimeout) {
-                    ForEach([30.0, 60, 120, 300], id: \.self) { seconds in
+                    ForEach(VoiceSettings.idleTimeoutChoices, id: \.self) { seconds in
                         Text(Self.duration(seconds)).tag(seconds)
                     }
                 }

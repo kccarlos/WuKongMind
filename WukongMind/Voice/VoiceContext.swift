@@ -35,7 +35,7 @@ struct VoiceContext {
     static let openingLimit = 700
     static let summaryLimit = 1_500
     static let lineLimit = 120
-    static let visibleLimit = 6
+    static let visibleLimit = 4
 
     /// The settled non-topic page note (`ordinary` or `forumHome`), and its
     /// document identity so scrolling or a hash jump doesn't send it twice.

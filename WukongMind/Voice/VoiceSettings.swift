@@ -82,6 +82,8 @@ struct VoiceSettings: Codable, Equatable {
     /// Seconds without speech either way before the session closes (it
     /// reopens on the next tap): every connected minute is billed.
     var idleTimeout: Double = VoiceSettings.defaultIdleTimeout
+    /// 1 since the 20 s default (WUKO-124): a saved 60 is then a choice.
+    private(set) var idleTimeoutRevision = 1
     /// Send the focused post's full text when the user's words point at the
     /// screen ("this post", "他说的"), before the model answers.
     var groundsOnScreenReference = true
@@ -97,7 +99,11 @@ struct VoiceSettings: Codable, Equatable {
     var sessionLimitMinutes = VoiceSettings.defaultSessionLimit
     var dailyLimitMinutes = VoiceSettings.defaultDailyLimit
 
-    static let defaultIdleTimeout: Double = 60
+    /// Short (WUKO-124): a quiet session closes and the next tap resumes it
+    /// (`VoiceSession.Resumption`), so holding it open buys little.
+    static let defaultIdleTimeout: Double = 20
+    /// What Settings offers for "Close when quiet".
+    static let idleTimeoutChoices: [Double] = [20, 30, 60, 120, 300]
     static let defaultSessionLimit = 15
     static let defaultDailyLimit = 30
     /// The choices Settings offers (0 is "No limit").
@@ -113,7 +119,7 @@ struct VoiceSettings: Codable, Equatable {
     init() {}
 
     private enum CodingKeys: String, CodingKey {
-        case provider, voiceName, answerLength, eyesFree, idleTimeout
+        case provider, voiceName, answerLength, eyesFree, idleTimeout, idleTimeoutRevision
         case groundsOnScreenReference, groundsOnDwell, vertexProject
         case sessionLimitMinutes, dailyLimitMinutes
     }
@@ -131,7 +137,10 @@ struct VoiceSettings: Codable, Equatable {
         voiceName = name.isEmpty ? VoiceCatalog.defaultVoice : name
         answerLength = value(.answerLength, .normal)
         eyesFree = value(.eyesFree, .auto)
-        idleTimeout = min(Self.idleTimeoutRange.upperBound, max(Self.idleTimeoutRange.lowerBound, value(.idleTimeout, Self.defaultIdleTimeout)))
+        // 60 was the default before WUKO-124 and was saved like a choice; a
+        // save without the revision moves it to the new default once.
+        let idle = value(.idleTimeout, Self.defaultIdleTimeout)
+        idleTimeout = min(Self.idleTimeoutRange.upperBound, max(Self.idleTimeoutRange.lowerBound, idle == 60 && value(.idleTimeoutRevision, 0) < 1 ? Self.defaultIdleTimeout : idle))
         groundsOnScreenReference = value(.groundsOnScreenReference, true)
         groundsOnDwell = value(.groundsOnDwell, true)
         vertexProject = value(.vertexProject, "")
