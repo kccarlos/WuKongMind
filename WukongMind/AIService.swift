@@ -960,7 +960,7 @@ class AIService: @unchecked Sendable {
         turns[turns.count - 1] = last
     }
 
-    private static func anthropicMessages(from turns: [AgentModelTurn]) -> [[String: Any]] {
+    static func anthropicMessages(from turns: [AgentModelTurn]) -> [[String: Any]] {
         var encoded: [(role: String, blocks: [[String: Any]])] = []
 
         func appendBlocks(role: String, _ newBlocks: [[String: Any]]) {
@@ -1019,7 +1019,10 @@ class AIService: @unchecked Sendable {
                         "type": "tool_result",
                         "tool_use_id": res.toolCallID,
                         "content": contentField,
-                        "is_error": res.isError
+                        // The API rejects non-text content on an error result (HTTP 400),
+                        // so a refusal with screenshots goes as a normal result; its
+                        // text still starts with "Error:".
+                        "is_error": res.isError && res.images.isEmpty
                     ]
                 }
                 appendBlocks(role: "user", blocks)

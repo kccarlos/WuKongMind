@@ -99,6 +99,39 @@ enum PageFeedbackRules {
     static let minimumLinks = 2
     static let minimumFormControls = 2
 
+    /// Settle window after a reload (WUKO-132): client-rendered sites (x.com) fire
+    /// didFinish before the content exists. Poll every `settlePollMilliseconds`
+    /// until the snapshot stops warning, or has not changed for `settleStableMilliseconds`,
+    /// or `settleCapMilliseconds` ran out. A page the script really emptied stays
+    /// unchanged, so it costs ~1 s, not the cap.
+    static let settlePollMilliseconds = 250
+    static let settleStableMilliseconds = 1_000
+    static let settleCapMilliseconds = 4_000
+
+    static func settledSnapshot(
+        before: PageStateSnapshot,
+        bridge: AgentPageDriving,
+        pollMilliseconds: Int = settlePollMilliseconds,
+        stableMilliseconds: Int = settleStableMilliseconds,
+        capMilliseconds: Int = settleCapMilliseconds
+    ) async -> PageStateSnapshot? {
+        var latest = await bridge.pageSnapshot()
+        var elapsed = 0
+        var unchangedFor = 0
+        while let current = latest,
+              compare(before: before, after: current).isWarning,
+              elapsed < capMilliseconds,
+              unchangedFor < stableMilliseconds {
+            try? await Task.sleep(for: .milliseconds(pollMilliseconds))
+            if Task.isCancelled { break }
+            elapsed += pollMilliseconds
+            let next = await bridge.pageSnapshot()
+            unchangedFor = (next == current) ? unchangedFor + pollMilliseconds : 0
+            latest = next
+        }
+        return latest
+    }
+
     static func compare(before: PageStateSnapshot, after: PageStateSnapshot?) -> PageFeedbackReport {
         guard let after, after.url == before.url else {
             return PageFeedbackReport(before: before, after: after, reasons: [])
