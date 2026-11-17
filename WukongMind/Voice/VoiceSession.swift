@@ -29,6 +29,9 @@ import Foundation
 //   reconnect opens a fresh session seeded with the context.
 // - A turn that gets no server message for 10 s is a stall: the connection
 //   is recycled with the handle.
+// - Quiet for the idle timeout (20 s by default) closes the socket; the
+//   next tap within 5 minutes resumes with the handle (`Resumption`), so
+//   nothing stays open and billed between requests.
 // - Watchdogs: a hand-off call the model didn't acknowledge within 1.5 s
 //   gets a nudge; a result unspoken for 6 s is re-sent as a turn; tool-call
 //   markup spoken as text is cut off and corrected.

@@ -7,9 +7,10 @@ import XCTest
 /// the budget, so a longer description is a deliberate choice.
 @MainActor
 final class VoicePromptSizeTests: XCTestCase {
-    /// Characters, measured after WUKO-124's trim plus a little headroom.
-    static let instructionBudget = Int.max
-    static let declarationsBudget = Int.max
+    /// Characters: WUKO-124 measured 4,288 and 12,734 before its trim and
+    /// 4,294 and 9,375 after; these leave a little headroom.
+    static let instructionBudget = 4_500
+    static let declarationsBudget = 9_800
 
     func testFixedPromptStaysWithinBudget() throws {
         let app = LiveReplaySupport.makeApp(self)
@@ -36,12 +37,31 @@ final class VoicePromptSizeTests: XCTestCase {
         XCTAssertLessThanOrEqual(instruction.count, Self.instructionBudget)
         XCTAssertLessThanOrEqual(total, Self.declarationsBudget)
     }
-}
 
-// TEMP-GOLDEN-DUMP
-final class TempGoldenDump: XCTestCase {
-    @MainActor func testDump() throws {
-        print("[GOLDEN-VI-BEGIN]\n" + SiteGoldens.voiceInstructions() + "[GOLDEN-VI-END]")
-        print("[GOLDEN-GD-BEGIN]\n" + (try SiteGoldens.geminiDeclarations()) + "[GOLDEN-GD-END]")
+    /// Microphone audio billed for two spoken requests with pauses between
+    /// them (pink room noise 20 dB below the voice): an ungated stream sends
+    /// every second; the capture gate sends speech plus pre-roll and
+    /// hangover, and each close adds the comfort noise before
+    /// `audioStreamEnd` (voice-cost.md).
+    func testMicrophoneSecondsSentForTwoRequests() throws {
+        typealias Audio = VADTestAudio
+        var clean = [Double](repeating: 0, count: 2 * Audio.rate)
+        for voice in ["a", "b"] {
+            let speech = try Audio.speech(voice).map(Double.init)
+            clean += Audio.scaled(speech, toDBFS: Audio.speechLevelDBFS + (Audio.rmsDB(speech) - Audio.activeLevelDB(speech)))
+            clean += [Double](repeating: 0, count: 6 * Audio.rate)
+        }
+        let noise = Audio.scaled(try Audio.noise(.pink, samples: clean.count), toDBFS: Audio.speechLevelDBFS - 20)
+        var vad = VoiceActivityDetector()
+        let trace = Audio.run(Audio.pcm(zip(clean, noise).map { $0 + $1 }), vad: &vad)
+        let frame = Double(Audio.frameMs) / 1000
+        let total = Double(trace.sent.count) * frame
+        let speech = Double(Audio.activeFrames(clean).filter { $0 }.count) * frame
+        let gated = Double(trace.sent.filter { $0 }.count) * frame
+        let comfort = Double(trace.closes.count) * ComfortNoise.duration
+        print(String(format: "[VOICE-MIC-SECONDS] stream=%.1f speech=%.1f gated=%.1f closes=%d comfort=%.1f sent=%.1f",
+                     total, speech, gated, trace.closes.count, comfort, gated + comfort))
+        XCTAssertEqual(trace.opens.count, 2, "One open per request")
+        XCTAssertLessThan(gated + comfort, total * 0.5, "The gate sends well under half of an open stream")
     }
 }

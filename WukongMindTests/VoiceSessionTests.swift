@@ -646,7 +646,9 @@ final class VoiceSessionTests: XCTestCase {
     func testMinutesAreCountedPerSessionAndPerDay() async throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: "voice-usage-\(UUID().uuidString)"))
         let store = VoiceUsageStore(defaults: defaults)
-        let session = try await started(usage: store)
+        var settings = VoiceSettings()
+        settings.idleTimeout = 600
+        let session = try await started(settings: settings, usage: store)
         for _ in 0..<30 {
             clock.advance(2)
             session.tick()
