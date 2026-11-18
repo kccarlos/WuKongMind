@@ -100,9 +100,11 @@ enum AIProvider: String, Codable, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// The model a role gets when it switches to Vertex AI: it works on the
-    /// default (express) base URL, unlike the Gemini 4 models.
-    static let vertexAIDefaultAgentModel = "gemini-3.8-flash"
+    /// The model the Agent gets when it switches to Vertex AI: `gemini-4-argon`
+    /// passed Learn on ask 3/3 (WUKO-147), whereas `gemini-3.8-flash` failed
+    /// 3/4 on first ask. Requires a project `locations/global` base URL;
+    /// express-mode users can pick `gemini-3.8-flash` from the list.
+    static let vertexAIDefaultAgentModel = "gemini-4-argon"
 
     /// Vertex AI has no model list an API key can read, so the picker offers
     /// these Gemini models; any other model ID can still be typed.
