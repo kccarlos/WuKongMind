@@ -23,6 +23,10 @@ struct TaskRecordEvent: Codable, Equatable, Sendable {
         TaskRecordEvent(type: "history", time: time, fields: ["turns": JSONValue.encoding(turns) ?? .array([])])
     }
 
+    static func state(_ digest: AppStateDigest, time: Date) -> TaskRecordEvent {
+        TaskRecordEvent(type: "state", time: time, fields: ["state": JSONValue.encoding(digest) ?? .null])
+    }
+
     static func request(
         turn: Int, historyCount: Int, systemHash: String, toolsHash: String, pageURL: String? = nil, time: Date
     ) -> TaskRecordEvent {
