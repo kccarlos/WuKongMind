@@ -460,6 +460,7 @@ struct MarkdownView: View {
     }
 
     var body: some View {
+        let _ = PerfProbe.hit("MarkdownView.body")
         let currentRows = rows
         Group {
             if currentRows.count >= Self.lazyRowThreshold {
@@ -519,6 +520,7 @@ struct MarkdownBlockView: View, Equatable {
     var body: some View {
         #if DEBUG
         let _ = { MarkdownLayoutProbe.blockBodies += 1 }()
+        let _ = PerfProbe.hit("MarkdownBlockView.body")
         #endif
         content
             .padding(.top, row.topSpacing)

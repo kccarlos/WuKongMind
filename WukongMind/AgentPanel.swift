@@ -169,6 +169,7 @@ struct BrowserAgentRunsView: View {
     private var isProviderReady: Bool { app.isProviderReady(for: .browserAgent) }
 
     var body: some View {
+        let _ = PerfProbe.hit("BrowserAgentRunsView.body")
         VStack(alignment: .leading, spacing: 12) {
             ForEach(timeline) { item in
                 switch item {
@@ -186,14 +187,17 @@ struct BrowserAgentRunsView: View {
 
     /// Runs and voice turns in the order they happened.
     private var timeline: [ConversationItem] {
-        let items = session.runs.map(ConversationItem.run) + session.voiceTurns.map(ConversationItem.voice)
-        return items.enumerated().sorted { lhs, rhs in
-            lhs.element.date == rhs.element.date ? lhs.offset < rhs.offset : lhs.element.date < rhs.element.date
-        }.map(\.element)
+        PerfProbe.time("BrowserAgentRunsView.timeline") {
+            let items = session.runs.map(ConversationItem.run) + session.voiceTurns.map(ConversationItem.voice)
+            return items.enumerated().sorted { lhs, rhs in
+                lhs.element.date == rhs.element.date ? lhs.offset < rhs.offset : lhs.element.date < rhs.element.date
+            }.map(\.element)
+        }
     }
 
     @ViewBuilder
     private func runSection(_ run: BrowserAgentRun, isLatest: Bool) -> some View {
+        let _ = PerfProbe.hit("BrowserAgentRunsView.runSection")
         VStack(alignment: .leading, spacing: 10) {
             // A hand-off's request already shows as the voice bubble before it.
             if run.origin != .voice {
@@ -222,7 +226,7 @@ struct BrowserAgentRunsView: View {
 
             let reply = run.assistantText.trimmingCharacters(in: .whitespacesAndNewlines)
             if !reply.isEmpty {
-                let forum = forumSources(for: run, reply: reply)
+                let forum = PerfProbe.time("BrowserAgentRunsView.forumSources") { forumSources(for: run, reply: reply) }
                 MarkdownView(forum.map { AgentSources.annotate(reply, sources: $0.sources, parse: $0.parse) } ?? reply)
                     .font(.subheadline)
                     .textSelection(.enabled)

@@ -48,6 +48,10 @@ UNIT_A=(
 
 UI_SUITES=(SuggestionRowUITests ScriptManagerUITests)
 
+# Measurement only (prints numbers, asserts no time): never in CI. Run with
+# scripts/remote-test.sh or scripts/device-check.sh (docs/DEVELOPMENT.md).
+UNIT_MANUAL=(DrawerPerformanceTests)
+
 # The three long ScriptManager tests (~500 s together) form UI shard 1.
 UI_1=(
   ScriptManagerUITests/testM4GMAiSettingsManagerAndDetailViews        # ~230 s
@@ -82,16 +86,17 @@ skip() { local target="$1" t; shift; for t in "$@"; do args+=("-skip-testing:$ta
 ui=false
 case "$shard" in
   unit)
-    only WukongMindTests "" ;;
+    only WukongMindTests ""
+    skip WukongMindTests "${UNIT_MANUAL[@]}" ;;
   unit-a)
     only WukongMindTests "${UNIT_A[@]}" ;;
   unit-b)
     only WukongMindTests ""
-    skip WukongMindTests "${UNIT_A[@]}" ;;
+    skip WukongMindTests "${UNIT_A[@]}" "${UNIT_MANUAL[@]}" ;;
   unit-b+ui-smoke)
     ui=true
     only WukongMindTests ""
-    skip WukongMindTests "${UNIT_A[@]}"
+    skip WukongMindTests "${UNIT_A[@]}" "${UNIT_MANUAL[@]}"
     only WukongMindUITests "${UI_SMOKE[@]}" ;;
   ui-smoke)
     ui=true

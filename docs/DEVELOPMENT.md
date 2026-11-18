@@ -234,6 +234,35 @@ Notes:
 - To start from a clean slate, uninstall the app:
   `xcrun simctl uninstall <udid> io.github.kccarlos.wukongmind`.
 
+### Performance measurements
+
+Two suites measure the drawer on long threads. They print numbers and assert no
+time, CI never runs them, and neither calls a model or needs the network
+(design and targets: [design-performance-and-state.md](wukongmind/design-performance-and-state.md)).
+
+```sh
+# The drawer hosted in a test: open, keystroke, scroll and new-run cost per fixture
+scripts/remote-test.sh -only-testing:WukongMindTests/DrawerPerformanceTests
+# The whole app: summarize a fixture thread of 6,000 comments, then type, scroll and reopen
+scripts/remote-test.sh -only-testing:WukongMindUITests/LongThreadDrawerPerfUITests
+# The same on the test iPhone, with an Instruments trace of the typing and scrolling
+TEST_RUNNER_DC_PERF_TRACE=1 scripts/device-check.sh test --xctrace SwiftUI --xctrace-seconds 75 \
+  -only-testing:WukongMindUITests/LongThreadDrawerPerfUITests/testLongFixtureThread
+```
+
+- `DrawerPerformanceTests` prints `PERF<tab>case<tab>metric<tab>value` lines (also attached as
+  `drawer-perf.tsv`). Times are main-thread milliseconds for one action, measured around the run
+  loop pass that renders it; counts are view body evaluations from `PerfProbe` (DEBUG only and off unless
+  `-dc-perf-probe` or a test turns it on; `WukongMind/PerfProbe.swift`, which also emits signposts in the subsystem
+  `io.github.kccarlos.wukongmind.perf`).
+- `LongThreadDrawerPerfUITests` prints `LONG-THREAD-PERF` lines from the app's own probe
+  (`-dc-perf-probe`). `testRealLongThread` reads a real page's comments
+  (`TEST_RUNNER_DC_PERF_URL=<address>`); the summary text still comes from the fixture model.
+- Simulator numbers on the Mac mini are noisy and several times faster than a phone: compare
+  cases within one run, and take targets from the iPhone numbers.
+- `scripts/device-check.sh --xctrace <template>` records the app from the tests' first
+  `XCTRACE-START` line into `<out>/perf.trace`; read it with `xcrun xctrace toc` and `show`.
+
 ### Tests in CI
 
 Pull requests run the unit tests in two halves plus a short UI smoke set;
@@ -454,6 +483,7 @@ runs are labeled as Apple Intelligence runs and it is the selected provider.
 | `-dc-browse-post <n>` | Once the first topic shows, opens it at post n (highlighted), as `openTopic(at: .post(n))` does. |
 | `-dc-browse-find <query>` | Then searches the forum and shows the result cards. |
 | `-dc-browse-debug` | Exposes the page position and current list as the `browseDebugState` accessibility element (`post=… highlighted=… cards=… current=…`). |
+| `-dc-perf-probe` | Starts the main-thread monitor and exposes `PerfProbe`'s cumulative numbers as the `perfProbeState` accessibility element in the drawer (passes, busy ms, passes over 16/33/50/100/250/500/1000 ms, body counts, hot-function time, thread sizes). See "Performance measurements". |
 | `-dc-force-width <points>` | iPad: letterboxes the app to that width, with the size class a Split View window of that width gets. |
 | `-dc-resize-demo [w1,w2,…]` | iPad: animates the window width through the list (default 1032, 800, 1032, 700, full), 6 s per step. |
 

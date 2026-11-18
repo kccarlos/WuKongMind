@@ -75,7 +75,8 @@ always runs somewhere:
   there, not on the PR.
 
 Only `SuggestionRowUITests` and `ScriptManagerUITests` run in CI; the longer
-multi-launch, perf and live suites stay local
+multi-launch, perf and live suites stay local, and the unit shards skip the
+measurement-only `DrawerPerformanceTests` (`UNIT_MANUAL` in `run-tests.sh`)
 ([DEVELOPMENT.md](DEVELOPMENT.md#ui-tests)). Rebalance the shards from real
 timings (`gh run view <id> --json jobs`) when one drifts past about half its
 timeout.

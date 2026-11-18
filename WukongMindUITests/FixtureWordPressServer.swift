@@ -33,6 +33,12 @@ final class FixtureWordPressServer: @unchecked Sendable {
 
     var pageStyle = ""
     var pageComments = ""
+    /// Comments on the article (a long-thread test raises it).
+    var commentCount = FixtureWordPressServer.commentCount
+    /// The HTML of comment `index`; nil keeps the one-line default.
+    var commentBody: ((Int) -> String)?
+    /// The summary the model returns; nil keeps the marker line.
+    var summaryReply: String?
 
     /// When set, a summary streams this long answer a chunk at a time, so a
     /// performance test has a real stream to measure under.
@@ -221,12 +227,12 @@ final class FixtureWordPressServer: @unchecked Sendable {
     }
 
     private func comments(_ request: Request) -> Answer {
-        let all = (1...Self.commentCount).map { index -> [String: Any] in
+        let all = (1...commentCount).map { index -> [String: Any] in
             [
                 "id": 5000 + index, "post": Self.postID, "parent": 0,
                 "author_name": "user\(index)",
-                "date_gmt": String(format: "2026-05-14T%02d:%02d:05", 10 + index / 60, index % 60),
-                "content": ["rendered": "<p>Comment number \(index) is worth it.</p>"]
+                "date_gmt": String(format: "2026-05-%02dT%02d:%02d:05", 14 + (index / 840) % 14, 10 + (index / 60) % 14, index % 60),
+                "content": ["rendered": commentBody?(index) ?? "<p>Comment number \(index) is worth it.</p>"]
             ]
         }
         let search = (request.query["search"] ?? "").lowercased()
@@ -262,7 +268,7 @@ final class FixtureWordPressServer: @unchecked Sendable {
             return json(["message": ["role": "assistant", "content": "", "tool_calls": [call]], "done": true, "done_reason": "stop"])
         }
         let lastUser = messages.last { ($0["role"] as? String) == "user" }?["content"] as? String ?? ""
-        let reply = lastUser.contains(Self.chatQuestion) ? Self.chatMarker : Self.summaryMarker
+        let reply = lastUser.contains(Self.chatQuestion) ? Self.chatMarker : (summaryReply ?? Self.summaryMarker)
         let lines = [
             ["message": ["role": "assistant", "content": reply + " "], "done": false],
             ["message": ["role": "assistant", "content": "Readers liked it."], "done": true]
