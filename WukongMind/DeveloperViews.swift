@@ -8,7 +8,7 @@ import SwiftUI
 /// One model turn's developer section: "Turn 3 · model · 1,204 in · 86 out", then the Request and
 /// Response rows, each opening the raw body in a sheet.
 struct DevModelStepView: View {
-    @ObservedObject var app: AppModel
+    let app: AppModel
     let session: BrowserAgentSession
     let taskID: String
     let info: AgentTurnInfo
@@ -76,7 +76,7 @@ struct DevModelStepView: View {
 
 /// The final reply's turn (no tool call): a quiet Details button opening the same rows in a sheet.
 struct DevDetailsButton: View {
-    @ObservedObject var app: AppModel
+    let app: AppModel
     let session: BrowserAgentSession
     let taskID: String
     let info: AgentTurnInfo

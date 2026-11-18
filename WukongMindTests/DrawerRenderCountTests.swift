@@ -387,4 +387,91 @@ final class DrawerRenderCountTests: XCTestCase {
             XCTAssertEqual(after.counts[name] ?? 0, 0, "\(name) ran on an unrelated publish with a conversation summary card")
         }
     }
+
+    func testCoveredWebViewAccessibilityTracksKeyboardTransitionsAtLargeDetent() throws {
+        let app = DrawerPerformanceTests.makeApp(.init(name: "webhost-a11y", sourcePosts: 10, runs: 0))
+        let topicURL = try XCTUnwrap(app.currentTopic?.url)
+        app.browser.simulatePageUpdateForTesting(url: topicURL, title: "Thread")
+        app.router.splitLayout = false
+        app.router.openDrawer(at: .large)
+        app.router.presentDrawer()
+        app.router.drawerAppeared()
+        XCTAssertEqual(app.router.drawerPhase, .shown)
+        XCTAssertEqual(app.router.drawerDetent, .large)
+
+        let hostView = BrowserTabsWebHostView(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        hostView.bind(tabs: app.tabs, router: app.router)
+        let webView = try XCTUnwrap(app.browser.existingWebView)
+        XCTAssertFalse(webView.accessibilityElementsHidden)
+
+        app.browser.setSystemKeyboardVisible(true)
+        XCTAssertTrue(webView.accessibilityElementsHidden, "Keyboard appearing at .large must hide covered webView accessibility without waiting on another router publish")
+
+        app.browser.setSystemKeyboardVisible(false)
+        XCTAssertFalse(webView.accessibilityElementsHidden, "Keyboard dismissing at .large must restore webView accessibility immediately")
+    }
+
+    func testConversationSummaryCardMarksCitationTipAndSiteToolStateUpdatesSuggestionSlice() throws {
+        let tipKey = PresentationRouter.citationTipKey
+        let previousTip = UserDefaults.standard.object(forKey: tipKey)
+        UserDefaults.standard.removeObject(forKey: tipKey)
+        defer {
+            if let previousTip {
+                UserDefaults.standard.set(previousTip, forKey: tipKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: tipKey)
+            }
+        }
+
+        let app = DrawerPerformanceTests.makeApp(
+            .init(name: "card-citation-tip", sourcePosts: 50, summarySections: 4, runs: 1, shapePosts: 20)
+        )
+        let topic = try XCTUnwrap(app.currentTopic)
+        let forum = try XCTUnwrap(app.currentForum)
+        let topicURL = try XCTUnwrap(topic.url)
+        var session = try XCTUnwrap(app.currentSession)
+        session.summary = "## Summary\n\nReaders confirm it works (#2, #3)."
+        app.applyDebugSeed(AssistantDebugSeed(
+            forums: [forum], sessions: [session], activities: [], agentRuns: [], watchedTopics: [],
+            currentTopic: topic, currentForum: forum, pageContext: app.pageContext
+        ))
+        app.browser.simulatePageUpdateForTesting(url: topicURL, title: "Thread")
+        var saved = SavedAgentConversation(
+            messages: app.browserAgent.messages, runs: app.browserAgent.runs,
+            toolCalls: app.browserAgent.toolCalls, runState: app.browserAgent.runState,
+            tokenUsage: app.browserAgent.tokenUsage, history: []
+        )
+        saved.runs[0].toolCalls[0].toolName = "summarize_topic"
+        saved.runs[0].toolCalls[0].resultText = session.summary
+        app.browserAgent.restoreConversation(saved)
+
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        let host = UIHostingController(rootView: AnyView(
+            AssistantPanel(app: app, onExpand: { _ in }).environment(\.colorScheme, .light)
+        ))
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        host.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+
+        XCTAssertTrue(UserDefaults.standard.bool(forKey: tipKey), "Conversation summary card must record citationTipKey on first cited summary")
+
+        // Mutating and forgetting SiteToolState on the same URL advances revision and invalidates cached state.
+        let rev0 = app.siteToolStateStore.currentRevision
+        var state = SiteToolState(host: "meta.discourse.org")
+        state.setSlot(SiteSlotState(status: .failed, failure: SiteSlotFailure(code: .noPosts)), for: .readTopic)
+        try app.siteToolStateStore.save(state)
+        XCTAssertGreaterThan(app.siteToolStateStore.currentRevision, rev0)
+        let rev1 = app.siteToolStateStore.currentRevision
+        app.siteToolStateStore.forget(host: "meta.discourse.org")
+        XCTAssertGreaterThan(app.siteToolStateStore.currentRevision, rev1)
+        XCTAssertNil(app.siteToolStateStore.state(forURL: topicURL))
+    }
 }

@@ -431,8 +431,9 @@ struct SavedScriptCardEntry: Identifiable, Equatable {
 }
 
 struct AgentScriptCardView: View {
-    @ObservedObject var app: AppModel
+    let app: AppModel
     let entry: SavedScriptCardEntry
+    var scriptsModelDisplayName: String?
     @State private var showingCodeSheet = false
     @State private var deletedSnapshot: UserScript?
 
@@ -551,7 +552,7 @@ struct AgentScriptCardView: View {
                         .font(.caption.weight(.semibold))
                         .foregroundStyle(DCTheme.goldInk)
                         .accessibilityHidden(true)
-                    Text("Uses AI: sends page text to \(app.scriptsModelDisplayName)", comment: "Script card and detail notice for a script with the GM_ai grant; placeholder is the active Scripts model name")
+                    Text("Uses AI: sends page text to \(scriptsModelDisplayName ?? app.scriptsModelDisplayName)", comment: "Script card and detail notice for a script with the GM_ai grant; placeholder is the active Scripts model name")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)

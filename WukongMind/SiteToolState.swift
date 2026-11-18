@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 
 /// The three forum-tool slots that can be backed by a learned reader script.
@@ -317,8 +318,12 @@ final class SiteToolStateStore: @unchecked Sendable {
     }
 
     let directoryURL: URL
+    let changes = PassthroughSubject<Void, Never>()
     private let lock = NSLock()
     private var cache: [String: SiteToolState] = [:]
+    private var revision = 0
+
+    var currentRevision: Int { lock.withLock { revision } }
 
     init(directoryURL: URL = SiteToolStateStore.defaultDirectoryURL) { self.directoryURL = directoryURL }
 
@@ -348,7 +353,9 @@ final class SiteToolStateStore: @unchecked Sendable {
             try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true)
             try data.write(to: url, options: [.atomic])
             cache[host] = normalized
+            revision &+= 1
         }
+        changes.send()
     }
 
     @discardableResult
@@ -362,7 +369,12 @@ final class SiteToolStateStore: @unchecked Sendable {
 
     func forget(host rawHost: String) {
         guard let host = SiteToolState.normalizedHost(rawHost), let url = fileURL(forNormalizedHost: host) else { return }
-        lock.withLock { cache.removeValue(forKey: host); try? FileManager.default.removeItem(at: url) }
+        lock.withLock {
+            cache.removeValue(forKey: host)
+            revision &+= 1
+            try? FileManager.default.removeItem(at: url)
+        }
+        changes.send()
     }
 
     private func fileURL(forNormalizedHost host: String) -> URL? {

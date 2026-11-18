@@ -231,6 +231,7 @@ struct AgentRunsContext: Equatable {
     var activeCitation: Int?
     var cardRowID: UUID?
     var currentTopicSummary: TopicSummarySnapshot?
+    var scriptsModelDisplayName = ""
 
     init() {}
 
@@ -243,6 +244,7 @@ struct AgentRunsContext: Equatable {
         pageSiteURL = app.pageContext.siteURL
         forumsCount = app.forums.count
         activeCitation = app.citationJump?.number
+        scriptsModelDisplayName = app.scriptsModelDisplayName
         if let topicKey = app.currentTopic?.topicKey {
             let s = app.currentSession
             currentTopicSummary = TopicSummarySnapshot(
@@ -323,6 +325,7 @@ struct BrowserAgentRunsView: View {
                                 return app.session(forThreadShape: t)?.topicKey == snap.topicKey
                             }
                         } == true
+                        let hasScriptCards = !BrowserAgentRunsView.savedScriptEntries(in: run).isEmpty
                         AgentRunSectionView(
                             model: .init(
                                 run: run, isLatest: run.id == latestRunID, developerMode: context.developerMode,
@@ -331,7 +334,8 @@ struct BrowserAgentRunsView: View {
                                 showableTabIDs: showableTabs, forumSiteURL: siteURL,
                                 activeCitation: hasSummaryCard ? context.activeCitation : nil,
                                 cardRowID: ownsSummaryCard ? context.cardRowID : nil,
-                                currentTopicSummary: hasSummaryCard ? context.currentTopicSummary : nil
+                                currentTopicSummary: hasSummaryCard ? context.currentTopicSummary : nil,
+                                scriptsModelDisplayName: hasScriptCards ? context.scriptsModelDisplayName : ""
                             ),
                             app: app, session: session, sourcesCache: sourcesCache,
                             onToggleSteps: { toggleSet(&manuallyExpandedRunIDs, id: run.id) },
@@ -388,6 +392,7 @@ private struct AgentRunSectionView: View, Equatable {
         let activeCitation: Int?
         let cardRowID: UUID?
         let currentTopicSummary: TopicSummarySnapshot?
+        let scriptsModelDisplayName: String
     }
 
     let model: Model
@@ -425,7 +430,7 @@ private struct AgentRunSectionView: View, Equatable {
             let savedEntries = BrowserAgentRunsView.savedScriptEntries(in: run)
             if !savedEntries.isEmpty {
                 ForEach(savedEntries) { entry in
-                    AgentScriptCardView(app: app, entry: entry)
+                    AgentScriptCardView(app: app, entry: entry, scriptsModelDisplayName: model.scriptsModelDisplayName)
                         .dcRiseIn()
                 }
                 DCSavedNote()

@@ -1889,9 +1889,10 @@ final class BrowserTabsWebHostView: UIView {
     private var currentBrowserHomeCancellable: AnyCancellable?
     private var routerCancellable: AnyCancellable?
 
-    private var hidesCurrentWebViewAccessibility: Bool {
+    private func hidesCurrentWebViewAccessibility(isKeyboardVisible: Bool? = nil) -> Bool {
         guard let router, let browser = observedBrowser else { return false }
-        return router.usesDrawer && router.drawerPhase == .shown && router.drawerDetent == .large && browser.isSystemKeyboardVisible
+        let keyboardVisible = isKeyboardVisible ?? browser.isSystemKeyboardVisible
+        return router.usesDrawer && router.drawerPhase == .shown && router.drawerDetent == .large && keyboardVisible
     }
 
     override init(frame: CGRect) {
@@ -1983,7 +1984,7 @@ final class BrowserTabsWebHostView: UIView {
                 currentTab.browser.$isSystemKeyboardVisible
             )
             .dropFirst()
-            .sink { [weak self, weak currentTab] isHomeRequested, currentURL, _ in
+            .sink { [weak self, weak currentTab] isHomeRequested, currentURL, isKeyboardVisible in
                 guard let self, let currentTab, self.observedBrowser === currentTab.browser else { return }
                 let isHome = isHomeRequested || currentURL == nil
                 let visible = self.showsCurrentWebViewOverride ?? !isHome
@@ -1991,7 +1992,7 @@ final class BrowserTabsWebHostView: UIView {
                     webView.isHidden = false
                     webView.alpha = visible ? 1 : 0
                     webView.isUserInteractionEnabled = visible
-                    webView.accessibilityElementsHidden = !visible || self.hidesCurrentWebViewAccessibility
+                    webView.accessibilityElementsHidden = !visible || self.hidesCurrentWebViewAccessibility(isKeyboardVisible: isKeyboardVisible)
                 }
             }
         }
@@ -2026,7 +2027,7 @@ final class BrowserTabsWebHostView: UIView {
         currentWebView.isHidden = false
         currentWebView.alpha = isCurrentVisible ? 1 : 0
         currentWebView.isUserInteractionEnabled = isCurrentVisible
-        currentWebView.accessibilityElementsHidden = !isCurrentVisible || hidesCurrentWebViewAccessibility
+        currentWebView.accessibilityElementsHidden = !isCurrentVisible || hidesCurrentWebViewAccessibility()
         bringSubviewToFront(currentWebView)
     }
 
@@ -2036,7 +2037,7 @@ final class BrowserTabsWebHostView: UIView {
               let webView = currentTab.browser.existingWebView,
               webView.superview === self else { return }
         let visible = showsCurrentWebViewOverride ?? !currentTab.showsHome
-        webView.accessibilityElementsHidden = !visible || hidesCurrentWebViewAccessibility
+        webView.accessibilityElementsHidden = !visible || hidesCurrentWebViewAccessibility()
     }
 
     private func attachIfNeeded(_ webView: WKWebView) {

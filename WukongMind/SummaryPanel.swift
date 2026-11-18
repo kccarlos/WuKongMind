@@ -147,7 +147,7 @@ private struct HeaderAppSlice: Equatable {
 }
 
 private struct TranscriptAppSlice: Equatable {
-    var topicKey = ""; var hasCurrentTopic = false; var pageState: PageContext.State = .loading
+    var topicKey = ""; var hasCurrentTopic = false; var hasSummaryOnSession = false; var pageState: PageContext.State = .loading
     var activeSummary: WorkRecord?; var activePull: WorkRecord?; var isSummaryFailed = false
     var streamedSummary: String?; var savedSummary = ""; var hiddenByReset = false
     var hasDefaultSetup = false; var hasRequestedSetup = false
@@ -206,7 +206,8 @@ private final class DrawerAppRelay {
     private var lastSettings: AppSettings?
     private var cachedSettingsDerived: SettingsDerived?
     private var hasCachedSiteState = false
-    private var lastSiteStateURL: URL?
+    private var lastSiteStateHost: String?
+    private var lastSiteStateRevision = -1
     private var cachedSiteState: SiteToolState?
     private var dirty = false
 
@@ -244,15 +245,16 @@ private final class DrawerAppRelay {
         return derived
     }
 
-    private func siteState(for url: URL?, enabled: Bool, app: AppModel) -> SiteToolState? {
-        guard enabled, let url else {
-            hasCachedSiteState = true; lastSiteStateURL = nil; cachedSiteState = nil
+    fileprivate func siteState(for url: URL?, enabled: Bool, app: AppModel) -> SiteToolState? {
+        guard enabled, let url, let host = SiteToolState.normalizedHost(from: url) else {
             return nil
         }
-        if hasCachedSiteState, lastSiteStateURL == url { return cachedSiteState }
+        let rev = app.siteToolStateStore.currentRevision
+        if hasCachedSiteState, lastSiteStateHost == host, lastSiteStateRevision == rev { return cachedSiteState }
         hasCachedSiteState = true
-        lastSiteStateURL = url
-        cachedSiteState = app.siteToolStateStore.state(forURL: url)
+        lastSiteStateHost = host
+        lastSiteStateRevision = rev
+        cachedSiteState = app.siteToolStateStore.state(forHost: host)
         return cachedSiteState
     }
 
@@ -268,6 +270,7 @@ private final class DrawerAppRelay {
         app.router.objectWillChange.sink { [weak self] _ in self?.scheduleRefresh() }.store(in: &cancellables)
         app.podcast.objectWillChange.sink { [weak self] _ in self?.scheduleRefresh() }.store(in: &cancellables)
         app.voice.objectWillChange.sink { [weak self] _ in self?.scheduleRefresh() }.store(in: &cancellables)
+        app.siteToolStateStore.changes.receive(on: DispatchQueue.main).sink { [weak self] in self?.scheduleRefresh() }.store(in: &cancellables)
     }
 
     private func bindFacts(_ store: DrawerPageFactsStore) {
@@ -321,7 +324,7 @@ private final class DrawerAppRelay {
             developerMode: app.settings.agentDeveloperMode, auditLogRequest: app.auditLogRequest
         ))
         put(transcript, TranscriptAppSlice(
-            topicKey: topicKey, hasCurrentTopic: topic != nil, pageState: pageState,
+            topicKey: topicKey, hasCurrentTopic: topic != nil, hasSummaryOnSession: topicSession?.hasSummary == true, pageState: pageState,
             activeSummary: active.summary, activePull: active.pull, isSummaryFailed: active.isSummaryFailed,
             streamedSummary: streamed, savedSummary: topicSession?.summary ?? "", hiddenByReset: hidden,
             hasDefaultSetup: sd.defaultSetupRole != nil, hasRequestedSetup: sd.requestedSetupRole != nil,
@@ -1031,7 +1034,7 @@ private struct TopicPanelBody: View, Equatable {
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             FooterSectionObserver(
-                slice: relay.footer, app: app, scriptMatchesCache: scriptMatchesCache,
+                slice: relay.footer, relay: relay, app: app, scriptMatchesCache: scriptMatchesCache,
                 isKeyboardVisible: isKeyboardVisible, onFocusChange: { composerFocused = $0 },
                 onSuggestion: runSuggestion, onSend: submitPrompt
             )
@@ -1121,6 +1124,7 @@ private struct TopicPanelBody: View, Equatable {
 
 private struct FooterSectionObserver: View {
     @ObservedObject var slice: SliceBox<FooterAppSlice>
+    let relay: DrawerAppRelay
     let app: AppModel
     let scriptMatchesCache: PageScriptMatchesCache
     let isKeyboardVisible: Bool
@@ -1134,7 +1138,7 @@ private struct FooterSectionObserver: View {
         let suggestions: [PageSuggestion] = {
             if s.isFirstRunPrompts { return [.tryReadable, .tryHideClutter] }
             let learned = s.agentPageToolsEnabled
-                ? s.pageContextURL.flatMap { SiteToolState.learnedSuggestionKind(state: s.siteState ?? app.siteToolStateStore.state(forURL: $0), url: $0, scripts: scripts) }
+                ? s.pageContextURL.flatMap { SiteToolState.learnedSuggestionKind(state: relay.siteState(for: $0, enabled: true, app: app), url: $0, scripts: scripts) }
                 : nil
             let kind = PageSuggestions.pageKind(state: s.pageState, hasPage: s.pageURL != nil || s.hasCurrentTopic, learned: learned, looksLikeThread: s.looksLikeThread)
             let m = scriptMatchesCache.summary(for: s.pageURL, in: app.scriptStore)
@@ -1248,7 +1252,7 @@ private struct TranscriptSectionObserver: View {
             var runsContext = s.runsContext
             runsContext.cardRowID = placement.cardRowID
             return ChatThread.Model(
-                topicKey: s.topicKey, hasLeadingContent: hasLeading,
+                topicKey: s.topicKey, hasSummaryOnSession: s.hasSummaryOnSession, hasLeadingContent: hasLeading,
                 hasConversation: hasConv, runsCount: runsCount, voiceTurnsCount: voiceCount,
                 toolCallsCount: toolCount, runState: runState,
                 runsContext: runsContext,
@@ -1421,13 +1425,7 @@ struct DrawerSummary: View, Equatable {
                 }
             }
             .onChange(of: model.topicKey) { renderedSummary = nil }
-            .onChange(of: model.hasSummaryOnSession, initial: true) {
-                let key = PresentationRouter.citationTipKey
-                guard app.currentSession?.hasSummary == true, !UserDefaults.standard.bool(forKey: key),
-                      !PostCitations.numbers(in: app.currentSession?.summary ?? "").isEmpty else { return }
-                UserDefaults.standard.set(true, forKey: key)
-                showsCitationTip = true
-            }
+            .onDisappear { if renderedSummary != nil { renderedSummary = nil } }
         }
     }
 
@@ -1788,7 +1786,7 @@ struct DrawerSummary: View, Equatable {
 /// embedded forum research runs, and `BrowserAgentSession` turns.
 private struct ChatThread: View, Equatable {
     struct Model: Equatable {
-        let topicKey: String; let hasLeadingContent: Bool; let hasConversation: Bool
+        let topicKey: String; let hasSummaryOnSession: Bool; let hasLeadingContent: Bool; let hasConversation: Bool
         let runsCount: Int; let voiceTurnsCount: Int; let toolCallsCount: Int
         let runState: BrowserAgentRunState; let runsContext: AgentRunsContext
         let cardRowID: UUID?; let activeCitation: Int?; let showsCitationTip: Bool
@@ -1964,6 +1962,14 @@ private struct ChatThread: View, Equatable {
                         expandedToolRowIDs.insert(first.id)
                     }
                     #endif
+                }
+                .onChange(of: model.hasSummaryOnSession, initial: true) {
+                    // Once, with the first summary that has post numbers (top section or conversation card).
+                    let key = PresentationRouter.citationTipKey
+                    guard app.currentSession?.hasSummary == true, !UserDefaults.standard.bool(forKey: key),
+                          !PostCitations.numbers(in: app.currentSession?.summary ?? "").isEmpty else { return }
+                    UserDefaults.standard.set(true, forKey: key)
+                    showsCitationTip = true
                 }
                 .onChange(of: model.topicKey) {
                     guard session.runs.isEmpty else { return }
