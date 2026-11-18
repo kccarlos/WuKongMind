@@ -28,9 +28,44 @@ struct TranslateButton: View {
     let title: String
     let text: String
     var compact = false
+
+    var body: some View {
+        TranslateButtonBody(
+            app: app,
+            readingLanguage: ReadingLanguage.resolved(app.settings.readingLanguage),
+            title: title,
+            text: text,
+            compact: compact
+        )
+        .equatable()
+    }
+}
+
+struct DirectTranslateButton: View {
+    let app: AppModel
+    let readingLanguage: String
+    let title: String
+    let text: String
+    var compact = false
+
+    var body: some View {
+        TranslateButtonBody(app: app, readingLanguage: readingLanguage, title: title, text: text, compact: compact).equatable()
+    }
+}
+
+private struct TranslateButtonBody: View, Equatable {
+    let app: AppModel
+    let readingLanguage: String
+    let title: String
+    let text: String
+    let compact: Bool
     @State private var offeredFor: [String]?
 
-    private var readingLanguage: String { ReadingLanguage.resolved(app.settings.readingLanguage) }
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        ObjectIdentifier(lhs.app) == ObjectIdentifier(rhs.app) && lhs.readingLanguage == rhs.readingLanguage
+            && lhs.title == rhs.title && lhs.text == rhs.text && lhs.compact == rhs.compact
+    }
+
     private var key: [String] { [readingLanguage, text] }
 
     var body: some View {

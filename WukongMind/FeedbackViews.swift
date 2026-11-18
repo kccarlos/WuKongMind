@@ -5,7 +5,7 @@ import SwiftUI
 /// ⋯ › Report a problem: the same alert and refusals as ⋯ › Export task, then the report is saved
 /// to iCloud Drive (or locally) and a short toast says where. Set `taskID` to start.
 struct TaskReportPrompt: ViewModifier {
-    @ObservedObject var app: AppModel
+    let app: AppModel
     @Binding var taskID: String?
     @State private var failure: String?
 

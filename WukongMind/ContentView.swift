@@ -401,7 +401,7 @@ struct BrowserContent: View {
     var body: some View {
         let showsHome = browser.showsForumsHome
         ZStack {
-            BrowserTabsWebHost(tabs: app.tabs)
+            BrowserTabsWebHost(tabs: app.tabs, router: app.router)
                 .background(Color(uiColor: .systemBackground))
                 .ignoresSafeArea(.container, edges: webViewIgnoresBottomSafeArea ? .bottom : [])
                 .allowsHitTesting(!showsHome)

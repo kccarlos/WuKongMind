@@ -122,59 +122,229 @@ struct AgentStatusLine: View {
     }
 }
 
-/// One row of the Agent conversation: a run, or a voice turn.
-enum ConversationItem: Identifiable {
-    case run(BrowserAgentRun)
+/// One row of the Agent conversation: a run (by index and id), or a voice turn.
+enum ConversationItem: Identifiable, Equatable {
+    case run(index: Int, id: UUID, startedAt: Date)
     case voice(BrowserAgentMessage)
 
     var id: UUID {
         switch self {
-        case .run(let run): run.id
+        case .run(_, let id, _): id
         case .voice(let message): message.id
         }
     }
 
     var date: Date {
         switch self {
-        case .run(let run): run.startedAt
+        case .run(_, _, let startedAt): startedAt
         case .voice(let message): message.createdAt
         }
     }
 }
 
+@MainActor
+private final class TimelineCache {
+    struct Stamp: Equatable { let id: UUID; let startedAt: Date }
+    private var stamps: [Stamp]?
+    private var voices: [BrowserAgentMessage]?
+    private var items: [ConversationItem] = []
+
+    func timeline(runs: [BrowserAgentRun], messages: [BrowserAgentMessage]) -> [ConversationItem] {
+        let nextStamps = runs.map { Stamp(id: $0.id, startedAt: $0.startedAt) }
+        let nextVoices = messages.filter(\.role.isVoice)
+        if nextStamps != stamps || nextVoices != voices {
+            stamps = nextStamps
+            voices = nextVoices
+            items = PerfProbe.time("BrowserAgentRunsView.timeline") {
+                let raw = nextStamps.enumerated().map { ConversationItem.run(index: $0.offset, id: $0.element.id, startedAt: $0.element.startedAt) }
+                    + nextVoices.map(ConversationItem.voice)
+                return raw.enumerated().sorted { lhs, rhs in
+                    lhs.element.date == rhs.element.date ? lhs.offset < rhs.offset : lhs.element.date < rhs.element.date
+                }.map(\.element)
+            }
+        }
+        return items
+    }
+}
+
+@MainActor
+final class ForumSourcesCache {
+    struct Key: Equatable { let reply: String; let shapeRowIDs: [UUID]; let siteURL: String }
+    struct Value: Equatable { let annotatedReply: String; let sources: [AgentSources.Source]; let siteURL: String }
+    private var entries: [UUID: (key: Key, value: Value?)] = [:]
+
+    func resolve(for run: BrowserAgentRun, reply: String, siteURL: String, app: AppModel) -> Value? {
+        let shapeRows = run.toolCalls.filter { $0.shape != nil && !$0.isRunning }
+        guard !shapeRows.isEmpty else { entries.removeValue(forKey: run.id); return nil }
+        let key = Key(reply: reply, shapeRowIDs: shapeRows.map(\.id), siteURL: siteURL)
+        if let cached = entries[run.id], cached.key == key { return cached.value }
+        let value: Value? = PerfProbe.time("BrowserAgentRunsView.forumSources") {
+            let shapes = shapeRows.compactMap(\.shape)
+            let parse = app.linkParser(siteURL: siteURL, shapes: shapes)
+            let sources = AgentSources.extract(from: reply, visits: AgentSources.visits(of: shapes), parse: parse)
+            return Value(annotatedReply: AgentSources.annotate(reply, sources: sources, parse: parse), sources: sources, siteURL: siteURL)
+        }
+        entries[run.id] = (key, value)
+        return value
+    }
+}
+
+struct ParsedSummary: Equatable {
+    var input: DrawerSummarySections.Input?
+    var sections = 0
+    var hasCitations = false
+    var rows: [MarkdownRow] = []
+    static let empty = ParsedSummary()
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.input == rhs.input && lhs.sections == rhs.sections && lhs.hasCitations == rhs.hasCitations
+    }
+}
+
+@MainActor
+final class ParsedSummaryCache {
+    private var lastInput: DrawerSummarySections.Input?
+    private var lastOutput = ParsedSummary.empty
+
+    func parsed(for input: DrawerSummarySections.Input) -> ParsedSummary {
+        if input != lastInput {
+            lastInput = input
+            let res = DrawerSummarySections.parsed(for: input)
+            lastOutput = ParsedSummary(input: input, sections: res.sections, hasCitations: res.hasCitations, rows: res.rows)
+        }
+        return lastOutput
+    }
+}
+
+struct TopicSummarySnapshot: Equatable {
+    let topicKey: String; let summary: String; let hasSummary: Bool
+    let totalPosts: Int?; let summaryPostCount: Int?; let url: URL?
+}
+
+struct AgentRunsContext: Equatable {
+    var developerMode = false
+    var isBrowserAgentReady = false
+    var openTabIDs: Set<String> = []
+    var currentTabID = ""
+    var pageSiteURL: String?
+    var forumsCount = 0
+    var activeCitation: Int?
+    var cardRowID: UUID?
+    var currentTopicSummary: TopicSummarySnapshot?
+    var scriptsModelDisplayName = ""
+
+    init() {}
+
+    @MainActor
+    init(app: AppModel, tabs: BrowserTabs) {
+        developerMode = app.settings.agentDeveloperMode
+        isBrowserAgentReady = app.settings.readiness(for: .browserAgent, appleIntelligence: .unavailable(.deviceNotEligible)) == .ready
+        openTabIDs = Set(tabs.tabs.lazy.map(\.id))
+        currentTabID = tabs.currentTabID
+        pageSiteURL = app.pageContext.siteURL
+        forumsCount = app.forums.count
+        activeCitation = app.citationJump?.number
+        scriptsModelDisplayName = app.scriptsModelDisplayName
+        if let topicKey = app.currentTopic?.topicKey {
+            let s = app.currentSession
+            currentTopicSummary = TopicSummarySnapshot(
+                topicKey: topicKey, summary: s?.summary ?? "", hasSummary: s?.hasSummary == true,
+                totalPosts: s?.totalPosts, summaryPostCount: s?.summaryPostCount, url: s?.url ?? app.currentTopic?.url
+            )
+        }
+    }
+}
+
 struct BrowserAgentRunsView: View {
-    @ObservedObject var app: AppModel
-    @ObservedObject private var tabs: BrowserTabs
+    let app: AppModel
     let session: BrowserAgentSession
+    var context: AgentRunsContext?
     @Binding var expandedToolRowIDs: Set<UUID>
     /// Opens a source of an answer in the browser.
     var onOpenURL: ((URL) -> Void)?
     @State private var manuallyExpandedRunIDs: Set<UUID> = []
     @State private var screenshotSheet: ScreenshotSheetItem?
+    @State private var timelineCache = TimelineCache()
+    @State private var sourcesCache = ForumSourcesCache()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(
         app: AppModel,
         session: BrowserAgentSession,
+        context: AgentRunsContext? = nil,
         expandedToolRowIDs: Binding<Set<UUID>>,
         onOpenURL: ((URL) -> Void)? = nil
     ) {
         self.app = app
-        _tabs = ObservedObject(wrappedValue: app.tabs)
         self.session = session
+        self.context = context
         _expandedToolRowIDs = expandedToolRowIDs
         self.onOpenURL = onOpenURL
     }
 
-    private var isProviderReady: Bool { app.isProviderReady(for: .browserAgent) }
-
     var body: some View {
         let _ = PerfProbe.hit("BrowserAgentRunsView.body")
-        VStack(alignment: .leading, spacing: 12) {
-            ForEach(timeline) { item in
+        if let context {
+            runsBody(context: context)
+        } else {
+            StandaloneRunsObserver(app: app, tabs: app.tabs) { runsBody(context: $0) }
+        }
+    }
+
+    private func runsBody(context: AgentRunsContext) -> some View {
+        let runs = session.runs
+        let latestRunID = runs.last?.id
+        let items = timelineCache.timeline(runs: runs, messages: session.messages)
+        return VStack(alignment: .leading, spacing: 12) {
+            ForEach(items) { item in
                 switch item {
-                case .run(let run):
-                    runSection(run, isLatest: run.id == session.runs.last?.id)
+                case .run(let index, let runID, _):
+                    if index < runs.count, runs[index].id == runID {
+                        let run = runs[index]
+                        let showableTabs = Set(run.toolCalls.lazy.compactMap { row -> String? in
+                            guard !row.isRunning, !row.isError, let id = row.openedTabID,
+                                  context.openTabIDs.contains(id), context.currentTabID != id else { return nil }
+                            return id
+                        })
+                        let showsFailure: Bool = if case .failed = run.state { context.isBrowserAgentReady } else { false }
+                        let siteURL: String = {
+                            guard !run.assistantText.isEmpty else { return "" }
+                            let sample = run.toolCalls.lazy.compactMap { row -> URL? in
+                                guard !row.isRunning, let shape = row.shape else { return nil }
+                                switch shape {
+                                case .thread(let t): return URL(string: t.url)
+                                case .list(let l): return l.items.first.flatMap { URL(string: $0.url) }
+                                }
+                            }.first
+                            return sample.flatMap { app.siteURL(containing: $0) } ?? ""
+                        }()
+                        let hasSummaryCard = run.toolCalls.contains { $0.toolName == "summarize_topic" && !$0.isRunning && !$0.isError }
+                        let ownsSummaryCard = hasSummaryCard && context.currentTopicSummary.map { snap in
+                            run.toolCalls.contains { row in
+                                guard row.toolName == "summarize_topic", !row.isRunning, !row.isError, case .thread(let t) = row.shape else { return false }
+                                return app.session(forThreadShape: t)?.topicKey == snap.topicKey
+                            }
+                        } == true
+                        let hasScriptCards = !BrowserAgentRunsView.savedScriptEntries(in: run).isEmpty
+                        AgentRunSectionView(
+                            model: .init(
+                                run: run, isLatest: run.id == latestRunID, developerMode: context.developerMode,
+                                showsFailureCard: showsFailure, stepsExpanded: manuallyExpandedRunIDs.contains(run.id),
+                                expandedRowIDs: expandedToolRowIDs.isEmpty ? [] : Set(run.toolCalls.lazy.map(\.id).filter { expandedToolRowIDs.contains($0) }),
+                                showableTabIDs: showableTabs, forumSiteURL: siteURL,
+                                activeCitation: hasSummaryCard ? context.activeCitation : nil,
+                                cardRowID: ownsSummaryCard ? context.cardRowID : nil,
+                                currentTopicSummary: hasSummaryCard ? context.currentTopicSummary : nil,
+                                scriptsModelDisplayName: hasScriptCards ? context.scriptsModelDisplayName : ""
+                            ),
+                            app: app, session: session, sourcesCache: sourcesCache,
+                            onToggleSteps: { toggleSet(&manuallyExpandedRunIDs, id: run.id) },
+                            onToggleToolRow: { toggleSet(&expandedToolRowIDs, id: $0) },
+                            onShowScreenshot: { screenshotSheet = $0 },
+                            onOpenURL: onOpenURL
+                        )
+                        .equatable()
+                    }
                 case .voice(let message):
                     DCVoiceBubble(text: message.text, isUser: message.role == .voiceUser)
                 }
@@ -185,18 +355,63 @@ struct BrowserAgentRunsView: View {
         }
     }
 
-    /// Runs and voice turns in the order they happened.
-    private var timeline: [ConversationItem] {
-        PerfProbe.time("BrowserAgentRunsView.timeline") {
-            let items = session.runs.map(ConversationItem.run) + session.voiceTurns.map(ConversationItem.voice)
-            return items.enumerated().sorted { lhs, rhs in
-                lhs.element.date == rhs.element.date ? lhs.offset < rhs.offset : lhs.element.date < rhs.element.date
-            }.map(\.element)
+    private func toggleSet(_ set: inout Set<UUID>, id: UUID) {
+        withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
+            if set.contains(id) { set.remove(id) } else { set.insert(id) }
         }
     }
+}
 
-    @ViewBuilder
-    private func runSection(_ run: BrowserAgentRun, isLatest: Bool) -> some View {
+private struct StandaloneRunsObserver<Content: View>: View {
+    @ObservedObject var app: AppModel
+    @ObservedObject var tabs: BrowserTabs
+    let content: (AgentRunsContext) -> Content
+    var body: some View { content(AgentRunsContext(app: app, tabs: tabs)) }
+}
+
+private struct LatestRunConfirmationsView: View {
+    let gate: AgentConfirmationGate
+    var body: some View {
+        ForEach(gate.pending) { item in
+            AgentConfirmationCard(confirmation: item, gate: gate)
+                .dcRiseIn()
+        }
+    }
+}
+
+private struct AgentRunSectionView: View, Equatable {
+    struct Model: Equatable {
+        let run: BrowserAgentRun
+        let isLatest: Bool
+        let developerMode: Bool
+        let showsFailureCard: Bool
+        let stepsExpanded: Bool
+        let expandedRowIDs: Set<UUID>
+        let showableTabIDs: Set<String>
+        let forumSiteURL: String
+        let activeCitation: Int?
+        let cardRowID: UUID?
+        let currentTopicSummary: TopicSummarySnapshot?
+        let scriptsModelDisplayName: String
+    }
+
+    let model: Model
+    let app: AppModel
+    let session: BrowserAgentSession
+    let sourcesCache: ForumSourcesCache
+    let onToggleSteps: () -> Void
+    let onToggleToolRow: (UUID) -> Void
+    let onShowScreenshot: (ScreenshotSheetItem) -> Void
+    let onOpenURL: ((URL) -> Void)?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.model == rhs.model && ObjectIdentifier(lhs.app) == ObjectIdentifier(rhs.app) && ObjectIdentifier(lhs.session) == ObjectIdentifier(rhs.session)
+    }
+
+    private var run: BrowserAgentRun { model.run }
+
+    var body: some View {
         let _ = PerfProbe.hit("BrowserAgentRunsView.runSection")
         VStack(alignment: .leading, spacing: 10) {
             // A hand-off's request already shows as the voice bubble before it.
@@ -208,17 +423,14 @@ struct BrowserAgentRunsView: View {
                 toolCallsSection(for: run)
             }
 
-            if isLatest {
-                ForEach(app.agentConfirmations.pending) { item in
-                    AgentConfirmationCard(confirmation: item, gate: app.agentConfirmations)
-                        .dcRiseIn()
-                }
+            if model.isLatest {
+                LatestRunConfirmationsView(gate: app.agentConfirmations)
             }
 
-            let savedEntries = Self.savedScriptEntries(in: run)
+            let savedEntries = BrowserAgentRunsView.savedScriptEntries(in: run)
             if !savedEntries.isEmpty {
                 ForEach(savedEntries) { entry in
-                    AgentScriptCardView(app: app, entry: entry)
+                    AgentScriptCardView(app: app, entry: entry, scriptsModelDisplayName: model.scriptsModelDisplayName)
                         .dcRiseIn()
                 }
                 DCSavedNote()
@@ -226,8 +438,8 @@ struct BrowserAgentRunsView: View {
 
             let reply = run.assistantText.trimmingCharacters(in: .whitespacesAndNewlines)
             if !reply.isEmpty {
-                let forum = PerfProbe.time("BrowserAgentRunsView.forumSources") { forumSources(for: run, reply: reply) }
-                MarkdownView(forum.map { AgentSources.annotate(reply, sources: $0.sources, parse: $0.parse) } ?? reply)
+                let forum = sourcesCache.resolve(for: run, reply: reply, siteURL: model.forumSiteURL, app: app)
+                MarkdownView(forum?.annotatedReply ?? reply)
                     .font(.subheadline)
                     .textSelection(.enabled)
                     .padding(.vertical, 2)
@@ -240,7 +452,7 @@ struct BrowserAgentRunsView: View {
                     }
                     .accessibilityIdentifier("agentSources")
                 }
-                if app.settings.agentDeveloperMode, let info = run.finalTurn {
+                if model.developerMode, let info = run.finalTurn {
                     DevDetailsButton(app: app, session: session, taskID: run.id.uuidString, info: info)
                 }
             }
@@ -254,7 +466,7 @@ struct BrowserAgentRunsView: View {
                     .accessibilityIdentifier("agentRunStoppedNotice")
             case .stepLimitReached(let limit):
                 stepLimitCard(limit: limit)
-            case .failed(let message) where isProviderReady:
+            case .failed(let message) where model.showsFailureCard:
                 errorCard(message: message)
             default:
                 EmptyView()
@@ -262,26 +474,7 @@ struct BrowserAgentRunsView: View {
         }
     }
 
-    /// The numbered sources of an answer whose run used forum tools; nil for a
-    /// run without them, whose answer shows as written.
-    private func forumSources(
-        for run: BrowserAgentRun, reply: String
-    ) -> (sources: [AgentSources.Source], siteURL: String, parse: AgentSources.Parse)? {
-        let shapes = run.toolCalls.compactMap(\.shape)
-        guard !shapes.isEmpty else { return nil }
-        let sample = shapes.lazy.compactMap { shape -> URL? in
-            switch shape {
-            case .thread(let thread): URL(string: thread.url)
-            case .list(let list): list.items.first.flatMap { URL(string: $0.url) }
-            }
-        }.first
-        let siteURL = sample.flatMap { app.siteURL(containing: $0) } ?? ""
-        let parse = app.linkParser(siteURL: siteURL, shapes: shapes)
-        let sources = AgentSources.extract(from: reply, visits: AgentSources.visits(of: shapes), parse: parse)
-        return (sources, siteURL, parse)
-    }
-
-    static func savedScriptEntries(in run: BrowserAgentRun) -> [SavedScriptCardEntry] {
+    fileprivate static func savedScriptEntries(in run: BrowserAgentRun) -> [SavedScriptCardEntry] {
         var indexByScriptID: [String: Int] = [:]
         var entries: [SavedScriptCardEntry] = []
         for row in run.toolCalls where !row.isRunning && !row.isError {
@@ -336,34 +529,14 @@ struct BrowserAgentRunsView: View {
         }
     }
 
-    private func isRunStepsExpanded(_ run: BrowserAgentRun) -> Bool {
-        manuallyExpandedRunIDs.contains(run.id)
-    }
-
-    private func toggleRunSteps(_ run: BrowserAgentRun) {
-        withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
-            if manuallyExpandedRunIDs.contains(run.id) {
-                manuallyExpandedRunIDs.remove(run.id)
-            } else {
-                manuallyExpandedRunIDs.insert(run.id)
-            }
-        }
-    }
-
-    /// While the run goes, and for a run of one step, the rows show directly.
-    /// Two or more steps fold into "Steps N" once the run ends.
     @ViewBuilder
     private func toolCallsSection(for run: BrowserAgentRun) -> some View {
-        let isRunning: Bool = {
-            if case .running = run.state { return true }
-            return false
-        }()
-        if isRunning || run.toolCalls.count == 1 {
+        if run.state.isRunning || run.toolCalls.count == 1 {
             VStack(alignment: .leading, spacing: 8) {
                 toolRowList(run.toolCalls, inlineCapabilityCards: true)
             }
         } else {
-            let stepsExpanded = isRunStepsExpanded(run)
+            let stepsExpanded = model.stepsExpanded
             VStack(alignment: .leading, spacing: 10) {
                 DCStepsFold(
                     count: run.toolCalls.count,
@@ -371,7 +544,7 @@ struct BrowserAgentRunsView: View {
                     isExpanded: stepsExpanded,
                     onToggle: {
                         DCHaptics.tap()
-                        toggleRunSteps(run)
+                        onToggleSteps()
                     }
                 ) {
                     VStack(alignment: .leading, spacing: 8) {
@@ -385,7 +558,7 @@ struct BrowserAgentRunsView: View {
                             toolRowList(openedRows, inlineCapabilityCards: false)
                         }
                     }
-                    ForEach(Self.capabilityEntries(in: run.toolCalls)) { entry in
+                    ForEach(BrowserAgentRunsView.capabilityEntries(in: run.toolCalls)) { entry in
                         capabilityCard(for: entry)
                     }
                 }
@@ -395,19 +568,10 @@ struct BrowserAgentRunsView: View {
 
     @ViewBuilder
     private func toolRowList(_ rows: [BrowserAgentToolCallRow], inlineCapabilityCards: Bool) -> some View {
-        let developerMode = app.settings.agentDeveloperMode
+        let developerMode = model.developerMode
         ForEach(rows) { row in
-            let expanded = expandedToolRowIDs.contains(row.id)
-            let showableTabID: String? = {
-                guard !row.isRunning,
-                      !row.isError,
-                      let tabID = row.openedTabID,
-                      tabs.tab(id: tabID) != nil,
-                      tabs.currentTabID != tabID else {
-                    return nil
-                }
-                return tabID
-            }()
+            let expanded = model.expandedRowIDs.contains(row.id)
+            let showableTabID: String? = row.openedTabID.flatMap { model.showableTabIDs.contains($0) ? $0 : nil }
             VStack(alignment: .leading, spacing: inlineCapabilityCards ? 8 : 0) {
                 DCToolRow(
                     label: DCToolLabel.browser(
@@ -424,9 +588,7 @@ struct BrowserAgentRunsView: View {
                     isExpanded: expanded,
                     onToggle: {
                         DCHaptics.tap()
-                        withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
-                            if expanded { expandedToolRowIDs.remove(row.id) } else { expandedToolRowIDs.insert(row.id) }
-                        }
+                        onToggleToolRow(row.id)
                     },
                     actionTitle: showableTabID != nil
                         ? String(localized: "Show", comment: "Button on an opened-tab tool row that switches to that tab")
@@ -449,7 +611,7 @@ struct BrowserAgentRunsView: View {
                 ) {
                     toolRowDetail(row, developerMode: developerMode)
                 }
-                if inlineCapabilityCards, let entry = Self.capabilityEntry(for: row) {
+                if inlineCapabilityCards, let entry = BrowserAgentRunsView.capabilityEntry(for: row) {
                     capabilityCard(for: entry)
                 }
             }
@@ -515,7 +677,7 @@ struct BrowserAgentRunsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .accessibilityIdentifier(id)
             if let images {
-                DCScreenshotStrip(row: images) { screenshotSheet = $0 }
+                DCScreenshotStrip(row: images, onOpen: onShowScreenshot)
             }
         }
         .padding(10)
@@ -607,6 +769,30 @@ struct BrowserAgentRunsView: View {
         .accessibilityIdentifier("agentErrorCard")
     }
 
+    @ViewBuilder
+    private func capabilityCard(for entry: BrowserAgentRunsView.CapabilityResultEntry) -> some View {
+        switch entry {
+        case .threadSummary(let id, let thread, let fallbackText):
+            CapabilityThreadSummaryCard(app: app, currentTopicSummary: model.currentTopicSummary, rowID: id, thread: thread, fallbackText: fallbackText)
+        case .textSummary(_, let title, let markdown):
+            DCResultCard(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text") {
+                if !title.isEmpty { Text(verbatim: title).font(.caption).lineLimit(1) }
+            } content: {
+                MarkdownView(markdown).textSelection(.enabled)
+            }
+            .accessibilityIdentifier("capabilityTextSummaryCard")
+        case .listen(_, let thread, let explicitID, let title, let fallbackDetail, let rawText, let workspacePath):
+            CapabilityListenCard(app: app, currentTopicSummary: model.currentTopicSummary, podcast: app.podcast, player: app.podcast.player,
+                                 thread: thread, explicitID: explicitID, title: title, fallbackDetail: fallbackDetail, rawText: rawText, workspacePath: workspacePath)
+        }
+    }
+}
+
+extension BrowserAgentRunsView {
+    static func savedScriptEntries(in run: BrowserAgentRun) -> [SavedScriptCardEntry] {
+        AgentRunSectionView.savedScriptEntries(in: run)
+    }
+
     // MARK: Capability Cards
 
     enum CapabilityResultEntry: Identifiable, Equatable {
@@ -687,30 +873,13 @@ struct BrowserAgentRunsView: View {
         return suffix.prefix(1).uppercased() + suffix.dropFirst()
     }
 
-    @ViewBuilder
-    private func capabilityCard(for entry: CapabilityResultEntry) -> some View {
-        switch entry {
-        case .threadSummary(let id, let thread, let fallbackText):
-            CapabilityThreadSummaryCard(app: app, rowID: id, thread: thread, fallbackText: fallbackText)
-        case .textSummary(_, let title, let markdown):
-            DCResultCard(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text") {
-                if !title.isEmpty { Text(verbatim: title).font(.caption).lineLimit(1) }
-            } content: {
-                MarkdownView(markdown).textSelection(.enabled)
-            }
-            .accessibilityIdentifier("capabilityTextSummaryCard")
-        case .listen(_, let thread, let explicitID, let title, let fallbackDetail, let rawText, let workspacePath):
-            CapabilityListenCard(app: app, podcast: app.podcast, player: app.podcast.player,
-                                 thread: thread, explicitID: explicitID, title: title, fallbackDetail: fallbackDetail, rawText: rawText, workspacePath: workspacePath)
-        }
-    }
 }
 
 /// Actions under the open thread's newest summary card (Retry, Check for new
 /// replies, progress), given by the drawer that owns them (WUKO-134).
 struct ThreadSummaryCardFooter {
     let rowID: UUID
-    let content: (TopicSession) -> AnyView
+    let content: AnyView
 }
 
 extension EnvironmentValues {
@@ -718,29 +887,62 @@ extension EnvironmentValues {
 }
 
 private struct CapabilityThreadSummaryCard: View {
-    @ObservedObject var app: AppModel
+    let app: AppModel
+    let currentTopicSummary: TopicSummarySnapshot?
     let rowID: UUID
     let thread: ThreadShape
     let fallbackText: String
+    @State private var parsedCache = ParsedSummaryCache()
     @Environment(\.threadSummaryCardFooter) private var footer
 
     var body: some View {
         let session = app.session(forThreadShape: thread)
-        let summaryText = (session?.hasSummary == true ? session?.summary : nil) ?? fallbackText
-        let maxPost = session?.totalPosts ?? thread.totalPosts
-        let count = session?.summaryPostCount ?? maxPost
-        let parsed = DrawerSummarySections.parsed(for: .init(text: summaryText, maximumPost: maxPost))
-        if !parsed.rows.isEmpty {
+        let isCurrent = session != nil && session?.topicKey == currentTopicSummary?.topicKey
+        let summaryText = (isCurrent ? (currentTopicSummary?.hasSummary == true ? currentTopicSummary?.summary : nil)
+                           : (session?.hasSummary == true ? session?.summary : nil)) ?? fallbackText
+        let maxPost = (isCurrent ? currentTopicSummary?.totalPosts : session?.totalPosts) ?? thread.totalPosts
+        let count = (isCurrent ? currentTopicSummary?.summaryPostCount : session?.summaryPostCount) ?? maxPost
+        let parsed = parsedCache.parsed(for: .init(text: summaryText, maximumPost: maxPost))
+        let showsFooter = footer?.rowID == rowID && isCurrent
+        CapabilityThreadSummaryCardBody(
+            model: .init(parsed: parsed, count: count, isCurrentTopic: isCurrent,
+                         targetURL: (isCurrent ? currentTopicSummary?.url : session?.url) ?? URL(string: thread.url),
+                         footerRowID: showsFooter ? rowID : nil),
+            app: app, footer: showsFooter ? footer?.content : nil
+        )
+        .equatable()
+    }
+}
+
+private struct CapabilityThreadSummaryCardBody: View, Equatable {
+    struct Model: Equatable {
+        let parsed: ParsedSummary
+        let count: Int?
+        let isCurrentTopic: Bool
+        let targetURL: URL?
+        let footerRowID: UUID?
+    }
+
+    let model: Model
+    let app: AppModel
+    let footer: AnyView?
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.model == rhs.model && ObjectIdentifier(lhs.app) == ObjectIdentifier(rhs.app)
+    }
+
+    var body: some View {
+        if !model.parsed.rows.isEmpty {
             DCResultCard(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text") {
-                if let count, count > 0 { Text(String(localized: "\(count) posts")).font(.caption) }
+                if let count = model.count, count > 0 { Text(String(localized: "\(count) posts")).font(.caption) }
             } content: {
-                DrawerSummarySections(rows: parsed.rows, layout: .singleColumn)
+                DrawerSummarySections(rows: model.parsed.rows, layout: .singleColumn)
             }
             .environment(\.openURL, OpenURLAction { url in
                 if let number = PostCitations.postNumber(from: url) {
-                    if let session, session.topicKey == app.currentTopic?.topicKey {
+                    if model.isCurrentTopic {
                         app.jumpToCitation(number)
-                    } else if let target = session?.url ?? URL(string: thread.url) {
+                    } else if let target = model.targetURL {
                         app.browser.load(target)
                     }
                     return .handled
@@ -750,15 +952,16 @@ private struct CapabilityThreadSummaryCard: View {
                 return .handled
             })
             .accessibilityIdentifier("capabilityThreadSummaryCard")
-            if let footer, footer.rowID == rowID, let session, session.topicKey == app.currentTopic?.topicKey {
-                footer.content(session)
+            if let footer {
+                footer
             }
         }
     }
 }
 
 private struct CapabilityListenCard: View {
-    @ObservedObject var app: AppModel
+    let app: AppModel
+    let currentTopicSummary: TopicSummarySnapshot?
     @ObservedObject var podcast: PodcastController
     @ObservedObject var player: PodcastPlayer
     let thread: ThreadShape?
@@ -770,14 +973,16 @@ private struct CapabilityListenCard: View {
 
     var body: some View {
         let session = thread.flatMap { app.session(forThreadShape: $0) }
-        let readID = session?.topicKey ?? explicitID ?? ""
+        let isCurrent = session != nil && session?.topicKey == currentTopicSummary?.topicKey
+        let readID = (isCurrent ? currentTopicSummary?.topicKey : session?.topicKey) ?? explicitID ?? ""
         let matches = !readID.isEmpty && player.playlist?.id == PodcastController.readAloudPlaylistID(readID)
         let timeline = player.timeline
         let progress = matches && timeline.total > 0 ? timeline.elapsed(player.position) / timeline.total : 0
         let detail = matches && timeline.total > 0
             ? "\(DockText.clock(timeline.elapsed(player.position))) / \(DockText.clock(timeline.total))"
             : fallbackDetail
-        let speakText = session.map { PostCitations.stripped($0.summary) } ?? rawText.map { PostCitations.stripped($0) }
+        let summarySource = isCurrent ? currentTopicSummary?.summary : session?.summary
+        let speakText = summarySource.map { PostCitations.stripped($0) } ?? rawText.map { PostCitations.stripped($0) }
         Button {
             DCHaptics.tap()
             if matches { player.toggle() }

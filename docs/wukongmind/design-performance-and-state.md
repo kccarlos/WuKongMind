@@ -42,6 +42,43 @@ The composer owns its draft: `AssistantFooter` holds the draft, focus, dictation
 - **Target missed:** at most 12 ms on every fixture. `baseline` is 13.6 ms and the run fixtures grow with the number of runs (21 to 28 ms) although no body runs: it is UIKit layout and accessibility work over the eager transcript, which task 6 (lazy transcript) addresses. The real-thread test was not re-run here.
 - Leaving the Agent route (History) now closes the microphone and parks the draft; it comes back on return.
 
+### After task 3 (WUKO-143, 2026-11-18)
+
+The panel stops observing `ForumBrowserModel` and whole `AppModel` publishes directly: `ForumBrowserModel` publishes an `Equatable` `DrawerPageFacts` value only when drawer-relevant page facts change, `DrawerAppRelay` feeds per-section `SliceBox` stores so an unchanged slice fires no `ObservableObject` update on the hosting view, `DrawerHeader`, `DrawerSummary`, `ChatThread` and `AgentRunSectionView` become `.equatable()` views over value models, and `matchingPageScripts`, `timeline`, `forumSources` and parsed summary sections are cached per input. The covered `WKWebView` is also hidden from accessibility while the compact drawer is at `.large` with the software keyboard up, so full-height sheet typing does not snapshot 6,185 web comments behind the sheet.
+
+**What published 12 times per keystroke on the real page** (`360` `ForumBrowserModel` publishes across 30 keystrokes on `doctorofcredit.com/citi-300-checking-bonus/`):
+1. **10.0 per keystroke (300 publishes):** `routeObserverScript` observed `document.head` with `MutationObserver`; third-party ad/analytics scripts mutated `<head>` 60 times (`2.0/key`) and posted route-only messages with identical URL and title. Each `handleRouteMessage` called `updateNavigationState()`, which unconditionally assigned five `@Published` properties (`canGoBack`, `canGoForward`, `isLoading`, `currentURL`, `pageTitle` — `60 × 5 = 300`) even when none changed. Both the JS observer and `updateNavigationState` now deduplicate unchanged values.
+2. **2.0 per keystroke (60 publishes):** because `AIDrawer` allows background interaction up through `.medium`, UIKit kept `accessibilityViewIsModal = false` even at `.large`, so XCUITest's accessibility snapshots walked the covered `WKWebView`'s 6,185-comment DOM and caused `WKContentView` to emit 30 `keyboardWillHide` + 30 `keyboardWillShow` notifications (`isSystemKeyboardVisible = 60`), while also adding ~140 ms per keystroke of main-thread accessibility snapshot work.
+
+**iPhone 13, Debug, hosted harness (`DrawerPerformanceTests`), unrelated `AppModel` publish median:**
+
+| Fixture | Original | Before (post-task 2) | After |
+|---|---|---|---|
+| `baseline` | 47 ms | 41.7 ms | **1.18 ms** |
+| `source-100` / `500` / `2000` / `6000` | 56 / 62 / 149 / 387 ms | 39.9 / 42.9 / 40.0 / 39.7 ms | **1.18 / 1.15 / 1.15 / 1.14 ms** |
+| `summary-15` / `30` / `60` | 55 / 61 / 60 ms | 42.5 / 39.6 / 46.2 ms | **1.14 / 1.21 / 1.13 ms** |
+| `runs-5` / `20` / `60` | 51 / 59 / 59 ms | 46.4 / 57.8 / 66.0 ms | **1.10 / 1.23 / 1.16 ms** |
+| `runs-5-shape-500` / `2000` | not recorded | 49.1 / 50.2 ms | **1.05 / 1.19 ms** |
+| `all-2000` / `all-6000` | not recorded / 413 ms | 60.9 / 59.0 ms | **1.15 / 1.09 ms** |
+
+- Every fixture is **1.05 to 1.23 ms** (target: at most 5 ms), with `0` `AssistantPanel.body` and `0` `BrowserAgentRunsView.runSection` evaluations per publish (`DrawerRenderCountTests` asserts zero run-section and summary-row evaluations for both unrelated `AppModel` and non-fact `ForumBrowserModel` publishes).
+
+**iPhone 13, Debug, whole-app typing (`LongThreadDrawerPerfUITests`, 30 characters):**
+
+| Metric (per keystroke unless noted) | `fixture-20` before → after | `fixture-6000` before → after | `real-page` (6,185) before → after |
+|---|---|---|---|
+| Main-thread time per keystroke | 296.7 → **291.6 ms** | 309.9 → **306.4 ms** | 494.5 → **234.2 ms** (1,985 ms original) |
+| Typing wall time (30 chars) | 23.3 → 23.1 s | 23.4 → 23.2 s | 43.1 → **22.0 s** |
+| `AssistantPanel.body` / `ChatThread.body` | 0.10 / 0.10 → 0.07 / **0.00** | 0.10 / 0.10 → 0.07 / **0.00** | 5.00 / 5.03 → 0.07 / **0.00** |
+| `BrowserAgentRunsView.runSection` | 0.10 → **0.00** | 0.10 → **0.00** | 5.00 → **0.00** |
+| `ForumBrowserModel` / `DrawerPageFacts` publishes | 0.07 / — → 0.07 / **0.00** | 0.07 / — → 0.07 / **0.00** | 12.00 / — → **0.07 / 0.00** |
+| Run loop passes > 100 ms / > 250 ms (total) | 64 / 0 → 63 / 0 | 63 / 0 → 64 / 0 | 78 / 0 → **30 / 0** |
+| Close and reopen drawer, main-thread | 3.93 → 4.03 s | 4.32 → 4.26 s | 3.25 → **2.87 s** |
+
+- **Gates re-checked on the iPhone 13:**
+  - **Task 6 (lazy transcript):** `AgentRunSectionView.equatable()` already cuts "one more run" on `runs-60` from **2,144 ms to 177 ms** (and `all-6000` open from **666 ms to 298 ms**, new run from **589 ms to 156 ms**), but opening `runs-60` still costs **626 ms** (target: ≤ 300 ms). Task 6's gate holds for opening long multi-run conversations.
+  - **Task 7 (cheaper cited text):** `summary-30` scroll step median is **58.4 ms** with **40 of 40** steps over 16.7 ms (from 57 ms, 40 of 40). Task 7's gate holds unchanged.
+
 - How to run each: [DEVELOPMENT.md, "Performance measurements"](../DEVELOPMENT.md#performance-measurements).
 
 ### The real thread, on the iPhone 13
@@ -259,6 +296,7 @@ Nine tasks and one acceptance task. Sizes count changed lines, tests included.
 - **Done when:** keystroke median is at most 12 ms on every fixture on the iPhone 13 (from 42 to 412 ms); the folded "Step N" header while typing during a run, the suggestion row hiding on the first character, sending, dictation and voice behave as before (existing tests, plus before and after screenshots).
 
 ### 3. Performance 3: the drawer observes what it draws
+- **Status:** done in WUKO-143; numbers and gate re-check in "After task 3". `DrawerRenderCountTests` asserts zero run-section, summary-row and cache evaluations on unrelated `AppModel` publishes and on non-fact `ForumBrowserModel` publishes.
 - **Why:** any publish costs a full render, and a real page publishes constantly (cause 3).
 - **Read:** "Causes" 3; state machine 5.
 - **Scope:**
@@ -321,7 +359,7 @@ Nine tasks and one acceptance task. Sizes count changed lines, tests included.
 
 - **Release numbers.** Everything on the phone is a Debug build. The TestFlight build is faster in absolute terms; the causes and the ratios are the same code.
 - **A real model summary.** The real page's summary text came from the fixture model (a realistic shape, 2,753 characters). No model was called.
-- **Why the real page publishes 11 times per keystroke.** Counted, not explained; task 3 finds it.
+- **Why the real page publishes 11 times per keystroke.** Explained and fixed in task 3 (WUKO-143): 10.0 publishes/key came from `<head>` `MutationObserver` firing on ad/analytics mutations and `updateNavigationState()` assigning 5 unchanged `@Published` properties per message (`60 × 5 = 300`), and 2.0 publishes/key (`isSystemKeyboardVisible = 60`) came from XCUITest snapshotting the non-modal covered `WKWebView` while the drawer was at `.large`.
 - **The SwiftUI instrument.** The trace is Time Profiler and Hangs; body counts come from `PerfProbe` instead.
 - **"One more run".** Measured by replacing the conversation with one that has one more run, not by a run the Agent appends; task 6 measures the real path first.
 - **Cited text as the scroll cost.** No citation-free control, and Animation Hitches was not recorded; task 7 starts with both.
