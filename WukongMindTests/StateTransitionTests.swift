@@ -1391,9 +1391,10 @@ final class StateTransitionTests: XCTestCase {
         let selection = app.selection(for: .browserAgent)
         XCTAssertEqual(selection.provider, .vertexAI)
         XCTAssertEqual(selection.model, AIProvider.vertexAIDefaultAgentModel)
+        XCTAssertEqual(selection.model, "gemini-4-argon")
         XCTAssertTrue(AIProvider.vertexAIModels.contains(selection.model))
         XCTAssertTrue(app.hasConfiguredModel(for: .browserAgent))
-        XCTAssertEqual(app.providerSummary(for: .browserAgent), "Google Vertex AI · gemini-3.8-flash")
+        XCTAssertEqual(app.providerSummary(for: .browserAgent), "Google Vertex AI · gemini-4-argon")
         app.addCurrentFavorite(for: .browserAgent)
         XCTAssertTrue(app.isFavorite(selection))
         // Gemini 4 sits at the top of the list; older favorites still resolve.
