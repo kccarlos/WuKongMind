@@ -169,7 +169,9 @@ final class AppModel: ObservableObject {
     /// Errors waiting for the root alert, oldest first: one shows at a time
     /// and a newer one never replaces it (`presentError`).
     @Published private(set) var errorQueue: [PresentedError] = []
-    @Published var settingsStatus = ""
+    /// The last connection test of each provider, with the key, address and
+    /// model it tested. Read through `providerTestState(for:model:)`.
+    @Published var providerChecks: [AIProvider: ProviderCheck] = [:]
     /// Models each provider offers, from the last successful load.
     @Published var discoveredModels: [AIProvider: [DiscoveredModel]] = [:]
     /// The saved Agent answer History shows (`SavedAnswerView`); nil shows the list.
@@ -2792,7 +2794,7 @@ final class AppModel: ObservableObject {
             // Results of a test or model load for the old configuration are stale.
             connectionTestGeneration[provider, default: 0] &+= 1
             modelDiscoveryGeneration[provider, default: 0] &+= 1
-            settingsStatus = ""
+            providerChecks[provider] = nil
             if discoveredModels[provider] != nil { discoveredModels[provider] = nil }
         }
         if let role = needsProviderSetup, isProviderReady(for: role) { needsProviderSetup = nil }
@@ -2838,7 +2840,7 @@ final class AppModel: ObservableObject {
         fresh.syncAPIKeys = settings.syncAPIKeys
         settings = fresh
         discoveredModels = [:]
-        settingsStatus = ""
+        providerChecks = [:]
         save()
         // A clean start for Spotlight too: rebuilt from the saved topics.
         resetSpotlightIndex()
@@ -2859,14 +2861,12 @@ final class AppModel: ObservableObject {
         modelDiscoveryGeneration[provider, default: 0] &+= 1
         let generation = modelDiscoveryGeneration[provider]
         let configuration = settings.configuration(for: provider)
-        settingsStatus = String(localized: "Loading models…")
         #if DEBUG
         if AssistantDebug.isActive,
            configuration.apiKey == "sample-key",
            configuration.baseURL == provider.defaultBaseURL {
             let models = AssistantDebug.sampleModels(for: provider)
             discoveredModels[provider] = models
-            settingsStatus = String(localized: "Loaded \(models.count) models", comment: "AI provider settings: number of models found")
             return .success
         }
         #endif
@@ -2874,16 +2874,13 @@ final class AppModel: ObservableObject {
             let models = try await aiService.discoverModels(configuration: configuration, provider: provider)
             guard generation == modelDiscoveryGeneration[provider] else { return .stale }
             discoveredModels[provider] = models
-            settingsStatus = String(localized: "Loaded \(models.count) models", comment: "AI provider settings: number of models found")
             return .success
         } catch AssistantError.http(404, _) {
             guard generation == modelDiscoveryGeneration[provider] else { return .stale }
             discoveredModels[provider] = []
-            settingsStatus = String(localized: "Loaded \(0) models", comment: "AI provider settings: number of models found")
             return .success
         } catch {
             guard generation == modelDiscoveryGeneration[provider] else { return .stale }
-            settingsStatus = String(localized: "Model loading failed")
             return .failure(Self.modelDiscoveryFailureMessage(for: error, provider: provider))
         }
     }
@@ -2950,7 +2947,9 @@ final class AppModel: ObservableObject {
 
     func isTestingConnection(for role: ModelRole) -> Bool {
         guard let active = activeRoleConnectionTests[role] else { return false }
-        return active.selection == settings.model(for: role) && isTestingConnection(for: active.provider)
+        return active.selection == settings.model(for: role)
+            && active.generation == activeConnectionTestGeneration[active.provider]
+            && isTestingConnection(for: active.provider)
     }
 
     private func runConnectionTest(
@@ -2969,19 +2968,17 @@ final class AppModel: ObservableObject {
             if activeConnectionTestGeneration[provider] == generation {
                 activeConnectionTestGeneration[provider] = nil
             }
-            if let (targetRole, _) = role, activeRoleConnectionTests[targetRole]?.generation == generation {
+            if let (targetRole, _) = role, let active = activeRoleConnectionTests[targetRole],
+               active.provider == provider, active.generation == generation {
                 activeRoleConnectionTests[targetRole] = nil
             }
         }
-        settingsStatus = String(localized: "Testing connection…")
         do {
             try await aiService.testConnection(configuration: configuration, provider: provider)
             guard generation == connectionTestGeneration[provider], isStillCurrent() else { return .stale }
-            settingsStatus = String(localized: "Connection successful")
             return .success
         } catch {
             guard generation == connectionTestGeneration[provider], isStillCurrent() else { return .stale }
-            settingsStatus = String(localized: "Connection failed")
             return .failure(error.localizedDescription)
         }
     }

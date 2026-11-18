@@ -412,7 +412,9 @@ extension AppModel {
         var model = selection.model.trimmingCharacters(in: .whitespacesAndNewlines)
         if model.isEmpty {
             if role == .browserAgent {
-                return .failure(String(localized: "Choose a model for the agent first.", comment: "Test & save for browser agent without a model chosen"))
+                let failure = String(localized: "Choose a model for the agent first.", comment: "Test & save for browser agent without a model chosen")
+                recordProviderCheck(.failed(failure), provider: provider, configuration: settings.configuration(for: provider), model: "")
+                return .failure(failure)
             }
             model = provider.defaultModel
         }
@@ -428,21 +430,29 @@ extension AppModel {
         configuration.baseURL = configuration.baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         if configuration.baseURL.isEmpty { configuration.baseURL = provider.defaultBaseURL }
         if configuration != settings.configuration(for: provider) { setConfiguration(configuration, for: provider) }
+        let model = role.map { selection(for: $0).model }
         if provider.requiresAPIKey && configuration.apiKey.isEmpty {
-            return .failure(String(localized: "Paste your \(provider.displayName) API key first.", comment: "Test & save without a key; the argument is the provider name"))
+            let failure = String(localized: "Paste your \(provider.displayName) API key first.", comment: "Test & save without a key; the argument is the provider name")
+            recordProviderCheck(.failed(failure), provider: provider, configuration: configuration, model: model)
+            return .failure(failure)
         }
         saveSettings()
         flushPendingSaves()
+        let checkID = recordProviderCheck(.testing, provider: provider, configuration: configuration, model: model)
         let result = if let role { await testConnection(for: role) } else { await testConnection(provider: provider) }
+        // A suspended test only owns the status it originally recorded.
+        let ownsCheck = providerChecks[provider]?.id == checkID
         switch result {
-        case .success:
+        case .success where ownsCheck:
             DCHaptics.success()
+            providerChecks[provider]?.phase = .ok
             return .success
-        case .failure(let message):
+        case .failure(let message) where ownsCheck:
             DCHaptics.warning()
+            providerChecks[provider]?.phase = .failed(message)
             return .failure(message)
-        case .stale:
-            // Keep `.testing` if a newer test is actively running; otherwise reset to `.idle`.
+        default:
+            if ownsCheck { providerChecks[provider] = nil }
             let stillTesting = role.map { isTestingConnection(for: $0) } ?? isTestingConnection(for: provider)
             return stillTesting ? .testing : .idle
         }
@@ -454,7 +464,6 @@ struct ProviderSetupForm: View {
     @ObservedObject var app: AppModel
     /// Onboarding sets both roles; the setup sheet the role(s) not ready.
     let scope: ModelScope
-    @Binding var state: ProviderTestState
     /// First-run step 1 lists the providers itself and tests with its own
     /// Continue: no provider menu, no captions and no "Test & save" button.
     var isCompact = false
@@ -463,6 +472,9 @@ struct ProviderSetupForm: View {
     private var scopeBindings: ModelScopeBindings { ModelScopeBindings(app: app, scope: scope) }
     private var bindings: ProviderBindings { scopeBindings.providerBindings }
     private var provider: AIProvider { scopeBindings.provider }
+    private var state: ProviderTestState {
+        app.providerTestState(for: provider, model: app.selection(for: scope.primaryRole).model)
+    }
     private var guide: ProviderGuide { ProviderGuide.guide(for: provider) }
 
     var body: some View {
@@ -477,7 +489,6 @@ struct ProviderSetupForm: View {
             }
         }
         .onChange(of: provider) {
-            state = .idle
             showingAdvanced = false
         }
         .onAppear {
@@ -593,10 +604,7 @@ struct ProviderSetupForm: View {
     private var testSection: some View {
         VStack(alignment: .leading, spacing: DCTheme.spacingS) {
             Button {
-                Task {
-                    state = .testing
-                    state = await app.testAndSaveProvider(scope: scope)
-                }
+                Task { await app.testAndSaveProvider(scope: scope) }
             } label: {
                 HStack(spacing: DCTheme.spacingS) {
                     if state == .testing {
@@ -651,13 +659,17 @@ extension View {
 struct ProviderSetupSheet: View {
     @ObservedObject var app: AppModel
     @Environment(\.dismiss) private var dismiss
-    @State private var state: ProviderTestState = .idle
     /// Fixed when the sheet opens, so it doesn't change while the user types.
     @State private var scope: ModelScope
 
     init(app: AppModel, role: ModelRole) {
         self.app = app
         _scope = State(initialValue: .role(role))
+    }
+
+    private var state: ProviderTestState {
+        let role = scope.primaryRole
+        return app.providerTestState(for: app.selection(for: role).provider, model: app.selection(for: role).model)
     }
 
     private var intro: String {
@@ -674,7 +686,7 @@ struct ProviderSetupSheet: View {
                     Text(intro)
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                    ProviderSetupForm(app: app, scope: scope, state: $state)
+                    ProviderSetupForm(app: app, scope: scope)
                 }
                 .padding(DCTheme.spacingL)
                 .frame(maxWidth: DCTheme.contentMaxWidth)

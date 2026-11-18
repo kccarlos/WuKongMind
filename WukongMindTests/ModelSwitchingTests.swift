@@ -236,6 +236,100 @@ final class ModelSwitchingTests: XCTestCase {
         XCTAssertEqual(merged.addedModels(for: .anthropic), ["my-gateway/claude-z"])
     }
 
+    // MARK: Model choice and provider check (State 4)
+
+    func testModelChoiceTable() {
+        let cases: [(provider: AIProvider, model: String, choice: ModelChoice)] = [
+            (.anthropic, "", .none),
+            (.anthropic, "   \n", .none),
+            (.anthropic, "claude-haiku-5-5", .model(.anthropic, "claude-haiku-5-5")),
+            (.openAI, " gpt-test ", .model(.openAI, "gpt-test")),
+        ]
+        for row in cases {
+            let selection = ModelSelection(provider: row.provider, model: row.model)
+            XCTAssertEqual(selection.choice, row.choice, "\(row.provider) '\(row.model)'")
+            XCTAssertEqual(selection.hasModel, row.choice != .none)
+            XCTAssertEqual(selection.supportsToolCalling, row.provider.supportsToolCalling && row.choice != .none)
+        }
+        XCTAssertNil(ModelChoice.none.provider)
+        XCTAssertNil(ModelChoice.none.model)
+        XCTAssertEqual(ModelChoice.model(.openAI, "m").provider, .openAI)
+        XCTAssertEqual(ModelChoice.model(.openAI, "m").model, "m")
+    }
+
+    /// Settings as 1.5.0 saved them (an Agent with a provider and no model,
+    /// a favorite, a key) load and save back unchanged.
+    func testSettingsRecordedByVersion150LoadUnchanged() throws {
+        let recorded = """
+        {"assistantModel":{"provider":"openai","model":"gpt-test"},
+         "browserAgentModel":{"provider":"anthropic","model":""},
+         "scriptsModel":{"provider":"groq","model":"llama-x"},
+         "favoriteModels":[{"provider":"anthropic","model":"claude-haiku-5-5"}],
+         "configurations":{"openai":{"baseURL":"https://api.openai.com/v1","apiKey":"fake-key"}},
+         "addedModels":{"openai":["gpt-extra"]},
+         "browserAgentMaxSteps":30}
+        """
+        let settings = try JSONDecoder().decode(AppSettings.self, from: Data(recorded.utf8))
+        XCTAssertEqual(settings.assistantModel, ModelSelection(provider: .openAI, model: "gpt-test"))
+        XCTAssertEqual(settings.browserAgentModel, ModelSelection(provider: .anthropic, model: ""))
+        XCTAssertEqual(settings.browserAgentModel?.choice, ModelChoice.none)
+        XCTAssertEqual(settings.scriptsModel, ModelSelection(provider: .groq, model: "llama-x"))
+        XCTAssertEqual(settings.favoriteModels, [FavoriteModel(provider: .anthropic, model: "claude-haiku-5-5")])
+        XCTAssertEqual(settings.configuration(for: .openAI).apiKey, "fake-key")
+        XCTAssertNil(settings.configuredBrowserAgentModel)
+
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(settings)) as? [String: Any])
+        let agent = try XCTUnwrap(object["browserAgentModel"] as? [String: String])
+        XCTAssertEqual(agent, ["provider": "anthropic", "model": ""])
+        let assistant = try XCTUnwrap(object["assistantModel"] as? [String: String])
+        XCTAssertEqual(assistant, ["provider": "openai", "model": "gpt-test"])
+        let again = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(settings))
+        XCTAssertEqual(again, settings)
+    }
+
+    /// A check's result counts only for the key, address and model it tested.
+    @MainActor
+    func testProviderCheckTransitionsAndDropsResultWhenInputsChange() {
+        let app = makeApp()
+        func configuration(key: String) -> ProviderConfiguration {
+            var configuration = app.settings.configuration(for: .openAI)
+            configuration.apiKey = key
+            return configuration
+        }
+        func use(key: String) { app.setConfiguration(configuration(key: key), for: .openAI) }
+
+        use(key: "key-1")
+        XCTAssertEqual(app.providerTestState(for: .openAI, model: "m1"), .idle, "untested")
+
+        let phases: [(ProviderCheck.Phase, ProviderTestState)] = [
+            (.testing, .testing),
+            (.ok, .success),
+            (.failed("nope"), .failure("nope")),
+            (.untested, .idle),
+        ]
+        for (phase, shown) in phases {
+            app.recordProviderCheck(phase, provider: .openAI, configuration: configuration(key: "key-1"), model: "m1")
+            XCTAssertEqual(app.providerTestState(for: .openAI, model: "m1"), shown)
+        }
+
+        // Other model: dropped. Other provider: not affected. Whitespace: same.
+        app.recordProviderCheck(.ok, provider: .openAI, configuration: configuration(key: "key-1"), model: "m1")
+        XCTAssertEqual(app.providerTestState(for: .openAI, model: "m2"), .idle)
+        XCTAssertEqual(app.providerTestState(for: .groq, model: "m1"), .idle)
+        XCTAssertEqual(app.providerTestState(for: .openAI, model: " m1 "), .success)
+
+        // Key changed: dropped, and the record is gone.
+        use(key: "key-2")
+        XCTAssertEqual(app.providerTestState(for: .openAI, model: "m1"), .idle)
+        XCTAssertNil(app.providerChecks[.openAI])
+
+        // Back to the old key after a new result: only the new result counts.
+        app.recordProviderCheck(.failed("x"), provider: .openAI, configuration: configuration(key: "key-2"), model: "m1")
+        XCTAssertEqual(app.providerTestState(for: .openAI, model: "m1"), .failure("x"))
+        app.resetSettings()
+        XCTAssertTrue(app.providerChecks.isEmpty)
+    }
+
     @MainActor
     private func makeApp() -> AppModel {
         let directory = FileManager.default.temporaryDirectory

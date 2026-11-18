@@ -114,7 +114,6 @@ struct OnboardingFeatureRow: View {
 /// model fields; Continue tests them (OnboardingFlow).
 struct OnboardingModelPage: View {
     @ObservedObject var app: AppModel
-    @Binding var state: ProviderTestState
     @State private var choosesOther = false
 
     static let namedProviders: [AIProvider] = [.anthropic, .openRouter, .openAI]
@@ -172,7 +171,6 @@ struct OnboardingModelPage: View {
         return VStack(spacing: 0) {
             radioRow(title: provider.displayName, isOn: isOn, id: "onboardingProvider-\(provider.rawValue)") {
                 choosesOther = false
-                state = .idle
                 app.selectProvider(provider, for: scope)
             }
             if isOn { form }
@@ -188,7 +186,6 @@ struct OnboardingModelPage: View {
             ) {
                 guard !othersSelected else { return }
                 choosesOther = true
-                state = .idle
             }
             if othersSelected {
                 VStack(alignment: .leading, spacing: DCTheme.spacingM) {
@@ -219,7 +216,7 @@ struct OnboardingModelPage: View {
 
     /// The key and model fields of the chosen provider.
     private var form: some View {
-        ProviderSetupForm(app: app, scope: scope, state: $state, isCompact: true)
+        ProviderSetupForm(app: app, scope: scope, isCompact: true)
             .padding(.leading, Self.namedProviders.contains(current) ? 48 : 0)
             .padding(.trailing, Self.namedProviders.contains(current) ? DCTheme.spacingL : 0)
             .padding(.bottom, DCTheme.spacingM)
