@@ -196,7 +196,7 @@ final class ProviderModelsUITests: DCUITestCase {
         XCTAssertTrue(reveal(any(app, "modelRow-gemini-3.8-flash"), in: app, swipes: 3))
         let vertexShowAll = any(app, "showAllModels")
         XCTAssertTrue(reveal(vertexShowAll, in: app, swipes: 3))
-        XCTAssertTrue(vertexShowAll.label.contains("Show all 10"))
+        XCTAssertTrue(vertexShowAll.label.contains("Show all 14"))
         XCTAssertEqual(server.requestCount, 0)
 
         app.navigationBars["Google Vertex AI"].buttons.element(boundBy: 0).tap()
@@ -300,6 +300,43 @@ final class ProviderModelsUITests: DCUITestCase {
         XCTAssertTrue(reveal(sonnetRow, in: app, swipes: 4))
         XCTAssertGreaterThan(sonnetRow.frame.height, 64, "Row should expand vertically at accessibility Dynamic Type sizes.")
         capture("p1-iphone-anthropic-ax-dark")
+    }
+
+    /// WUKO-138: the Agent page on Vertex AI shows the chosen model (never the
+    /// provider name) and "Add to favorites" adds it to Favorite models.
+    func testVertexAIAgentRowShowsModelAndAddToFavoritesAddsIt() throws {
+        let app = launch([
+            "-AppleLanguages", "(en)", "-AppleLocale", "en_US",
+            "-dc-sample",
+            "-dc-forums-home",
+            "-dc-show-settings", "provider",
+            "-dc-agent-model", "vertexai:gemini-4-argon"
+        ])
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 20))
+        XCUIDevice.shared.appearance = .dark
+        let agentRoleRow = any(app, "modelRole-browserAgent")
+        XCTAssertTrue(waitOrDump(agentRoleRow, timeout: 5, in: app))
+        agentRoleRow.tap()
+        XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
+        let modelsLink = app.buttons["providerModelsLink"]
+        XCTAssertTrue(reveal(modelsLink, in: app, swipes: 3))
+        XCTAssertTrue(modelsLink.label.contains("gemini-4-argon"), "Got “\(modelsLink.label)”.")
+        let star = app.buttons["toggleFavoriteModel"]
+        XCTAssertTrue(reveal(star, in: app, swipes: 3))
+        XCTAssertTrue(star.isEnabled)
+        // The sample seeds the Agent model as a favorite: unstar it first.
+        let favoriteRow = app.buttons.matching(label(contains: "Google Vertex AI")).matching(label(contains: "gemini-4-argon")).firstMatch
+        XCTAssertTrue(favoriteRow.waitForExistence(timeout: 5), "Seeded favorite row")
+        star.tap()
+        XCTAssertTrue(app.buttons.matching(label(contains: "Add to favorites")).firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(waitForGone(favoriteRow, timeout: 5))
+        capture("wuko138-vertex-agent-before-dark")
+        // Now tap "Add to favorites": the model appears under Favorite models.
+        app.buttons["toggleFavoriteModel"].tap()
+        XCTAssertTrue(app.buttons.matching(label(contains: "Remove from favorites")).firstMatch.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Favorite models"].waitForExistence(timeout: 5))
+        XCTAssertTrue(favoriteRow.waitForExistence(timeout: 5), "New favorite row")
+        capture("wuko138-vertex-agent-after-dark")
     }
 
     /// P2 Done-when UI test:

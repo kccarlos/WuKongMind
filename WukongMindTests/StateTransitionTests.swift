@@ -1267,6 +1267,36 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(app.activities.first { $0.type == .summary }?.status, .completed)
     }
 
+    /// Switching the Agent to Vertex AI (a provider with a built-in model
+    /// list) gives it a working model, never an empty one, so the Model row
+    /// never falls back to the provider name and the star can be added.
+    func testSwitchingAgentToVertexAIPicksAModelAndAllowsStarring() {
+        let app = makeHarness().app
+        app.selectProvider(.vertexAI, for: .role(.browserAgent))
+        let selection = app.selection(for: .browserAgent)
+        XCTAssertEqual(selection.provider, .vertexAI)
+        XCTAssertEqual(selection.model, AIProvider.vertexAIDefaultAgentModel)
+        XCTAssertTrue(AIProvider.vertexAIModels.contains(selection.model))
+        XCTAssertTrue(app.hasConfiguredModel(for: .browserAgent))
+        XCTAssertEqual(app.providerSummary(for: .browserAgent), "Google Vertex AI · gemini-3.8-flash")
+        app.addCurrentFavorite(for: .browserAgent)
+        XCTAssertTrue(app.isFavorite(selection))
+        // Gemini 4 sits at the top of the list; older favorites still resolve.
+        XCTAssertEqual(AIProvider.vertexAIModels.first, "gemini-4-argon")
+        XCTAssertTrue(AIProvider.vertexAIModels.contains("gemini-3.5-flash-lite"))
+    }
+
+    /// Providers without a built-in list leave the Agent empty (the user
+    /// chooses); an empty model can't be starred.
+    func testAgentOnProviderWithoutListHasNoModelAndCannotBeStarred() {
+        let app = makeHarness().app
+        app.selectProvider(.openAI, for: .role(.browserAgent))
+        XCTAssertEqual(app.selection(for: .browserAgent).model, "")
+        XCTAssertNil(FavoriteModel(selection: app.selection(for: .browserAgent)))
+        app.addCurrentFavorite(for: .browserAgent)
+        XCTAssertTrue(app.settings.favoriteModels.isEmpty)
+    }
+
     func testRemovingAFavoriteInUseKeepsBothRoles() {
         let harness = makeHarness()
         let app = harness.app
