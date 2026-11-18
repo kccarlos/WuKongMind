@@ -383,6 +383,9 @@ final class AppModel: ObservableObject {
     @Published private(set) var tabClosedToast: TabClosedToastState?
     private var lastClosedTabSnapshot: ClosedBrowserTabSnapshot?
     private var tabClosedToastDismissTask: Task<Void, Never>?
+    /// The short toast after ⋯ › Report a problem saved a report (`AppModel+Feedback.swift`).
+    @Published var feedbackToast: FeedbackToastState?
+    var feedbackToastDismissTask: Task<Void, Never>?
     /// Set to open the audit log (optionally at one task and step) from the panel.
     @Published var auditLogRequest: AuditLogRequest?
 
@@ -546,6 +549,10 @@ final class AppModel: ObservableObject {
         sessionBox.value = agentSession
         agentSession.onAnswer = { [weak appBox] answer in
             _ = appBox?.value?.saveAgentAnswer(answer)
+        }
+        agentSession.onRunEndedWithError = { [weak appBox] taskID, _ in
+            guard let app = appBox?.value, app.settings.savesFailedTasksForFeedback() else { return }
+            Task { await app.saveFeedbackReport(taskID: taskID, announces: false) }
         }
         agentSession.onRunFinished = { [weak appBox, weak tabBrowser] in
             guard let app = appBox?.value, let tabBrowser, app.browser === tabBrowser, !app.isAIViewShown else { return }

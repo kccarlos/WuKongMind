@@ -121,6 +121,9 @@ struct AppSettings: Codable, Equatable {
     /// Developer mode, the one switch (`Settings › Agent › Developer`): raw requests, tokens per step,
     /// tool code names and durations, and task export. Off by default; per device.
     var agentDeveloperMode = false
+    /// Settings › Agent › Developer › "Save failed tasks for feedback": nil follows the build (on in
+    /// TestFlight builds, off elsewhere). Per device.
+    var saveFailedTasksForFeedback: Bool?
     var agentMaxTopicReads = AgentLimits.defaultMaxTopicReads
     var agentReadLimit = AgentLimits.defaultReadLimit
     var watchAutoRefreshSummaries = true
@@ -197,6 +200,7 @@ struct AppSettings: Codable, Equatable {
         case agentConfirmBeforeWrites
         case agentPageToolsEnabled
         case agentDeveloperMode
+        case saveFailedTasksForFeedback
         case agentMaxTopicReads
         case agentReadLimit
         case watchAutoRefreshSummaries
@@ -276,6 +280,7 @@ struct AppSettings: Codable, Equatable {
         agentConfirmBeforeWrites = try container.decodeIfPresent(Bool.self, forKey: .agentConfirmBeforeWrites) ?? stock.agentConfirmBeforeWrites
         agentPageToolsEnabled = try container.decodeIfPresent(Bool.self, forKey: .agentPageToolsEnabled) ?? stock.agentPageToolsEnabled
         agentDeveloperMode = try container.decodeIfPresent(Bool.self, forKey: .agentDeveloperMode) ?? stock.agentDeveloperMode
+        saveFailedTasksForFeedback = try container.decodeIfPresent(Bool.self, forKey: .saveFailedTasksForFeedback)
         agentMaxTopicReads = AgentLimits.clampTopicReads(
             try container.decodeIfPresent(Int.self, forKey: .agentMaxTopicReads)
                 ?? AgentLimits.defaultMaxTopicReads
@@ -321,6 +326,11 @@ struct AppSettings: Codable, Equatable {
         if try decoder.container(keyedBy: LegacyKeys.self).decodeIfPresent(Bool.self, forKey: .developerMode) == true {
             agentDeveloperMode = true
         }
+    }
+
+    /// Whether a task that ends in an error saves its export for feedback.
+    func savesFailedTasksForFeedback(isTestFlight: Bool = BuildChannel.isTestFlight) -> Bool {
+        saveFailedTasksForFeedback ?? isTestFlight
     }
 
     func configuration(for provider: AIProvider) -> ProviderConfiguration {

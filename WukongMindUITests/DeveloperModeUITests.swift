@@ -42,6 +42,25 @@ final class DeveloperModeUITests: DCUITestCase {
         XCTAssertFalse(app.buttons["Export task"].exists, "Export task is a developer-mode entry.")
     }
 
+    /// ⋯ › Report a problem (every build, not only developer mode): the export alert, then a toast.
+    /// The simulator has no iCloud, so the report stays on the device and the toast says so.
+    func testReportAProblemSavesTheTaskAndShowsAToast() throws {
+        let app = launchDemo(developer: false, extra: ["-AppleInterfaceStyle", "Dark"])
+        openMenu(app)
+        let report = app.buttons["Report a problem"].firstMatch
+        XCTAssertTrue(report.waitForExistence(timeout: 5))
+        XCTAssertTrue(report.isEnabled)
+        captureIfRequested("report-problem-menu-dark")
+        report.tap()
+        let alert = app.alerts["Save this task for feedback?"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 5))
+        alert.buttons["Save"].tap()
+        let toast = any(app, "feedbackSavedToast")
+        XCTAssertTrue(toast.waitForExistence(timeout: 10), "No toast after Report a problem.")
+        XCTAssertTrue(toast.label.contains("iCloud isn't available"), "Toast was: \(toast.label)")
+        captureIfRequested("report-problem-toast-dark")
+    }
+
     func testSiteInspectorOpensFromThisPage() throws { try openSiteInspector(dark: false) }
 
     func testSiteInspectorOpensInDarkMode() throws { try openSiteInspector(dark: true) }

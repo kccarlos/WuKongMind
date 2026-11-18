@@ -27390,6 +27390,125 @@
           }
         }
       }
+    },
+    "Report a problem" : {
+      "comment" : "Assistant more menu: save the last task for TestFlight feedback",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "报告问题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回報問題"
+          }
+        }
+      }
+    },
+    "Save this task for feedback?" : {
+      "comment" : "Report a problem alert title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存此任务用于反馈？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存此任務以供回饋？"
+          }
+        }
+      }
+    },
+    "Can't save this task" : {
+      "comment" : "Report a problem failure title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存此任务"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法儲存此任務"
+          }
+        }
+      }
+    },
+    "Saved for feedback. Send a TestFlight screenshot if you like." : {
+      "comment" : "Toast after Report a problem saved the task to iCloud Drive",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已保存用于反馈。如有需要，可发送 TestFlight 截图。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已儲存以供回饋。如有需要，可傳送 TestFlight 截圖。"
+          }
+        }
+      }
+    },
+    "iCloud isn't available, so it's saved on this device in Files › WukongMind › Reports. Send a TestFlight screenshot if you like." : {
+      "comment" : "Toast after Report a problem saved the task locally because iCloud Drive isn't available",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 不可用，已保存在本设备的“文件 › WukongMind › Reports”中。如有需要，可发送 TestFlight 截图。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud 無法使用，已儲存在本裝置的「檔案 › WukongMind › Reports」中。如有需要，可傳送 TestFlight 截圖。"
+          }
+        }
+      }
+    },
+    "Save failed tasks for feedback" : {
+      "comment" : "Settings › Agent › Developer switch: save the export of a task that ends in an error",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存失败的任务用于反馈"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存失敗的任務以供回饋"
+          }
+        }
+      }
+    },
+    "A task that ends in an error is saved for TestFlight feedback" : {
+      "comment" : "Settings › Agent subtitle for Save failed tasks for feedback",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "出错结束的任务会被保存，用于 TestFlight 反馈"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "以錯誤結束的任務會被儲存，以供 TestFlight 回饋"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
