@@ -39,6 +39,7 @@ struct AssistantPanel: View {
     @State private var exporting = false
     /// Built when Export .txt is tapped, dropped when the exporter closes.
     @State private var exportDocument: PlainTextDocument?
+    @State private var exportShareAnchor = ExportShareAnchor()
     /// The summary without citations (Translate, Read aloud), kept per summary text.
     @State private var strippedSummaryCache = StrippedSummaryCache()
     @State private var exportTaskID: String?
@@ -102,16 +103,9 @@ struct AssistantPanel: View {
         app.currentExportPayload
     }
 
-    /// What Copy, Share and Export hand out. Cheap to make: the text is built only
-    /// when one of them is used, never in `body`.
-    private var exportItem: TopicExportShareItem {
-        TopicExportShareItem(payload: payload, options: app.exportOptions)
-    }
-
-    /// The share sheet's header: the thread's title, else the file name Export uses.
-    private var exportPreviewTitle: String {
-        let title = payload.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        return title.isEmpty ? "wukongmind-\(exportSlug).txt" : title
+    /// Copy, Share and Export read this only from their button actions.
+    private var exportText: String {
+        PerfProbe.time("AssistantPanel.exportText") { payload.text(options: app.exportOptions) }
     }
 
     private var exportDisabled: Bool {
@@ -1352,7 +1346,7 @@ struct AssistantPanel: View {
         Menu {
             Section {
                 Button {
-                    UIPasteboard.general.string = exportItem.text
+                    UIPasteboard.general.string = exportText
                     DCHaptics.success()
                 } label: {
                     Label("Copy", systemImage: "doc.on.doc")
@@ -1360,14 +1354,16 @@ struct AssistantPanel: View {
                 .accessibilityIdentifier("copyExport")
                 .disabled(exportDisabled)
 
-                ShareLink(item: exportItem, preview: SharePreview(exportPreviewTitle)) {
+                Button {
+                    exportShareAnchor.present(text: exportText)
+                } label: {
                     Label("Share", systemImage: "square.and.arrow.up")
                 }
                 .accessibilityIdentifier("shareExport")
                 .disabled(exportDisabled)
 
                 Button {
-                    exportDocument = PlainTextDocument(text: exportItem.text)
+                    exportDocument = PlainTextDocument(text: exportText)
                     exporting = true
                 } label: {
                     Label("Export .txt", systemImage: "arrow.down.doc")
@@ -1408,6 +1404,7 @@ struct AssistantPanel: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .background(exportShareAnchor)
         .accessibilityLabel(Text("Summary actions", comment: "Accessibility label of the summary card's more menu"))
         .accessibilityIdentifier("summaryMoreMenu")
     }
@@ -2035,19 +2032,53 @@ struct ExpandedPanel: View {
     }
 }
 
-/// The export text as Share hands it out: built when the receiver asks for it,
-/// not when the menu renders (design-performance-and-state.md, cause 1).
-struct TopicExportShareItem: Transferable {
-    let payload: TopicExportPayload
-    let options: ExportOptions
-
-    /// The same text Copy and Export .txt use.
-    var text: String {
-        PerfProbe.time("AssistantPanel.exportText") { payload.text(options: options) }
+/// Anchors the system share popover to the summary's More button on iPad.
+private struct ExportShareAnchor: UIViewRepresentable {
+    @MainActor
+    private final class Storage {
+        lazy var view = UIView()
     }
 
-    static var transferRepresentation: some TransferRepresentation {
-        ProxyRepresentation(exporting: \.text)
+    private let storage = Storage()
+
+    func makeUIView(context: Context) -> UIView {
+        let view = storage.view
+        view.isUserInteractionEnabled = false
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
+
+    func present(text: String) {
+        let anchor = storage.view
+        // Let SwiftUI finish the menu action before presenting UIKit's sheet.
+        DispatchQueue.main.async {
+            guard anchor.window != nil else { return }
+            var responder: UIResponder? = anchor
+            while let current = responder, !(current is UIViewController) {
+                responder = current.next
+            }
+            guard let presenter = responder as? UIViewController else { return }
+            let controller = UIActivityViewController(activityItems: [ExportActivityItem(text: text)], applicationActivities: nil)
+            controller.popoverPresentationController?.sourceView = anchor
+            controller.popoverPresentationController?.sourceRect = anchor.bounds
+            presenter.present(controller, animated: true)
+        }
+    }
+}
+
+/// A plain string gives the system its text preview and Copy action.
+final class ExportActivityItem: NSObject, UIActivityItemSource {
+    private let text: String
+
+    init(text: String) { self.text = text }
+
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
+        text
+    }
+
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any? {
+        text
     }
 }
 

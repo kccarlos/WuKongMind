@@ -226,7 +226,7 @@ Nine tasks and one acceptance task. Sizes count changed lines, tests included.
 - **Read:** this page, "Causes" 1 and 6.
 - **Scope:**
   - `Models.swift`: `TopicExportPayload.hasContent(options:)` answers from `hasTitleAndURL`, `hasSummary`, `hasSource`, `hasChatHistory` and the options, without building text.
-  - `SummaryPanel.swift`: Share, Copy and Export build the text when used. `ShareLink` takes a `Transferable` that produces the text on demand; `.fileExporter` gets its document when `exporting` turns true. `exportText` is no longer read in `body`.
+  - `SummaryPanel.swift`: Share, Copy and Export build the text when tapped. Share presents the system share sheet with a plain-text activity item, which keeps the sheet's Copy action and text preview. The iPad popover is anchored to the summary's More button. `.fileExporter` gets its document when `exporting` turns true.
   - `DrawerHint.swift`: `PostCitations.stripped` compiles its expressions once (static), and the panel caches the stripped summary by summary text.
   - Tests: `hasContent` equals the old answer for every combination of options and empty parts; a unit test asserts zero `AssistantPanel.exportText` and `exportDisabled` builds per keystroke with `PerfProbe`.
 - **Size:** about 200. **Depends on:** nothing.

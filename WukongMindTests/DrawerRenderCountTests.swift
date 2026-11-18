@@ -1,5 +1,5 @@
 import SwiftUI
-import UniformTypeIdentifiers
+import UIKit
 import XCTest
 @testable import WukongMind
 
@@ -138,7 +138,7 @@ final class DrawerRenderCountTests: XCTestCase {
         )
     }
 
-    func testCopyShareAndExportUseTheExportTextUnchanged() async throws {
+    func testCopyShareAndExportUseTheExportTextUnchanged() {
         let options = [
             ExportOptions(),
             ExportOptions(excludeTitleAndURL: true),
@@ -146,17 +146,15 @@ final class DrawerRenderCountTests: XCTestCase {
             ExportOptions(excludePostAndResponses: true)
         ]
         for option in options {
-            let expected = payload.text(options: option)
-            // Copy reads `text`; Share proxies to the same `text`.
-            let item = TopicExportShareItem(payload: payload, options: option)
-            XCTAssertEqual(Data(item.text.utf8), Data(expected.utf8))
-            if #available(iOS 18.2, *) {
-                let shared = try await item.exported(as: .utf8PlainText)
-                XCTAssertEqual(shared, Data(expected.utf8), "Share handed out different bytes")
-            }
-            // Export .txt writes the document's text as UTF-8.
-            let document = PlainTextDocument(text: item.text)
-            XCTAssertEqual(Data(document.text.utf8), Data(expected.utf8))
+            // Copy uses this string directly. Share and Export .txt wrap it.
+            let text = payload.text(options: option)
+            let expected = Data(text.utf8)
+            let item = ExportActivityItem(text: text)
+            let controller = UIActivityViewController(activityItems: [item], applicationActivities: nil)
+            let shared = item.activityViewController(controller, itemForActivityType: .copyToPasteboard) as? String
+            XCTAssertEqual(shared.map { Data($0.utf8) }, expected, "Share handed out different bytes")
+            let document = PlainTextDocument(text: text)
+            XCTAssertEqual(Data(document.text.utf8), expected)
         }
         // The text itself is unchanged: one fixed case, written out in full.
         XCTAssertEqual(payload.text(options: ExportOptions(excludeChatHistory: true)), """
