@@ -61,6 +61,11 @@ struct TaskExportDocument: Codable, Equatable, Sendable {
         }
     }
 
+    struct StateTransition: Codable, Equatable, Sendable {
+        var time: Date
+        var state: AppStateDigest
+    }
+
     var format = TaskExport.format
     var version = TaskExport.version
     var app: AppInfo
@@ -74,10 +79,11 @@ struct TaskExportDocument: Codable, Equatable, Sendable {
     var toolSets: [String: [AgentToolDefinition]] = [:]
     var history: [AgentModelTurn] = []
     var turns: [Turn] = []
+    var states: [StateTransition]?
     var omittedRawRequests: [Int] = []
 
     enum CodingKeys: String, CodingKey {
-        case format, version, app, provider, model, systems, history, turns
+        case format, version, app, provider, model, systems, history, turns, states
         case exportedAt = "exported_at", stepLimit = "step_limit", truncationLimit = "truncation_limit"
         case startPageURL = "start_page_url", toolSets = "tool_sets", omittedRawRequests = "omitted_raw_requests"
     }
@@ -229,6 +235,10 @@ enum TaskExport {
             case "tool_result" where !document.turns.isEmpty:
                 if let result = JSONValue.object(fields).decoded(as: TaskExportDocument.ToolResult.self) {
                     document.turns[document.turns.count - 1].toolResults.append(result)
+                }
+            case "state":
+                if let digest = fields["state"]?.decoded(as: AppStateDigest.self) {
+                    document.states = (document.states ?? []) + [.init(time: event.time, state: digest)]
                 }
             default:
                 continue

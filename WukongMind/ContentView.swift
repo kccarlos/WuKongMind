@@ -45,6 +45,11 @@ struct ContentView: View {
         .firstRunHost(app: app)
         #if DEBUG
         .modifier(DebugWindowWidth())
+        .overlay(alignment: .topLeading) {
+            if AssistantDebug.has("-dc-state-debug"), router.drawerPhase != .shown {
+                AppStateDigestDebugView(app: app)
+            }
+        }
         #endif
         .task {
             #if DEBUG

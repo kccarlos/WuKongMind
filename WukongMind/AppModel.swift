@@ -373,6 +373,7 @@ final class AppModel: ObservableObject {
     /// Userscript importer and daily foreground update checker (`ScriptImport.swift`).
     let scriptImporter: ScriptImporter
     private var scriptImporterCancellable: AnyCancellable?
+    private var stateDigestMonitor: AppStateDigestMonitor?
     /// Per-host learned reading tool state (`SiteToolState.swift`).
     let siteToolStateStore: SiteToolStateStore
     /// The agent's on-disk audit log and task records (`AuditLog.swift`, `TaskRecord.swift`).
@@ -612,6 +613,12 @@ final class AppModel: ObservableObject {
         agentSession.onConversationReset = { [weak appBox, weak tab] in
             guard let app = appBox?.value, let tab else { return }
             app.handleTabConversationReset(tab)
+        }
+        agentSession.stateDigestProvider = { [weak appBox, weak tab] in
+            guard let app = appBox?.value, let tab else {
+                return AppStateDigest(drawer: "closed", summary: "none", run: "idle", page: "home", voice: "idle")
+            }
+            return app.stateDigest(for: tab)
         }
         return tab
     }
@@ -907,6 +914,7 @@ final class AppModel: ObservableObject {
         self.scriptImporterCancellable = resolvedImporter.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
         }
+        self.stateDigestMonitor = AppStateDigestMonitor(app: self)
         // Start on the most recently visited forum (or the first pinned one);
         // with none, the browser stays empty and the UI shows the Forums home.
         currentSiteURL = Self.startForum(in: forums)?.siteURL

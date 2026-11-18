@@ -269,6 +269,43 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
     }
 
+    func testDeveloperModeShowsStateDigestAndDebugElementUpdates() throws {
+        let app = launch(["-dc-sample", "-dc-developer-mode", "-dc-state-debug", "-dc-drawer-detent", "large"])
+        let probe = any(app, "appStateDigest")
+        let expectedOpen = isPhone
+            ? "drawer=shown summary=saved run=idle page=topic voice=idle"
+            : "drawer=split summary=saved run=idle page=topic voice=idle"
+        XCTAssertTrue(wait(timeout: 15) { probe.exists && probe.label == expectedOpen }, "got: \(probe.label)")
+        if isPhone {
+            let drawerState = any(app, "drawerState")
+            XCTAssertTrue(wait(timeout: 10) { drawerState.exists && drawerState.label == "detent=large" })
+        }
+
+        let seal = app.buttons["pageCapabilitiesSeal"].firstMatch
+        XCTAssertTrue(seal.waitForExistence(timeout: 10))
+        seal.coordinate(withNormalizedOffset: CGVector(dx: 0.2, dy: 0.5)).tap()
+        let popover = any(app, "pageScriptsPopover")
+        XCTAssertTrue(popover.waitForExistence(timeout: 8), "This page popover did not open.")
+        let devDigest = any(app, "devAppStateDigest")
+        for _ in 0..<4 where !devDigest.exists { popover.swipeUp() }
+        XCTAssertTrue(devDigest.waitForExistence(timeout: 5))
+        XCTAssertEqual(devDigest.label, expectedOpen)
+        capture("this-page-developer-state-digest")
+
+        let settingsApp = launch(["-dc-sample", "-dc-state-debug", "-dc-show-settings", "agent"])
+        XCTAssertTrue(settingsApp.navigationBars["Agent"].waitForExistence(timeout: 20))
+        let closedProbe = any(settingsApp, "appStateDigest")
+        XCTAssertTrue(wait(timeout: 10) { closedProbe.exists && closedProbe.label == "drawer=closed summary=saved run=idle page=topic voice=idle" })
+        let devSwitch = settingsApp.switches["agentDeveloperMode"]
+        XCTAssertTrue(reveal(devSwitch, in: settingsApp))
+        XCTAssertFalse(any(settingsApp, "devAppStateDigest").exists)
+        devSwitch.tap()
+        let settingsDigest = any(settingsApp, "devAppStateDigest")
+        XCTAssertTrue(reveal(settingsDigest, in: settingsApp))
+        XCTAssertEqual(settingsDigest.label, "drawer=closed summary=saved run=idle page=topic voice=idle")
+        capture("settings-agent-developer-state-digest")
+    }
+
     func testAIModelsRowsStayReadableAtAccessibilitySize() throws {
         let ax5 = UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue
         let app = launch(["-UIPreferredContentSizeCategoryName", ax5, "-dc-sample", "-dc-forums-home", "-dc-show-settings", "provider"])

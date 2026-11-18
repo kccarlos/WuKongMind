@@ -7,7 +7,7 @@ import Foundation
 /// Full tool results are not here; they live in the task record (`TaskRecord.swift`).
 struct AuditLine: Codable, Hashable, Sendable, Identifiable {
     enum Kind: String, Codable, Sendable {
-        case task, step, fetch, confirm, end, scriptRequest, scriptAI, toolTrial
+        case task, step, fetch, confirm, state, end, scriptRequest, scriptAI, toolTrial
 
         /// A line that counts as one tool call in the audit log's step lists.
         var isToolCall: Bool { self == .step || self == .scriptRequest || self == .scriptAI || self == .toolTrial }
@@ -48,8 +48,12 @@ struct AuditLine: Codable, Hashable, Sendable, Identifiable {
     var itemsFromCache: Int?
     var tokensIn: Int?
     var tokensOut: Int?
+    var state: AppStateDigest?
 
     var id: String {
+        if kind == .state {
+            return "state-\(taskID)-\(time.timeIntervalSince1970)-\(state?.description ?? "")"
+        }
         if kind == .scriptRequest {
             return "\(kind.rawValue)-\(taskID)-\(time.timeIntervalSince1970)-\(method ?? "")-\(url ?? "")-\(status ?? -1)"
         }
@@ -114,6 +118,10 @@ struct AuditLine: Codable, Hashable, Sendable, Identifiable {
             kind: .confirm, time: time, taskID: taskID, tool: tool,
             question: clip(question, maxSummaryCharacters), answer: answer
         )
+    }
+
+    static func state(taskID: String, time: Date, state: AppStateDigest) -> AuditLine {
+        AuditLine(kind: .state, time: time, taskID: taskID, state: state)
     }
 
     static func scriptRequest(
