@@ -155,17 +155,31 @@ enum PostCitations {
         }
     }
 
+    /// A bracketed group of citations, with or without enclosing emphasis.
+    private static let citationGroups: NSRegularExpression? = {
+        let group = #"(?:\[[\s,、，;；#0-9]+\]|\([\s,、，;；#0-9]+\)|（[\s,、，;；#0-9]+）|【[\s,、，;；#0-9]+】)"#
+        return try? NSRegularExpression(pattern: "([*_]{1,3})" + group + #"\1|"# + group)
+    }()
+    /// Spaces before punctuation, and runs of spaces, left where a citation was.
+    private static let spaceBeforePunctuation = try? NSRegularExpression(pattern: #"[ \t]+([.,;:!?。，；：！？])"#)
+    private static let repeatedSpaces = try? NSRegularExpression(pattern: #"[ \t]{2,}"#)
+
+    private static func replacing(_ expression: NSRegularExpression?, in text: String, with template: String) -> String {
+        guard let expression else { return text }
+        return expression.stringByReplacingMatches(
+            in: text, range: NSRange(location: 0, length: (text as NSString).length), withTemplate: template
+        )
+    }
+
     /// The text without citations (read aloud, translated).
     static func stripped(_ markdown: String) -> String {
         guard let pattern else { return markdown }
         return MarkdownCodeSpans.transform(markdown) { segment in
             // Only discard groups that held citations, including their enclosing emphasis.
-            let group = #"(?:\[[\s,、，;；#0-9]+\]|\([\s,、，;；#0-9]+\)|（[\s,、，;；#0-9]+）|【[\s,、，;；#0-9]+】)"#
-            let groups = try? NSRegularExpression(pattern: "([*_]{1,3})" + group + #"\1|"# + group)
             let nsText = segment as NSString
             let citations = pattern.matches(in: segment, range: NSRange(location: 0, length: nsText.length))
             var text = segment
-            for match in (groups?.matches(in: segment, range: NSRange(location: 0, length: nsText.length)) ?? []).reversed() {
+            for match in (citationGroups?.matches(in: segment, range: NSRange(location: 0, length: nsText.length)) ?? []).reversed() {
                 let candidate = nsText.substring(with: match.range)
                 let remaining = pattern.stringByReplacingMatches(in: candidate,
                     range: NSRange(location: 0, length: (candidate as NSString).length), withTemplate: "")
@@ -178,9 +192,7 @@ enum PostCitations {
                 in: text, range: NSRange(location: 0, length: (text as NSString).length), withTemplate: ""
             )
             // "fixes it #37 ; three" → "fixes it; three"
-            return removed
-                .replacingOccurrences(of: #"[ \t]+([.,;:!?。，；：！？])"#, with: "$1", options: .regularExpression)
-                .replacingOccurrences(of: #"[ \t]{2,}"#, with: " ", options: .regularExpression)
+            return replacing(repeatedSpaces, in: replacing(spaceBeforePunctuation, in: removed, with: "$1"), with: " ")
         }
     }
 

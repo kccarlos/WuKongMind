@@ -37,6 +37,10 @@ struct AssistantPanel: View {
     /// Opens a forum URL in the Browse workspace (the agent's step log uses it).
     let onOpenURL: ((URL) -> Void)?
     @State private var exporting = false
+    /// Built when Export .txt is tapped, dropped when the exporter closes.
+    @State private var exportDocument: PlainTextDocument?
+    /// The summary without citations (Translate, Read aloud), kept per summary text.
+    @State private var strippedSummaryCache = StrippedSummaryCache()
     @State private var exportTaskID: String?
     @State private var reportTaskID: String?
     /// "Tap a post number to jump to it", shown with the first summary.
@@ -98,8 +102,16 @@ struct AssistantPanel: View {
         app.currentExportPayload
     }
 
-    private var exportText: String {
-        PerfProbe.time("AssistantPanel.exportText") { payload.text(options: app.exportOptions) }
+    /// What Copy, Share and Export hand out. Cheap to make: the text is built only
+    /// when one of them is used, never in `body`.
+    private var exportItem: TopicExportShareItem {
+        TopicExportShareItem(payload: payload, options: app.exportOptions)
+    }
+
+    /// The share sheet's header: the thread's title, else the file name Export uses.
+    private var exportPreviewTitle: String {
+        let title = payload.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return title.isEmpty ? "wukongmind-\(exportSlug).txt" : title
     }
 
     private var exportDisabled: Bool {
@@ -227,9 +239,12 @@ struct AssistantPanel: View {
             completedStatusTask = nil
             stopDictation(keepingText: true)
         }
+        .onChange(of: exporting) { _, shown in
+            if !shown { exportDocument = nil }
+        }
         .fileExporter(
             isPresented: $exporting,
-            document: PlainTextDocument(text: exportText),
+            document: exportDocument,
             contentType: .plainText,
             defaultFilename: "wukongmind-\(exportSlug).txt"
         ) { result in
@@ -1284,7 +1299,7 @@ struct AssistantPanel: View {
 
     /// Model, post count, age, Kept; then the AI label, Translate, Read aloud, Retry, and summary `⋯`.
     private func drawerSummaryMeta(_ session: TopicSession) -> some View {
-        let strippedText = PerfProbe.time("AssistantPanel.strippedSummary") { PostCitations.stripped(session.summary) }
+        let strippedText = PerfProbe.time("AssistantPanel.strippedSummary") { strippedSummaryCache.stripped(session.summary) }
         return VStack(alignment: .leading, spacing: 6) {
             if !dynamicTypeSize.isAccessibilitySize { summaryMeta(session) }
             let layout = dynamicTypeSize.isAccessibilitySize
@@ -1337,7 +1352,7 @@ struct AssistantPanel: View {
         Menu {
             Section {
                 Button {
-                    UIPasteboard.general.string = exportText
+                    UIPasteboard.general.string = exportItem.text
                     DCHaptics.success()
                 } label: {
                     Label("Copy", systemImage: "doc.on.doc")
@@ -1345,13 +1360,14 @@ struct AssistantPanel: View {
                 .accessibilityIdentifier("copyExport")
                 .disabled(exportDisabled)
 
-                ShareLink(item: exportText) {
+                ShareLink(item: exportItem, preview: SharePreview(exportPreviewTitle)) {
                     Label("Share", systemImage: "square.and.arrow.up")
                 }
                 .accessibilityIdentifier("shareExport")
                 .disabled(exportDisabled)
 
                 Button {
+                    exportDocument = PlainTextDocument(text: exportItem.text)
                     exporting = true
                 } label: {
                     Label("Export .txt", systemImage: "arrow.down.doc")
@@ -2019,7 +2035,38 @@ struct ExpandedPanel: View {
     }
 }
 
-private struct PlainTextDocument: FileDocument {
+/// The export text as Share hands it out: built when the receiver asks for it,
+/// not when the menu renders (design-performance-and-state.md, cause 1).
+struct TopicExportShareItem: Transferable {
+    let payload: TopicExportPayload
+    let options: ExportOptions
+
+    /// The same text Copy and Export .txt use.
+    var text: String {
+        PerfProbe.time("AssistantPanel.exportText") { payload.text(options: options) }
+    }
+
+    static var transferRepresentation: some TransferRepresentation {
+        ProxyRepresentation(exporting: \.text)
+    }
+}
+
+/// The citation-free summary, recomputed only when the summary text changes.
+/// A reference so `body` can fill it without writing view state.
+final class StrippedSummaryCache {
+    private var source: String?
+    private var value = ""
+
+    func stripped(_ summary: String) -> String {
+        if summary != source {
+            source = summary
+            value = PostCitations.stripped(summary)
+        }
+        return value
+    }
+}
+
+struct PlainTextDocument: FileDocument {
     static var readableContentTypes: [UTType] { [.plainText] }
     var text: String
 
@@ -2175,7 +2222,7 @@ struct PerfProbeState: View {
                      "publish.PresentationRouter"] {
             fields.append("n:\(name)=\(probe.counts[name] ?? 0)")
         }
-        for name in ["AssistantPanel.exportText", "AssistantPanel.exportDisabled", "DrawerSummarySections.parsed", "AssistantPanel.strippedSummary",
+        for name in ["AssistantPanel.exportText", "AssistantPanel.exportDisabled", "TopicExportPayload.text", "DrawerSummarySections.parsed", "AssistantPanel.strippedSummary",
                      "AssistantPanel.summaryPlacement", "BrowserAgentRunsView.forumSources",
                      "AssistantPanel.buildHeader", "AssistantPanel.buildThread", "AssistantPanel.buildFooter"] {
             fields.append("n:\(name)=\(probe.counts[name] ?? 0)")

@@ -134,7 +134,8 @@ final class DrawerPerformanceTests: XCTestCase {
         )
     }
 
-    private func makeApp(_ fixture: Fixture) -> AppModel {
+    /// Also used by `DrawerRenderCountTests` (always on in CI).
+    static func makeApp(_ fixture: Fixture) -> AppModel {
         let store = PersistentStore(
             fileURL: FileManager.default.temporaryDirectory
                 .appendingPathComponent(UUID().uuidString, isDirectory: true)
@@ -240,7 +241,7 @@ final class DrawerPerformanceTests: XCTestCase {
         add(attachment)
     }
 
-    private func descendants<T: UIView>(of view: UIView, as type: T.Type) -> [T] {
+    static func descendants<T: UIView>(of view: UIView, as type: T.Type) -> [T] {
         var found: [T] = []
         func walk(_ view: UIView) {
             if let match = view as? T { found.append(match) }
@@ -253,7 +254,7 @@ final class DrawerPerformanceTests: XCTestCase {
     // MARK: The drawer, hosted
 
     private func measureDrawer(_ fixture: Fixture) {
-        let app = makeApp(fixture)
+        let app = Self.makeApp(fixture)
         let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
         let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
         window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
@@ -282,8 +283,8 @@ final class DrawerPerformanceTests: XCTestCase {
         recordSamples(fixture.name, "idle", (0..<6).map { _ in mainThreadMilliseconds {} })
 
         // Typing: one character at a time into the composer's own text view.
-        let editor = descendants(of: host.view, as: UITextView.self).first
-        let field = descendants(of: host.view, as: UITextField.self).first
+        let editor = Self.descendants(of: host.view, as: UITextView.self).first
+        let field = Self.descendants(of: host.view, as: UITextField.self).first
         XCTAssertTrue(editor != nil || field != nil, "The composer's text input was not found")
         var keystrokes: [Double] = []
         PerfProbe.reset()
@@ -307,7 +308,7 @@ final class DrawerPerformanceTests: XCTestCase {
         }
         for name in [
             "AssistantPanel.buildHeader", "AssistantPanel.buildThread", "AssistantPanel.buildFooter",
-            "AssistantPanel.exportText", "AssistantPanel.exportDisabled", "DrawerSummarySections.parsed", "AssistantPanel.summaryPlacement",
+            "AssistantPanel.exportText", "AssistantPanel.exportDisabled", "TopicExportPayload.text", "DrawerSummarySections.parsed", "AssistantPanel.summaryPlacement",
             "AssistantPanel.strippedSummary", "BrowserAgentRunsView.timeline", "BrowserAgentRunsView.forumSources"
         ] {
             record(fixture.name, "per_key_ms:\(name)", (typing.seconds[name] ?? 0) * 1_000 / Double(typed))
@@ -326,7 +327,7 @@ final class DrawerPerformanceTests: XCTestCase {
         record(fixture.name, "per_publish_count:BrowserAgentRunsView.runSection", Double(publishing.counts["BrowserAgentRunsView.runSection"] ?? 0) / 6)
 
         // Scrolling: 300 pt steps down the transcript.
-        let scrollViews = descendants(of: host.view, as: UIScrollView.self).filter { !($0 is UITextView) }
+        let scrollViews = Self.descendants(of: host.view, as: UIScrollView.self).filter { !($0 is UITextView) }
         if let scroll = scrollViews.max(by: { $0.contentSize.height < $1.contentSize.height }) {
             record(fixture.name, "content_height_pt", Double(scroll.contentSize.height))
             var steps: [Double] = []
@@ -383,8 +384,8 @@ final class DrawerPerformanceTests: XCTestCase {
         window.makeKeyAndVisible()
         host.view.layoutIfNeeded()
         RunLoop.current.run(until: Date().addingTimeInterval(0.4))
-        let editor = descendants(of: host.view, as: UITextView.self).first
-        let field = descendants(of: host.view, as: UITextField.self).first
+        let editor = Self.descendants(of: host.view, as: UITextView.self).first
+        let field = Self.descendants(of: host.view, as: UITextField.self).first
         XCTAssertTrue(editor != nil || field != nil, "The composer's text input was not found")
         PerfProbe.reset()
         var keystrokes: [Double] = []
