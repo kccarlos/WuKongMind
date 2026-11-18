@@ -74,31 +74,14 @@ private enum DrawerInputs {
         return nil
     }
 
-    static func activeRecords(in app: AppModel) -> (summary: WorkRecord?, pull: WorkRecord?, summaryRun: SummaryRunState, isSummaryFailed: Bool) {
-        guard let topicKey = app.currentTopic?.topicKey else { return (nil, nil, .idle, false) }
+    static func activeRecords(in app: AppModel) -> (summary: WorkRecord?, pull: WorkRecord?, summaryRun: SummaryRunState) {
+        guard let topicKey = app.currentTopic?.topicKey else { return (nil, nil, .idle) }
         var summary: WorkRecord?, pull: WorkRecord?
         for r in app.activities where r.topicKey == topicKey && !r.status.isTerminal {
             if summary == nil, r.type == .summary { summary = r }
             if pull == nil, r.type == .pull { pull = r }
         }
-        let run = SummaryRunState.resolve(app.activities, topicKey: topicKey)
-        let failed: Bool = if case .failed = run { true } else { false }
-        return (summary, pull, run, failed)
-    }
-
-    static func summaryPlacement(app: AppModel, activeSummary: WorkRecord?) -> SummaryPlacement {
-        PerfProbe.time("AssistantPanel.summaryPlacement") {
-            let topicKey = app.currentTopic?.topicKey ?? ""
-            let runs = app.browserAgent.runs
-            let cardRowID = BrowserAgentRunsView.latestThreadSummaryRowID(in: runs, topicKey: topicKey, app: app)
-            let hiddenByReset = app.drawerSummaryHiddenTopicKeys.contains(topicKey)
-            let pending = BrowserAgentRunsView.hasRunningThreadSummary(in: runs)
-            return SummaryPlacement(
-                cardRowID: cardRowID,
-                hidesTop: cardRowID != nil || hiddenByReset || (pending && activeSummary == nil),
-                hidesTopStatus: cardRowID != nil || hiddenByReset
-            )
-        }
+        return (summary, pull, SummaryRunState.resolve(app.activities, topicKey: topicKey))
     }
 
     static func providerSetupRole(app: AppModel, requested: Bool) -> ModelRole? {
@@ -137,19 +120,19 @@ private struct PanelRouteSlice: Equatable {
 }
 
 private struct HeaderAppSlice: Equatable {
-    var pageURL: URL?; var host = ""; var topicKey = ""
+    var pageURL: URL?; var host = ""; var topicKey = ""; var pageState: PageContext.State = .loading
     var hasCurrentTopic = false; var hasSummaryOnSession = false
-    var activeSummary: WorkRecord?; var activePull: WorkRecord?; var isSummaryFailed = false
-    var hiddenByReset = false
+    var activeSummary: WorkRecord?; var activePull: WorkRecord?; var summaryRun: SummaryRunState = .idle
+    var hasStreamText = false; var hiddenByReset = false
     var currentSelection = ModelSelection(provider: .anthropic, model: ""); var modelSubtitle = ""
     var favorites: [DrawerHeader.FavoriteItem] = []
     var developerMode = false; var auditLogRequest: AuditLogRequest?
 }
 
 private struct TranscriptAppSlice: Equatable {
-    var topicKey = ""; var hasCurrentTopic = false; var hasSummaryOnSession = false; var pageState: PageContext.State = .loading
-    var activeSummary: WorkRecord?; var activePull: WorkRecord?; var isSummaryFailed = false
-    var streamedSummary: String?; var savedSummary = ""; var hiddenByReset = false
+    var topicKey = ""; var hasSummaryOnSession = false; var pageState: PageContext.State = .loading
+    var activePull: WorkRecord?; var summaryRun: SummaryRunState = .idle
+    var hasStreamText = false; var hiddenByReset = false
     var hasDefaultSetup = false; var hasRequestedSetup = false
     var runsContext = AgentRunsContext(); var activeCitation: Int?
 }
@@ -157,7 +140,7 @@ private struct TranscriptAppSlice: Equatable {
 private struct SummaryAppSlice: Equatable {
     var topicKey: String?; var hasCurrentTopic = false; var pageState: PageContext.State = .loading
     var activePull: WorkRecord?; var activeSummary: WorkRecord?; var summaryRun: SummaryRunState = .idle
-    var isSummaryFailed = false; var streamedSummary: String?; var savedSummary = ""
+    var streamedSummary: String?; var savedSummary = ""
     var totalPosts: Int?; var meta: SummaryMetaModel?; var hasSummaryOnSession = false
     var hiddenByReset = false; var defaultSetup: ProviderSetupModel?; var requestedSetup: ProviderSetupModel?
     var layout: DrawerSummarySections.LayoutMode = .singleColumn; var readingLanguage = "en"
@@ -306,8 +289,9 @@ private final class DrawerAppRelay {
         let topicSession = app.currentSession
         let active = DrawerInputs.activeRecords(in: app)
         let streamed = active.summary.flatMap { app.streams.texts[$0.id] }.flatMap { $0.isEmpty ? nil : $0 }
+        let hasStreamText = !(streamed ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         let hidden = app.drawerSummaryHiddenTopicKeys.contains(topicKey)
-        let pageState = app.assistantPageState
+        let pageState: PageContext.State = topic != nil ? .topic : (app.assistantPageState == .topic ? .forumHome : app.assistantPageState)
         let sd = settingsDerived(for: app)
 
         put(statusRow, DrawerStatusRowBody.Model(app: app, podcast: app.podcast, voice: app.voice, voiceOnly: nil))
@@ -315,25 +299,25 @@ private final class DrawerAppRelay {
         put(commands, PanelCommandsSlice(topicKey: topic?.topicKey, askFocusRequest: app.askFocusRequest))
         put(route, PanelRouteSlice(route: app.panelRoute, currentTabID: app.tabs.currentTabID))
         put(header, HeaderAppSlice(
-            pageURL: pageURL, host: host, topicKey: topicKey,
+            pageURL: pageURL, host: host, topicKey: topicKey, pageState: pageState,
             hasCurrentTopic: topic != nil, hasSummaryOnSession: topicSession?.hasSummary == true,
-            activeSummary: active.summary, activePull: active.pull, isSummaryFailed: active.isSummaryFailed,
-            hiddenByReset: hidden, currentSelection: sd.sel,
+            activeSummary: active.summary, activePull: active.pull, summaryRun: active.summaryRun,
+            hasStreamText: hasStreamText, hiddenByReset: hidden, currentSelection: sd.sel,
             modelSubtitle: sd.modelSubtitle,
             favorites: sd.favorites,
             developerMode: app.settings.agentDeveloperMode, auditLogRequest: app.auditLogRequest
         ))
         put(transcript, TranscriptAppSlice(
-            topicKey: topicKey, hasCurrentTopic: topic != nil, hasSummaryOnSession: topicSession?.hasSummary == true, pageState: pageState,
-            activeSummary: active.summary, activePull: active.pull, isSummaryFailed: active.isSummaryFailed,
-            streamedSummary: streamed, savedSummary: topicSession?.summary ?? "", hiddenByReset: hidden,
+            topicKey: topicKey, hasSummaryOnSession: topicSession?.hasSummary == true, pageState: pageState,
+            activePull: active.pull, summaryRun: active.summaryRun,
+            hasStreamText: hasStreamText, hiddenByReset: hidden,
             hasDefaultSetup: sd.defaultSetupRole != nil, hasRequestedSetup: sd.requestedSetupRole != nil,
             runsContext: AgentRunsContext(app: app, tabs: app.tabs), activeCitation: app.citationJump?.number
         ))
         put(summary, SummaryAppSlice(
             topicKey: topic?.topicKey, hasCurrentTopic: topic != nil, pageState: pageState,
             activePull: active.pull, activeSummary: active.summary, summaryRun: active.summaryRun,
-            isSummaryFailed: active.isSummaryFailed, streamedSummary: streamed,
+            streamedSummary: streamed,
             savedSummary: topicSession?.summary ?? "", totalPosts: topicSession?.totalPosts,
             meta: topicSession.map(SummaryMetaModel.init), hasSummaryOnSession: topicSession?.hasSummary == true,
             hiddenByReset: hidden, defaultSetup: sd.defaultSetup, requestedSetup: sd.requestedSetup,
@@ -521,20 +505,18 @@ private struct HeaderSectionObserver: View {
         let session = app.browserAgent
         let scriptMatches = scriptMatchesCache.summary(for: s.pageURL, in: app.scriptStore)
         let foldedStep: Int? = if isKeyboardVisible && composerFocused, case .running(let step, _) = session.runState { max(1, step) } else { nil }
-        let canStartNew: Bool = {
-            if !session.runs.isEmpty || !session.messages.isEmpty || session.isRunning { return true }
-            let cardRowID = BrowserAgentRunsView.latestThreadSummaryRowID(in: session.runs, topicKey: s.topicKey, app: app)
-            let pending = BrowserAgentRunsView.hasRunningThreadSummary(in: session.runs)
-            let hidesTop = cardRowID != nil || s.hiddenByReset || (pending && s.activeSummary == nil)
-            let hidesTopStatus = cardRowID != nil || s.hiddenByReset
-            return (!hidesTop && s.hasSummaryOnSession)
-                || (!hidesTopStatus && (s.activeSummary != nil || s.isSummaryFailed))
-        }()
+        let hasConv = !session.runs.isEmpty || !session.messages.isEmpty || session.isRunning
+        let presentation = SummaryPresentation.resolve(
+            jobState: s.summaryRun, hasStreamText: s.hasStreamText, hasSavedSummary: s.hasSummaryOnSession,
+            isHiddenByNewConversation: s.hiddenByReset, isPulling: s.activePull != nil,
+            pageState: s.pageState, hasConversation: hasConv,
+            runs: session.runs, topicKey: s.topicKey, app: app
+        )
         let finished = session.runs.last.flatMap { $0.state.isRunning ? nil : $0.id.uuidString }
         DrawerHeader(
             model: .init(
                 sessionID: ObjectIdentifier(session), pageURL: s.pageURL, host: s.host, foldedStep: foldedStep,
-                scriptMatches: scriptMatches, canStartNewConversation: canStartNew,
+                scriptMatches: scriptMatches, canStartNewConversation: presentation.canStartNewConversation,
                 modelSubtitle: s.modelSubtitle,
                 currentSelection: s.currentSelection, favorites: s.favorites, hasCurrentTopic: s.hasCurrentTopic,
                 showsPullPost: s.hasCurrentTopic && !s.hasSummaryOnSession,
@@ -1179,12 +1161,6 @@ private struct EquatableFooter: View, Equatable {
 
 // MARK: Summary & Unified Transcript
 
-struct SummaryPlacement: Equatable {
-    var cardRowID: UUID?
-    var hidesTop = false
-    var hidesTopStatus = false
-}
-
 struct SummaryMetaModel: Equatable {
     let topicKey: String; let title: String; let summary: String; let hasSummary: Bool
     let model: String; let totalPosts: Int?; let summaryPostCount: Int?
@@ -1227,36 +1203,29 @@ private struct TranscriptSectionObserver: View {
         let s = slice.value
         let session = app.browserAgent
         let runs = session.runs
-        let placement: SummaryPlacement = PerfProbe.time("AssistantPanel.summaryPlacement") {
-            let cardRowID = BrowserAgentRunsView.latestThreadSummaryRowID(in: runs, topicKey: s.topicKey, app: app)
-            let pending = BrowserAgentRunsView.hasRunningThreadSummary(in: runs)
-            return SummaryPlacement(
-                cardRowID: cardRowID,
-                hidesTop: cardRowID != nil || s.hiddenByReset || (pending && s.activeSummary == nil),
-                hidesTopStatus: cardRowID != nil || s.hiddenByReset
-            )
-        }
-        let visible = s.activeSummary != nil ? (s.streamedSummary ?? "") : s.savedSummary
-        let hasSummarySection = (!placement.hidesTop && !visible.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            || s.activePull != nil || (!placement.hidesTopStatus && (s.activeSummary != nil || s.isSummaryFailed))
         let runsCount = runs.count
         let voiceCount = session.voiceTurns.count
         let toolCount = runs.reduce(0) { $0 + $1.toolCalls.count }
         let runState = session.runState
         let hasConv = runsCount > 0 || voiceCount > 0
+        let presentation = SummaryPresentation.resolve(
+            jobState: s.summaryRun, hasStreamText: s.hasStreamText, hasSavedSummary: s.hasSummaryOnSession,
+            isHiddenByNewConversation: s.hiddenByReset, isPulling: s.activePull != nil,
+            pageState: s.pageState, hasConversation: hasConv,
+            runs: runs, topicKey: s.topicKey, app: app
+        )
         let hasSetup = s.pageState != .loading && (requestedProviderSetup ? s.hasRequestedSetup : s.hasDefaultSetup)
-        let showsEmptyTopicMascot = s.pageState != .loading && s.hasCurrentTopic && !hasConv && !hasSummarySection
-        let hasLeading = hasSetup
-            || hasSummarySection || showsEmptyTopicMascot || (s.pageState == .loading && runsCount == 0)
+        let hasLeading = hasSetup || presentation.hasTopContent
+        let cardRowID = presentation.card.rowID
         let model = PerfProbe.time("AssistantPanel.buildThread") {
             var runsContext = s.runsContext
-            runsContext.cardRowID = placement.cardRowID
+            runsContext.cardRowID = cardRowID
             return ChatThread.Model(
                 topicKey: s.topicKey, hasSummaryOnSession: s.hasSummaryOnSession, hasLeadingContent: hasLeading,
                 hasConversation: hasConv, runsCount: runsCount, voiceTurnsCount: voiceCount,
                 toolCallsCount: toolCount, runState: runState,
                 runsContext: runsContext,
-                cardRowID: placement.cardRowID, activeCitation: s.activeCitation,
+                cardRowID: cardRowID, activeCitation: s.activeCitation,
                 showsCitationTip: showsCitationTip, requestedProviderSetup: requestedProviderSetup,
                 expandedToolRowIDs: expandedToolRowIDs
             )
@@ -1289,18 +1258,7 @@ private struct SummarySectionObserver: View {
     var body: some View {
         let s = slice.value
         let model: DrawerSummary.Model = if isCardFooter {
-            .init(
-                isCardFooter: true, isLazy: false, setup: nil, showsLoading: false,
-                activePull: s.activePull, activeSummary: s.activeSummary, summaryRun: s.summaryRun,
-                failedMessage: { if case .failed(let m) = s.summaryRun { return m }; return nil }(),
-                showsPlaceholder: false, showsEmptyMascot: false,
-                parsed: .empty, streamInput: nil, topicKey: s.topicKey, layout: .singleColumn,
-                meta: s.activeSummary == nil ? s.meta : nil,
-                showsCitationTip: s.activeSummary == nil && showsCitationTip,
-                hasCurrentTopic: s.hasCurrentTopic, hasSummaryOnSession: s.hasSummaryOnSession,
-                readingLanguage: s.readingLanguage, summaryBatchLimit: s.summaryBatchLimit,
-                exportOptions: s.exportOptions, exportParts: s.exportParts
-            )
+            makeCardModel(s)
         } else {
             makeTopModel(s)
         }
@@ -1312,45 +1270,71 @@ private struct SummarySectionObserver: View {
         .equatable()
     }
 
-    private func makeTopModel(_ s: SummaryAppSlice) -> DrawerSummary.Model {
-        let runs = session.runs
-        let placement: SummaryPlacement = PerfProbe.time("AssistantPanel.summaryPlacement") {
-            let topicKey = s.topicKey ?? ""
-            let cardRowID = BrowserAgentRunsView.latestThreadSummaryRowID(in: runs, topicKey: topicKey, app: app)
-            let pending = BrowserAgentRunsView.hasRunningThreadSummary(in: runs)
-            return SummaryPlacement(
-                cardRowID: cardRowID,
-                hidesTop: cardRowID != nil || s.hiddenByReset || (pending && s.activeSummary == nil),
-                hidesTopStatus: cardRowID != nil || s.hiddenByReset
-            )
+    private func resolve(_ s: SummaryAppSlice, hasStreamText: Bool) -> SummaryPresentation {
+        SummaryPresentation.resolve(
+            jobState: s.summaryRun, hasStreamText: hasStreamText, hasSavedSummary: s.hasSummaryOnSession,
+            isHiddenByNewConversation: s.hiddenByReset, isPulling: s.activePull != nil,
+            pageState: s.pageState, hasConversation: session.hasConversation,
+            runs: session.runs, topicKey: s.topicKey ?? "", app: app
+        )
+    }
+
+    private func makeCardModel(_ s: SummaryAppSlice) -> DrawerSummary.Model {
+        let presentation = resolve(s, hasStreamText: false)
+        let showsSavedChrome: Bool = switch presentation.card {
+        case .saved, .failed: true
+        case .none, .running: false
         }
-        let visible = s.activeSummary != nil ? (s.streamedSummary ?? "") : s.savedSummary
-        let streamInput = placement.hidesTop ? nil : s.streamedSummary.map { DrawerSummarySections.Input(text: $0, maximumPost: s.totalPosts) }
-        let parsed: ParsedSummary = if streamInput != nil, let renderedSummary, !renderedSummary.output.rows.isEmpty {
-            ParsedSummary(input: renderedSummary.input, sections: renderedSummary.output.sections, hasCitations: renderedSummary.output.hasCitations, rows: renderedSummary.output.rows)
-        } else if visible.isEmpty || placement.hidesTop {
-            .empty
-        } else {
-            parsedCache.parsed(for: .init(text: visible, maximumPost: s.totalPosts))
-        }
-        let showsStatus = !placement.hidesTopStatus
-        let hasSection = !parsed.rows.isEmpty || s.activePull != nil || (showsStatus && (s.activeSummary != nil || s.isSummaryFailed))
-        let setup = s.pageState != .loading ? (requestedProviderSetup ? s.requestedSetup : s.defaultSetup) : nil
-        let failedMsg: String? = if showsStatus, case .failed(let m) = s.summaryRun { m } else { nil }
-        let showsPlaceholder = parsed.rows.isEmpty && s.activeSummary != nil && !placement.hidesTop
-        let showsMascot = parsed.rows.isEmpty && !showsPlaceholder && s.activePull == nil
-            && (!s.isSummaryFailed || placement.hidesTopStatus) && (s.activeSummary == nil || placement.hidesTopStatus)
-            && s.pageState != .loading && s.hasCurrentTopic && !session.hasConversation
         return .init(
-            isCardFooter: false,
+            mode: .card(presentation.card), isLazy: false, setup: nil,
+            activePull: s.activePull, activeSummary: s.activeSummary, summaryRun: s.summaryRun,
+            parsed: .empty, streamInput: nil, topicKey: s.topicKey, layout: .singleColumn,
+            meta: showsSavedChrome ? s.meta : nil,
+            showsCitationTip: showsSavedChrome && showsCitationTip,
+            hasCurrentTopic: s.hasCurrentTopic, hasSummaryOnSession: s.hasSummaryOnSession,
+            readingLanguage: s.readingLanguage, summaryBatchLimit: s.summaryBatchLimit,
+            exportOptions: s.exportOptions, exportParts: s.exportParts
+        )
+    }
+
+    private func makeTopModel(_ s: SummaryAppSlice) -> DrawerSummary.Model {
+        let initial = resolve(s, hasStreamText: !(s.streamedSummary ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        let streamInput: DrawerSummarySections.Input? = if case .running = initial.top {
+            s.streamedSummary.map { DrawerSummarySections.Input(text: $0, maximumPost: s.totalPosts) }
+        } else {
+            nil
+        }
+        let parsed: ParsedSummary = switch initial.top {
+        case .running:
+            if streamInput != nil, let renderedSummary, !renderedSummary.output.rows.isEmpty {
+                ParsedSummary(input: renderedSummary.input, sections: renderedSummary.output.sections, hasCitations: renderedSummary.output.hasCitations, rows: renderedSummary.output.rows)
+            } else if let streamInput, !streamInput.text.isEmpty {
+                parsedCache.parsed(for: streamInput)
+            } else {
+                .empty
+            }
+        case .saved, .failed(_, true):
+            s.savedSummary.isEmpty ? .empty : parsedCache.parsed(for: .init(text: s.savedSummary, maximumPost: s.totalPosts))
+        case .none, .loading, .emptyTopic, .failed(_, false):
+            .empty
+        }
+        let top: SummaryPresentation.Top = if case .running(true) = initial.top, parsed.rows.isEmpty {
+            .running(streaming: false)
+        } else {
+            initial.top
+        }
+        let showsSavedChrome: Bool = switch top {
+        case .saved, .failed(_, true): true
+        case .none, .loading, .emptyTopic, .running, .failed(_, false): false
+        }
+        let setup = s.pageState != .loading ? (requestedProviderSetup ? s.requestedSetup : s.defaultSetup) : nil
+        return .init(
+            mode: .top(top, showsPullProgress: initial.showsPullProgress),
             isLazy: parsed.hasCitations || parsed.rows.count >= MarkdownView.lazyRowThreshold,
-            setup: setup, showsLoading: s.pageState == .loading && !hasSection && runs.isEmpty,
-            activePull: s.activePull, activeSummary: showsStatus ? s.activeSummary : nil,
-            summaryRun: s.summaryRun, failedMessage: failedMsg,
-            showsPlaceholder: showsPlaceholder, showsEmptyMascot: showsMascot,
+            setup: setup, activePull: s.activePull, activeSummary: s.activeSummary, summaryRun: s.summaryRun,
             parsed: parsed, streamInput: streamInput, topicKey: s.topicKey, layout: s.layout,
-            meta: (!parsed.rows.isEmpty && s.activeSummary == nil) ? s.meta : nil,
-            showsCitationTip: !parsed.rows.isEmpty && s.activeSummary == nil && showsCitationTip,
+            meta: showsSavedChrome ? s.meta : nil,
+            showsCitationTip: showsSavedChrome && showsCitationTip,
             hasCurrentTopic: s.hasCurrentTopic, hasSummaryOnSession: s.hasSummaryOnSession,
             readingLanguage: s.readingLanguage, summaryBatchLimit: s.summaryBatchLimit,
             exportOptions: s.exportOptions, exportParts: s.exportParts
@@ -1359,10 +1343,14 @@ private struct SummarySectionObserver: View {
 }
 
 struct DrawerSummary: View, Equatable {
+    enum Mode: Equatable {
+        case top(SummaryPresentation.Top, showsPullProgress: Bool)
+        case card(SummaryPresentation.Card)
+    }
+
     struct Model: Equatable {
-        let isCardFooter: Bool; let isLazy: Bool; let setup: ProviderSetupModel?; let showsLoading: Bool
+        let mode: Mode; let isLazy: Bool; let setup: ProviderSetupModel?
         let activePull: WorkRecord?; let activeSummary: WorkRecord?; let summaryRun: SummaryRunState
-        let failedMessage: String?; let showsPlaceholder: Bool; let showsEmptyMascot: Bool
         let parsed: ParsedSummary; let streamInput: DrawerSummarySections.Input?; let topicKey: String?
         let layout: DrawerSummarySections.LayoutMode
         let meta: SummaryMetaModel?; let showsCitationTip: Bool
@@ -1396,135 +1384,164 @@ struct DrawerSummary: View, Equatable {
         }
     }
 
-    private var hasVisibleTop: Bool {
-        model.setup != nil || model.showsLoading || model.activePull != nil
-            || model.activeSummary != nil || model.failedMessage != nil
-            || !model.parsed.rows.isEmpty || model.showsPlaceholder || model.showsEmptyMascot
-    }
-
     var body: some View {
         let _ = PerfProbe.hit("DrawerSummary.body")
-        if model.isCardFooter {
-            summaryCardFooterBody
-        } else if hasVisibleTop || model.streamInput != nil {
-            Group {
-                if model.isLazy {
-                    LazyVStack(alignment: .leading, spacing: 8) { topBody }.transition(.identity)
-                } else {
-                    VStack(alignment: .leading, spacing: 8) { topBody }.transition(.identity)
+        switch model.mode {
+        case .card(let card):
+            summaryCardFooterBody(card)
+        case .top(let top, let showsPullProgress):
+            if model.setup != nil || showsPullProgress || top != .none || model.streamInput != nil {
+                Group {
+                    if model.isLazy {
+                        LazyVStack(alignment: .leading, spacing: 8) { topBody(top, showsPullProgress: showsPullProgress) }.transition(.identity)
+                    } else {
+                        VStack(alignment: .leading, spacing: 8) { topBody(top, showsPullProgress: showsPullProgress) }.transition(.identity)
+                    }
                 }
-            }
-            .animation(DCMotion.respecting(reduceMotion), value: model.activeSummary?.id)
-            .animation(DCMotion.respecting(reduceMotion), value: model.activePull?.id)
-            .animation(DCMotion.respecting(reduceMotion), value: model.summaryRun)
-            .animation(.easeOut(duration: 0.25), value: model.parsed.sections)
-            .task(id: model.streamInput) {
-                guard let streamInput = model.streamInput else { renderedSummary = nil; return }
-                if let updated = await ThrottledParse.refreshed(from: renderedSummary, to: streamInput, parse: DrawerSummarySections.parsed) {
-                    renderedSummary = updated
+                .animation(DCMotion.respecting(reduceMotion), value: model.activeSummary?.id)
+                .animation(DCMotion.respecting(reduceMotion), value: model.activePull?.id)
+                .animation(DCMotion.respecting(reduceMotion), value: model.summaryRun)
+                .animation(.easeOut(duration: 0.25), value: model.parsed.sections)
+                .task(id: model.streamInput) {
+                    guard let streamInput = model.streamInput else { renderedSummary = nil; return }
+                    if let updated = await ThrottledParse.refreshed(from: renderedSummary, to: streamInput, parse: DrawerSummarySections.parsed) {
+                        renderedSummary = updated
+                    }
                 }
+                .onChange(of: model.topicKey) { renderedSummary = nil }
+                .onDisappear { if renderedSummary != nil { renderedSummary = nil } }
             }
-            .onChange(of: model.topicKey) { renderedSummary = nil }
-            .onDisappear { if renderedSummary != nil { renderedSummary = nil } }
         }
     }
 
     @ViewBuilder
-    private var topBody: some View {
+    private func topBody(_ top: SummaryPresentation.Top, showsPullProgress: Bool) -> some View {
         if let setup = model.setup {
             ProviderSetupCardBody(model: setup, app: app)
                 .equatable()
                 .padding(.top, 4)
         }
-        if model.showsLoading {
+        if case .loading = top {
             AssistantLoadingState()
                 .padding(.top, 4)
         }
-        if let record = model.activePull {
+        if showsPullProgress, let record = model.activePull {
             WorkProgressCard(record: record, progress: app.progress) { app.cancel(record: record) }
                 .padding(.top, 4)
                 .transition(.opacity)
         }
-        summaryStatusCards
-        if model.parsed.rows.isEmpty {
-            if model.showsPlaceholder {
+        switch top {
+        case .none, .loading:
+            EmptyView()
+        case .emptyTopic:
+            DCMascotView(pose: .wave, size: 128)
+                .padding(.vertical, 32)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("Agent ready", comment: "Empty Agent panel accessibility label"))
+                .accessibilityIdentifier("agentEmptyState")
+                .frame(maxWidth: .infinity)
+        case .running(let streaming):
+            summaryProgressCard
+            if streaming {
+                summarySectionsBlock
+            } else {
                 SummaryPlaceholder()
                     .padding(.top, 4)
                     .transition(.asymmetric(insertion: .opacity, removal: .identity))
-            } else if model.showsEmptyMascot {
-                DCMascotView(pose: .wave, size: 128)
-                    .padding(.vertical, 32)
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(Text("Agent ready", comment: "Empty Agent panel accessibility label"))
-                    .accessibilityIdentifier("agentEmptyState")
-                    .frame(maxWidth: .infinity)
             }
-        } else {
-            if let meta = model.meta {
-                drawerSummaryMeta(meta)
-                    .padding(.top, 4)
-                    .transition(.asymmetric(insertion: .opacity, removal: .identity))
-                if meta.hasStaleSummary {
-                    DrawerStaleBanner(totalPosts: meta.totalPosts, summaryPostCount: meta.summaryPostCount) { app.startSummary() }
-                        .disabled(model.activeSummary != nil || model.activePull != nil)
-                        .padding(.top, 4)
-                        .transition(.asymmetric(insertion: .opacity, removal: .identity))
-                }
-            }
-            // The summary's rows stay direct children of the lazy transcript (a long
-            // summary lays out only what is on screen), so only the jade header is a card piece.
-            DCResultHeader(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text")
+        case .saved:
+            topSavedSummary
+        case .failed(let message, let showsSaved):
+            failedSummaryCard(message)
+            if showsSaved { topSavedSummary }
+        }
+    }
+
+    @ViewBuilder
+    private var summarySectionsBlock: some View {
+        // The summary's rows stay direct children of the lazy transcript (a long
+        // summary lays out only what is on screen), so only the jade header is a card piece.
+        DCResultHeader(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text")
+            .padding(.top, 4)
+        DrawerSummarySections(rows: model.parsed.rows, layout: model.layout)
+            .accessibilityIdentifier("summaryContent")
+            .transition(.identity)
+    }
+
+    @ViewBuilder
+    private var topSavedSummary: some View {
+        if let meta = model.meta {
+            drawerSummaryMeta(meta)
                 .padding(.top, 4)
-            DrawerSummarySections(rows: model.parsed.rows, layout: model.layout)
-                .accessibilityIdentifier("summaryContent")
-                .transition(.identity)
-            if model.activeSummary == nil {
-                if model.showsCitationTip {
-                    citationTip
-                        .padding(.top, 4)
-                        .transition(.asymmetric(insertion: .opacity, removal: .identity))
-                }
-                summarizeControl(prominent: false)
+                .transition(.asymmetric(insertion: .opacity, removal: .identity))
+            if meta.hasStaleSummary {
+                DrawerStaleBanner(totalPosts: meta.totalPosts, summaryPostCount: meta.summaryPostCount) { app.startSummary() }
+                    .disabled(model.activeSummary != nil || model.activePull != nil)
                     .padding(.top, 4)
                     .transition(.asymmetric(insertion: .opacity, removal: .identity))
             }
         }
+        summarySectionsBlock
+        if model.showsCitationTip {
+            citationTip
+                .padding(.top, 4)
+                .transition(.asymmetric(insertion: .opacity, removal: .identity))
+        }
+        summarizeControl(prominent: false)
+            .padding(.top, 4)
+            .transition(.asymmetric(insertion: .opacity, removal: .identity))
     }
 
-    /// The summary run's progress and failure, at the top or under the summary card.
     @ViewBuilder
-    private var summaryStatusCards: some View {
+    private var summaryProgressCard: some View {
         if let record = model.activeSummary {
             WorkProgressCard(record: record, progress: app.progress) { app.cancel(record: record) }
                 .padding(.top, 4)
                 .transition(.opacity)
         }
-        if let message = model.failedMessage {
-            SummaryFailedCard(message: message, canRetry: model.activePull == nil) {
-                app.startSummary(regenerate: true)
-            }
-            .padding(.top, 4)
-            .transition(.opacity)
+    }
+
+    private func failedSummaryCard(_ message: String) -> some View {
+        SummaryFailedCard(message: message, canRetry: model.activePull == nil) {
+            app.startSummary(regenerate: true)
         }
+        .padding(.top, 4)
+        .transition(.opacity)
     }
 
     /// Under the conversation's summary card for the open thread: what the top
     /// section had around its summary (WUKO-134), so there is one summary on screen.
     @ViewBuilder
-    private var summaryCardFooterBody: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            summaryStatusCards
-            if let meta = model.meta {
-                drawerSummaryMeta(meta)
-                if meta.hasStaleSummary {
-                    DrawerStaleBanner(totalPosts: meta.totalPosts, summaryPostCount: meta.summaryPostCount) { app.startSummary() }
-                        .disabled(model.activePull != nil)
-                }
-                if model.showsCitationTip { citationTip }
-                summarizeControl(prominent: false)
+    private func summaryCardFooterBody(_ card: SummaryPresentation.Card) -> some View {
+        switch card {
+        case .none:
+            EmptyView()
+        case .running:
+            VStack(alignment: .leading, spacing: 8) { summaryProgressCard }
+                .transition(.opacity)
+        case .saved:
+            VStack(alignment: .leading, spacing: 8) { cardSavedSummaryChrome }
+                .transition(.opacity)
+        case .failed(_, let message):
+            VStack(alignment: .leading, spacing: 8) {
+                failedSummaryCard(message)
+                cardSavedSummaryChrome
             }
+            .transition(.opacity)
         }
-        .transition(.opacity)
+    }
+
+    @ViewBuilder
+    private var cardSavedSummaryChrome: some View {
+        if let meta = model.meta {
+            drawerSummaryMeta(meta)
+            if meta.hasStaleSummary {
+                DrawerStaleBanner(totalPosts: meta.totalPosts, summaryPostCount: meta.summaryPostCount) { app.startSummary() }
+                    .disabled(model.activePull != nil)
+            }
+            if model.showsCitationTip { citationTip }
+            summarizeControl(prominent: false)
+        }
     }
 
     /// Meta chips: model, post count, age, Kept.
