@@ -224,6 +224,85 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(app.providerTestState(for: .openAI, model: "gpt-new"), .idle)
     }
 
+    func testProviderCheckKeepsMissingAgentModelSeparateFromProviderWideCheck() async {
+        let harness = makeHarness()
+        let app = harness.app
+        harness.ai.gated = false
+        setKey(app, "key-1", for: .anthropic)
+        app.selectModel(ModelSelection(provider: .anthropic, model: ""), for: .role(.browserAgent))
+        let selection = app.selection(for: .browserAgent)
+
+        let connected = await app.testAndSaveProvider(.anthropic)
+        XCTAssertEqual(connected, .success)
+        XCTAssertEqual(app.providerTestState(for: .anthropic), .success)
+        XCTAssertEqual(app.providerTestState(for: .anthropic, model: selection.model), .idle)
+        XCTAssertFalse(app.isBrowserAgentReady)
+
+        let missingModel = await app.testAndSaveProvider(scope: .role(.browserAgent))
+        XCTAssertEqual(missingModel, .failure("Choose a model for the agent first."))
+        XCTAssertEqual(app.providerTestState(for: .anthropic, model: selection.model), missingModel)
+        XCTAssertEqual(app.providerTestState(for: .anthropic), .idle)
+    }
+
+    func testProviderCheckKeepsNewerResultWhenOlderTestFinishesLast() async throws {
+        let harness = makeHarness()
+        let app = harness.app
+        select(app, .openAI, model: "gpt-test", key: "key-1")
+
+        let older = Task { await app.testAndSaveProvider() }
+        try await waitUntil { harness.ai.waiting == 1 }
+        let newer = Task { await app.testAndSaveProvider() }
+        try await waitUntil { harness.ai.waiting == 2 }
+
+        harness.ai.releaseLast()
+        let newerState = await newer.value
+        XCTAssertEqual(newerState, .success)
+        harness.ai.releaseFirst()
+        let olderState = await older.value
+        XCTAssertEqual(olderState, .idle)
+        XCTAssertEqual(app.providerTestState(for: .openAI, model: "gpt-test"), .success)
+    }
+
+    func testProviderCheckKeepsProviderWideTestRunningWhenRoleTestFinishes() async throws {
+        let harness = makeHarness()
+        let app = harness.app
+        select(app, .openAI, model: "gpt-test", key: "key-1")
+
+        let role = Task { await app.testAndSaveProvider() }
+        try await waitUntil { harness.ai.waiting == 1 }
+        let provider = Task { await app.testAndSaveProvider(.openAI) }
+        try await waitUntil { harness.ai.waiting == 2 }
+
+        harness.ai.releaseFirst()
+        let roleState = await role.value
+        XCTAssertEqual(roleState, .idle)
+        XCTAssertEqual(app.providerTestState(for: .openAI), .testing)
+        harness.ai.releaseAll()
+        let providerState = await provider.value
+        XCTAssertEqual(providerState, .success)
+    }
+
+    func testProviderCheckClearsOldProviderWhenRoleSwitchesDuringTest() async throws {
+        let harness = makeHarness()
+        let app = harness.app
+        select(app, .openAI, model: "gpt-test", key: "key-1")
+
+        let older = Task { await app.testAndSaveProvider() }
+        try await waitUntil { harness.ai.waiting == 1 }
+        select(app, .anthropic, model: "claude-test", key: "key-2")
+        let newer = Task { await app.testAndSaveProvider() }
+        try await waitUntil { harness.ai.waiting == 2 }
+
+        harness.ai.releaseFirst()
+        let olderState = await older.value
+        XCTAssertEqual(olderState, .testing)
+        XCTAssertEqual(app.providerTestState(for: .openAI, model: "gpt-test"), .idle)
+        XCTAssertEqual(app.providerTestState(for: .anthropic, model: "claude-test"), .testing)
+        harness.ai.releaseAll()
+        let newerState = await newer.value
+        XCTAssertEqual(newerState, .success)
+    }
+
     // MARK: 3. Model discovery
 
     func testModelsDiscoveredForAnOldProviderAreIgnored() async throws {
@@ -2214,6 +2293,10 @@ final class StateAIStub: AIService, @unchecked Sendable {
     @MainActor func releaseFirst() {
         guard !waiters.isEmpty else { return }
         waiters.removeFirst().resume()
+    }
+
+    @MainActor func releaseLast() {
+        waiters.popLast()?.resume()
     }
 
     @MainActor func releaseAll() {

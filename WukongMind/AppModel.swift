@@ -2947,7 +2947,9 @@ final class AppModel: ObservableObject {
 
     func isTestingConnection(for role: ModelRole) -> Bool {
         guard let active = activeRoleConnectionTests[role] else { return false }
-        return active.selection == settings.model(for: role) && isTestingConnection(for: active.provider)
+        return active.selection == settings.model(for: role)
+            && active.generation == activeConnectionTestGeneration[active.provider]
+            && isTestingConnection(for: active.provider)
     }
 
     private func runConnectionTest(
@@ -2966,7 +2968,8 @@ final class AppModel: ObservableObject {
             if activeConnectionTestGeneration[provider] == generation {
                 activeConnectionTestGeneration[provider] = nil
             }
-            if let (targetRole, _) = role, activeRoleConnectionTests[targetRole]?.generation == generation {
+            if let (targetRole, _) = role, let active = activeRoleConnectionTests[targetRole],
+               active.provider == provider, active.generation == generation {
                 activeRoleConnectionTests[targetRole] = nil
             }
         }

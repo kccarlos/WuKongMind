@@ -685,10 +685,13 @@ struct ProviderCheck: Equatable {
         case failed(String)
     }
 
+    let id = UUID()
     var phase: Phase
     var apiKey: String
     var baseURL: String
-    var model: String
+    /// Nil is a provider-wide check. An empty model belongs to a role
+    /// that still needs a selection.
+    var model: String?
 
     /// The same result as the inline status line shows it.
     var testState: ProviderTestState {
@@ -701,18 +704,18 @@ struct ProviderCheck: Equatable {
     }
 
     /// Whether this result was for `configuration` and `model`.
-    func applies(to configuration: ProviderConfiguration, model: String) -> Bool {
+    func applies(to configuration: ProviderConfiguration, model: String?) -> Bool {
         apiKey == configuration.apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
             && baseURL == configuration.baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
-            && self.model == model.trimmingCharacters(in: .whitespacesAndNewlines)
+            && self.model == model?.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 }
 
 extension AppModel {
     /// What the settings, setup sheet and first-run views show for `provider`
-    /// with `model` ("" for a provider-wide test). A result for another key,
+    /// with `model` (nil for a provider-wide test). A result for another key,
     /// address or model is dropped: it reads as untested.
-    func providerTestState(for provider: AIProvider, model: String = "") -> ProviderTestState {
+    func providerTestState(for provider: AIProvider, model: String? = nil) -> ProviderTestState {
         guard let check = providerChecks[provider],
               check.applies(to: settings.configuration(for: provider), model: model)
         else { return .idle }
@@ -720,21 +723,20 @@ extension AppModel {
     }
 
     /// Notes `phase` for `provider`, tested with `configuration` and `model`.
+    @discardableResult
     func recordProviderCheck(
         _ phase: ProviderCheck.Phase,
         provider: AIProvider,
         configuration: ProviderConfiguration,
-        model: String
-    ) {
-        providerChecks[provider] = ProviderCheck(
+        model: String?
+    ) -> UUID {
+        let check = ProviderCheck(
             phase: phase,
             apiKey: configuration.apiKey.trimmingCharacters(in: .whitespacesAndNewlines),
             baseURL: configuration.baseURL.trimmingCharacters(in: .whitespacesAndNewlines),
-            model: model.trimmingCharacters(in: .whitespacesAndNewlines)
+            model: model?.trimmingCharacters(in: .whitespacesAndNewlines)
         )
-    }
-
-    func clearProviderCheck(for provider: AIProvider) {
-        providerChecks[provider] = nil
+        providerChecks[provider] = check
+        return check.id
     }
 }

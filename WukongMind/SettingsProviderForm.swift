@@ -430,7 +430,7 @@ extension AppModel {
         configuration.baseURL = configuration.baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
         if configuration.baseURL.isEmpty { configuration.baseURL = provider.defaultBaseURL }
         if configuration != settings.configuration(for: provider) { setConfiguration(configuration, for: provider) }
-        let model = role.map { selection(for: $0).model } ?? ""
+        let model = role.map { selection(for: $0).model }
         if provider.requiresAPIKey && configuration.apiKey.isEmpty {
             let failure = String(localized: "Paste your \(provider.displayName) API key first.", comment: "Test & save without a key; the argument is the provider name")
             recordProviderCheck(.failed(failure), provider: provider, configuration: configuration, model: model)
@@ -438,22 +438,22 @@ extension AppModel {
         }
         saveSettings()
         flushPendingSaves()
-        recordProviderCheck(.testing, provider: provider, configuration: configuration, model: model)
+        let checkID = recordProviderCheck(.testing, provider: provider, configuration: configuration, model: model)
         let result = if let role { await testConnection(for: role) } else { await testConnection(provider: provider) }
+        // A suspended test only owns the status it originally recorded.
+        let ownsCheck = providerChecks[provider]?.id == checkID
         switch result {
-        case .success:
+        case .success where ownsCheck:
             DCHaptics.success()
-            recordProviderCheck(.ok, provider: provider, configuration: configuration, model: model)
+            providerChecks[provider]?.phase = .ok
             return .success
-        case .failure(let message):
+        case .failure(let message) where ownsCheck:
             DCHaptics.warning()
-            recordProviderCheck(.failed(message), provider: provider, configuration: configuration, model: model)
+            providerChecks[provider]?.phase = .failed(message)
             return .failure(message)
-        case .stale:
-            // The result is dropped. Keep `.testing` if a newer test is
-            // actively running (it records its own result); otherwise untested.
+        default:
+            if ownsCheck { providerChecks[provider] = nil }
             let stillTesting = role.map { isTestingConnection(for: $0) } ?? isTestingConnection(for: provider)
-            if !stillTesting { clearProviderCheck(for: provider) }
             return stillTesting ? .testing : .idle
         }
     }

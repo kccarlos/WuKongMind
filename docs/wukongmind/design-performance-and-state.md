@@ -270,6 +270,7 @@ Nine tasks and one acceptance task. Sizes count changed lines, tests included.
 - **Size:** about 400. **Depends on:** WUKO-138.
 - **Done when:** the three settings views read one state; `ModelSwitchingTests`, `StateTransitionTests` and `SettingsNavigationUITests` pass unchanged; saved settings from 1.5.0 load unchanged (test with a recorded file).
 - **Result (WUKO-144):** `ModelChoice` (`.none`, or `.model(provider, non-blank model)`) is the typed view of `ModelSelection`; the saved form stays `{provider, model}`, so 1.5.0 settings load and save unchanged (`testSettingsRecordedByVersion150LoadUnchanged`). `AppModel.providerChecks` keeps one `ProviderCheck` (untested, testing, ok, failed, plus the key, address and model it tested) per provider; `providerTestState(for:model:)` reads it and drops a result whose key, address or model no longer matches. The model role page, the provider page, the setup form (sheet and first run) and Onboarding read that one state; their `@State`/`@Binding` copies and `settingsStatus` (never shown) are gone. No performance numbers: this change is not on the drawer's path.
+- Provider-wide checks have no model target. A role without a model can show its own validation message and still waits for a model in first-run setup. A check can update or clear its result only while it owns that provider's pending status.
 
 ### 10. Acceptance
 - **Scope:** run both measurement suites and one Instruments trace on the iPhone 13 on the owner's thread; update the tables on this page with before and after; list any target missed and why.
