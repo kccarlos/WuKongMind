@@ -57,34 +57,23 @@ extension AppModel {
         )
     }
 
-    /// Reads the summary word outside `SummaryPanel.swift`; design task 4 (`SummaryPresentation`) replaces it.
     func summaryDigestWord(for tab: BrowserTab) -> String {
-        let topicKey = (tab === tabs.currentTab ? currentTopic : tab.browser.pageContext.topic)?.topicKey ?? ""
+        let topic = tab === tabs.currentTab ? currentTopic : tab.browser.pageContext.topic
+        let topicKey = topic?.topicKey ?? ""
         let runs = tab.agentSession.runs
-        if runs.contains(where: { $0.toolCalls.contains { $0.toolName == "summarize_topic" && $0.isRunning } }) {
-            return "running"
-        }
-        if topicKey.isEmpty {
-            let hasCard = runs.contains { $0.toolCalls.contains { $0.toolName == "summarize_topic" && !$0.isRunning && !$0.isError } }
-            return hasCard ? "card" : "none"
-        }
-        let pulling = activities.contains { $0.type == .pull && $0.topicKey == topicKey && !$0.status.isTerminal }
-        let jobState = SummaryRunState.resolve(activities, topicKey: topicKey)
-        if pulling || jobState == .running { return "running" }
-        let hasThreadCard = runs.contains { run in
-            run.toolCalls.contains { row in
-                guard row.toolName == "summarize_topic", !row.isRunning, !row.isError,
-                      case .thread(let thread) = row.shape else { return false }
-                return session(forThreadShape: thread)?.topicKey == topicKey
-            }
-        }
-        if hasThreadCard { return "card" }
-        if drawerSummaryHiddenTopicKeys.contains(topicKey) { return "hidden" }
-        if case .failed = jobState { return "failed" }
-        if let session = sessions[topicKey], session.hasSummary {
-            return session.hasStaleSummary ? "stale" : "saved"
-        }
-        return "none"
+        if BrowserAgentRunsView.hasRunningThreadSummary(in: runs) { return "running" }
+        let topicSession = topicKey.isEmpty ? nil : sessions[topicKey]
+        let pulling = !topicKey.isEmpty && activities.contains { $0.type == .pull && $0.topicKey == topicKey && !$0.status.isTerminal }
+        let jobState = topicKey.isEmpty ? .idle : SummaryRunState.resolve(activities, topicKey: topicKey)
+        let cardRow = SummaryPresentation.cardRow(in: runs, topicKey: topicKey, app: self)
+        let pageState: PageContext.State = topic != nil ? .topic : (tab.browser.pageContext.state == .topic ? .forumHome : tab.browser.pageContext.state)
+        let presentation = SummaryPresentation.resolve(SummaryPresentation.Inputs(
+            jobState: jobState, hasSavedSummary: topicSession?.hasSummary == true, cardRow: cardRow,
+            isHiddenByNewConversation: !topicKey.isEmpty && drawerSummaryHiddenTopicKeys.contains(topicKey),
+            isPulling: pulling, pageState: pageState, hasConversation: tab.agentSession.hasConversation
+        ))
+        let hasTextCard = topicKey.isEmpty && runs.contains { $0.toolCalls.contains { $0.toolName == "summarize_topic" && !$0.isRunning && !$0.isError } }
+        return presentation.digestWord(cardRow: cardRow, isStale: topicSession?.hasStaleSummary == true, hasTextSummaryCard: hasTextCard)
     }
 
     func pageDigestWord(for tab: BrowserTab) -> String {
