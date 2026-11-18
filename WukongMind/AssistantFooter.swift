@@ -138,7 +138,8 @@ struct AssistantFooter: View {
             updateCompletedStatusVisibility(for: newState, isInitialAppear: !sameSession)
         }
         .onAppear {
-            draft = drafts.parked
+            // A kept question already taken on mount (onChange initial) wins over the parked draft.
+            if draft.isEmpty { draft = drafts.parked }
             drafts.parked = ""
             drafts.handler = { perform($0) }
             observedAgentID = ObjectIdentifier(session)
