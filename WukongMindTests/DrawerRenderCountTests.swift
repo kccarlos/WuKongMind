@@ -57,8 +57,11 @@ final class DrawerRenderCountTests: XCTestCase {
         }
         let typing = PerfProbe.snapshot
         XCTAssertGreaterThan(typing.counts["AssistantComposer.body"] ?? 0, 0, "Typing did not reach the composer")
-        XCTAssertGreaterThan(typing.counts["AssistantPanel.body"] ?? 0, 0, "Typing did not re-render the panel")
-        XCTAssertGreaterThan(typing.counts["AssistantPanel.exportDisabled"] ?? 0, 0, "The summary menu was not re-evaluated")
+        // The composer owns its draft (task 2): a keystroke renders the footer and nothing around it.
+        XCTAssertGreaterThan(typing.counts["AssistantFooter.body"] ?? 0, 0, "Typing did not reach the footer")
+        for name in ["AssistantPanel.body", "ChatThread.body", "BrowserAgentRunsView.body", "BrowserAgentRunsView.runSection", "AssistantPanel.exportDisabled"] {
+            XCTAssertEqual(typing.counts[name] ?? 0, 0, "\(name) was evaluated while typing")
+        }
         XCTAssertEqual(typing.counts["AssistantPanel.exportText"] ?? 0, 0, "A keystroke built the export text")
         XCTAssertEqual(typing.counts["TopicExportPayload.text"] ?? 0, 0, "A keystroke built the export text")
     }

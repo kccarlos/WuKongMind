@@ -47,23 +47,10 @@ struct AssistantPanel: View {
     /// "Tap a post number to jump to it", shown with the first summary.
     @State private var showsCitationTip = false
     @State private var renderedSummary: ThrottledParse<DrawerSummarySections.Input, (sections: Int, hasCitations: Bool, rows: [MarkdownRow])>?
-    @State private var agentDraft = ""
-    /// The composer's microphone: speech to text in `agentDraft`, nothing else.
-    @State private var dictation = DictationController(backend: DictationBackends.make())
-    /// What was typed when dictation began; the transcript is added after it.
-    /// Nil when no dictation owns the draft.
-    @State private var dictationBase: String?
-    /// Dictation paused the podcast and owes it a resume.
-    @State private var dictationSuspendedPodcast = false
-    /// The draft as dictation last wrote it; typing makes it differ.
-    @State private var dictatedDraft = ""
-    @FocusState private var composerFocused: Bool
-    @Environment(\.scenePhase) private var scenePhase
     @State private var isKeyboardVisible = false
+    /// Reported by the footer, which owns the focus: the header folds the status line while it holds.
+    @State private var composerFocused = false
     @State private var showsPageCapabilitiesPopover = false
-    @State private var showsCompletedStatus = false
-    @State private var completedStatusTask: Task<Void, Never>?
-    @State private var observedAgentID: ObjectIdentifier?
     @State private var expandedToolRowIDs: Set<UUID> = []
     @State private var requestedProviderSetup = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -122,11 +109,6 @@ struct AssistantPanel: View {
         return nil
     }
 
-    private var isBrowserAgentCompleted: Bool {
-        if case .completed = browserAgent.runState { return true }
-        return false
-    }
-
     private var runningStepNumber: Int? {
         if case .running(let step, _) = browserAgent.runState {
             return max(1, step)
@@ -136,11 +118,6 @@ struct AssistantPanel: View {
 
     private var foldsStatusIntoHeader: Bool {
         isKeyboardVisible && composerFocused && runningStepNumber != nil
-    }
-
-    private var showsFooterStatusLine: Bool {
-        (browserAgent.isRunning && !(isKeyboardVisible && composerFocused))
-            || (showsCompletedStatus && isBrowserAgentCompleted)
     }
 
     var body: some View {
@@ -159,7 +136,7 @@ struct AssistantPanel: View {
                     PerfProbe.time("AssistantPanel.buildThread") { drawerThread }
                         .id(ObjectIdentifier(browserAgent))
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    PerfProbe.time("AssistantPanel.buildFooter") { assistantFooter }
+                    PerfProbe.time("AssistantPanel.buildFooter") { footer }
                 }
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("agentPanel")
@@ -203,22 +180,12 @@ struct AssistantPanel: View {
             renderedSummary = nil
         }
         .onChange(of: app.askFocusRequest) {
-            composerFocused = true
+            app.drafts.perform(.focus)
         }
-        .onChange(of: ObjectIdentifier(browserAgent)) { _, newID in
-            observedAgentID = newID
+        .onChange(of: ObjectIdentifier(browserAgent)) {
             showsPageCapabilitiesPopover = false
-            updateCompletedStatusVisibility(for: browserAgent.runState, isInitialAppear: true)
-        }
-        .onChange(of: browserAgent.runState) { _, newState in
-            let currentID = ObjectIdentifier(browserAgent)
-            let sameSession = observedAgentID == currentID
-            observedAgentID = currentID
-            updateCompletedStatusVisibility(for: newState, isInitialAppear: !sameSession)
         }
         .onAppear {
-            observedAgentID = ObjectIdentifier(browserAgent)
-            updateCompletedStatusVisibility(for: browserAgent.runState, isInitialAppear: true)
             #if DEBUG
             if AssistantDebug.has("-dc-scripts-open-popover") {
                 Task { @MainActor in
@@ -227,11 +194,6 @@ struct AssistantPanel: View {
                 }
             }
             #endif
-        }
-        .onDisappear {
-            completedStatusTask?.cancel()
-            completedStatusTask = nil
-            stopDictation(keepingText: true)
         }
         .onChange(of: exporting) { _, shown in
             if !shown { exportDocument = nil }
@@ -244,66 +206,6 @@ struct AssistantPanel: View {
         ) { result in
             if case .failure(let error) = result {
                 app.presentError(error.localizedDescription)
-            }
-        }
-    }
-
-    private static var completedStatusHoldDuration: Double {
-        #if DEBUG
-        if AssistantDebug.has("-dc-browser-agent-live-prompt")
-            || AssistantDebug.value("-dc-browser-agent-live-prompt") != nil
-            || AssistantDebug.has("-dc-browser-agent-live-key")
-            || AssistantDebug.value("-dc-browser-agent-live-key") != nil
-            || AssistantDebug.has("-dc-browser-agent-demo")
-            || AssistantDebug.value("-dc-browser-agent-demo") != nil {
-            return 8.0
-        }
-        #endif
-        return 3.5
-    }
-
-    private func updateCompletedStatusVisibility(for state: BrowserAgentRunState, isInitialAppear: Bool) {
-        completedStatusTask?.cancel()
-        completedStatusTask = nil
-        guard case .completed = state else {
-            showsCompletedStatus = false
-            return
-        }
-        let holdDuration = Self.completedStatusHoldDuration
-        if isInitialAppear {
-            var remaining = holdDuration
-            var shouldShow = false
-            #if DEBUG
-            if AssistantDebug.has("-dc-browser-agent-demo") || AssistantDebug.value("-dc-browser-agent-demo") != nil {
-                shouldShow = true
-            }
-            #endif
-            if !shouldShow, let lastRun = browserAgent.runs.last {
-                let endedAt = lastRun.startedAt.addingTimeInterval(lastRun.duration ?? 0)
-                let elapsed = Date().timeIntervalSince(endedAt)
-                if elapsed >= 0, elapsed < holdDuration {
-                    shouldShow = true
-                    remaining = max(0.5, holdDuration - elapsed)
-                }
-            }
-            guard shouldShow else {
-                showsCompletedStatus = false
-                return
-            }
-            showsCompletedStatus = true
-            scheduleCompletedStatusDismiss(after: remaining)
-        } else {
-            showsCompletedStatus = true
-            scheduleCompletedStatusDismiss(after: holdDuration)
-        }
-    }
-
-    private func scheduleCompletedStatusDismiss(after seconds: Double) {
-        completedStatusTask = Task { @MainActor in
-            try? await Task.sleep(for: .seconds(seconds))
-            guard !Task.isCancelled else { return }
-            withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
-                showsCompletedStatus = false
             }
         }
     }
@@ -761,139 +663,17 @@ struct AssistantPanel: View {
 
     // MARK: Sticky Footer (StatusLine + 2b Suggestion Slot + Composer)
 
-    private var assistantFooter: some View {
-        VStack(alignment: .leading, spacing: DCTheme.space2) {
-            if showsFooterStatusLine {
-                AgentStatusLine(
-                    session: browserAgent,
-                    developerMode: app.settings.agentDeveloperMode
-                )
-                .transition(.opacity)
-            }
-
-            if showsSuggestionRow {
-                SuggestionRowView(suggestions: visibleSuggestions, onTap: runSuggestion)
-                    .transition(.opacity)
-            }
-
-            if let failure = dictation.failure {
-                DictationNotice(failure: failure) { dictation.dismissFailure() }
-                    .transition(.opacity)
-            }
-
-            AssistantComposer(
-                draft: $agentDraft,
-                focused: $composerFocused,
-                isRunning: browserAgent.isRunning,
-                onSend: sendAgentPrompt,
-                onStop: { browserAgent.stop() },
-                isListening: dictation.isBusy,
-                onDictate: startDictation,
-                onStopDictation: { dictation.toggle(voiceBusy: false) },
-                canTalk: app.voiceProvider != nil,
-                isTalking: voice.isActive,
-                onTalk: { voice.toggle() }
-            )
-
-            if let runLimitNotice = browserAgent.runLimitNotice {
-                Text(runLimitNotice)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.horizontal, 4)
-                    .transition(.opacity)
-                    .accessibilityIdentifier("agentRunLimitNotice")
-            }
-        }
-        .onChange(of: dictation.transcript) { applyDictation() }
-        .onChange(of: dictation.phase) { _, phase in
-            if phase == .idle {
-                // Last words, then the draft is the user's again.
-                applyDictation()
-                dictationBase = nil
-                resumePodcastAfterDictation()
-            }
-        }
-        // A voice session takes the microphone: dictation steps aside.
-        .onChange(of: app.voice.isActive) { _, active in
-            if active { stopDictation(keepingText: false) }
-        }
-        .onChange(of: agentDraft) { _, draft in
-            // Typing while listening: the typed text wins, listening ends.
-            if dictation.isListening, draft != dictatedDraft {
-                dictationBase = nil
-                dictation.toggle(voiceBusy: false)
-            }
-        }
-        .onChange(of: scenePhase) { _, phase in
-            if phase != .active { stopDictation(keepingText: true) }
-        }
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: dictation.failure)
-        // A question kept for later (Shortcuts, examples) lands in the composer.
-        .onChange(of: app.drafts.goal, initial: true) { _, goal in
-            guard !goal.isEmpty else { return }
-            agentDraft = goal
-            app.drafts.goal = ""
-        }
-        .padding(.horizontal, 14)
-        .padding(.top, 8)
-        .padding(.bottom, 10 + (isKeyboardVisible ? 0 : bottomInset))
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: showsFooterStatusLine)
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: showsSuggestionRow)
-        .animation(DCMotion.respecting(reduceMotion, DCMotion.quick), value: browserAgent.runLimitNotice)
-        .dcStickyFooter()
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("askBox")
-    }
-
-    private func startDictation() {
-        guard !dictation.isBusy else { return }
-        composerFocused = false
-        dictationBase = agentDraft
-        dictatedDraft = agentDraft
-        // Dictation takes the shared audio session: an episode pauses, like
-        // for a voice session, and goes on afterwards.
-        let podcast = app.podcast.player
-        if !app.voice.isActive, !podcast.isSuspendedForVoice {
-            podcast.suspendForVoice()
-            dictationSuspendedPodcast = true
-        }
-        dictation.toggle(voiceBusy: app.voice.isActive)
-        // Nothing started (voice busy): no draft to own.
-        if dictation.phase == .idle {
-            dictationBase = nil
-            resumePodcastAfterDictation()
-        }
-    }
-
-    private func resumePodcastAfterDictation() {
-        guard dictationSuspendedPodcast else { return }
-        dictationSuspendedPodcast = false
-        let player = app.podcast.player
-        Task { await player.resumeAfterVoice() }
-    }
-
-    private func applyDictation() {
-        guard let base = dictationBase, !dictation.transcript.isEmpty else { return }
-        let text = DictationText.joined(base: base, transcript: dictation.transcript)
-        dictatedDraft = text
-        agentDraft = text
-    }
-
-    /// Ends dictation. Words already heard stay in the box when asked to.
-    private func stopDictation(keepingText: Bool) {
-        guard dictation.isBusy || dictation.phase == .finishing else { return }
-        if keepingText {
-            if dictation.isListening {
-                dictation.toggle(voiceBusy: false)
-            } else {
-                dictation.cancel()
-                dictationBase = nil
-            }
-        } else {
-            dictationBase = nil
-            dictation.cancel()
-        }
+    private var footer: some View {
+        AssistantFooter(
+            app: app,
+            drafts: app.drafts,
+            voice: voice,
+            suggestions: visibleSuggestions,
+            isKeyboardVisible: isKeyboardVisible,
+            onFocusChange: { composerFocused = $0 },
+            onSuggestion: runSuggestion,
+            onSend: submitPrompt
+        )
     }
 
     // MARK: Suggestions
@@ -928,16 +708,10 @@ struct AssistantPanel: View {
         )
     }
 
-    /// While the box is empty and the Agent is idle; it hides once you type.
-    private var showsSuggestionRow: Bool {
-        agentDraft.isEmpty && !browserAgent.isRunning && !visibleSuggestions.isEmpty
-    }
-
     private func runSuggestion(_ suggestion: PageSuggestion) {
         switch PageSuggestions.route(for: suggestion) {
         case .fill:
-            agentDraft = suggestion.composerText
-            composerFocused = true
+            app.drafts.perform(.fill(suggestion.composerText))
         case .agent where app.firstRun != nil:
             // Step 3 sends once the page has loaded.
             Task { @MainActor in
@@ -946,7 +720,7 @@ struct AssistantPanel: View {
                     try? await Task.sleep(for: .milliseconds(200))
                     waited += 1
                 }
-                sendAgentPrompt(suggestion.text)
+                app.drafts.perform(.send(suggestion.text, attachedBlock: nil))
             }
         case .agent where suggestion == .pageBroken:
             Task { @MainActor in
@@ -957,10 +731,10 @@ struct AssistantPanel: View {
                     activeScripts: active,
                     errorsByScriptID: scriptStore.scriptErrors
                 )
-                sendAgentPrompt(suggestion.text, attachedBlock: block)
+                app.drafts.perform(.send(suggestion.text, attachedBlock: block))
             }
         case .agent:
-            sendAgentPrompt(suggestion.text)
+            app.drafts.perform(.send(suggestion.text, attachedBlock: nil))
         }
     }
 
@@ -971,10 +745,10 @@ struct AssistantPanel: View {
 
     private func sendFixScriptRequest(for script: UserScript) {
         guard !browserAgent.isRunning else { return }
-        stopDictation(keepingText: false)
+        app.drafts.perform(.stopDictation)
         guard app.isProviderReady(for: .browserAgent) else {
             requestedProviderSetup = true
-            composerFocused = false
+            app.drafts.perform(.blur)
             return
         }
         requestedProviderSetup = false
@@ -983,35 +757,23 @@ struct AssistantPanel: View {
             return
         }
         DCHaptics.tap()
-        agentDraft = ""
-        composerFocused = false
+        app.drafts.perform(.clearAndBlur)
         app.startScriptRepair(script)
     }
 
-    private func sendAgentPrompt() {
-        sendAgentPrompt(agentDraft)
-    }
-
-    /// Sends to the Agent: typed, suggested and completed "Search this forum…"
-    /// all take this one path, with no hand-off context.
-    private func sendAgentPrompt(_ text: String, attachedBlock: String? = nil) {
-        let prompt = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !prompt.isEmpty, !browserAgent.isRunning else { return }
-        // Sending takes what is in the box; the microphone closes.
-        stopDictation(keepingText: false)
+    /// The footer's send, after it has closed the microphone: provider and run-limit
+    /// checks, then the run. The footer empties the box when this says `.sent`.
+    private func submitPrompt(_ prompt: String, attachedBlock: String?) -> ComposerSendOutcome {
         guard app.isProviderReady(for: .browserAgent) else {
             requestedProviderSetup = true
-            composerFocused = false
-            return
+            return .needsProvider
         }
         requestedProviderSetup = false
         guard browserAgent.checkRunStartGate() else {
             announceRunLimitNoticeIfPresent()
-            return
+            return .blocked
         }
         DCHaptics.tap()
-        agentDraft = ""
-        composerFocused = false
         if app.router.drawerPhase == .shown,
            app.router.drawerDetent == .large,
            !dynamicTypeSize.isAccessibilitySize {
@@ -1020,6 +782,7 @@ struct AssistantPanel: View {
             }
         }
         browserAgent.send(prompt, context: nil, attachedBlock: attachedBlock)
+        return .sent
     }
 
     // MARK: Summary & Unified Transcript
