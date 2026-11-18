@@ -318,7 +318,7 @@ final class DrawerPerformanceTests: XCTestCase {
         PerfProbe.reset()
         var publishes: [Double] = []
         for index in 0..<6 {
-            publishes.append(mainThreadMilliseconds { app.settingsStatus = "tick \(index)" })
+            publishes.append(mainThreadMilliseconds { app.discoveredModels = [.openAI: [DiscoveredModel(id: "tick \(index)")]] })
         }
         let publishing = PerfProbe.snapshot
         recordSamples(fixture.name, "unrelated_publish", publishes)

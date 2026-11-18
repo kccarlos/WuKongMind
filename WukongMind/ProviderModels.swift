@@ -181,20 +181,40 @@ enum ModelRole: String, Codable, CaseIterable, Identifiable, Sendable {
     var id: String { rawValue }
 }
 
-/// A provider and one of its models: what a role runs with.
+/// What a role runs with: nothing yet, or a provider with a model. A provider
+/// without a model is `.none`, never an empty model string.
+enum ModelChoice: Hashable, Sendable {
+    case none
+    case model(AIProvider, String)
+
+    /// Trims `model`; an empty one is `.none`.
+    init(provider: AIProvider, model: String) {
+        let trimmed = model.trimmingCharacters(in: .whitespacesAndNewlines)
+        self = trimmed.isEmpty ? .none : .model(provider, trimmed)
+    }
+
+    var provider: AIProvider? {
+        if case .model(let provider, _) = self { provider } else { nil }
+    }
+
+    var model: String? {
+        if case .model(_, let model) = self { model } else { nil }
+    }
+}
+
+/// A provider and one of its models: what a role runs with. The saved form is
+/// `{provider, model}` (unchanged since 1.5.0); `choice` is the typed view of it.
 struct ModelSelection: Codable, Hashable, Sendable {
     var provider: AIProvider
     var model: String
 
-    var supportsToolCalling: Bool {
-        provider.supportsToolCalling
-            && !model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
+    /// `.none` while the model is empty or blank.
+    var choice: ModelChoice { ModelChoice(provider: provider, model: model) }
+    var hasModel: Bool { choice != .none }
 
-    var supportsImageInput: Bool {
-        provider.supportsImageInput
-            && !model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-    }
+    var supportsToolCalling: Bool { provider.supportsToolCalling && hasModel }
+
+    var supportsImageInput: Bool { provider.supportsImageInput && hasModel }
 }
 
 struct FavoriteModel: Codable, Hashable, Identifiable, Sendable {

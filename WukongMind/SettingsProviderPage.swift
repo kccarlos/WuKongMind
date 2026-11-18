@@ -433,7 +433,7 @@ private struct FavoriteModelRow: View {
 struct ModelRolePage: View {
     @ObservedObject var app: AppModel
     let role: ModelRole
-    @State private var testState: ProviderTestState = .idle
+    private var testState: ProviderTestState { app.providerTestState(for: provider, model: selection.model) }
 
     private var scope: ModelScope { app.uiScope(for: role) }
     private var selection: ModelSelection { app.selection(for: role) }
@@ -508,7 +508,6 @@ struct ModelRolePage: View {
         .animation(DCMotion.quick, value: testState)
         .navigationTitle(role.title)
         .navigationBarTitleDisplayMode(.inline)
-        .onChange(of: selection) { testState = .idle }
         .onDisappear { app.saveSettings() }
     }
 
@@ -624,10 +623,7 @@ struct ModelRolePage: View {
 
             Section {
                 Button {
-                    Task {
-                        testState = .testing
-                        testState = await app.testAndSaveProvider(scope: scope)
-                    }
+                    Task { await app.testAndSaveProvider(scope: scope) }
                 } label: {
                     HStack {
                         Label("Test & save", systemImage: "bolt.horizontal.circle")
@@ -737,7 +733,7 @@ struct ProviderSettingsPage: View {
     @ObservedObject var app: AppModel
     let provider: AIProvider
     var scrollToModels = false
-    @State private var testState: ProviderTestState = .idle
+    private var testState: ProviderTestState { app.providerTestState(for: provider) }
     @State private var didScheduleInitialScroll = false
     @State private var awaitsInitialModelScroll = false
 
@@ -837,10 +833,7 @@ struct ProviderSettingsPage: View {
 
                     Section {
                         Button {
-                            Task {
-                                testState = .testing
-                                testState = await app.testAndSaveProvider(provider)
-                            }
+                            Task { await app.testAndSaveProvider(provider) }
                         } label: {
                             HStack(spacing: DCTheme.spacingS) {
                                 if testState == .testing { ProgressView().tint(DCTheme.onGold) }
@@ -892,7 +885,6 @@ struct ProviderSettingsPage: View {
         .animation(DCMotion.quick, value: testState)
         .navigationTitle(provider.displayName)
         .navigationBarTitleDisplayMode(.inline)
-        .onChange(of: bindings.configuration) { testState = .idle }
         .onDisappear { app.saveSettings() }
     }
 }

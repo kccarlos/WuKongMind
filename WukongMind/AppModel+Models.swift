@@ -101,7 +101,7 @@ extension AppSettings {
     var configuredBrowserAgentModel: ModelSelection? {
         guard let selection = browserAgentModel,
               selection.provider.supportsToolCalling,
-              !selection.model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+              selection.hasModel
         else {
             return nil
         }
@@ -512,7 +512,7 @@ extension AppSettings {
            configuration(for: selection.provider).apiKey.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return .needsKey
         }
-        if selection.model.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return .needsModel }
+        if !selection.hasModel { return .needsModel }
         return .ready
     }
 
@@ -528,8 +528,7 @@ extension AppSettings {
         guard selection.provider.supportsToolCalling else {
             return .needsModel
         }
-        let trimmedModel = selection.model.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedModel.isEmpty else {
+        guard selection.hasModel else {
             return .needsModel
         }
         if selection.provider.requiresAPIKey,
@@ -670,5 +669,72 @@ extension AppModel {
         case .addKey, .chooseModel: router.item = .providerSetup(role)
         case .aiModels: requestedSettingsPage = .provider
         }
+    }
+}
+
+// MARK: - Provider check
+
+/// The last "Test & save" of one provider: what it found, and the key,
+/// address and model it was run with. A result only counts while all three
+/// still match (`AppModel.providerTestState(for:model:)`).
+struct ProviderCheck: Equatable {
+    enum Phase: Equatable {
+        case untested
+        case testing
+        case ok
+        case failed(String)
+    }
+
+    var phase: Phase
+    var apiKey: String
+    var baseURL: String
+    var model: String
+
+    /// The same result as the inline status line shows it.
+    var testState: ProviderTestState {
+        switch phase {
+        case .untested: .idle
+        case .testing: .testing
+        case .ok: .success
+        case .failed(let message): .failure(message)
+        }
+    }
+
+    /// Whether this result was for `configuration` and `model`.
+    func applies(to configuration: ProviderConfiguration, model: String) -> Bool {
+        apiKey == configuration.apiKey.trimmingCharacters(in: .whitespacesAndNewlines)
+            && baseURL == configuration.baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+            && self.model == model.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}
+
+extension AppModel {
+    /// What the settings, setup sheet and first-run views show for `provider`
+    /// with `model` ("" for a provider-wide test). A result for another key,
+    /// address or model is dropped: it reads as untested.
+    func providerTestState(for provider: AIProvider, model: String = "") -> ProviderTestState {
+        guard let check = providerChecks[provider],
+              check.applies(to: settings.configuration(for: provider), model: model)
+        else { return .idle }
+        return check.testState
+    }
+
+    /// Notes `phase` for `provider`, tested with `configuration` and `model`.
+    func recordProviderCheck(
+        _ phase: ProviderCheck.Phase,
+        provider: AIProvider,
+        configuration: ProviderConfiguration,
+        model: String
+    ) {
+        providerChecks[provider] = ProviderCheck(
+            phase: phase,
+            apiKey: configuration.apiKey.trimmingCharacters(in: .whitespacesAndNewlines),
+            baseURL: configuration.baseURL.trimmingCharacters(in: .whitespacesAndNewlines),
+            model: model.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
+    }
+
+    func clearProviderCheck(for provider: AIProvider) {
+        providerChecks[provider] = nil
     }
 }

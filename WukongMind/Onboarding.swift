@@ -29,7 +29,6 @@ struct OnboardingFlow: View {
     @Environment(\.verticalSizeClass) private var verticalSizeClass
 
     @State private var step: OnboardingStep
-    @State private var providerState: ProviderTestState = .idle
     @State private var address = ""
     @State private var selectedSiteURL: String? = OnboardingSitePage.suggestions.first?.siteURL
     @State private var keyboardVisible = false
@@ -72,6 +71,11 @@ struct OnboardingFlow: View {
 
     private var usesCompactChrome: Bool {
         verticalSizeClass == .compact || dynamicTypeSize.isAccessibilitySize
+    }
+
+    private var providerState: ProviderTestState {
+        let selection = app.selection(for: .browserAgent)
+        return app.providerTestState(for: selection.provider, model: selection.model)
     }
 
     private var bottomBar: some View {
@@ -159,7 +163,7 @@ struct OnboardingFlow: View {
     private func page(for step: OnboardingStep) -> some View {
         switch step {
         case .model:
-            OnboardingModelPage(app: app, state: $providerState)
+            OnboardingModelPage(app: app)
         case .site:
             OnboardingSitePage(address: $address, selectedSiteURL: $selectedSiteURL, onSubmit: openSite)
         case .tryAgent:
@@ -179,10 +183,8 @@ struct OnboardingFlow: View {
             return
         }
         guard providerState != .testing else { return }
-        providerState = .testing
         Task {
             let result = await app.testAndSaveProvider(scope: .role(.browserAgent))
-            providerState = result
             if result == .success { finishModel() }
         }
     }
@@ -224,7 +226,6 @@ struct OnboardingFlow: View {
     private func finish(then action: @escaping () -> Void) {
         app.saveSettings()
         app.completeOnboarding()
-        app.settingsStatus = ""
         app.firstRun = .prompts
         onFinish()
         action()
