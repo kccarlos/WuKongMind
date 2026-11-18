@@ -1823,9 +1823,7 @@ private struct ChatThread: View, Equatable {
     let onExpand: (ExpandedPanelRoute) -> Void
     let onOpenURL: (URL) -> Void
     @State private var atBottom = true
-    @State private var userScrolling = false
-    @State private var scrollTask: Task<Void, Never>?
-    @State private var metricsBox = ScrollMetricsBox()
+    @State private var follow = TranscriptFollowPlumbing()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -1894,81 +1892,21 @@ private struct ChatThread: View, Equatable {
                             .padding(.top, 12)
                             .padding(.bottom, 14)
                             .id("chatBottom")
-                            .onAppear { if #unavailable(iOS 18.0) { atBottom = true } }
-                            .onDisappear { if #unavailable(iOS 18.0) { atBottom = false } }
+                            .onAppear { if #unavailable(iOS 18.0) { apply(.bottomAnchorChanged(isVisible: true), proxy: proxy) } }
+                            .onDisappear { if #unavailable(iOS 18.0) { apply(.bottomAnchorChanged(isVisible: false), proxy: proxy) } }
                     }
                     .frame(maxWidth: 860, alignment: .leading)
                     .frame(maxWidth: .infinity)
                     .onGeometryChange(for: Int.self) { Int($0.size.height.rounded()) } action: { newHeight in
-                        let grew = metricsBox.contentHeight > 0 && newHeight > metricsBox.contentHeight
-                        metricsBox.contentHeight = newHeight
-                        if grew, atBottom, !userScrolling, !metricsBox.scrolledUp, session.isRunning {
-                            scrollUnanimated(proxy: proxy)
-                            DispatchQueue.main.async {
-                                if atBottom, !userScrolling, !metricsBox.scrolledUp { scrollUnanimated(proxy: proxy) }
-                            }
-                        }
+                        apply(.contentGrew(height: newHeight, isRunning: session.isRunning), proxy: proxy)
                     }
                     .animation(DCMotion.respecting(reduceMotion), value: model.runsCount)
                 }
                 .defaultScrollAnchor(.top)
-                .modifier(ChatScrollTracker(onPhaseChange: { interacting, decelerating in
-                    userScrolling = interacting || (decelerating && scrollTask == nil)
-                    if interacting {
-                        metricsBox.pinningBottom = false
-                        scrollTask?.cancel()
-                        scrollTask = nil
-                        #if DEBUG
-                        ChatScrollProbe.reset()
-                        #endif
-                    }
-                }, onStateChange: { old, new in
-                    let movedUp = scrollTask == nil
-                        && old.contentHeight > 0
-                        && new.viewportHeight == old.viewportHeight
-                        && new.contentHeight >= old.contentHeight
-                        && new.offsetTenths < old.offsetTenths - 3
-                    if movedUp {
-                        metricsBox.scrolledUp = true
-                    } else if new.offsetTenths > old.offsetTenths + 3 && !metricsBox.pinningBottom {
-                        metricsBox.scrolledUp = false
-                    }
-                    metricsBox.nearBottom = new.nearBottom
-                    if new.nearBottom {
-                        metricsBox.pinningBottom = false
-                        if !atBottom,
-                           scrollTask != nil
-                            || new.offsetTenths > old.offsetTenths + 3
-                            || new.viewportHeight > old.viewportHeight
-                            || new.contentHeight <= new.viewportHeight
-                        {
-                            atBottom = true
-                            metricsBox.scrolledUp = false
-                        }
-                    } else if atBottom, scrollTask == nil {
-                        let viewportShrank = !userScrolling
-                            && old.viewportHeight > 0
-                            && new.viewportHeight < old.viewportHeight
-                            && new.offsetTenths >= old.offsetTenths - 3
-                        let streamGrew = !userScrolling
-                            && !metricsBox.scrolledUp
-                            && old.contentHeight > 0
-                            && session.isRunning
-                            && new.contentHeight > old.contentHeight
-                            && new.offsetTenths >= old.offsetTenths - 3
-                        if viewportShrank || streamGrew {
-                            metricsBox.pinningBottom = true
-                            metricsBox.scrolledUp = false
-                            scrollUnanimated(proxy: proxy)
-                            DispatchQueue.main.async {
-                                metricsBox.pinningBottom = false
-                                if atBottom, !userScrolling, !metricsBox.scrolledUp { scrollUnanimated(proxy: proxy) }
-                            }
-                        } else if !metricsBox.pinningBottom {
-                            atBottom = false
-                        }
-                    }
-                }))
+                .modifier(ChatScrollTracker(
+                    onEvent: { apply($0, proxy: proxy) },
+                    isRunning: { session.isRunning }
+                ))
                 .scrollDismissesKeyboard(.interactively)
                 .accessibilityIdentifier("agentScroll")
                 .onAppear {
@@ -1989,28 +1927,17 @@ private struct ChatThread: View, Equatable {
                     showsCitationTip = true
                 }
                 .onChange(of: model.topicKey) {
-                    guard session.runs.isEmpty else { return }
-                    scrollTask?.cancel()
-                    scrollTask = nil
-                    #if DEBUG
-                    ChatScrollProbe.reset()
-                    #endif
-                    userScrolling = false
-                    metricsBox.contentHeight = 0
-                    metricsBox.scrolledUp = false
-                    atBottom = false
-                    scrollUnanimated("chatTop", anchor: .top, proxy: proxy)
-                    Task { @MainActor in
-                        if atBottom != metricsBox.nearBottom { atBottom = metricsBox.nearBottom }
-                    }
+                    apply(.topicChanged(hasRuns: !session.runs.isEmpty), proxy: proxy)
                 }
                 .onChange(of: model.runsCount) { oldCount, newCount in
                     if newCount > oldCount {
-                        jumpToBottom(proxy: proxy)
+                        apply(.runAdded, proxy: proxy)
                     }
                 }
                 .onChange(of: model.voiceTurnsCount) { oldCount, newCount in
-                    if newCount > oldCount, !userScrolling, !metricsBox.scrolledUp { scrollUnanimated(proxy: proxy) }
+                    if newCount > oldCount {
+                        apply(.voiceTurnAdded, proxy: proxy)
+                    }
                 }
                 .onChange(of: model.toolCallsCount) { _, _ in
                     #if DEBUG
@@ -2020,22 +1947,18 @@ private struct ChatThread: View, Equatable {
                         expandedToolRowIDs.insert(first.id)
                     }
                     #endif
-                    if atBottom, !userScrolling, !metricsBox.scrolledUp { scrollUnanimated(proxy: proxy) }
+                    apply(.runStepChanged, proxy: proxy)
                 }
                 .onChange(of: model.runState) { _, newState in
-                    if atBottom, !userScrolling, !metricsBox.scrolledUp { scrollUnanimated(proxy: proxy) }
+                    apply(.runStepChanged, proxy: proxy)
                     announceAgentStateIfNeeded(newState)
                 }
                 .onDisappear {
-                    scrollTask?.cancel()
-                    scrollTask = nil
-                    #if DEBUG
-                    ChatScrollProbe.reset()
-                    #endif
+                    apply(.disappeared, proxy: proxy)
                 }
                 if !atBottom, hasConversationEntries {
                     Button {
-                        jumpToBottom(proxy: proxy, explicit: true)
+                        apply(.jumpTapped, proxy: proxy)
                     } label: {
                         Image(systemName: "arrow.down")
                             .font(.system(size: 16, weight: .bold))
@@ -2085,33 +2008,58 @@ private struct ChatThread: View, Equatable {
         withTransaction(transaction) { proxy.scrollTo(id, anchor: anchor) }
     }
 
-    private func jumpToBottom(proxy: ScrollViewProxy, explicit: Bool = false) {
-        scrollTask?.cancel()
-        if explicit {
-            userScrolling = false
-            // An immediate scroll interrupts any momentum before the settling animation.
-            scrollUnanimated(proxy: proxy)
+    private func apply(_ event: TranscriptFollow.Event, proxy: ScrollViewProxy) {
+        let (next, effect) = follow.state.transition(event)
+        follow.state = next
+        if !next.isSettling, follow.scrollTask != nil {
+            follow.cancelSettle()
         }
-        metricsBox.scrolledUp = false
-        atBottom = true
-        #if DEBUG
-        let probeToken = UUID()
-        ChatScrollProbe.begin(probeToken)
-        #endif
-        scrollTask = Task { @MainActor in
-            #if DEBUG
-            defer { ChatScrollProbe.end(probeToken) }
-            #endif
-            await settleScroll(reduceMotion: reduceMotion, shouldStop: { userScrolling }) {
-                proxy.scrollTo("chatBottom", anchor: .bottom)
+        if atBottom != next.isAtBottom {
+            atBottom = next.isAtBottom
+        }
+        switch effect {
+        case .none:
+            break
+        case .scrollNow(let anchor, let afterTurn):
+            scrollUnanimated(anchor.scrollID, anchor: anchor == .top ? .top : .bottom, proxy: proxy)
+            switch afterTurn {
+            case nil:
+                break
+            case .recheckBottom(let clearPinning)?:
+                DispatchQueue.main.async {
+                    apply(.followUp(.recheckBottom(clearPinning: clearPinning)), proxy: proxy)
+                }
+            case .syncTopicTop?:
+                Task { @MainActor in
+                    apply(.followUp(.syncTopicTop), proxy: proxy)
+                }
             }
-            for _ in 0..<24 where !metricsBox.nearBottom && !userScrolling && !Task.isCancelled {
+        case .settleToBottom(let interruptMomentum):
+            follow.cancelSettle()
+            if interruptMomentum {
+                // An immediate scroll interrupts any momentum before the settling animation.
                 scrollUnanimated(proxy: proxy)
-                try? await Task.sleep(for: .milliseconds(16))
             }
-            guard !Task.isCancelled else { return }
-            scrollTask = nil
-            if atBottom != metricsBox.nearBottom { atBottom = metricsBox.nearBottom }
+            let token = UUID()
+            follow.settleID = token
+            #if DEBUG
+            ChatScrollProbe.begin(token)
+            #endif
+            follow.scrollTask = Task { @MainActor in
+                #if DEBUG
+                defer { ChatScrollProbe.end(token) }
+                #endif
+                await settleScroll(reduceMotion: reduceMotion, shouldStop: { follow.state.isUserScrolling }) {
+                    proxy.scrollTo("chatBottom", anchor: .bottom)
+                }
+                for _ in 0..<24 where !follow.state.nearBottom && !follow.state.isUserScrolling && !Task.isCancelled {
+                    scrollUnanimated(proxy: proxy)
+                    try? await Task.sleep(for: .milliseconds(16))
+                }
+                guard !Task.isCancelled, follow.settleID == token else { return }
+                follow.scrollTask = nil
+                apply(.settleFinished, proxy: proxy)
+            }
         }
     }
 }
@@ -2634,41 +2582,42 @@ enum ChatScrollProbe {
 }
 #endif
 
-private final class ScrollMetricsBox {
-    var nearBottom = true
-    var contentHeight = 0
-    var pinningBottom = false
-    var scrolledUp = false
+@MainActor
+private final class TranscriptFollowPlumbing {
+    var state = TranscriptFollow()
+    var scrollTask: Task<Void, Never>?
+    var settleID = UUID()
+
+    func cancelSettle() {
+        scrollTask?.cancel()
+        scrollTask = nil
+        #if DEBUG
+        ChatScrollProbe.reset()
+        #endif
+    }
 }
 
-private struct ScrollState: Equatable {
-    var nearBottom: Bool
-    var contentHeight: Int
-    var viewportHeight: Int
-    var offsetTenths: Int
-}
-
-/// Tracks scroll phase and whether the bottom of `ChatThread` is in view
+/// Forwards scroll phase and geometry events from `ChatThread` into `TranscriptFollow`
 /// (iOS 18+; older systems use the bottom anchor's appear/disappear instead).
 private struct ChatScrollTracker: ViewModifier {
-    let onPhaseChange: (Bool, Bool) -> Void
-    let onStateChange: (ScrollState, ScrollState) -> Void
+    let onEvent: (TranscriptFollow.Event) -> Void
+    let isRunning: () -> Bool
 
     func body(content: Content) -> some View {
         if #available(iOS 18.0, *) {
             content
                 .onScrollPhaseChange { _, phase in
-                    onPhaseChange(phase == .interacting, phase == .decelerating)
+                    onEvent(phase == .interacting ? .dragBegan : .dragEnded(decelerating: phase == .decelerating))
                 }
-                .onScrollGeometryChange(for: ScrollState.self) { geometry in
-                    ScrollState(
-                        nearBottom: geometry.contentSize.height - geometry.visibleRect.maxY < 48,
-                        contentHeight: Int(geometry.contentSize.height.rounded()),
-                        viewportHeight: Int(geometry.visibleRect.height.rounded()),
-                        offsetTenths: Int((geometry.contentOffset.y * 10).rounded())
+                .onScrollGeometryChange(for: TranscriptFollow.Geometry.self) { geometry in
+                    TranscriptFollow.Geometry(
+                        contentHeight: geometry.contentSize.height,
+                        viewportHeight: geometry.visibleRect.height,
+                        visibleMaxY: geometry.visibleRect.maxY,
+                        offsetY: geometry.contentOffset.y
                     )
                 } action: { old, new in
-                    onStateChange(old, new)
+                    onEvent(.geometryChanged(old: old, new: new, isRunning: isRunning()))
                 }
         } else {
             content
