@@ -294,6 +294,9 @@ struct SettingsAgentPage: View {
                     }
                 }
                 .accessibilityIdentifier("saveFailedTasksForFeedback")
+                if app.settings.agentDeveloperMode {
+                    AppStateDigestView(app: app)
+                }
             } header: {
                 Text("Developer", comment: "Settings › Agent section header for developer diagnostics")
             }
@@ -495,6 +498,24 @@ struct AuditTaskPage: View {
                 } footer: {
                     if let model = task.model {
                         Text(verbatim: [model, task.provider].compactMap { $0 }.joined(separator: " · "))
+                    }
+                }
+                if app.settings.agentDeveloperMode {
+                    let states = task.lines.filter { $0.kind == .state }
+                    if !states.isEmpty {
+                        Section {
+                            ForEach(states) { entry in
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(verbatim: entry.state?.description ?? "")
+                                        .font(DCType.code)
+                                    Text(verbatim: entry.time.formatted(date: .omitted, time: .standard))
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                }
+                            }
+                        } header: {
+                            Text(verbatim: "State")
+                        }
                     }
                 }
             }

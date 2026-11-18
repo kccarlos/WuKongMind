@@ -486,6 +486,7 @@ runs are labeled as Apple Intelligence runs and it is the selected provider.
 | `-dc-browse-find <query>` | Then searches the forum and shows the result cards. |
 | `-dc-browse-debug` | Exposes the page position and current list as the `browseDebugState` accessibility element (`post=… highlighted=… cards=… current=…`). |
 | `-dc-perf-probe` | Starts the main-thread monitor and exposes `PerfProbe`'s cumulative numbers as the `perfProbeState` accessibility element in the drawer (passes, busy ms, passes over 16/33/50/100/250/500/1000 ms, body counts, hot-function time, thread sizes). See "Performance measurements". |
+| `-dc-state-debug` | Exposes `AppStateDigest` (`drawer=… summary=… run=… page=… voice=…`) as the `appStateDigest` accessibility element so UI tests wait on state transitions. |
 | `-dc-force-width <points>` | iPad: letterboxes the app to that width, with the size class a Split View window of that width gets. |
 | `-dc-resize-demo [w1,w2,…]` | iPad: animates the window width through the list (default 1032, 800, 1032, 700, full), 6 s per step. |
 

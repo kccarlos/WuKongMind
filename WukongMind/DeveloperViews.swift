@@ -256,6 +256,8 @@ struct DevPageLogRows: View {
                 .foregroundStyle(DCTheme.inkMuted)
                 .textCase(.uppercase)
                 .padding(.horizontal, 14)
+            AppStateDigestView(app: app)
+                .padding(.horizontal, 14)
             row(.console, title: String(localized: "Console", comment: "This page developer row"),
                 detail: counts[.console].map { String(localized: "\($0) lines", comment: "This page › Console row: number of captured console lines") },
                 id: "thisPageConsole")

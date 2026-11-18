@@ -286,6 +286,9 @@ private struct AIDrawerContent: View {
             VStack(alignment: .leading, spacing: 0) {
                 DrawerDebugState(router: router)
                 if AssistantDebug.has("-dc-perf-probe") { PerfProbeState(app: app) }
+                if AssistantDebug.has("-dc-state-debug"), router.drawerPhase == .shown {
+                    AppStateDigestDebugView(app: app)
+                }
             }
         }
         #endif
