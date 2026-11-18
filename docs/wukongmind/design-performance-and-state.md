@@ -98,6 +98,29 @@ Deterministic counts per keystroke, the same on every run and on the simulator:
 
 The harness needed non-ASCII text in its posts (curly quotes, a dash, an emoji) to match the real thread: with plain ASCII the same 6,000 posts cost 60 ms per keystroke, not 383 ms. Real comments are not ASCII.
 
+### After task 1 (WUKO-141, 2026-11-17)
+
+Re-measured on the iPhone 13, Debug build, both suites, before and after the change, in one session (the "before" run repeats the tables above). The export text is now built only when Copy, Share or Export is used; `hasContent` answers from the parts.
+
+| iPhone 13 | Before | After |
+|---|---|---|
+| Hosted, `source-6000` keystroke median | 384 ms | **37 ms** |
+| Hosted, `baseline` keystroke median | 44 ms | 37 ms |
+| Hosted, `all-6000` keystroke median | 411 ms | 59 ms |
+| Hosted, `source-6000` open | 446 ms | 88 ms |
+| Hosted, export text builds per keystroke (any fixture) | 5 (2 as text, 3 in `exportDisabled`) | **0** |
+| Hosted, stripped summary per keystroke (`summary-30`) | 24 ms | 0.004 ms (cached) |
+| Real thread, main-thread time per keystroke | 1,860 ms | **607 ms** |
+| Real thread, of which building export text | 1,420 ms | **0** |
+| Real thread, run loop passes over 250 ms / over 1 s (30 characters) | 94 / 17 | **0 / 0** |
+| Real thread, panel renders / browser publishes per keystroke | 5.5 / 10.8 | 6.0 / 12.0 |
+| 6,000-comment fixture, per keystroke | 600 ms | 328 ms |
+| 20-comment control, per keystroke | 313 ms | 310 ms |
+| Real thread, close and reopen the drawer | 5.6 s | 3.4 s |
+
+- The hosted keystroke no longer grows with the thread: 36 to 38 ms from no posts to 6,000.
+- The real thread is still about 2 times the control (607 against 310 ms), not the 460 ms the earlier numbers suggested. What is left is the renders: 6 per character, driven by 12 browser publishes per character (causes 2 and 3, tasks 2 and 3). The gate holds: tasks 2 and 3 go ahead as briefed.
+
 ### Causes, ranked
 
 1. **The export text is built in the render path.** `AssistantPanel.exportText` (`SummaryPanel.swift:100`) feeds `.fileExporter(document:)` (`:220`) and `ShareLink(item:)` (`:1324`); `exportDisabled` (`:104`) calls `TopicExportPayload.hasContent` (`Models.swift:648`), which builds the whole text and trims it, for three menu items. Five builds per render, linear in thread size: 75 ms each at 6,000 posts on the phone. This alone is 76 % of main-thread time in the trace.
@@ -198,11 +221,12 @@ Nine tasks and one acceptance task. Sizes count changed lines, tests included.
 - **Order.** Tasks 1 to 6 all edit `SummaryPanel.swift` and run strictly one after another. Task 7 (`MarkdownView.swift`), task 8 (`BrowserAgent.swift`) and task 9 (settings) touch other files and can run beside them, one at a time each.
 
 ### 1. Performance 1: no export text while rendering
+- **Status:** done in WUKO-141; numbers in "After task 1". The always-on guard is `DrawerRenderCountTests` (zero `AssistantPanel.exportText` and `TopicExportPayload.text` builds while the drawer opens and while typing; `exportDisabled` still runs per render but no longer builds text, so the test asserts it does run, which proves the menu was rendered).
 - **Why:** 76 % of main-thread time while typing on the owner's thread (cause 1).
 - **Read:** this page, "Causes" 1 and 6.
 - **Scope:**
   - `Models.swift`: `TopicExportPayload.hasContent(options:)` answers from `hasTitleAndURL`, `hasSummary`, `hasSource`, `hasChatHistory` and the options, without building text.
-  - `SummaryPanel.swift`: Share, Copy and Export build the text when used. `ShareLink` takes a `Transferable` that produces the text on demand; `.fileExporter` gets its document when `exporting` turns true. `exportText` is no longer read in `body`.
+  - `SummaryPanel.swift`: Share, Copy and Export build the text when tapped. Share presents the system share sheet with a plain-text activity item, which keeps the sheet's Copy action and text preview. The iPad popover is anchored to the summary's More button. `.fileExporter` gets its document when `exporting` turns true.
   - `DrawerHint.swift`: `PostCitations.stripped` compiles its expressions once (static), and the panel caches the stripped summary by summary text.
   - Tests: `hasContent` equals the old answer for every combination of options and empty parts; a unit test asserts zero `AssistantPanel.exportText` and `exportDisabled` builds per keystroke with `PerfProbe`.
 - **Size:** about 200. **Depends on:** nothing.

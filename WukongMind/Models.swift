@@ -625,6 +625,10 @@ struct TopicExportPayload: Equatable {
     }
 
     func text(options: ExportOptions) -> String {
+        PerfProbe.time("TopicExportPayload.text") { buildText(options: options) }
+    }
+
+    private func buildText(options: ExportOptions) -> String {
         var sections: [String] = []
         if !options.excludeTitleAndURL {
             if !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -655,8 +659,15 @@ struct TopicExportPayload: Equatable {
         return sections.joined(separator: "\n\n")
     }
 
+    /// Whether `text(options:)` would hold anything but whitespace, answered from
+    /// the parts without building the text (it runs in the drawer's render path).
+    /// Every included part adds a heading or a line that is not blank, so the text
+    /// is non-blank exactly when one included part is present.
     func hasContent(options: ExportOptions) -> Bool {
-        !text(options: options).trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        (!options.excludeTitleAndURL && hasTitleAndURL)
+            || (!options.excludeSummary && hasSummary)
+            || (!options.excludePostAndResponses && hasSource)
+            || (!options.excludeChatHistory && hasChatHistory)
     }
 }
 

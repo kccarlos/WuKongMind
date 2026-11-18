@@ -260,6 +260,8 @@ TEST_RUNNER_DC_PERF_TRACE=1 scripts/device-check.sh test --xctrace SwiftUI --xct
   (`TEST_RUNNER_DC_PERF_URL=<address>`); the summary text still comes from the fixture model.
 - Simulator numbers on the Mac mini are noisy and several times faster than a phone: compare
   cases within one run, and take targets from the iPhone numbers.
+- `DrawerRenderCountTests` is the always-on part (it runs in CI): it asserts counts, never
+  times, such as no export text built while the drawer opens or while typing.
 - `scripts/device-check.sh --xctrace <template>` records the app from the tests' first
   `XCTRACE-START` line into `<out>/perf.trace`; read it with `xcrun xctrace toc` and `show`.
 

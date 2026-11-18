@@ -344,6 +344,7 @@
 		6F3AC8A69851ACFFEE173EEAC1D73D70 /* AppIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40E310E63E3A1E56048C2CDB4ADB8461 /* AppIdentityTests.swift */; };
 		6FB212E9E646E3A769E43E46FAF73A4B /* ReplayToolDispatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4C46F8663159759D69BB2BA6E2F6DD /* ReplayToolDispatcher.swift */; };
 		6FF07B2A5E0E8FD006FD2A91CE3F972C /* BrowserAgent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C31DD017E2B791002E7AF4F33020DC5 /* BrowserAgent.swift */; };
+		70678905EC0E1AF8A55D000544E205E0 /* DrawerRenderCountTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3783793C9DD4FCD2172134C98F27F4B4 /* DrawerRenderCountTests.swift */; };
 		708E0C8C3C64D9696878D41A8A872E69 /* PodcastSystemSpeech.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D00DFF8AB68F2700D6018FB4E24FA3B /* PodcastSystemSpeech.swift */; };
 		70B0F7BE6872B258564B979AC012857B /* WukongMindApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC425710B085727E2C37BFC951EACD60 /* WukongMindApp.swift */; };
 		70E3F794367AC3306192888873B7D506 /* HackerNewsRecognizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 39869077B6D891A2F1033B70F3B7DC48 /* HackerNewsRecognizer.swift */; };
@@ -982,6 +983,7 @@
 		36D39DF5F310C712146F23721E48DD43 /* BrowserTabsUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = BrowserTabsUITests.swift; sourceTree = "<group>"; };
 		36EEDF7479FEF4CE92963E5A9002A41E /* ContentBlocking */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder; path = ContentBlocking; sourceTree = "<group>"; };
 		36F8AB8ED452D079C28CBB306504F1E7 /* AgentPageCapture.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AgentPageCapture.swift; sourceTree = "<group>"; };
+		3783793C9DD4FCD2172134C98F27F4B4 /* DrawerRenderCountTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DrawerRenderCountTests.swift; sourceTree = "<group>"; };
 		37B7C4A8F1E744C320353A14561284FD /* AppleIntelligenceService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AppleIntelligenceService.swift; sourceTree = "<group>"; };
 		37F9CF6EEFC3C358F95F6B108B39FB64 /* FeedbackReports.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = FeedbackReports.swift; sourceTree = "<group>"; };
 		383E39C86FBA1F528B2DC1CBCFB403BF /* DiscourseAgent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseAgent.swift; path = Sites/Discourse/DiscourseAgent.swift; sourceTree = "<group>"; };
@@ -1971,6 +1973,7 @@
 				0A32D911D7E4F1FD1FC69098F7E38990 /* DockTests.swift */,
 				85C9C9EC36859C1AF34EBDD88FFD3E5A /* DrawerHintTests.swift */,
 				A1C1E0A46FCF9CC597F6D8EA8864B21C /* DrawerPerformanceTests.swift */,
+				3783793C9DD4FCD2172134C98F27F4B4 /* DrawerRenderCountTests.swift */,
 				21F617BA71D12D8942C9C975DC41632A /* FeedbackReportsTests.swift */,
 				870D261A378B437B49673D6A2127C14A /* ForumMenuHeaderTests.swift */,
 				26F8030932A238FC9FDF2EC8432BEEA0 /* ForumPacingTests.swift */,
@@ -3080,6 +3083,7 @@
 				C4FE3BF6FF7B6A3DEC818A2C46F63FA0 /* DockTests.swift in Sources */,
 				81BC5508009C60389E8EB6D6F168C87C /* DrawerHintTests.swift in Sources */,
 				EF365570ADE87230D69722332F3D7DAF /* DrawerPerformanceTests.swift in Sources */,
+				70678905EC0E1AF8A55D000544E205E0 /* DrawerRenderCountTests.swift in Sources */,
 				DFDBDAE31601DF3E2F6AB5154C508642 /* FeedbackReportsTests.swift in Sources */,
 				1EC0BAF42F777E3B37BE108ED4A10E8A /* ForumMenuHeaderTests.swift in Sources */,
 				CA15BC1B34E6D4D13D9809FAA231E6AC /* ForumPacingTests.swift in Sources */,

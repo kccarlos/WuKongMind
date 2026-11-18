@@ -37,6 +37,11 @@ struct AssistantPanel: View {
     /// Opens a forum URL in the Browse workspace (the agent's step log uses it).
     let onOpenURL: ((URL) -> Void)?
     @State private var exporting = false
+    /// Built when Export .txt is tapped, dropped when the exporter closes.
+    @State private var exportDocument: PlainTextDocument?
+    @State private var exportShareAnchor = ExportShareAnchor()
+    /// The summary without citations (Translate, Read aloud), kept per summary text.
+    @State private var strippedSummaryCache = StrippedSummaryCache()
     @State private var exportTaskID: String?
     @State private var reportTaskID: String?
     /// "Tap a post number to jump to it", shown with the first summary.
@@ -98,6 +103,7 @@ struct AssistantPanel: View {
         app.currentExportPayload
     }
 
+    /// Copy, Share and Export read this only from their button actions.
     private var exportText: String {
         PerfProbe.time("AssistantPanel.exportText") { payload.text(options: app.exportOptions) }
     }
@@ -227,9 +233,12 @@ struct AssistantPanel: View {
             completedStatusTask = nil
             stopDictation(keepingText: true)
         }
+        .onChange(of: exporting) { _, shown in
+            if !shown { exportDocument = nil }
+        }
         .fileExporter(
             isPresented: $exporting,
-            document: PlainTextDocument(text: exportText),
+            document: exportDocument,
             contentType: .plainText,
             defaultFilename: "wukongmind-\(exportSlug).txt"
         ) { result in
@@ -1284,7 +1293,7 @@ struct AssistantPanel: View {
 
     /// Model, post count, age, Kept; then the AI label, Translate, Read aloud, Retry, and summary `⋯`.
     private func drawerSummaryMeta(_ session: TopicSession) -> some View {
-        let strippedText = PerfProbe.time("AssistantPanel.strippedSummary") { PostCitations.stripped(session.summary) }
+        let strippedText = PerfProbe.time("AssistantPanel.strippedSummary") { strippedSummaryCache.stripped(session.summary) }
         return VStack(alignment: .leading, spacing: 6) {
             if !dynamicTypeSize.isAccessibilitySize { summaryMeta(session) }
             let layout = dynamicTypeSize.isAccessibilitySize
@@ -1345,13 +1354,16 @@ struct AssistantPanel: View {
                 .accessibilityIdentifier("copyExport")
                 .disabled(exportDisabled)
 
-                ShareLink(item: exportText) {
+                Button {
+                    exportShareAnchor.present(text: exportText)
+                } label: {
                     Label("Share", systemImage: "square.and.arrow.up")
                 }
                 .accessibilityIdentifier("shareExport")
                 .disabled(exportDisabled)
 
                 Button {
+                    exportDocument = PlainTextDocument(text: exportText)
                     exporting = true
                 } label: {
                     Label("Export .txt", systemImage: "arrow.down.doc")
@@ -1392,6 +1404,7 @@ struct AssistantPanel: View {
                 .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .background(exportShareAnchor)
         .accessibilityLabel(Text("Summary actions", comment: "Accessibility label of the summary card's more menu"))
         .accessibilityIdentifier("summaryMoreMenu")
     }
@@ -2019,7 +2032,72 @@ struct ExpandedPanel: View {
     }
 }
 
-private struct PlainTextDocument: FileDocument {
+/// Anchors the system share popover to the summary's More button on iPad.
+private struct ExportShareAnchor: UIViewRepresentable {
+    @MainActor
+    private final class Storage {
+        lazy var view = UIView()
+    }
+
+    private let storage = Storage()
+
+    func makeUIView(context: Context) -> UIView {
+        let view = storage.view
+        view.isUserInteractionEnabled = false
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
+
+    func present(text: String) {
+        let anchor = storage.view
+        // Let SwiftUI finish the menu action before presenting UIKit's sheet.
+        DispatchQueue.main.async {
+            guard anchor.window != nil else { return }
+            var responder: UIResponder? = anchor
+            while let current = responder, !(current is UIViewController) {
+                responder = current.next
+            }
+            guard let presenter = responder as? UIViewController else { return }
+            let controller = UIActivityViewController(activityItems: [ExportActivityItem(text: text)], applicationActivities: nil)
+            controller.popoverPresentationController?.sourceView = anchor
+            controller.popoverPresentationController?.sourceRect = anchor.bounds
+            presenter.present(controller, animated: true)
+        }
+    }
+}
+
+/// A plain string gives the system its text preview and Copy action.
+final class ExportActivityItem: NSObject, UIActivityItemSource {
+    private let text: String
+
+    init(text: String) { self.text = text }
+
+    func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
+        text
+    }
+
+    func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any? {
+        text
+    }
+}
+
+/// The citation-free summary, recomputed only when the summary text changes.
+/// A reference so `body` can fill it without writing view state.
+final class StrippedSummaryCache {
+    private var source: String?
+    private var value = ""
+
+    func stripped(_ summary: String) -> String {
+        if summary != source {
+            source = summary
+            value = PostCitations.stripped(summary)
+        }
+        return value
+    }
+}
+
+struct PlainTextDocument: FileDocument {
     static var readableContentTypes: [UTType] { [.plainText] }
     var text: String
 
@@ -2175,7 +2253,7 @@ struct PerfProbeState: View {
                      "publish.PresentationRouter"] {
             fields.append("n:\(name)=\(probe.counts[name] ?? 0)")
         }
-        for name in ["AssistantPanel.exportText", "AssistantPanel.exportDisabled", "DrawerSummarySections.parsed", "AssistantPanel.strippedSummary",
+        for name in ["AssistantPanel.exportText", "AssistantPanel.exportDisabled", "TopicExportPayload.text", "DrawerSummarySections.parsed", "AssistantPanel.strippedSummary",
                      "AssistantPanel.summaryPlacement", "BrowserAgentRunsView.forumSources",
                      "AssistantPanel.buildHeader", "AssistantPanel.buildThread", "AssistantPanel.buildFooter"] {
             fields.append("n:\(name)=\(probe.counts[name] ?? 0)")
