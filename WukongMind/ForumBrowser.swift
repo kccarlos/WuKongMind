@@ -1918,9 +1918,9 @@ final class BrowserTabsWebHostView: UIView {
         self.showsCurrentWebViewOverride = showsCurrentWebView
         if routerChanged {
             routerCancellable = router.map { r in
-                Publishers.CombineLatest3(r.$splitLayout, r.$drawerPhase, r.$drawerDetent)
-                    .dropFirst()
-                    .sink { [weak self] _, _, _ in self?.syncCurrentWebViewAccessibility() }
+                r.objectWillChange.sink { [weak self] _ in
+                    Task { @MainActor in self?.syncCurrentWebViewAccessibility() }
+                }
             }
         }
         if tabsChanged {

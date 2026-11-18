@@ -1244,10 +1244,10 @@ private struct TranscriptSectionObserver: View {
         let showsEmptyTopicMascot = s.pageState != .loading && s.hasCurrentTopic && !hasConv && !hasSummarySection
         let hasLeading = hasSetup
             || hasSummarySection || showsEmptyTopicMascot || (s.pageState == .loading && runsCount == 0)
-        var runsContext = s.runsContext
-        runsContext.cardRowID = placement.cardRowID
         let model = PerfProbe.time("AssistantPanel.buildThread") {
-            ChatThread.Model(
+            var runsContext = s.runsContext
+            runsContext.cardRowID = placement.cardRowID
+            return ChatThread.Model(
                 topicKey: s.topicKey, hasLeadingContent: hasLeading,
                 hasConversation: hasConv, runsCount: runsCount, voiceTurnsCount: voiceCount,
                 toolCallsCount: toolCount, runState: runState,
@@ -1392,40 +1392,41 @@ struct DrawerSummary: View, Equatable {
         }
     }
 
+    private var hasVisibleTop: Bool {
+        model.setup != nil || model.showsLoading || model.activePull != nil
+            || model.activeSummary != nil || model.failedMessage != nil
+            || !model.parsed.rows.isEmpty || model.showsPlaceholder || model.showsEmptyMascot
+    }
+
     var body: some View {
         let _ = PerfProbe.hit("DrawerSummary.body")
         if model.isCardFooter {
             summaryCardFooterBody
-        } else {
-            let hasVisibleTop = model.setup != nil || model.showsLoading || model.activePull != nil
-                || model.activeSummary != nil || model.failedMessage != nil
-                || !model.parsed.rows.isEmpty || model.showsPlaceholder || model.showsEmptyMascot
-            if hasVisibleTop || model.streamInput != nil {
-                Group {
-                    if model.isLazy {
-                        LazyVStack(alignment: .leading, spacing: 8) { topBody }.transition(.identity)
-                    } else {
-                        VStack(alignment: .leading, spacing: 8) { topBody }.transition(.identity)
-                    }
+        } else if hasVisibleTop || model.streamInput != nil {
+            Group {
+                if model.isLazy {
+                    LazyVStack(alignment: .leading, spacing: 8) { topBody }.transition(.identity)
+                } else {
+                    VStack(alignment: .leading, spacing: 8) { topBody }.transition(.identity)
                 }
-                .animation(DCMotion.respecting(reduceMotion), value: model.activeSummary?.id)
-                .animation(DCMotion.respecting(reduceMotion), value: model.activePull?.id)
-                .animation(DCMotion.respecting(reduceMotion), value: model.summaryRun)
-                .animation(.easeOut(duration: 0.25), value: model.parsed.sections)
-                .task(id: model.streamInput) {
-                    guard let streamInput = model.streamInput else { renderedSummary = nil; return }
-                    if let updated = await ThrottledParse.refreshed(from: renderedSummary, to: streamInput, parse: DrawerSummarySections.parsed) {
-                        renderedSummary = updated
-                    }
+            }
+            .animation(DCMotion.respecting(reduceMotion), value: model.activeSummary?.id)
+            .animation(DCMotion.respecting(reduceMotion), value: model.activePull?.id)
+            .animation(DCMotion.respecting(reduceMotion), value: model.summaryRun)
+            .animation(.easeOut(duration: 0.25), value: model.parsed.sections)
+            .task(id: model.streamInput) {
+                guard let streamInput = model.streamInput else { renderedSummary = nil; return }
+                if let updated = await ThrottledParse.refreshed(from: renderedSummary, to: streamInput, parse: DrawerSummarySections.parsed) {
+                    renderedSummary = updated
                 }
-                .onChange(of: model.topicKey) { renderedSummary = nil }
-                .onChange(of: model.hasSummaryOnSession, initial: true) {
-                    let key = PresentationRouter.citationTipKey
-                    guard app.currentSession?.hasSummary == true, !UserDefaults.standard.bool(forKey: key),
-                          !PostCitations.numbers(in: app.currentSession?.summary ?? "").isEmpty else { return }
-                    UserDefaults.standard.set(true, forKey: key)
-                    showsCitationTip = true
-                }
+            }
+            .onChange(of: model.topicKey) { renderedSummary = nil }
+            .onChange(of: model.hasSummaryOnSession, initial: true) {
+                let key = PresentationRouter.citationTipKey
+                guard app.currentSession?.hasSummary == true, !UserDefaults.standard.bool(forKey: key),
+                      !PostCitations.numbers(in: app.currentSession?.summary ?? "").isEmpty else { return }
+                UserDefaults.standard.set(true, forKey: key)
+                showsCitationTip = true
             }
         }
     }
