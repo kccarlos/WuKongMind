@@ -108,7 +108,7 @@ Re-measured on the iPhone 13, Debug build, both suites, before and after the cha
 | Hosted, `baseline` keystroke median | 44 ms | 37 ms |
 | Hosted, `all-6000` keystroke median | 411 ms | 59 ms |
 | Hosted, `source-6000` open | 446 ms | 88 ms |
-| Hosted, export text builds per keystroke (any fixture) | 5.5 | **0** |
+| Hosted, export text builds per keystroke (any fixture) | 5 (2 as text, 3 in `exportDisabled`) | **0** |
 | Hosted, stripped summary per keystroke (`summary-30`) | 24 ms | 0.004 ms (cached) |
 | Real thread, main-thread time per keystroke | 1,860 ms | **607 ms** |
 | Real thread, of which building export text | 1,420 ms | **0** |
