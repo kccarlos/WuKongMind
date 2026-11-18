@@ -31,9 +31,9 @@ struct TranscriptFollow: Equatable, Sendable {
         /// At the bottom and following incoming run output.
         case following
         /// Pinning the bottom across the next layout turn after viewport shrink or stream growth.
-        case pinning
+        case pinning(scrolledUp: Bool = false)
         /// Animated and catch-up settle to `"chatBottom"` in progress.
-        case settling
+        case settling(atBottom: Bool = true)
         /// Within 48 pt of the bottom, with streaming follow paused after an upward scroll.
         case pausedNearBottom
         /// Away from the bottom (`chatScrollToBottom` shows when the conversation is non-empty).
@@ -41,15 +41,25 @@ struct TranscriptFollow: Equatable, Sendable {
 
         var isAtBottom: Bool {
             switch self {
-            case .following, .pinning, .settling, .pausedNearBottom: true
-            case .detached: false
+            case .following, .pinning, .settling(true), .pausedNearBottom: true
+            case .settling(false), .detached: false
             }
+        }
+
+        var isPinning: Bool {
+            if case .pinning = self { return true }
+            return false
+        }
+
+        var isSettling: Bool {
+            if case .settling = self { return true }
+            return false
         }
 
         var isScrolledUp: Bool {
             switch self {
-            case .pausedNearBottom, .detached(true): true
-            case .following, .pinning, .settling, .detached(false): false
+            case .pinning(true), .pausedNearBottom, .detached(true): true
+            case .following, .pinning(false), .settling, .detached(false): false
             }
         }
     }
@@ -99,7 +109,7 @@ struct TranscriptFollow: Equatable, Sendable {
     var contentHeight = 0
 
     var isAtBottom: Bool { phase.isAtBottom }
-    var isSettling: Bool { phase == .settling }
+    var isSettling: Bool { phase.isSettling }
     var isFollowingBottom: Bool { phase.isAtBottom && !isUserScrolling && !phase.isScrolledUp }
 
     func transition(_ event: Event) -> (state: TranscriptFollow, effect: Effect) {
@@ -112,18 +122,20 @@ struct TranscriptFollow: Equatable, Sendable {
         switch event {
         case .dragBegan:
             isUserScrolling = true
-            if phase == .pinning || phase == .settling {
-                phase = .following
+            if case .pinning(let scrolledUp) = phase {
+                phase = scrolledUp ? .pausedNearBottom : .following
+            } else if case .settling(let atBottom) = phase {
+                phase = atBottom ? .following : .detached(scrolledUp: false)
             }
             return .none
 
         case .dragEnded(let decelerating):
-            isUserScrolling = decelerating && phase != .settling
+            isUserScrolling = decelerating && !phase.isSettling
             return .none
 
         case .geometryChanged(let old, let new, let isRunning):
-            let isPinning = phase == .pinning
-            let movedUp = phase != .settling
+            let isPinning = phase.isPinning
+            let movedUp = !phase.isSettling
                 && old.contentHeight > 0
                 && new.viewportHeight == old.viewportHeight
                 && new.contentHeight >= old.contentHeight
@@ -136,7 +148,10 @@ struct TranscriptFollow: Equatable, Sendable {
             }
             nearBottom = new.nearBottom
             if new.nearBottom {
-                if phase == .settling { return .none }
+                if phase.isSettling {
+                    phase = .settling(atBottom: true)
+                    return .none
+                }
                 if !phase.isAtBottom {
                     if new.offsetTenths > old.offsetTenths + 3
                         || new.viewportHeight > old.viewportHeight
@@ -151,7 +166,7 @@ struct TranscriptFollow: Equatable, Sendable {
                 }
                 return .none
             }
-            if phase == .settling { return .none }
+            if phase.isSettling { return .none }
             if phase.isAtBottom {
                 let viewportShrank = !isUserScrolling
                     && old.viewportHeight > 0
@@ -164,13 +179,13 @@ struct TranscriptFollow: Equatable, Sendable {
                     && new.contentHeight > old.contentHeight
                     && new.offsetTenths >= old.offsetTenths - 3
                 if viewportShrank || streamGrew {
-                    phase = .pinning
+                    phase = .pinning(scrolledUp: false)
                     return .scrollNow(.bottom, afterTurn: .recheckBottom(clearPinning: true))
                 }
-                if !isPinning {
+                if isPinning {
+                    phase = .pinning(scrolledUp: scrolledUp)
+                } else {
                     phase = .detached(scrolledUp: scrolledUp)
-                } else if movedUp {
-                    phase = .detached(scrolledUp: true)
                 }
                 return .none
             }
@@ -187,7 +202,7 @@ struct TranscriptFollow: Equatable, Sendable {
             return isFollowingBottom ? .scrollNow(.bottom) : .none
 
         case .runAdded:
-            phase = .settling
+            phase = .settling()
             return .settleToBottom(interruptMomentum: false)
 
         case .voiceTurnAdded:
@@ -195,7 +210,7 @@ struct TranscriptFollow: Equatable, Sendable {
 
         case .jumpTapped:
             isUserScrolling = false
-            phase = .settling
+            phase = .settling()
             return .settleToBottom(interruptMomentum: true)
 
         case .topicChanged(let hasRuns):
@@ -208,10 +223,16 @@ struct TranscriptFollow: Equatable, Sendable {
         case .followUp(let followUp):
             switch followUp {
             case .recheckBottom(let clearPinning):
-                if clearPinning, phase == .pinning { phase = .following }
+                if clearPinning, case .pinning(let scrolledUp) = phase {
+                    phase = scrolledUp ? .pausedNearBottom : .following
+                }
                 return isFollowingBottom ? .scrollNow(.bottom) : .none
             case .syncTopicTop:
-                guard phase != .settling, phase != .pinning else { return .none }
+                if phase.isSettling {
+                    phase = .settling(atBottom: nearBottom)
+                    return .none
+                }
+                guard !phase.isPinning else { return .none }
                 if phase.isAtBottom != nearBottom {
                     phase = nearBottom ? (phase.isScrolledUp ? .pausedNearBottom : .following) : .detached(scrolledUp: phase.isScrolledUp)
                 }
@@ -219,20 +240,25 @@ struct TranscriptFollow: Equatable, Sendable {
             }
 
         case .settleFinished:
-            guard phase == .settling else { return .none }
+            guard phase.isSettling else { return .none }
             phase = nearBottom ? .following : .detached(scrolledUp: false)
             return .none
 
         case .bottomAnchorChanged(let isVisible):
-            nearBottom = isVisible
-            if phase != .settling, phase != .pinning {
-                phase = isVisible ? .following : .detached(scrolledUp: phase.isScrolledUp)
+            if phase.isSettling {
+                phase = .settling(atBottom: isVisible)
+            } else if phase.isPinning {
+                if !isVisible {
+                    phase = .detached(scrolledUp: phase.isScrolledUp)
+                }
+            } else {
+                phase = isVisible ? (phase.isScrolledUp ? .pausedNearBottom : .following) : .detached(scrolledUp: phase.isScrolledUp)
             }
             return .none
 
         case .disappeared:
-            if phase == .settling || phase == .pinning {
-                phase = .following
+            if case .settling(let atBottom) = phase {
+                phase = atBottom ? .following : .detached(scrolledUp: false)
             }
             return .none
         }

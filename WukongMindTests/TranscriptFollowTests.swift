@@ -32,12 +32,12 @@ final class TranscriptFollowTests: XCTestCase {
 
             // ChatScrollTracker.onPhaseChange (`dragBegan` / `dragEnded`)
             ("drag-began-following", F(), .dragBegan, .following, true, true, .none),
-            ("drag-began-cancels-settle", F(phase: .settling), .dragBegan, .following, true, true, .none),
-            ("drag-began-cancels-pinning", F(phase: .pinning), .dragBegan, .following, true, true, .none),
+            ("drag-began-cancels-settle", F(phase: .settling()), .dragBegan, .following, true, true, .none),
+            ("drag-began-cancels-pinning", F(phase: .pinning()), .dragBegan, .following, true, true, .none),
             ("drag-decelerating-keeps-scrolling", F(phase: .detached(scrolledUp: true), isUserScrolling: true, nearBottom: false),
              .dragEnded(decelerating: true), .detached(scrolledUp: true), true, false, .none),
-            ("drag-decelerating-during-settle-ignored", F(phase: .settling), .dragEnded(decelerating: true),
-             .settling, false, true, .none),
+            ("drag-decelerating-during-settle-ignored", F(phase: .settling()), .dragEnded(decelerating: true),
+             .settling(), false, true, .none),
             ("drag-ended-idle", F(phase: .detached(scrolledUp: true), isUserScrolling: true, nearBottom: false),
              .dragEnded(decelerating: false), .detached(scrolledUp: true), false, false, .none),
 
@@ -63,9 +63,17 @@ final class TranscriptFollowTests: XCTestCase {
              .geometryChanged(old: scrolledAway, new: shortContent, isRunning: false),
              .following, false, true, .none),
             ("geometry-keyboard-shrink-pins-bottom", F(), .geometryChanged(old: bottom, new: keyboardShrank, isRunning: false),
-             .pinning, false, true, .scrollNow(.bottom, afterTurn: .recheckBottom(clearPinning: true))),
+             .pinning(), false, true, .scrollNow(.bottom, afterTurn: .recheckBottom(clearPinning: true))),
             ("geometry-stream-growth-pins-bottom", F(), .geometryChanged(old: bottom, new: streamGrewOffBottom, isRunning: true),
-             .pinning, false, true, .scrollNow(.bottom, afterTurn: .recheckBottom(clearPinning: true))),
+             .pinning(), false, true, .scrollNow(.bottom, afterTurn: .recheckBottom(clearPinning: true))),
+            ("geometry-upward-motion-while-pinning-keeps-at-bottom-until-followup",
+             F(phase: .pinning()),
+             .geometryChanged(
+                 old: streamGrewOffBottom,
+                 new: G(nearBottom: false, contentHeight: 1_080, viewportHeight: 500, offsetTenths: 4_940),
+                 isRunning: true
+             ),
+             .pinning(scrolledUp: true), false, true, .none),
             ("geometry-paused-stream-growth-detaches", F(phase: .pausedNearBottom),
              .geometryChanged(
                  old: nudgedUp,
@@ -75,7 +83,7 @@ final class TranscriptFollowTests: XCTestCase {
              .detached(scrolledUp: true), false, false, .none),
             ("geometry-paused-scroll-down-resumes-pinning", F(phase: .pausedNearBottom),
              .geometryChanged(old: nudgedUp, new: streamGrewOffBottom, isRunning: true),
-             .pinning, false, true, .scrollNow(.bottom, afterTurn: .recheckBottom(clearPinning: true))),
+             .pinning(), false, true, .scrollNow(.bottom, afterTurn: .recheckBottom(clearPinning: true))),
             ("geometry-idle-growth-detaches-without-pin", F(), .geometryChanged(old: bottom, new: streamGrewOffBottom, isRunning: false),
              .detached(scrolledUp: false), false, false, .none),
 
@@ -87,7 +95,7 @@ final class TranscriptFollowTests: XCTestCase {
 
             // onChange(of: runsCount) (`runAdded`)
             ("run-added-from-scrolled-up", F(phase: .detached(scrolledUp: true), nearBottom: false), .runAdded,
-             .settling, false, true, .settleToBottom(interruptMomentum: false)),
+             .settling(), false, true, .settleToBottom(interruptMomentum: false)),
 
             // onChange(of: voiceTurnsCount) (`voiceTurnAdded`)
             ("voice-turn-following", F(), .voiceTurnAdded, .following, false, true, .scrollNow(.bottom)),
@@ -98,28 +106,30 @@ final class TranscriptFollowTests: XCTestCase {
 
             // chatScrollToBottom (`jumpTapped`)
             ("jump-tapped-during-momentum", F(phase: .detached(scrolledUp: true), isUserScrolling: true, nearBottom: false),
-             .jumpTapped, .settling, false, true, .settleToBottom(interruptMomentum: true)),
+             .jumpTapped, .settling(), false, true, .settleToBottom(interruptMomentum: true)),
 
             // onChange(of: topicKey) (`topicChanged`)
-            ("topic-changed-no-runs", F(phase: .settling, isUserScrolling: true, contentHeight: 900),
+            ("topic-changed-no-runs", F(phase: .settling(), isUserScrolling: true, contentHeight: 900),
              .topicChanged(hasRuns: false), .detached(scrolledUp: false), false, false,
              .scrollNow(.top, afterTurn: .syncTopicTop)),
             ("topic-changed-with-runs-keeps-scroll", F(phase: .detached(scrolledUp: true), nearBottom: false, contentHeight: 900),
              .topicChanged(hasRuns: true), .detached(scrolledUp: true), false, false, .none),
 
             // Follow-ups, settle completion, iOS 17 anchor fallback, disappear
-            ("pin-followup-clears-pinning", F(phase: .pinning), .followUp(.recheckBottom(clearPinning: true)),
+            ("pin-followup-clears-pinning", F(phase: .pinning()), .followUp(.recheckBottom(clearPinning: true)),
              .following, false, true, .scrollNow(.bottom)),
+            ("pin-followup-after-upward-nudge-pauses-without-scroll", F(phase: .pinning(scrolledUp: true)),
+             .followUp(.recheckBottom(clearPinning: true)), .pausedNearBottom, false, true, .none),
             ("topic-sync-tall-summary", F(phase: .detached(scrolledUp: false), nearBottom: false), .followUp(.syncTopicTop),
              .detached(scrolledUp: false), false, false, .none),
             ("topic-sync-short-summary", F(phase: .detached(scrolledUp: false), nearBottom: true), .followUp(.syncTopicTop),
              .following, false, true, .none),
-            ("settle-finished-at-bottom", F(phase: .settling, nearBottom: true), .settleFinished, .following, false, true, .none),
-            ("settle-finished-short-of-bottom", F(phase: .settling, nearBottom: false), .settleFinished,
+            ("settle-finished-at-bottom", F(phase: .settling(), nearBottom: true), .settleFinished, .following, false, true, .none),
+            ("settle-finished-short-of-bottom", F(phase: .settling(), nearBottom: false), .settleFinished,
              .detached(scrolledUp: false), false, false, .none),
             ("anchor-disappeared-fallback", F(), .bottomAnchorChanged(isVisible: false),
              .detached(scrolledUp: false), false, false, .none),
-            ("disappeared-cancels-settle", F(phase: .settling), .disappeared, .following, false, true, .none)
+            ("disappeared-cancels-settle", F(phase: .settling()), .disappeared, .following, false, true, .none)
         ]
 
         for (label, initial, event, wantPhase, wantUserScrolling, wantAtBottom, wantEffect) in table {
@@ -218,5 +228,20 @@ final class TranscriptFollowTests: XCTestCase {
         XCTAssertTrue(justInside.nearBottom)
         XCTAssertEqual(justInside.offsetTenths, 4_521)
         XCTAssertFalse(atBoundary.nearBottom)
+
+        // 4. iOS 17 fallback (`bottomAnchorChanged`): leaves `nearBottom` untouched so settle and topic sync keep legacy behaviour.
+        var ios17 = F().transition(.bottomAnchorChanged(isVisible: false)).state
+        XCTAssertTrue(ios17.nearBottom)
+        XCTAssertFalse(ios17.isAtBottom)
+        ios17 = ios17.transition(.runAdded).state
+        ios17 = ios17.transition(.settleFinished).state
+        XCTAssertEqual(ios17.phase, .following)
+        XCTAssertTrue(ios17.isAtBottom)
+
+        var ios17Topic = F().transition(.bottomAnchorChanged(isVisible: false)).state
+        ios17Topic = ios17Topic.transition(.topicChanged(hasRuns: false)).state
+        ios17Topic = ios17Topic.transition(.followUp(.syncTopicTop)).state
+        XCTAssertEqual(ios17Topic.phase, .following)
+        XCTAssertTrue(ios17Topic.isAtBottom)
     }
 }
