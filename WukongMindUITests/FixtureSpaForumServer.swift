@@ -446,6 +446,25 @@ extension DCUITestCase {
         }
     }
 
+    /// Waits for the fixture's "Load #N" stamp with N greater than `loadsBefore` and returns it.
+    /// The app may legitimately hit the server more than once per launch or reload (tab restore,
+    /// WebKit retry), so waiting for exactly `loadsBefore + 1` would race a second load.
+    func waitForLoadStamp(in webView: XCUIElement, after loadsBefore: Int, timeout: TimeInterval) -> String? {
+        let stamps = webView.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Load #"))
+        var found: String?
+        _ = wait(timeout: timeout) {
+            for index in 0..<stamps.count {
+                let label = stamps.element(boundBy: index).label
+                if let n = Int(label.dropFirst("Load #".count)), n > loadsBefore {
+                    found = label
+                    return true
+                }
+            }
+            return false
+        }
+        return found
+    }
+
     /// Runs the full M2 acceptance scenario against `FixtureSpaForumServer`:
     /// 1. Prompt `"from now on, show only the original poster on this site"` saves and applies immediately.
     /// 2. Persists across a full browser reload AND across killing and reopening the app.
@@ -607,11 +626,9 @@ extension DCUITestCase {
         let reopenedApp = makeConfiguredApp(resetBox: false)
         let reopenedWebView = reopenedApp.webViews.firstMatch
         XCTAssertTrue(reopenedWebView.waitForExistence(timeout: 20), "Reopened app web view did not appear.")
-        let reopenStamp = "Load #\(loadsBeforeReopen + 1)"
-        XCTAssertTrue(
-            reopenedWebView.staticTexts[reopenStamp].waitForExistence(timeout: 15),
-            "Reopened app did not load fixture thread #101."
-        )
+        let observedReopenStamp = waitForLoadStamp(in: reopenedWebView, after: loadsBeforeReopen, timeout: 20)
+        XCTAssertNotNil(observedReopenStamp, "Reopened app did not load fixture thread #101.")
+        let reopenStamp = observedReopenStamp ?? "Load #\(loadsBeforeReopen + 1)"
         XCTAssertGreaterThanOrEqual(server.requestCount(forPath: "/threads/101"), thread101BeforeReopen + 1)
         XCTAssertTrue(
             reopenedWebView.staticTexts[FixtureSpaForumServer.thread101OP].waitForExistence(timeout: 10),

@@ -63,13 +63,17 @@ UI_1=(
 # main surfaces. The suggestion row on a forum thread and on an ordinary page,
 # handing a search to the agent, the page-scripts popover, and the script
 # manager with its history. The slowest and most often retried tests
-# (testNotifyMeFollowsTheThread, the UI_1 tests) stay out; they run on main,
-# nightly and tags. testSearchThisForum... and testPageScriptsPopover... have
+# (the UI_1 tests) stay out; they run on main,
+# nightly and tags, except that WUKO-137 put testNotifyMeFollowsTheThread and
+# testReadAloudWithoutASummarySummarizesFirst in the set, because they alone
+# turned main red and a PR must show they pass. testSearchThisForum... and testPageScriptsPopover... have
 # needed a retry too (WUKO-126/127 own flaky tests).
 UI_SMOKE=(
   SuggestionRowUITests/testForumThreadShowsFourSuggestions
   SuggestionRowUITests/testOrdinaryPageShowsPageSuggestions
   SuggestionRowUITests/testSearchThisForumFillsTheBoxThenSendsToAgent
+  SuggestionRowUITests/testNotifyMeFollowsTheThread
+  SuggestionRowUITests/testReadAloudWithoutASummarySummarizesFirst
   ScriptManagerUITests/testPageScriptsPopoverTogglesReloadAndOpensManager
   ScriptManagerUITests/testScriptManagerGroupsDetailAndHistoryRollback
 )

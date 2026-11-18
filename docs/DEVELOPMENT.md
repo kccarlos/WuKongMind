@@ -67,10 +67,15 @@ generator turns CloudKit on **only when it finds a team**:
 With CloudKit on, the generator writes
 `WukongMind/Generated/WukongMind.entitlements` from the base file plus:
 
-- `com.apple.developer.icloud-services` = `CloudKit`,
+- `com.apple.developer.icloud-services` = `CloudKit`, `CloudDocuments`,
 - `com.apple.developer.icloud-container-identifiers` =
   `iCloud.<BUNDLE_ID_PREFIX>` (the app reads it from `DCCloudKitContainer`
   in `Info.plist`),
+- `com.apple.developer.ubiquity-container-identifiers` = the same container,
+  for the iCloud Drive folder where feedback reports land
+  ([feedback.md](wukongmind/feedback.md)); the generator also writes
+  `WukongMind/Generated/Info.plist` (git-ignored) with the
+  `NSUbiquitousContainers` entry and builds with it,
 - `aps-environment` = `development`, for the silent pushes that announce
   changes (exporting for TestFlight or the App Store switches it to
   `production`),
@@ -654,6 +659,22 @@ scripts/adblock/run_tests.sh        # converter tests
 
 Then run the unit tests and commit `WukongMind/ContentBlocking/`. See
 [AD_BLOCKING.md](AD_BLOCKING.md).
+
+## Refreshing the Vertex AI model list
+
+Vertex AI has no model list an API key can read, so the picker uses the
+built-in `AIProvider.vertexAIModels` (`WukongMind/ProviderModels.swift`). To
+refresh it:
+
+1. `VERTEX_PROJECT=<project with aiplatform enabled> scripts/vertex-models.sh`
+   prints the Gemini chat/text models (via `gcloud ai model-garden models list`).
+2. Add new ones to the list, newest first, and keep old ones so saved
+   favorites still resolve.
+3. Verify each new model answers `generateContent` and a tool call with the
+   real key (`herdr-secret run VERTEX_API_KEY -- curl …` with the
+   `x-goog-api-key` header); drop models that 404. Checked 2026-11-17: the
+   `gemini-4-*` models only work through a project path with
+   `locations/global` as the base URL, not the express host.
 
 ## Logo and app icon
 

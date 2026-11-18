@@ -66,9 +66,14 @@ final class SuggestionRowUITests: DCUITestCase {
         XCTAssertTrue(waitForHittable(broken), "suggestionPageBroken must sit first and hittable without scrolling when scripts have errors.")
     }
 
+    // The two read-aloud tests use `-dc-podcast-fake` (silent audio): the real
+    // AVSpeechSynthesizer starves the app's main thread on a CI runner, so UI
+    // queries time out and the next launch fails (main CI 44130863162). They
+    // test the flow, not the voice.
+
     /// Summarize runs `summarize_topic` (summary card under its row); Read it to me then runs `read_aloud`.
     func testSummarizeThenReadAloudUseTheExistingEngines() {
-        let app = launch(thread + ["-dc-no-summary", "-dc-fake-summary"])
+        let app = launch(thread + ["-dc-no-summary", "-dc-fake-summary", "-dc-podcast-fake"])
         showAssistant(in: app)
         scrollToChip(app, "summarizeThread").tap()
         XCTAssertTrue(any(app, "capabilityThreadSummaryCard").waitForExistence(timeout: 30), "Missing summary card under summarize_topic.")
@@ -79,7 +84,7 @@ final class SuggestionRowUITests: DCUITestCase {
         let listenRow = any(app, "capabilityListenRow")
         XCTAssertTrue(listenRow.waitForExistence(timeout: 15), "Missing listen card under read_aloud.")
         XCTAssertTrue(
-            wait(timeout: 15) { (listenRow.value as? String) == "Pause" },
+            wait(timeout: 30) { (listenRow.value as? String) == "Pause" },
             "Read it to me did not start reading the summary aloud."
         )
         captureIfRequested("suggestion-read-aloud")
@@ -87,13 +92,13 @@ final class SuggestionRowUITests: DCUITestCase {
 
     /// Read it to me with no summary yet: it summarizes first, then reads.
     func testReadAloudWithoutASummarySummarizesFirst() {
-        let app = launch(thread + ["-dc-no-summary", "-dc-fake-summary"])
+        let app = launch(thread + ["-dc-no-summary", "-dc-fake-summary", "-dc-podcast-fake"])
         showAssistant(in: app)
         scrollToChip(app, "readAloud").tap()
         let listenRow = any(app, "capabilityListenRow")
         XCTAssertTrue(listenRow.waitForExistence(timeout: 30), "Read it to me did not summarize and start listen row.")
         XCTAssertTrue(
-            wait(timeout: 15) { (listenRow.value as? String) == "Pause" },
+            wait(timeout: 30) { (listenRow.value as? String) == "Pause" },
             "The summary was not read aloud once written."
         )
         if usesDrawerLayout(app) { dragDrawer(in: app, to: 0.08) }
@@ -104,16 +109,24 @@ final class SuggestionRowUITests: DCUITestCase {
     /// Notify me follows the thread: the Agent says "Following.", the switch
     /// in This page is on, and the suggestion is gone.
     func testNotifyMeFollowsTheThread() {
-        let app = launch(thread)
+        // `-dc-notifications-granted`: the system permission alert is not what this test
+        // checks, and on a slow runner it raced the 60 s wait (main CI 44185565340).
+        let app = launch(thread + ["-dc-notifications-granted"])
         showAssistant(in: app)
         let follow = scrollToChip(app, "followReplies")
         follow.tap()
         let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
         let allow = springboard.buttons["Allow"]
-        if allow.waitForExistence(timeout: 3) { allow.tap() }
         let reply = app.staticTexts.matching(label(contains: "Following.")).firstMatch
-        XCTAssertTrue(waitOrDump(reply, timeout: 15, in: app), "No Following confirmation.")
-        if allow.exists { allow.tap() }
+        // A fresh simulator asks for notification permission, and the agent
+        // waits for the answer. The alert can come late on a slow runner, so
+        // tap Allow whenever it shows up while waiting for the reply.
+        let followed = wait(timeout: 60) {
+            if allow.exists { allow.tap() }
+            return reply.exists
+        }
+        if !followed { attachTree(app) }
+        XCTAssertTrue(followed, "No Following confirmation.")
         XCTAssertTrue(waitForGone(follow, timeout: 5), "Notify me stays after following.")
         captureIfRequested("suggestion-following")
 
@@ -135,7 +148,10 @@ final class SuggestionRowUITests: DCUITestCase {
         app.buttons["agentSendButton"].tap()
         let userTurn = any(app, "agentUserMessage")
         XCTAssertTrue(waitOrDump(userTurn, timeout: 15, in: app), "The search did not send to the Agent.")
-        XCTAssertTrue(app.staticTexts.matching(label(contains: "Search this forum for streaming bugs")).firstMatch.exists)
+        XCTAssertTrue(
+            app.staticTexts.matching(label(contains: "Search this forum for streaming bugs")).firstMatch.waitForExistence(timeout: 10),
+            "The sent search text is not shown in the Agent conversation."
+        )
         captureIfRequested("suggestion-search-agent")
     }
 }

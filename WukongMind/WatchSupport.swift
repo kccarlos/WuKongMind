@@ -13,14 +13,17 @@ final class WatchNotifier: NSObject, UNUserNotificationCenterDelegate, @unchecke
 
         static let system = NotificationBackend(
             authorizationStatus: {
+                if AppModel.notificationsGrantedForUITests { return .authorized }
                 guard !AppModel.isRunningTests else { return .denied }
                 return (await UNUserNotificationCenter.current().notificationSettings()).authorizationStatus
             },
             requestAuthorization: {
+                if AppModel.notificationsGrantedForUITests { return true }
                 guard !AppModel.isRunningTests else { return false }
                 return try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
             },
             add: { request in
+                if AppModel.notificationsGrantedForUITests { return }
                 guard !AppModel.isRunningTests else { return }
                 try await UNUserNotificationCenter.current().add(request)
             }
