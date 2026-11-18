@@ -170,7 +170,8 @@ final class WordPressUITests: DCUITestCase {
         capture("grouped-citations-before-jump")
         first.tap()
         let target = app.webViews.staticTexts["CITATION TARGET 5001"].firstMatch
-        XCTAssertTrue(wait(timeout: 10) { target.exists && target.isHittable && target.frame.minY > 0 && target.frame.minY < app.frame.height / 2 })
+        // Check on-screen frame before `isHittable`: `XCUIElement.isHittable` fails the test if polled while smooth-scroll still has the DOM node off-screen.
+        XCTAssertTrue(wait(timeout: 10) { target.exists && target.frame.minY > 0 && target.frame.minY < app.frame.height / 2 && target.isHittable })
         XCTAssertEqual(server.requests.filter { $0.path == "/hello-world/" }.count, before,
                        "An on-page comment must scroll without reloading")
         attachText("Target frame: \(target.frame); page loads: \(before)", named: "native citation landing")
