@@ -176,4 +176,23 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
         server.summaryReply = Self.summary(posts: 6_000)
         summarizeAndMeasure("real-page", open: url, summaryTimeout: 1_200)
     }
+
+    /// Screenshots of the drawer at medium and large heights in light and dark appearance.
+    func testCaptureDrawerScreenshots() throws {
+        guard ProcessInfo.processInfo.environment["DC_SCREENSHOT_DIR"] != nil else {
+            throw XCTSkip("Set TEST_RUNNER_DC_SCREENSHOT_DIR to capture drawer screenshots.")
+        }
+        try skipUnlessPhone("Drawer height screenshots require phone layout.")
+        let base = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US", "-dc-sample", "-dc-page-state", "topic"]
+        for detent in ["medium", "large"] {
+            for (suffix, style) in [("light", "Light"), ("dark", "Dark")] {
+                let app = launch(base + ["-dc-drawer-detent", detent, "-AppleInterfaceStyle", style])
+                XCTAssertTrue(drawerState(in: app).waitForExistence(timeout: 20))
+                XCTAssertTrue(any(app, "summaryContent").waitForExistence(timeout: 15))
+                RunLoop.current.run(until: Date().addingTimeInterval(0.8))
+                capture("drawer-\(detent)-\(suffix)")
+                app.terminate()
+            }
+        }
+    }
 }

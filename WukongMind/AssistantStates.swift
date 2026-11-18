@@ -138,6 +138,52 @@ struct AssistantForumPill: View {
 
 // MARK: - Provider setup
 
+struct ProviderSetupModel: Equatable {
+    let role: ModelRole
+    let title: String
+    let detail: String
+    let action: ModelSetupAction
+    let alternatives: [FavoriteModel]
+
+    @MainActor
+    init(app: AppModel, role: ModelRole, appleIntelligence: AppleIntelligenceStatus? = nil) {
+        self.role = role
+        let ai = appleIntelligence ?? app.appleIntelligenceStatus
+        let selection = app.selection(for: role)
+        let readiness = app.settings.readiness(for: role, appleIntelligence: ai)
+        self.action = ModelSetupAction(readiness, provider: selection.provider)
+        self.alternatives = ModelFavorites.readyAlternatives(settings: app.settings, role: role, appleIntelligence: ai)
+        if role == .browserAgent, readiness == .needsModel {
+            self.title = String(localized: "Choose a model for the agent", comment: "Browser agent setup card title when no model has been selected yet")
+        } else if role == .browserAgent, readiness == .needsKey {
+            self.title = String(localized: "\(selection.provider.displayName) needs an API key", comment: "Browser agent setup card title when the selected provider has no API key")
+        } else {
+            let model = selection.provider.isAppleIntelligence ? (ai.backend?.displayName ?? "") : selection.model
+            let summary = (role == .browserAgent && app.settings.configuredBrowserAgentModel == nil)
+                ? String(localized: "No model chosen", comment: "Settings › AI models: no browser agent model selected yet")
+                : (model.isEmpty ? selection.provider.displayName : "\(selection.provider.displayName) · \(model)")
+            self.title = String(
+                localized: "\(summary) isn’t ready",
+                comment: "Model not ready card title. The placeholder is a provider and model, e.g. Google Gemini · gemini-flash."
+            )
+        }
+        var lines: [String] = []
+        if case .appleIntelligence(let reason) = readiness {
+            lines.append(reason.title)
+        } else {
+            lines.append(String(localized: "Pick a model or add its key in Settings › AI models.", comment: "Model not ready card: how to fix it"))
+        }
+        let other = app.selection(for: role.other)
+        if other != selection, app.settings.readiness(of: other, appleIntelligence: ai) == .ready {
+            lines.append(String(
+                localized: "\(role.other.title) still works with \(other.provider.displayName).",
+                comment: "Model not ready card: the other role's model is fine. Placeholders: the role (Summaries or Agent) and a provider name."
+            ))
+        }
+        self.detail = lines.joined(separator: " ")
+    }
+}
+
 /// Shown in place of the assistant's content while the mode's model can't
 /// run (ModelSetup): what isn't ready, the one step that fixes it, and the
 /// ready favorites to switch to instead. Never a dead end: without a ready
@@ -146,68 +192,41 @@ struct ProviderSetupCard: View {
     @ObservedObject var app: AppModel
     let role: ModelRole
 
-    private var selection: ModelSelection { app.selection(for: role) }
-    private var readiness: ModelReadiness { app.readiness(for: role) }
-    private var action: ModelSetupAction { ModelSetupAction(readiness, provider: selection.provider) }
-
-    private var title: String {
-        if role == .browserAgent {
-            switch readiness {
-            case .needsModel:
-                return String(localized: "Choose a model for the agent", comment: "Browser agent setup card title when no model has been selected yet")
-            case .needsKey:
-                return String(localized: "\(selection.provider.displayName) needs an API key", comment: "Browser agent setup card title when the selected provider has no API key")
-            default:
-                break
-            }
-        }
-        return String(
-            localized: "\(app.providerSummary(for: role)) isn’t ready",
-            comment: "Model not ready card title. The placeholder is a provider and model, e.g. Google Gemini · gemini-flash."
-        )
+    var body: some View {
+        ProviderSetupCardBody(model: ProviderSetupModel(app: app, role: role), app: app).equatable()
     }
+}
 
-    private var detail: String {
-        var lines: [String] = []
-        if case .appleIntelligence(let reason) = readiness {
-            lines.append(reason.title)
-        } else {
-            lines.append(String(localized: "Pick a model or add its key in Settings › AI models.", comment: "Model not ready card: how to fix it"))
-        }
-        // The other role still works on another model: say so.
-        let other = app.selection(for: role.other)
-        if other != selection, app.isReady(other) {
-            lines.append(String(
-                localized: "\(role.other.title) still works with \(other.provider.displayName).",
-                comment: "Model not ready card: the other role's model is fine. Placeholders: the role (Summaries or Agent) and a provider name."
-            ))
-        }
-        return lines.joined(separator: " ")
+struct ProviderSetupCardBody: View, Equatable {
+    let model: ProviderSetupModel
+    let app: AppModel
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.model == rhs.model && ObjectIdentifier(lhs.app) == ObjectIdentifier(rhs.app)
     }
 
     var body: some View {
-        let alternatives = app.readyAlternatives(for: role)
         VStack(alignment: .leading, spacing: 12) {
-            Text(title)
+            Text(model.title)
                 .font(.headline)
                 .fixedSize(horizontal: false, vertical: true)
-            Text(detail)
+            Text(model.detail)
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
             Button(action: perform) {
-                Text(action.title)
+                Text(model.action.title)
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(DCActionButtonStyle(prominent: true))
             .accessibilityIdentifier("providerSetupButton")
-            if !alternatives.isEmpty {
+            if !model.alternatives.isEmpty {
                 Text("Or switch to one that’s ready", comment: "Model not ready card: heading above the ready favorite models")
                     .font(.footnote.weight(.semibold))
                     .foregroundStyle(.secondary)
-                ForEach(alternatives) { favorite in
+                ForEach(model.alternatives) { favorite in
                     Button {
-                        app.activateFavorite(favorite, for: role)
+                        app.activateFavorite(favorite, for: model.role)
                     } label: {
                         HStack(spacing: 8) {
                             Text(favorite.title)
@@ -234,7 +253,7 @@ struct ProviderSetupCard: View {
                     .accessibilityIdentifier("readyModel-\(favorite.id)")
                 }
             }
-            if action != .aiModels {
+            if model.action != .aiModels {
                 Button("AI models…") { app.requestedSettingsPage = .provider }
                     .font(.subheadline)
                     .frame(minHeight: DCTheme.controlHeight)
@@ -252,7 +271,7 @@ struct ProviderSetupCard: View {
     }
 
     private func perform() {
-        app.perform(action, for: role)
+        app.perform(model.action, for: model.role)
     }
 }
 

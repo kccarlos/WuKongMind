@@ -1,3 +1,4 @@
+import Combine
 import SwiftUI
 import UIKit
 import XCTest
@@ -232,5 +233,158 @@ final class DrawerRenderCountTests: XCTestCase {
         XCTAssertEqual(cache.stripped("one #3 two"), PostCitations.stripped("one #3 two"))
         XCTAssertEqual(cache.stripped("three (#4)."), PostCitations.stripped("three (#4)."))
         XCTAssertEqual(cache.stripped(""), "")
+    }
+
+    // MARK: The drawer observes what it draws (task 3)
+
+    func testUnrelatedAppAndBrowserPublishesEvaluateNoRunSectionsOrSummaryRows() throws {
+        let app = DrawerPerformanceTests.makeApp(
+            .init(name: "observe-slice", sourcePosts: 200, summarySections: 10, runs: 5, shapePosts: 100)
+        )
+        let topicURL = try XCTUnwrap(app.currentTopic?.url)
+        _ = try app.scriptStore.importUserScript(
+            """
+            // ==UserScript==
+            // @name         Meta Reader
+            // @match        https://meta.discourse.org/*
+            // ==/UserScript==
+            void 0;
+            """
+        )
+        app.browser.simulatePageUpdateForTesting(url: topicURL, title: "Layout jumps after rotation")
+
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        PerfProbe.reset()
+        let host = UIHostingController(rootView: AnyView(
+            AssistantPanel(app: app, onExpand: { _ in }).environment(\.colorScheme, .light)
+        ))
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        host.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.4))
+
+        let opened = PerfProbe.snapshot
+        XCTAssertGreaterThan(opened.counts["DrawerHeader.body"] ?? 0, 0)
+        XCTAssertGreaterThan(opened.counts["DrawerSummary.body"] ?? 0, 0)
+        XCTAssertGreaterThan(opened.counts["DrawerSummarySections.body"] ?? 0, 0)
+        XCTAssertGreaterThan(opened.counts["MarkdownBlockView.body"] ?? 0, 0)
+        XCTAssertEqual(opened.counts["BrowserAgentRunsView.runSection"] ?? 0, 5)
+        XCTAssertEqual(opened.counts["BrowserAgentRunsView.timeline"] ?? 0, 1)
+        XCTAssertEqual(opened.counts["BrowserAgentRunsView.forumSources"] ?? 0, 5)
+        XCTAssertEqual(opened.counts["AssistantPanel.matchingPageScripts"] ?? 0, 1)
+
+        var browserPublishes = 0
+        let cancellable = app.browser.objectWillChange.sink { browserPublishes += 1 }
+        defer { _ = cancellable }
+
+        // 1. Unrelated AppModel publishes skip run sections, summary rows, header and caches.
+        PerfProbe.reset()
+        for index in 0..<5 {
+            app.discoveredModels = [.openAI: [DiscoveredModel(id: "tick-\(index)")]]
+            app.savedAnswerRunID = UUID()
+            CATransaction.flush()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+        let appPublish = PerfProbe.snapshot
+        for name in [
+            "BrowserAgentRunsView.runSection", "DrawerSummarySections.body", "MarkdownBlockView.body",
+            "DrawerSummary.body", "DrawerHeader.body", "ChatThread.body", "BrowserAgentRunsView.body",
+            "DrawerSummarySections.parsed", "AssistantPanel.strippedSummary", "AssistantPanel.exportDisabled",
+            "BrowserAgentRunsView.timeline", "BrowserAgentRunsView.forumSources", "AssistantPanel.matchingPageScripts"
+        ] {
+            XCTAssertEqual(appPublish.counts[name] ?? 0, 0, "\(name) ran on an unrelated AppModel publish")
+        }
+
+        // 2. Browser publishes that change no DrawerPageFacts publish zero facts and evaluate nothing in the drawer.
+        browserPublishes = 0
+        PerfProbe.reset()
+        app.browser.simulatePageUpdateForTesting(url: topicURL, title: "Layout jumps after rotation")
+        app.browser.setSystemKeyboardVisible(true)
+        app.browser.setSystemKeyboardVisible(false)
+        app.browser.setEditingAddress(true)
+        app.browser.setEditingAddress(false)
+        app.browser.homeSiteURL = "https://example.com"
+        app.browser.homeSiteURL = DrawerPerformanceTests.siteURL
+        app.browser.dismissCrashNotice()
+        CATransaction.flush()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+
+        let browserPublish = PerfProbe.snapshot
+        XCTAssertGreaterThanOrEqual(browserPublishes, 6, "Expected ForumBrowserModel to publish")
+        XCTAssertEqual(browserPublish.counts["publish.DrawerPageFacts"] ?? 0, 0, "DrawerPageFacts republished without changing")
+        for name in [
+            "AssistantPanel.body", "BrowserAgentRunsView.runSection", "DrawerSummarySections.body",
+            "MarkdownBlockView.body", "DrawerSummary.body", "DrawerHeader.body", "ChatThread.body",
+            "BrowserAgentRunsView.timeline", "BrowserAgentRunsView.forumSources", "AssistantPanel.matchingPageScripts"
+        ] {
+            XCTAssertEqual(browserPublish.counts[name] ?? 0, 0, "\(name) ran on a browser publish that changed no drawer fact")
+        }
+
+        // 3. Changing URL updates DrawerPageFacts once and recomputes script matches once, while run sections and summary stay untouched.
+        let otherURL = try XCTUnwrap(URL(string: "https://meta.discourse.org/t/another-topic/999"))
+        PerfProbe.reset()
+        app.browser.simulatePageUpdateForTesting(url: otherURL, title: "Another topic")
+        app.browser.simulatePageUpdateForTesting(url: otherURL, title: "Another topic retitled")
+        CATransaction.flush()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+
+        let urlChange = PerfProbe.snapshot
+        XCTAssertEqual(urlChange.counts["publish.DrawerPageFacts"] ?? 0, 1)
+        XCTAssertEqual(urlChange.counts["AssistantPanel.matchingPageScripts"] ?? 0, 1)
+        XCTAssertEqual(urlChange.counts["BrowserAgentRunsView.runSection"] ?? 0, 0)
+        XCTAssertEqual(urlChange.counts["MarkdownBlockView.body"] ?? 0, 0)
+    }
+
+    func testConversationSummaryCardSkipsRowsAndRunSectionsOnUnrelatedPublishes() throws {
+        let app = DrawerPerformanceTests.makeApp(
+            .init(name: "card-summary", sourcePosts: 100, summarySections: 8, runs: 2, shapePosts: 50)
+        )
+        let topicURL = try XCTUnwrap(app.currentTopic?.url)
+        app.browser.simulatePageUpdateForTesting(url: topicURL, title: "Layout jumps after rotation")
+        var saved = SavedAgentConversation(
+            messages: app.browserAgent.messages, runs: app.browserAgent.runs,
+            toolCalls: app.browserAgent.toolCalls, runState: app.browserAgent.runState,
+            tokenUsage: app.browserAgent.tokenUsage, history: []
+        )
+        saved.runs[saved.runs.count - 1].toolCalls[0].toolName = "summarize_topic"
+        saved.runs[saved.runs.count - 1].toolCalls[0].resultText = app.currentSession?.summary ?? ""
+        app.browserAgent.restoreConversation(saved)
+
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        let host = UIHostingController(rootView: AnyView(
+            AssistantPanel(app: app, onExpand: { _ in }).environment(\.colorScheme, .light)
+        ))
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        host.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.4))
+        XCTAssertGreaterThan(PerfProbe.snapshot.counts["MarkdownBlockView.body"] ?? 0, 0)
+        XCTAssertEqual(PerfProbe.snapshot.counts["BrowserAgentRunsView.runSection"] ?? 0, 2)
+
+        PerfProbe.reset()
+        app.discoveredModels = [.anthropic: [DiscoveredModel(id: "claude-tick")]]
+        app.browser.simulatePageUpdateForTesting(url: topicURL, title: "Layout jumps after rotation")
+        app.browser.setSystemKeyboardVisible(true)
+        CATransaction.flush()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+
+        let after = PerfProbe.snapshot
+        for name in ["BrowserAgentRunsView.runSection", "DrawerSummarySections.body", "MarkdownBlockView.body", "DrawerSummary.body"] {
+            XCTAssertEqual(after.counts[name] ?? 0, 0, "\(name) ran on an unrelated publish with a conversation summary card")
+        }
     }
 }

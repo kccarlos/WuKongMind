@@ -310,6 +310,7 @@ private struct PhoneBarObserverHost: View {
     }
 
     private func updateSystemKeyboardVisibility(from notification: Notification, isHideNotification: Bool) {
+        guard (notification.userInfo?[UIResponder.keyboardIsLocalUserInfoKey] as? Bool) != false else { return }
         if isHideNotification {
             browser.setSystemKeyboardVisible(false)
             return

@@ -311,7 +311,7 @@ struct ExportedTaskFile: Identifiable { let url: URL; var id: URL { url } }
 /// ⋯ › Export task and Audit log › task › Export: the alert, the export, the refusal message and
 /// the share sheet. Set `taskID` to start.
 struct TaskExportPrompt: ViewModifier {
-    @ObservedObject var app: AppModel
+    let app: AppModel
     @Binding var taskID: String?
     @State private var file: ExportedTaskFile?
     @State private var failure: String?

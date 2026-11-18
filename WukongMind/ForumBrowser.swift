@@ -19,6 +19,30 @@ import WebKit
 /// - The browser bridge (BrowseBridge.swift): `scrollToPost`, `highlight`,
 ///   `clearHighlight`, `postsOnScreen`, `postText`; the posts on screen
 ///   arrive in `pageContext` (`visiblePosts`, `highlightedPosts`).
+/// The browser facts the AI drawer reads (design-performance-and-state.md, task 3).
+struct DrawerPageFacts: Equatable, Sendable {
+    var url: URL?
+    var host: String?
+    var showsHome = true
+    var isLoading = false
+    var pageState: PageContext.State = .loading
+    var pageSiteURL: String?
+    var looksLikeThread = false
+}
+
+/// Publishes `DrawerPageFacts` only when it changes so progress, scroll, focus
+/// and back/forward updates on `ForumBrowserModel` never invalidate the drawer.
+@MainActor
+final class DrawerPageFactsStore: ObservableObject {
+    @Published private(set) var facts = DrawerPageFacts()
+
+    fileprivate func update(_ next: DrawerPageFacts) {
+        guard next != facts else { return }
+        PerfProbe.hit("publish.DrawerPageFacts")
+        facts = next
+    }
+}
+
 @MainActor
 final class ForumBrowserModel: NSObject, ObservableObject {
     private static let routeMessageName = "dcRouteChanged"
@@ -35,14 +59,21 @@ final class ForumBrowserModel: NSObject, ObservableObject {
           const probe = \(probeExpression);
           let notificationTimer;
           let factsPosted = false;
+          let lastUrl;
+          let lastTitle;
           const publishRoute = () => {
             // The head is not parsed yet while loading; probing then would
             // report every page as "not a forum".
             const sendFacts = document.readyState !== "loading" && !factsPosted;
+            const url = window.location.href;
+            const title = document.title || "";
+            if (!sendFacts && url === lastUrl && title === lastTitle) return;
             if (sendFacts) factsPosted = true;
+            lastUrl = url;
+            lastTitle = title;
             window.webkit?.messageHandlers?.dcRouteChanged?.postMessage({
-              url: window.location.href,
-              title: document.title || "",
+              url,
+              title,
               probe: sendFacts ? probe() : null
             });
           };
@@ -183,25 +214,38 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     })();
     """
 
-    @Published private(set) var currentURL: URL?
-    @Published private(set) var pageTitle = ForumBrowserModel.defaultPageTitle
-    @Published private(set) var isLoading = false
-    @Published private(set) var canGoBack = false
-    @Published private(set) var canGoForward = false
-    @Published private(set) var isAuthenticated = false
+    @Published private(set) var currentURL: URL? {
+        didSet {
+            PerfProbe.hit("publish.browser.currentURL")
+            syncDrawerFacts()
+        }
+    }
+    @Published private(set) var pageTitle = ForumBrowserModel.defaultPageTitle { didSet { PerfProbe.hit("publish.browser.pageTitle") } }
+    @Published private(set) var isLoading = false {
+        didSet {
+            PerfProbe.hit("publish.browser.isLoading")
+            syncDrawerFacts()
+        }
+    }
+    @Published private(set) var canGoBack = false { didSet { PerfProbe.hit("publish.browser.canGoBack") } }
+    @Published private(set) var canGoForward = false { didSet { PerfProbe.hit("publish.browser.canGoForward") } }
+    @Published private(set) var isAuthenticated = false { didSet { PerfProbe.hit("publish.browser.isAuthenticated") } }
     /// The signed-in user's name when the forum's page reports it (memory
     /// only; never saved or synced).
-    @Published private(set) var signedInUsername: String?
+    @Published private(set) var signedInUsername: String? { didSet { PerfProbe.hit("publish.browser.signedInUsername") } }
     /// Safari-style chrome: derived from `barProgress` with 0.6 / 0.4 hysteresis.
-    @Published private(set) var isChromeMinimized = false
+    @Published private(set) var isChromeMinimized = false { didSet { PerfProbe.hit("publish.browser.isChromeMinimized") } }
     /// Whether the browser address field is currently being edited.
-    @Published private(set) var isEditingAddress = false
+    @Published private(set) var isEditingAddress = false { didSet { PerfProbe.hit("publish.browser.isEditingAddress") } }
     /// Whether an editable form control inside the web page currently owns focus.
-    @Published private(set) var isPageFormInputFocused = false
+    @Published private(set) var isPageFormInputFocused = false { didSet { PerfProbe.hit("publish.browser.isPageFormInputFocused") } }
     /// Whether UIKit's software keyboard or input-assistant bar currently overlaps the screen.
-    @Published private(set) var isSystemKeyboardVisible = false
+    @Published private(set) var isSystemKeyboardVisible = false { didSet { PerfProbe.hit("publish.browser.isSystemKeyboardVisible") } }
     /// Additional page-keyboard freeze signal reported by the UIKit/SwiftUI keyboard observers.
     private var isExternalKeyboardFrozen = false
+    /// Dedicated publisher of the small slice of page facts the AI drawer reads.
+    let drawerFacts = DrawerPageFactsStore()
+    var drawerPageFacts: DrawerPageFacts { drawerFacts.facts }
     /// Dedicated live progress publisher (`0` expanded … `1` collapsed) observed only by the morphing bar.
     let barProgressModel = BrowserBarProgressModel()
     var barProgress: CGFloat { barProgressModel.progress }
@@ -213,15 +257,25 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// Scroll-driven morph state and `WKWebView.scrollView` delegate coordinator.
     let barMorph = BrowserBarScrollCoordinator()
     /// What the assistant knows about the current page.
-    @Published private(set) var pageContext = PageContext.empty
+    @Published private(set) var pageContext = PageContext.empty {
+        didSet {
+            PerfProbe.hit("publish.browser.pageContext")
+            syncDrawerFacts()
+        }
+    }
     /// The current forum: the last Discourse forum shown (or opened by the app).
     /// Home and relative addresses resolve against it.
-    @Published var homeSiteURL: String?
+    @Published var homeSiteURL: String? { didSet { PerfProbe.hit("publish.browser.homeSiteURL") } }
     /// Page load progress (0…1) from WKWebView, for the bar's progress line.
-    @Published private(set) var estimatedProgress: Double = 0
+    @Published private(set) var estimatedProgress: Double = 0 { didSet { PerfProbe.hit("publish.browser.estimatedProgress") } }
     /// Home is requested over the current page (the forum menu's Home, the
     /// launch rule). Any navigation clears it.
-    @Published private(set) var isForumsHomeRequested = false
+    @Published private(set) var isForumsHomeRequested = false {
+        didSet {
+            PerfProbe.hit("publish.browser.isForumsHomeRequested")
+            syncDrawerFacts()
+        }
+    }
     /// Home was shown over a load already under way (the restored forum at
     /// launch): that load's start doesn't dismiss it. Ends when the load
     /// finishes or fails, or with the next explicit load.
@@ -240,9 +294,9 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     #endif
     /// The page's web content process quit repeatedly; auto-reload paused
     /// and the page shows a small Reload banner.
-    @Published private(set) var showsCrashNotice = false
+    @Published private(set) var showsCrashNotice = false { didSet { PerfProbe.hit("publish.browser.showsCrashNotice") } }
     /// "This page wants to open <app>": a small banner, never a modal.
-    @Published private(set) var appOpenPrompt: AppOpenPrompt?
+    @Published private(set) var appOpenPrompt: AppOpenPrompt? { didSet { PerfProbe.hit("publish.browser.appOpenPrompt") } }
     /// Set by AppModel from Settings.
     var linkSettings = LinkSettings()
     /// When the web content process last quit (auto-reload once per window).
@@ -260,6 +314,21 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// page has been loaded yet.
     var showsForumsHome: Bool { isForumsHomeRequested || currentURL == nil }
 
+    private func syncDrawerFacts() {
+        let home = showsForumsHome
+        let url = home ? nil : (currentURL ?? pageContext.url)
+        let host = url?.host.flatMap { $0.isEmpty ? nil : $0 }
+        drawerFacts.update(DrawerPageFacts(
+            url: url,
+            host: host,
+            showsHome: home,
+            isLoading: isLoading,
+            pageState: pageContext.state,
+            pageSiteURL: pageContext.siteURL,
+            looksLikeThread: pageContext.looksLikeThread
+        ))
+    }
+
     /// `overPendingLoad`: keep Home up while a load issued earlier (the
     /// restored forum) starts.
     func showForumsHome(overPendingLoad: Bool = false) {
@@ -276,7 +345,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
 
     /// Incremented by `focusAddressBar()` (⌘L) so `AddressEditBar` focuses its
     /// field directly even inside a `NavigationStack` overlay.
-    @Published private(set) var addressFocusRequest = 0
+    @Published private(set) var addressFocusRequest = 0 { didSet { PerfProbe.hit("publish.browser.addressFocusRequest") } }
 
     func setEditingAddress(_ editing: Bool) {
         if editing {
@@ -344,7 +413,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
 
     /// Whether this tab currently has an allocated `WKWebView` (false for lazy-restored
     /// background tabs and idle tabs unloaded under memory pressure).
-    @Published private(set) var isWebViewLoaded: Bool
+    @Published private(set) var isWebViewLoaded: Bool { didSet { PerfProbe.hit("publish.browser.isWebViewLoaded") } }
     /// Last known scroll offset of the page (preserved across lazy restore and memory-pressure unload;
     /// non-`@Published` so KVO scroll ticks do not republish `ForumBrowserModel` every frame).
     private(set) var scrollPosition: CGPoint = .zero
@@ -470,6 +539,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         if !startsUnloaded {
             _ = buildAndAttachWebView(popupConfiguration: popupConfiguration)
         }
+        syncDrawerFacts()
     }
 
     @discardableResult
@@ -1137,6 +1207,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
             return
         }
         if let probe {
+            PerfProbe.hit("publish.browser.caller.routeMessageProbe")
             // Facts a previous document posted just before it was replaced can
             // arrive while a new load is in flight or after didCommit cleared
             // them: only the shown page's own address may set them then.
@@ -1145,9 +1216,12 @@ final class ForumBrowserModel: NSObject, ObservableObject {
             }
             lastFacts = PageFacts(probe: probe, fallbackURL: url)
         } else if lastFacts != nil {
+            PerfProbe.hit("publish.browser.caller.routeMessageRouteOnly")
             // Another route of the same document: its facts still hold.
             lastFacts?.url = url
             lastFacts?.title = title
+        } else {
+            PerfProbe.hit("publish.browser.caller.routeMessageNoFacts")
         }
         updateNavigationState(url: url, title: title)
     }
@@ -1274,28 +1348,43 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         showsCrashNotice = false
     }
 
+    #if DEBUG
+    func simulatePageUpdateForTesting(url: URL? = nil, title: String? = nil) {
+        hideForumsHome()
+        updateNavigationState(url: url, title: title)
+    }
+    #endif
+
     private func updateNavigationState(
         url: URL? = nil,
         title: String? = nil
     ) {
+        PerfProbe.hit("publish.browser.caller.updateNavigationState")
         let resolvedURL: URL?
         let resolvedTitle: String?
+        let nextBack: Bool
+        let nextForward: Bool
+        let nextLoading: Bool
         if let liveWebView = allocatedWebView {
             resolvedURL = url ?? liveWebView.url
             resolvedTitle = title ?? liveWebView.title
-            canGoBack = liveWebView.canGoBack
-            canGoForward = liveWebView.canGoForward
-            isLoading = liveWebView.isLoading
+            nextBack = liveWebView.canGoBack
+            nextForward = liveWebView.canGoForward
+            nextLoading = liveWebView.isLoading
         } else {
             resolvedURL = url ?? currentURL
             resolvedTitle = title ?? pageTitle.nonEmpty
-            canGoBack = false
-            canGoForward = false
-            isLoading = false
+            nextBack = false
+            nextForward = false
+            nextLoading = false
         }
-        currentURL = resolvedURL
-        pageTitle = resolvedTitle?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if canGoBack != nextBack { canGoBack = nextBack }
+        if canGoForward != nextForward { canGoForward = nextForward }
+        if isLoading != nextLoading { isLoading = nextLoading }
+        if currentURL != resolvedURL { currentURL = resolvedURL }
+        let nextTitle = resolvedTitle?.trimmingCharacters(in: .whitespacesAndNewlines)
             .nonEmpty ?? Self.defaultPageTitle
+        if pageTitle != nextTitle { pageTitle = nextTitle }
         barMorph.setLoading(isLoading)
 
         let made = PageContext.make(
@@ -1793,10 +1882,17 @@ struct ForumWebView: UIViewRepresentable {
 @MainActor
 final class BrowserTabsWebHostView: UIView {
     private weak var tabs: BrowserTabs?
+    private weak var router: PresentationRouter?
     private weak var observedBrowser: ForumBrowserModel?
     private var showsCurrentWebViewOverride: Bool?
     private var cancellables: Set<AnyCancellable> = []
     private var currentBrowserHomeCancellable: AnyCancellable?
+    private var routerCancellable: AnyCancellable?
+
+    private var hidesCurrentWebViewAccessibility: Bool {
+        guard let router, let browser = observedBrowser else { return false }
+        return router.usesDrawer && router.drawerPhase == .shown && router.drawerDetent == .large && browser.isSystemKeyboardVisible
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -1814,10 +1910,19 @@ final class BrowserTabsWebHostView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 
-    func bind(tabs: BrowserTabs, showsCurrentWebView: Bool? = nil) {
+    func bind(tabs: BrowserTabs, router: PresentationRouter? = nil, showsCurrentWebView: Bool? = nil) {
         let tabsChanged = self.tabs !== tabs
+        let routerChanged = self.router !== router
         self.tabs = tabs
+        self.router = router
         self.showsCurrentWebViewOverride = showsCurrentWebView
+        if routerChanged {
+            routerCancellable = router.map { r in
+                Publishers.CombineLatest3(r.$splitLayout, r.$drawerPhase, r.$drawerDetent)
+                    .dropFirst()
+                    .sink { [weak self] _, _, _ in self?.syncCurrentWebViewAccessibility() }
+            }
+        }
         if tabsChanged {
             cancellables.removeAll()
             currentBrowserHomeCancellable = nil
@@ -1872,12 +1977,13 @@ final class BrowserTabsWebHostView: UIView {
 
         if observedBrowser !== currentTab.browser {
             observedBrowser = currentTab.browser
-            currentBrowserHomeCancellable = Publishers.CombineLatest(
+            currentBrowserHomeCancellable = Publishers.CombineLatest3(
                 currentTab.browser.$isForumsHomeRequested,
-                currentTab.browser.$currentURL
+                currentTab.browser.$currentURL,
+                currentTab.browser.$isSystemKeyboardVisible
             )
             .dropFirst()
-            .sink { [weak self, weak currentTab] isHomeRequested, currentURL in
+            .sink { [weak self, weak currentTab] isHomeRequested, currentURL, _ in
                 guard let self, let currentTab, self.observedBrowser === currentTab.browser else { return }
                 let isHome = isHomeRequested || currentURL == nil
                 let visible = self.showsCurrentWebViewOverride ?? !isHome
@@ -1885,7 +1991,7 @@ final class BrowserTabsWebHostView: UIView {
                     webView.isHidden = false
                     webView.alpha = visible ? 1 : 0
                     webView.isUserInteractionEnabled = visible
-                    webView.accessibilityElementsHidden = !visible
+                    webView.accessibilityElementsHidden = !visible || self.hidesCurrentWebViewAccessibility
                 }
             }
         }
@@ -1920,8 +2026,17 @@ final class BrowserTabsWebHostView: UIView {
         currentWebView.isHidden = false
         currentWebView.alpha = isCurrentVisible ? 1 : 0
         currentWebView.isUserInteractionEnabled = isCurrentVisible
-        currentWebView.accessibilityElementsHidden = !isCurrentVisible
+        currentWebView.accessibilityElementsHidden = !isCurrentVisible || hidesCurrentWebViewAccessibility
         bringSubviewToFront(currentWebView)
+    }
+
+    private func syncCurrentWebViewAccessibility() {
+        guard let tabs,
+              let currentTab = tabs.tabs.first(where: { $0.id == tabs.currentTabID }) ?? tabs.tabs.first,
+              let webView = currentTab.browser.existingWebView,
+              webView.superview === self else { return }
+        let visible = showsCurrentWebViewOverride ?? !currentTab.showsHome
+        webView.accessibilityElementsHidden = !visible || hidesCurrentWebViewAccessibility
     }
 
     private func attachIfNeeded(_ webView: WKWebView) {
@@ -1940,16 +2055,17 @@ final class BrowserTabsWebHostView: UIView {
 
 struct BrowserTabsWebHost: UIViewRepresentable {
     @ObservedObject var tabs: BrowserTabs
+    var router: PresentationRouter? = nil
     var showsCurrentWebView: Bool? = nil
 
     func makeUIView(context: Context) -> BrowserTabsWebHostView {
         let view = BrowserTabsWebHostView()
-        view.bind(tabs: tabs, showsCurrentWebView: showsCurrentWebView)
+        view.bind(tabs: tabs, router: router, showsCurrentWebView: showsCurrentWebView)
         return view
     }
 
     func updateUIView(_ uiView: BrowserTabsWebHostView, context: Context) {
-        uiView.bind(tabs: tabs, showsCurrentWebView: showsCurrentWebView)
+        uiView.bind(tabs: tabs, router: router, showsCurrentWebView: showsCurrentWebView)
     }
 }
 

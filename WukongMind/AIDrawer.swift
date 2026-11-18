@@ -252,7 +252,7 @@ struct AIDrawerCoordinator: ViewModifier {
 }
 
 private struct AIDrawerContent: View {
-    @ObservedObject var app: AppModel
+    let app: AppModel
     @ObservedObject var router: PresentationRouter
     let onOpenURL: (URL) -> Void
     @State private var bottomInset: CGFloat = 0
@@ -271,11 +271,11 @@ private struct AIDrawerContent: View {
             if focused { setDetent(.large) }
         })
         // Manage and Settings need the room.
-        .onChange(of: app.panelRoute, initial: true) {
-            if app.panelRoute != .topic { setDetent(.large) }
+        .onReceive(app.$panelRoute.removeDuplicates()) { route in
+            if route != .topic { setDetent(.large) }
         }
         // Open on a topic: the hint row's first-run tip has done its job.
-        .onChange(of: app.assistantPageState == .topic, initial: true) { _, onTopic in
+        .onReceive(app.$currentTopic.map { $0 != nil }.removeDuplicates()) { onTopic in
             if onTopic { router.summarizeTipSeen() }
         }
         // VoiceOver's escape (two-finger scrub) closes the drawer.
@@ -290,7 +290,10 @@ private struct AIDrawerContent: View {
         }
         #endif
         .ignoresSafeArea(.container, edges: .bottom)
-        .onAppear { bottomInset = Self.windowBottomInset() }
+        .onAppear {
+            bottomInset = Self.windowBottomInset()
+            if app.assistantPageState == .topic { router.summarizeTipSeen() }
+        }
     }
 
     private func setDetent(_ detent: DrawerDetent) {
