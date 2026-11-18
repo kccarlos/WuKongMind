@@ -26,6 +26,22 @@ The owner's report (TestFlight 1.5.0, iPhone): on very long threads the drawer i
 - The timer wraps the run loop pass that renders the action (it wakes first and sleeps last, so Core Animation's commit is inside). Idle reads 0.1 ms.
 - No model is called anywhere. On the real page the comments come from the site and the summary text from the fixture model. Nothing is saved (`-dc-fixture-model` launches never write).
 - **All phone numbers are a Debug build** on the owner's iPhone 13. TestFlight is optimized and will be faster in absolute terms; the ratios and the counts are what carry over. Simulator numbers (Mac mini) are noisier and several times faster, so targets below are set on the phone.
+### After task 2 (WUKO-142, 2026-11-17)
+
+The composer owns its draft: `AssistantFooter` holds the draft, focus, dictation and the "Done" hold; the panel reaches the box through `ComposerDrafts.perform`. iPhone 13, Debug, hosted harness (`DrawerPerformanceTests`), keystroke median:
+
+| Fixture | Before (task 1) | After |
+|---|---|---|
+| `baseline` | 37 ms | 13.6 ms |
+| `source-6000` | 37 ms | 14.6 ms |
+| `all-6000` | 59 ms | 23.2 ms |
+| `runs-20` / `runs-60` | not recorded | 21.1 / 27.9 ms |
+| composer alone | 7 ms | 5 to 8 ms |
+
+- `AssistantPanel`, `ChatThread` and run-section bodies: 0 evaluations per keystroke on every fixture (`DrawerRenderCountTests` asserts it).
+- **Target missed:** at most 12 ms on every fixture. `baseline` is 13.6 ms and the run fixtures grow with the number of runs (21 to 28 ms) although no body runs: it is UIKit layout and accessibility work over the eager transcript, which task 6 (lazy transcript) addresses. The real-thread test was not re-run here.
+- Leaving the Agent route (History) now closes the microphone and parks the draft; it comes back on return.
+
 - How to run each: [DEVELOPMENT.md, "Performance measurements"](../DEVELOPMENT.md#performance-measurements).
 
 ### The real thread, on the iPhone 13

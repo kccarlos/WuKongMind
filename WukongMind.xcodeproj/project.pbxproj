@@ -505,6 +505,7 @@
 		A8AAA62AC8C54276CF0E2C2B121C9BDB /* CapabilityToolsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9A9A51D1AC93A59F420D663180340FE /* CapabilityToolsTests.swift */; };
 		A969F67BF94DFDEBCCE04F3397C515CA /* gate2-wordpress-www-doctorofcredit-com-wp-json-wp-v2-fe9c2b8223f0.json in Resources */ = {isa = PBXBuildFile; fileRef = 0035947958F33A223B66A37A71AD5AAD /* gate2-wordpress-www-doctorofcredit-com-wp-json-wp-v2-fe9c2b8223f0.json */; };
 		A9FB724BE5BD75C5B55788BAED084CEA /* discourse-meta-appinn-net-t-95048-json-0d20549a31c7.json in Resources */ = {isa = PBXBuildFile; fileRef = 67B017D9BC5C26EEFE80CF0942F2C376 /* discourse-meta-appinn-net-t-95048-json-0d20549a31c7.json */; };
+		AA20E9604FC731094C70C4477DBFDB65 /* AssistantFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59D786D9BD6856EA38A3C9B2F030D262 /* AssistantFooter.swift */; };
 		AAA41970AE39D2D07CA89A697B83E6D0 /* BrowseCursor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8200158B6FBD4EDE4A883F946FEBE8 /* BrowseCursor.swift */; };
 		AB067D509101AA7A3CCDDBFC9BCAC8E1 /* ScriptImport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08DE591CE73851B45E4E6102B95DCB28 /* ScriptImport.swift */; };
 		AB0A82A3FA1D979FCF836B2D082572AC /* forum-discourse.html in Resources */ = {isa = PBXBuildFile; fileRef = A28BA2BCD352CD5BDC4F4DF2ADA247FA /* forum-discourse.html */; };
@@ -1081,6 +1082,7 @@
 		580CF74E1CE2A559EF49D8CBA530FDC2 /* WorkProgressTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WorkProgressTests.swift; sourceTree = "<group>"; };
 		58EE6F96B857C22BAE05990D741B70F9 /* page-06.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-06.html"; path = "Fixtures/CrawlForum/page-06.html"; sourceTree = "<group>"; };
 		5992A3F11BE7FAB5A86A3D1CC11D73F8 /* run-W4.summaries.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "run-W4.summaries.json"; path = "Fixtures/Comparison/runs/run-W4.summaries.json"; sourceTree = "<group>"; };
+		59D786D9BD6856EA38A3C9B2F030D262 /* AssistantFooter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = AssistantFooter.swift; sourceTree = "<group>"; };
 		59FAD3D5D15489903D83D5B615AA8882 /* run-D5.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "run-D5.json"; path = "Fixtures/Comparison/runs/run-D5.json"; sourceTree = "<group>"; };
 		5ACA7784FE476DE1CA9B8F0AD26BDE68 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-ad65d76325c2.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-ad65d76325c2.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-ad65d76325c2.json"; sourceTree = "<group>"; };
 		5B3AC1550C9C79631F847269BA441AFF /* DiscourseDOM.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseDOM.swift; path = Sites/Discourse/DiscourseDOM.swift; sourceTree = "<group>"; };
@@ -1721,6 +1723,7 @@
 				37B7C4A8F1E744C320353A14561284FD /* AppleIntelligenceService.swift */,
 				61DA3881776399CAAB6793DF9DD23D6A /* AppleIntelligenceViews.swift */,
 				3302DDE3E18BFF284368ADF0CD0D7186 /* AskBox.swift */,
+				59D786D9BD6856EA38A3C9B2F030D262 /* AssistantFooter.swift */,
 				B47098DBDFDEC1EFEAF31D1EE7DADF2E /* AssistantStates.swift */,
 				DCC96B0B15ABBA1833976793DA741DF3 /* AuditLog.swift */,
 				6ED1AAAF513023410772C0B62F46BD93 /* BrandMark.swift */,
@@ -3212,6 +3215,7 @@
 				2C809D61CB17E02314FDA3989BEFE136 /* AppleIntelligenceService.swift in Sources */,
 				0CAC5339C99B0AE4A7AD017AB492797F /* AppleIntelligenceViews.swift in Sources */,
 				F2E9A1F99EB8604C1A9E2A892F49E02C /* AskBox.swift in Sources */,
+				AA20E9604FC731094C70C4477DBFDB65 /* AssistantFooter.swift in Sources */,
 				1B75A55B0DDDA0E6FF4EB3004ECE6187 /* AssistantStates.swift in Sources */,
 				A103CC5EC320FA78DC7745C20400B03A /* AuditLog.swift in Sources */,
 				397889ED41D11F2B002355CD9C8E5AF1 /* BrandMark.swift in Sources */,
