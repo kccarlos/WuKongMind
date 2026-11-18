@@ -306,12 +306,30 @@ final class RouteObserverWebKitTests: XCTestCase {
         return WKWebView(frame: CGRect(x: 0, y: 0, width: 320, height: 480), configuration: configuration)
     }
 
-    private func waitUntil(_ what: String, _ condition: () -> Bool) async throws {
-        for _ in 0..<100 {
-            if condition() { return }
+    private struct WaitTimedOut: Error, CustomStringConvertible {
+        let what: String
+        let detail: String
+        var description: String { "Timed out waiting for \(what). \(detail)" }
+    }
+
+    /// Polls `condition` until it holds. WebKit starts a fresh web-content
+    /// process for each web view, and on a loaded CI runner that can take far
+    /// longer than a local run, so the budget is generous: a passing run never
+    /// waits on it. A timeout throws (instead of failing and carrying on, which
+    /// piled follow-up failures onto the first) and says what the page was doing.
+    private func waitUntil(
+        _ what: String,
+        detail: @autoclosure () -> String = "",
+        timeout: Duration = .seconds(45),
+        _ condition: () -> Bool
+    ) async throws {
+        let deadline = ContinuousClock.now + timeout
+        while !condition() {
+            if ContinuousClock.now >= deadline {
+                throw WaitTimedOut(what: what, detail: detail())
+            }
             try await Task.sleep(for: .milliseconds(50))
         }
-        XCTFail("Timed out waiting for \(what)")
     }
 
     func testFactsArriveOncePerDocumentAndLaterRoutesCarryOnlyTheURL() async throws {
@@ -355,6 +373,12 @@ final class RouteObserverWebKitTests: XCTestCase {
         XCTAssertFalse(DiscourseSession().session(from: again).authenticated)
     }
 
+    private static func describe(_ browser: ForumBrowserModel) -> String {
+        "isLoading=\(browser.webView.isLoading) url=\(browser.webView.url?.absoluteString ?? "nil") "
+            + "context=\(browser.pageContext.url?.absoluteString ?? "nil") topic=\(browser.pageContext.topic?.topicID ?? "nil") "
+            + "state=\(browser.pageContext.state)"
+    }
+
     func testWordPressInPageRouteChangeRefreshesShortlinkFacts() async throws {
         let browser = ForumBrowserModel(sites: .standard)
         let initialHTML = """
@@ -372,7 +396,9 @@ final class RouteObserverWebKitTests: XCTestCase {
             initialHTML,
             baseURL: URL(string: "https://blog.example.com/2026/05/first-post/")!
         )
-        try await waitUntil("initial post 101") { browser.pageContext.topic?.topicID == "101" && !browser.webView.isLoading }
+        try await waitUntil("initial post 101", detail: Self.describe(browser)) {
+            browser.pageContext.topic?.topicID == "101" && !browser.webView.isLoading
+        }
         XCTAssertEqual(browser.pageContext.topic?.topicID, "101")
 
         _ = try await browser.webView.evaluateJavaScript("""
@@ -381,7 +407,7 @@ final class RouteObserverWebKitTests: XCTestCase {
             history.pushState({}, '', '/2026/05/second-post/');
         """)
 
-        try await waitUntil("second post 202") {
+        try await waitUntil("second post 202", detail: Self.describe(browser)) {
             browser.pageContext.url?.path == "/2026/05/second-post" && browser.pageContext.topic?.topicID == "202"
         }
         XCTAssertEqual(browser.pageContext.url?.path, "/2026/05/second-post")
@@ -393,7 +419,7 @@ final class RouteObserverWebKitTests: XCTestCase {
             history.pushState({}, '', '/category/news/');
         """)
 
-        try await waitUntil("archive home state") {
+        try await waitUntil("archive home state", detail: Self.describe(browser)) {
             browser.pageContext.url?.path == "/category/news" && browser.pageContext.state == .forumHome
         }
         XCTAssertNil(browser.pageContext.topic)
