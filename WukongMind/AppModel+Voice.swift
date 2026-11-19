@@ -142,7 +142,7 @@ extension AppModel: VoiceNavigator {
 
     var linkPageIdentity: String {
         if browser.showsForumsHome { return "home" }
-        return VoiceLinkState.pageKey(url: browser.webView.url ?? browser.currentURL, page: pageContext)
+        return VoiceLinkState.pageKey(url: browser.existingWebView?.url ?? browser.currentURL, page: pageContext)
     }
 
     /// Queues the topic's summary in the existing pipeline and waits for it

@@ -126,6 +126,66 @@ final class LiveReplayTests: XCTestCase {
         XCTAssertEqual(refusing.requests.count, 1, "No retries past the budget")
     }
 
+    func testNamedTimeoutFailsFastWithPhaseNameWhenOperationHangs() async {
+        let started = Date()
+        do {
+            try await Self.withPhaseTimeout(recording: "sample", phase: "tool read_aloud", seconds: 0.08) {
+                await withCheckedContinuation { (_: CheckedContinuation<Void, Never>) in }
+            }
+            XCTFail("Expected phase timeout")
+        } catch let timeout as ReplayPhaseTimeout {
+            XCTAssertTrue(timeout.message.contains("sample: stuck in tool read_aloud"), timeout.message)
+            XCTAssertLessThan(Date().timeIntervalSince(started), 2.0)
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func testReleasingAppDuringReadAloudSynthesisDoesNotPinControllerOrLoadAudioAfterTeardown() async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+
+        let audio = FakePodcastAudio()
+        let session = FakePodcastSession()
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "wukong.replay.readaloud.\(UUID().uuidString)"))
+        let player = PodcastPlayer(audio: audio, session: session, positions: PodcastPositionStore(defaults: defaults))
+        let speech = GatedSpeechEngine()
+        weak var weakController: PodcastController?
+
+        do {
+            let app = AppModel(
+                store: PersistentStore(fileURL: folder.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
+                aiService: StateAIStub(),
+                browser: ForumBrowserModel(startsUnloaded: true),
+                backgroundScheduler: FakeTaskScheduler(),
+                podcastDirectory: folder.appendingPathComponent("Podcasts", isDirectory: true),
+                podcastPlayer: player,
+                workspaceDirectory: folder.appendingPathComponent("Workspace", isDirectory: true)
+            )
+            app.settings.podcast.engine = .onDevice
+            app.podcast.makeEngine = { _, _, _ in speech }
+            weakController = app.podcast
+            app.podcast.readAloud(id: "ordinary", title: "Markets steady", text: "Negotiators agreed to pause port levies.")
+            let deadline = Date().addingTimeInterval(5)
+            while !speech.waiting, Date() < deadline {
+                await Task.yield()
+                try await Task.sleep(for: .milliseconds(5))
+            }
+            XCTAssertTrue(speech.waiting, "Expected readAloud to suspend inside engine.synthesize")
+        }
+
+        speech.gated = false
+        speech.release()
+        await settle()
+        try await Task.sleep(for: .milliseconds(20))
+        await settle()
+
+        XCTAssertNil(weakController, "PodcastController must not stay pinned across engine.synthesize after AppModel is released")
+        XCTAssertTrue(audio.loaded.isEmpty, "Orphan readAloud task must not load audio after AppModel teardown")
+        XCTAssertEqual(session.activations, 0, "Orphan readAloud task must not activate audio session after AppModel teardown")
+    }
+
     // MARK: Driver
 
     private func replayAll(_ fixture: String, expected: Int) async throws {
@@ -142,74 +202,255 @@ final class LiveReplayTests: XCTestCase {
         return try JSONDecoder().decode(File.self, from: Data(contentsOf: url)).recordings
     }
 
+    @MainActor
+    private final class ReplayHarness {
+        var app: AppModel?
+        var navigator: FakeVoiceNavigator?
+        var session: VoiceSession?
+        let replay: ReplayLiveTransport
+        var connections = 0
+        var replies: [String] = []
+
+        init(_ recording: LiveRecording) {
+            replay = ReplayLiveTransport(recording)
+        }
+
+        func teardown() {
+            session?.stop()
+            app?.podcast.cancelReadAloud()
+            app?.podcast.pauseGeneration()
+            app?.podcast.player.unload()
+            session = nil
+            navigator = nil
+            app = nil
+        }
+    }
+
     /// Runs one recording through a session on a fake page and checks the
     /// app's side of every recorded call.
     private func replay(_ recording: LiveRecording) async throws {
         let name = recording.name
-        let app = LiveReplaySupport.makeApp(self)
-        let navigator = LiveReplaySupport.fakePage(recording.page, app: app)
-        let replay = ReplayLiveTransport(recording)
-        var connections = 0
-        var settings = VoiceSettings()
-        settings.idleTimeout = 100_000
-        settings.sessionLimitMinutes = 0
-        settings.dailyLimitMinutes = 0
-        let session = VoiceSession(
-            configuration: .init(endpoint: .aiStudio, apiKey: "test-key", settings: settings),
-            transport: {
-                connections += 1
-                return connections == 1 ? replay : FakeLiveTransport()
-            },
-            audio: FakeVoiceAudio(), navigator: navigator, clock: clock, usage: nil, runsLoop: false
-        )
-        session.tools.registryBuilder = { app.voiceToolRegistry(browse: $0) }
-        var replies: [String] = []
-        session.onTranscript = { role, text, _ in if role == .voiceReply { replies.append(text) } }
+        let harness = ReplayHarness(recording)
+        defer { harness.teardown() }
+        let detail = PhaseDetailBox()
 
-        await session.start()
-        try await pump(session, replay) { session.state == .listening }
+        try await runPhase(recording: name, phase: "start", detail: detail) {
+            detail.set("makeApp")
+            let app = LiveReplaySupport.makeApp(self)
+            detail.set("fakePage")
+            let navigator = LiveReplaySupport.fakePage(recording.page, app: app)
+            var settings = VoiceSettings()
+            settings.idleTimeout = 100_000
+            settings.sessionLimitMinutes = 0
+            settings.dailyLimitMinutes = 0
+            let session = VoiceSession(
+                configuration: .init(endpoint: .aiStudio, apiKey: "test-key", settings: settings),
+                transport: { [weak harness] in
+                    guard let harness else { return FakeLiveTransport() }
+                    harness.connections += 1
+                    return harness.connections == 1 ? harness.replay : FakeLiveTransport()
+                },
+                audio: FakeVoiceAudio(), navigator: navigator, clock: self.clock, usage: nil, runsLoop: false
+            )
+            session.tools.registryBuilder = { app.voiceToolRegistry(browse: $0) }
+            session.onTranscript = { [weak harness] role, text, _ in
+                if role == .voiceReply { harness?.replies.append(text) }
+            }
+            harness.app = app
+            harness.navigator = navigator
+            harness.session = session
+            detail.set("session.start")
+            await session.start()
+            detail.set("pump(.listening)")
+            try await self.pump(session, harness.replay, phase: "start") { session.state == .listening }
+        }
+
+        let session = try XCTUnwrap(harness.session, name)
+        let replay = harness.replay
         let declared = try XCTUnwrap(session.tools.declaredNames, name)
         for call in recording.calls {
             XCTAssertTrue(declared.contains(call), "\(name): the app no longer declares \(call)")
         }
         for utterance in recording.utterances {
-            session.sendText(utterance)
-            try await pump(session, replay) {
-                // The recorded frames for this turn are in and handled.
-                replay.isWaitingForUser && (session.state == .listening || session.state.isOver)
+            let phase = Self.turnPhase(for: utterance, pending: replay.pending)
+            try await runPhase(recording: name, phase: phase, detail: detail) {
+                detail.set("sendText")
+                session.sendText(utterance)
+                detail.set("pump(turn)")
+                try await self.pump(session, replay, phase: phase) {
+                    // The recorded frames for this turn are in and handled.
+                    replay.isWaitingForUser && (session.state == .listening || session.state.isOver)
+                }
             }
         }
-        await settle()
-        XCTAssertTrue(replay.pending.isEmpty, "\(name): steps left \(replay.pending.map(\.on))")
-        XCTAssertEqual(replay.unexpected, [], name)
-        XCTAssertEqual(connections, 1, "\(name): no reconnect")
 
-        // Every recorded call got one answer, from its own tool.
-        let responses = replay.sent.map(VoiceSent.init).filter(\.isToolResponse)
-        let answered = responses.compactMap { sent -> String? in
-            guard case .toolResponse(let id, let tool, _) = sent, !id.hasPrefix("b-") else { return nil }
-            return tool
+        try await runPhase(recording: name, phase: "stop", detail: detail) {
+            detail.set("settle")
+            await self.settle()
+            XCTAssertTrue(replay.pending.isEmpty, "\(name): steps left \(replay.pending.map(\.on))")
+            XCTAssertEqual(replay.unexpected, [], name)
+            XCTAssertEqual(harness.connections, 1, "\(name): no reconnect")
+
+            // Every recorded call got one answer, from its own tool.
+            let responses = replay.sent.map(VoiceSent.init).filter(\.isToolResponse)
+            let answered = responses.compactMap { sent -> String? in
+                guard case .toolResponse(let id, let tool, _) = sent, !id.hasPrefix("b-") else { return nil }
+                return tool
+            }
+            XCTAssertEqual(answered, recording.calls, name)
+            for text in replay.sent where text.contains("toolResponse") {
+                XCTAssertFalse(text.contains("There is no tool called"), "\(name): \(text.prefix(300))")
+                XCTAssertFalse(text.contains("isn't available on this page"), "\(name): \(text.prefix(300))")
+            }
+            // The replies the model spoke reached the conversation.
+            let spoken = recording.steps.flatMap(\.frames).compactMap { GeminiLive.decode(Data($0.utf8))?.outputTranscription?.text }
+            if recording.calls.last == VoiceTool.end.rawValue {
+                // The goodbye plays out, then the session ends on a tick.
+                detail.set("pump(goodbye)")
+                try await self.pump(session, replay, phase: "stop") { session.state.isOver }
+                XCTAssertEqual(session.state, .ended(.model), name)
+            } else {
+                XCTAssertEqual(harness.replies, spoken, name)
+            }
+            detail.set("session.stop")
+            session.stop()
+            detail.set("teardown")
+            harness.teardown()
         }
-        XCTAssertEqual(answered, recording.calls, name)
-        for text in replay.sent where text.contains("toolResponse") {
-            XCTAssertFalse(text.contains("There is no tool called"), "\(name): \(text.prefix(300))")
-            XCTAssertFalse(text.contains("isn't available on this page"), "\(name): \(text.prefix(300))")
+    }
+
+    private static func turnPhase(for utterance: String, pending: [LiveRecording.Step]) -> String {
+        guard let first = pending.first, first.on == .turn else { return "turn \(utterance)" }
+        var steps = [first]
+        for step in pending.dropFirst() {
+            if step.on == .turn { break }
+            steps.append(step)
         }
-        // The replies the model spoke reached the conversation.
-        let spoken = recording.steps.flatMap(\.frames).compactMap { GeminiLive.decode(Data($0.utf8))?.outputTranscription?.text }
-        if recording.calls.last == VoiceTool.end.rawValue {
-            // The goodbye plays out, then the session ends on a tick.
-            try await pump(session, replay) { session.state.isOver }
-            XCTAssertEqual(session.state, .ended(.model), name)
-        } else {
-            XCTAssertEqual(replies, spoken, name)
+        let calls = steps.flatMap(\.frames)
+            .compactMap { GeminiLive.decode(Data($0.utf8)) }
+            .flatMap(\.toolCalls)
+            .map(\.name)
+        return calls.isEmpty ? "turn \(utterance)" : "tool \(calls.joined(separator: ", "))"
+    }
+
+    private func runPhase(
+        recording: String,
+        phase: String,
+        detail: PhaseDetailBox,
+        seconds: TimeInterval = 12,
+        body: @escaping @MainActor @Sendable () async throws -> Void
+    ) async throws {
+        do {
+            try await Self.withPhaseTimeout(recording: recording, phase: phase, seconds: seconds, detail: detail, body: body)
+        } catch let timeout as ReplayPhaseTimeout {
+            XCTFail(timeout.message)
+            throw timeout
         }
-        session.stop()
+    }
+
+    private struct ReplayPhaseTimeout: LocalizedError, Equatable, Sendable {
+        let message: String
+        var errorDescription: String? { message }
+    }
+
+    private final class PhaseDetailBox: @unchecked Sendable {
+        private let lock = NSLock()
+        private var value = ""
+        func set(_ next: String) { lock.withLock { value = next } }
+        func get() -> String { lock.withLock { value } }
+    }
+
+    private final class RaceGate: @unchecked Sendable {
+        private let lock = NSLock()
+        private var settled: Result<Void, Error>?
+        private var continuation: CheckedContinuation<Void, Error>?
+
+        func arm(_ next: CheckedContinuation<Void, Error>) {
+            let ready = lock.withLock { () -> Result<Void, Error>? in
+                if let settled { return settled }
+                continuation = next
+                return nil
+            }
+            if let ready { next.resume(with: ready) }
+        }
+
+        func finish(_ result: Result<Void, Error>) {
+            let waiting = lock.withLock { () -> CheckedContinuation<Void, Error>? in
+                guard settled == nil else { return nil }
+                settled = result
+                defer { continuation = nil }
+                return continuation
+            }
+            waiting?.resume(with: result)
+        }
+    }
+
+    /// Races `body` against a hard GCD deadline so an await that never resumes
+    /// fails fast with `stuck in <phase>` instead of waiting for XCTest's 300 s
+    /// execution-time allowance.
+    nonisolated private static func withPhaseTimeout(
+        recording: String,
+        phase: String,
+        seconds: TimeInterval = 12,
+        detail: PhaseDetailBox = PhaseDetailBox(),
+        body: @escaping @MainActor @Sendable () async throws -> Void
+    ) async throws {
+        let workGate = RaceGate()
+        let timerGate = RaceGate()
+        let work = Task { @MainActor in
+            do {
+                try await body()
+                workGate.finish(.success(()))
+            } catch {
+                workGate.finish(.failure(error))
+            }
+        }
+        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .userInitiated))
+        timer.schedule(deadline: .now() + seconds)
+        timer.setEventHandler {
+            let substep = detail.get()
+            let suffix = substep.isEmpty ? "" : " (\(substep))"
+            let message = "\(recording): stuck in \(phase)\(suffix)"
+            fputs("[LIVE-REPLAY-TIMEOUT] \(message)\n", stderr)
+            fflush(stderr)
+            work.cancel()
+            timerGate.finish(.failure(ReplayPhaseTimeout(message: message)))
+        }
+        timer.resume()
+        defer {
+            timer.cancel()
+            work.cancel()
+        }
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            group.addTask {
+                try await withTaskCancellationHandler {
+                    try await withCheckedThrowingContinuation { workGate.arm($0) }
+                } onCancel: {
+                    work.cancel()
+                    workGate.finish(.failure(CancellationError()))
+                }
+            }
+            group.addTask {
+                try await withTaskCancellationHandler {
+                    try await withCheckedThrowingContinuation { timerGate.arm($0) }
+                } onCancel: {
+                    timer.cancel()
+                    timerGate.finish(.failure(CancellationError()))
+                }
+            }
+            try await group.next()
+            group.cancelAll()
+        }
     }
 
     /// Lets the session run: its tasks, the 100 ms tick and the clock, until
     /// `done` (at most 30 s of session time).
-    private func pump(_ session: VoiceSession, _ replay: ReplayLiveTransport, until done: () -> Bool) async throws {
+    private func pump(
+        _ session: VoiceSession,
+        _ replay: ReplayLiveTransport,
+        phase: String,
+        until done: () -> Bool
+    ) async throws {
         // Tool handlers do real async work (the URL stub, the summary), so wait
         // in real time too, not only by yields.
         let deadline = Date().addingTimeInterval(10)
@@ -223,7 +464,7 @@ final class LiveReplayTests: XCTestCase {
             session.tick()
         }
         if done() { return }
-        XCTFail("\(replay.recording.name): stuck in \(session.state), steps left \(replay.pending.map(\.on))")
+        XCTFail("\(replay.recording.name): stuck in \(phase) (state=\(session.state), steps left \(replay.pending.map(\.on)))")
     }
 
     private func settle() async {
@@ -259,25 +500,43 @@ enum LiveReplaySupport {
     }
 
     static func makeApp(_ test: XCTestCase) -> AppModel {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         PostLevelURLStub.requests = []
         PostLevelURLStub.cookies = []
         PostLevelURLStub.handler = { request in
             PostLevelURLStub.requests.append(request.url!)
             return (200, DiscourseFixtures.search)
         }
-        test.addTeardownBlock { PostLevelURLStub.handler = nil }
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [PostLevelURLStub.self]
+        let urlSession = URLSession(configuration: configuration)
         let ai = StateAIStub()
         ai.gated = false
         let app = AppModel(
-            store: PersistentStore(fileURL: FileManager.default.temporaryDirectory
-                .appendingPathComponent(UUID().uuidString, isDirectory: true).appendingPathComponent("state.json")),
-            forumService: ForumService(session: URLSession(configuration: configuration), pacer: ForumRequestPacer(clock: InstantPacingClock())),
-            aiService: ai
+            store: PersistentStore(
+                fileURL: folder.appendingPathComponent("state.json"),
+                keys: InMemoryProviderKeyStore()
+            ),
+            forumService: ForumService(session: urlSession, pacer: ForumRequestPacer(clock: InstantPacingClock())),
+            aiService: ai,
+            browser: ForumBrowserModel(startsUnloaded: true),
+            backgroundScheduler: FakeTaskScheduler(),
+            podcastDirectory: folder.appendingPathComponent("Podcasts", isDirectory: true),
+            podcastPlayer: PodcastPlayer.makeForTesting(),
+            workspaceDirectory: folder.appendingPathComponent("Workspace", isDirectory: true)
         )
         app.usesDirectForumRequests = true
         app.browser.onPageContextChanged = nil
+        app.podcast.makeEngine = { _, _, _ in InstantSpeechStub() }
+        test.addTeardownBlock { @MainActor [weak app] in
+            PostLevelURLStub.handler = nil
+            app?.podcast.cancelReadAloud()
+            app?.podcast.pauseGeneration()
+            app?.podcast.player.unload()
+            urlSession.invalidateAndCancel()
+            try? FileManager.default.removeItem(at: folder)
+        }
         return app
     }
 }

@@ -282,6 +282,44 @@ Try workflow changes with `gh workflow run ci.yml --ref <branch> -f tier=pr`
 (or `-f tier=full`) and lint them with `actionlint` before pushing; push to the
 pull request once per finished change.
 
+#### Reproducing CI-only failures in a Tart VM
+
+GitHub's `macos-26` (`xcode-27`) runners are headless virtual machines (4 vCPUs,
+no physical audio output device) and behave differently from bare-metal Macs
+when a test touches CoreAudio, `AVSpeechSynthesizer` or WebKit process launch
+limits. To reproduce a CI-only failure locally with [Tart](https://tart.run),
+keep `TART_HOME` on the external SSD (`/Volumes/Ext/dev/tart`), never on `/`:
+
+```sh
+export TART_HOME=/Volumes/Ext/dev/tart
+mkdir -p "$TART_HOME"
+
+# Pull once and keep the base image cached; clone a throwaway VM per investigation.
+tart pull ghcr.io/cirruslabs/macos-runner:golden-gate   # macOS 27.2, Xcode 27.2
+tart clone ghcr.io/cirruslabs/macos-runner:golden-gate ci-repro
+tart set ci-repro --cpu 4 --memory 8192
+
+# Boot headless with the worktree mounted read-only over VirtioFS:
+tart run ci-repro --no-graphics --dir="repo:$PWD:ro" &
+
+# Copy the tree onto the VM's disk (VirtioFS metadata slows xcodebuild), build, and repeat the test:
+tart exec ci-repro bash -lc '
+  export DEVELOPER_DIR=/Applications/Xcode_27.2.app/Contents/Developer
+  rsync -a --delete --exclude ".git" "/Volumes/My Shared Files/repo/" ~/work/repo/
+  cd ~/work/repo
+  DEST=$(scripts/ci/pick-simulator.sh)
+  xcodebuild build-for-testing -project WukongMind.xcodeproj -scheme WukongMind \
+    -destination "$DEST" -derivedDataPath ~/dd CODE_SIGNING_ALLOWED=NO
+  xcodebuild test-without-building -project WukongMind.xcodeproj -scheme WukongMind \
+    -destination "$DEST" -derivedDataPath ~/dd \
+    -only-testing:WukongMindTests/LiveReplayTests/testAnywhereUtterancesReplay \
+    -test-iterations 20 -parallel-testing-enabled NO
+'
+
+# Always delete the cloned VM when done; keep the pulled base image in $TART_HOME.
+tart stop ci-repro && tart delete ci-repro
+```
+
 ### Simulator builds and tests on the Mac mini
 
 `scripts/remote-test.sh` runs `xcodebuild` on the owner's Mac mini
