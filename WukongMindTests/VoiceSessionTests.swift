@@ -1,3 +1,5 @@
+import UIKit
+import WebKit
 import XCTest
 @testable import WukongMind
 
@@ -7,6 +9,7 @@ import XCTest
 /// typed input and the cost guard.
 @MainActor
 final class VoiceSessionTests: XCTestCase {
+    private static let sharedDataStore = WKWebsiteDataStore.nonPersistent()
     private var transports: [FakeLiveTransport] = []
     private var audio = FakeVoiceAudio()
     private var clock = ManualVoiceClock()
@@ -922,7 +925,7 @@ final class VoiceSessionTests: XCTestCase {
             "<html><head><title>Tariff Talks</title></head><body><h1>Tariff Talks</h1><p>Markets held steady today.</p></body></html>",
             baseURL: ordinaryURL
         )
-        try await waitUntil { app.browser.webView.title == "Tariff Talks" && !app.browser.webView.isLoading }
+        try await waitUntil(timeout: 20) { app.browser.webView.title == "Tariff Talks" && !app.browser.webView.isLoading }
         let ordinaryPage = PageContext(url: ordinaryURL, state: .notForum)
         let forumPage = PageContext(
             url: URL(string: "https://forum.example/latest")!, site: .discourse,
@@ -978,7 +981,7 @@ final class VoiceSessionTests: XCTestCase {
         XCTAssertTrue(appTransports[0].messages.compactMap(\.noteText).last?.contains("Forum tools don't work here.") == true)
 
         session2.receive(frame(#"{"toolCall":{"functionCalls":[{"id":"c3","name":"read_page","args":{}}]}}"#))
-        try await waitUntil {
+        try await waitUntil(timeout: 15) {
             session2.receive(self.frame(#"{"serverContent":{"turnComplete":true}}"#))
             return !appTransports[0].sent.filter { $0.contains("toolResponse") }.isEmpty
         }
@@ -1079,7 +1082,7 @@ final class VoiceSessionTests: XCTestCase {
             "<html><head><title>Markets steady as tariff talks resume</title></head><body><h1>Markets steady as tariff talks resume</h1><p>Talks resume Thursday.</p></body></html>",
             baseURL: ordinaryURL
         )
-        try await waitUntil { app.browser.webView.title == "Markets steady as tariff talks resume" && !app.browser.webView.isLoading }
+        try await waitUntil(timeout: 20) { app.browser.webView.title == "Markets steady as tariff talks resume" && !app.browser.webView.isLoading }
         var ordinaryReplies: [String] = []
         let ordinarySession = try await startLive(on: PageContext(url: ordinaryURL, state: .notForum), into: &ordinaryReplies)
         PostLevelURLStub.requests = []
@@ -1204,16 +1207,32 @@ final class VoiceSessionTests: XCTestCase {
             PostLevelURLStub.requests.append(request.url!)
             return (200, DiscourseFixtures.search)
         }
-        addTeardownBlock { PostLevelURLStub.handler = nil }
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [PostLevelURLStub.self]
         let urlSession = URLSession(configuration: configuration)
         let ai = StateAIStub()
         ai.gated = false
+        let tempDir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("VoiceSessionTests-\(UUID().uuidString)", isDirectory: true)
+        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+        let browser = ForumBrowserModel(
+            contentRules: ContentRuleLibrary(store: nil, directory: nil),
+            websiteDataStore: Self.sharedDataStore
+        )
         let app = AppModel(
-            store: PersistentStore(fileURL: FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true).appendingPathComponent("state.json")),
+            store: PersistentStore(
+                fileURL: tempDir.appendingPathComponent("state.json"),
+                keys: InMemoryProviderKeyStore()
+            ),
             forumService: ForumService(session: urlSession, pacer: ForumRequestPacer(clock: InstantPacingClock())),
-            aiService: ai
+            aiService: ai,
+            browser: browser,
+            websiteDataStore: Self.sharedDataStore,
+            cloudSync: CloudSyncController(transport: nil, files: nil, defaults: nil, schedulesAutomatically: false),
+            podcastDirectory: tempDir.appendingPathComponent("Podcasts", isDirectory: true),
+            workspaceDirectory: tempDir.appendingPathComponent("Workspace", isDirectory: true),
+            spotlightIndex: FakeSpotlightIndex(),
+            topicActivityDonor: FakeTopicActivityDonor()
         )
         app.usesDirectForumRequests = true
         app.settings.assistantModel = ModelSelection(provider: .ollama, model: "summary-model")
@@ -1226,6 +1245,35 @@ final class VoiceSessionTests: XCTestCase {
         gemini.apiKey = "test-key"
         app.settings.setConfiguration(gemini, for: .gemini)
         app.browser.onPageContextChanged = nil
+
+        // Host the WKWebView in a visible window so WebKit does not treat its
+        // WebContent process as background/freezable on headless CI runners.
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:))
+            ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        window.frame = CGRect(x: 0, y: 0, width: 390, height: 844)
+        let hostVC = UIViewController()
+        hostVC.view.frame = window.bounds
+        app.browser.webView.frame = window.bounds
+        hostVC.view.addSubview(app.browser.webView)
+        window.rootViewController = hostVC
+        window.isHidden = false
+        window.layoutIfNeeded()
+
+        addTeardownBlock { @MainActor in
+            PostLevelURLStub.handler = nil
+            app.browser.stopLoading()
+            app.browser.detachCallbacks()
+            app.browser.existingWebView?.removeFromSuperview()
+            app.pauseDigest()
+            app.podcast.pauseGeneration()
+            app.podcast.cancelReadAloud()
+            window.isHidden = true
+            window.rootViewController = nil
+            window.windowScene = nil
+            urlSession.invalidateAndCancel()
+            try? FileManager.default.removeItem(at: tempDir)
+        }
         return app
     }
 
