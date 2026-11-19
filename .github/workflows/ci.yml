@@ -163,7 +163,7 @@ jobs:
       # download and unzip to minutes (3-vCPU runners; tried in WUKO-125 and
       # WUKO-128).
       - name: Download test products
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: test-products-${{ github.run_id }}
       - name: Unpack test products
