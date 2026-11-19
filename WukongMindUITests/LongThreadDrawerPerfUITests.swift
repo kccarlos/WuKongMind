@@ -293,6 +293,26 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
             note("\(action) system buttons: " + wanted.filter { app.buttons[$0].firstMatch.exists }.joined(separator: ","))
             note("\(action) ActivityListView=\(any(app, "ActivityListView").exists) navigationBars=\(app.navigationBars.allElementsBoundByIndex.map(\.identifier).joined(separator: ","))")
             capture("\(name)-\(action)-final")
+            // `TEST_RUNNER_DC_PERF_SHARE_TARGET=<app>`: hand the text to that app from the share sheet,
+            // watch its screen for 15 s, then end (nothing is sent: the app is terminated).
+            if action == "shareExport", let targetName = ProcessInfo.processInfo.environment["DC_PERF_SHARE_TARGET"], !targetName.isEmpty {
+                let target = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", targetName)).firstMatch
+                note("share target \(targetName) exists=\(target.exists)")
+                if target.exists {
+                    let targetStarted = Date()
+                    target.tap()
+                    for (index, seconds) in [1.0, 3, 6, 10, 15].enumerated() {
+                        let remaining = targetStarted.addingTimeInterval(seconds).timeIntervalSinceNow
+                        if remaining > 0 { RunLoop.current.run(until: Date().addingTimeInterval(remaining)) }
+                        capture("\(name)-target-\(index)-at-\(seconds)s")
+                        note("share target screenshot \(index) asked at \(seconds)s taken at \(String(format: "%.2f", Date().timeIntervalSince(targetStarted)))s")
+                    }
+                    note("share target timeline " + timeline(app))
+                }
+                app.terminate()
+                attachText(report.joined(separator: "\n"), named: "drawer-open-perf-\(name).txt")
+                return
+            }
             // Away again.
             var dismissed = false
             for label in ["Close", "Cancel"] where !dismissed {
