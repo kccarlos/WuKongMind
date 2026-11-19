@@ -141,6 +141,51 @@ final class LiveReplayTests: XCTestCase {
         }
     }
 
+    func testReleasingAppDuringReadAloudSynthesisDoesNotPinControllerOrLoadAudioAfterTeardown() async throws {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: folder) }
+
+        let audio = FakePodcastAudio()
+        let session = FakePodcastSession()
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "wukong.replay.readaloud.\(UUID().uuidString)"))
+        let player = PodcastPlayer(audio: audio, session: session, positions: PodcastPositionStore(defaults: defaults))
+        let speech = GatedSpeechEngine()
+        weak var weakController: PodcastController?
+
+        do {
+            let app = AppModel(
+                store: PersistentStore(fileURL: folder.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
+                aiService: StateAIStub(),
+                browser: ForumBrowserModel(startsUnloaded: true),
+                backgroundScheduler: FakeTaskScheduler(),
+                podcastDirectory: folder.appendingPathComponent("Podcasts", isDirectory: true),
+                podcastPlayer: player,
+                workspaceDirectory: folder.appendingPathComponent("Workspace", isDirectory: true)
+            )
+            app.settings.podcast.engine = .onDevice
+            app.podcast.makeEngine = { _, _, _ in speech }
+            weakController = app.podcast
+            app.podcast.readAloud(id: "ordinary", title: "Markets steady", text: "Negotiators agreed to pause port levies.")
+            let deadline = Date().addingTimeInterval(5)
+            while !speech.waiting, Date() < deadline {
+                await Task.yield()
+                try await Task.sleep(for: .milliseconds(5))
+            }
+            XCTAssertTrue(speech.waiting, "Expected readAloud to suspend inside engine.synthesize")
+        }
+
+        speech.gated = false
+        speech.release()
+        await settle()
+        try await Task.sleep(for: .milliseconds(20))
+        await settle()
+
+        XCTAssertNil(weakController, "PodcastController must not stay pinned across engine.synthesize after AppModel is released")
+        XCTAssertTrue(audio.loaded.isEmpty, "Orphan readAloud task must not load audio after AppModel teardown")
+        XCTAssertEqual(session.activations, 0, "Orphan readAloud task must not activate audio session after AppModel teardown")
+    }
+
     // MARK: Driver
 
     private func replayAll(_ fixture: String, expected: Int) async throws {
@@ -169,6 +214,16 @@ final class LiveReplayTests: XCTestCase {
         init(_ recording: LiveRecording) {
             replay = ReplayLiveTransport(recording)
         }
+
+        func teardown() {
+            session?.stop()
+            app?.podcast.cancelReadAloud()
+            app?.podcast.pauseGeneration()
+            app?.podcast.player.unload()
+            session = nil
+            navigator = nil
+            app = nil
+        }
     }
 
     /// Runs one recording through a session on a fake page and checks the
@@ -176,6 +231,7 @@ final class LiveReplayTests: XCTestCase {
     private func replay(_ recording: LiveRecording) async throws {
         let name = recording.name
         let harness = ReplayHarness(recording)
+        defer { harness.teardown() }
         let detail = PhaseDetailBox()
 
         try await runPhase(recording: name, phase: "start", detail: detail) {
@@ -259,9 +315,7 @@ final class LiveReplayTests: XCTestCase {
             detail.set("session.stop")
             session.stop()
             detail.set("teardown")
-            harness.session = nil
-            harness.navigator = nil
-            harness.app = nil
+            harness.teardown()
         }
     }
 
@@ -446,25 +500,43 @@ enum LiveReplaySupport {
     }
 
     static func makeApp(_ test: XCTestCase) -> AppModel {
+        let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         PostLevelURLStub.requests = []
         PostLevelURLStub.cookies = []
         PostLevelURLStub.handler = { request in
             PostLevelURLStub.requests.append(request.url!)
             return (200, DiscourseFixtures.search)
         }
-        test.addTeardownBlock { PostLevelURLStub.handler = nil }
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [PostLevelURLStub.self]
+        let urlSession = URLSession(configuration: configuration)
         let ai = StateAIStub()
         ai.gated = false
         let app = AppModel(
-            store: PersistentStore(fileURL: FileManager.default.temporaryDirectory
-                .appendingPathComponent(UUID().uuidString, isDirectory: true).appendingPathComponent("state.json")),
-            forumService: ForumService(session: URLSession(configuration: configuration), pacer: ForumRequestPacer(clock: InstantPacingClock())),
-            aiService: ai
+            store: PersistentStore(
+                fileURL: folder.appendingPathComponent("state.json"),
+                keys: InMemoryProviderKeyStore()
+            ),
+            forumService: ForumService(session: urlSession, pacer: ForumRequestPacer(clock: InstantPacingClock())),
+            aiService: ai,
+            browser: ForumBrowserModel(startsUnloaded: true),
+            backgroundScheduler: FakeTaskScheduler(),
+            podcastDirectory: folder.appendingPathComponent("Podcasts", isDirectory: true),
+            podcastPlayer: PodcastPlayer.makeForTesting(),
+            workspaceDirectory: folder.appendingPathComponent("Workspace", isDirectory: true)
         )
         app.usesDirectForumRequests = true
         app.browser.onPageContextChanged = nil
+        app.podcast.makeEngine = { _, _, _ in InstantSpeechStub() }
+        test.addTeardownBlock { @MainActor [weak app] in
+            PostLevelURLStub.handler = nil
+            app?.podcast.cancelReadAloud()
+            app?.podcast.pauseGeneration()
+            app?.podcast.player.unload()
+            urlSession.invalidateAndCancel()
+            try? FileManager.default.removeItem(at: folder)
+        }
         return app
     }
 }

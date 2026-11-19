@@ -78,6 +78,8 @@ final class PodcastController: ObservableObject {
         self.store = store
         if let player {
             self.player = player
+        } else if AppModel.isRunningTests {
+            self.player = PodcastPlayer.makeForTesting()
         } else {
             let session = SystemPodcastAudioSession()
             let made = PodcastPlayer(audio: SystemPodcastAudio(), session: session, nowPlaying: SystemPodcastNowPlaying())
@@ -96,6 +98,11 @@ final class PodcastController: ObservableObject {
             player.$isSuspendedForVoice.dropFirst().map { _ in () }.eraseToAnyPublisher(),
             player.$failure.dropFirst().map { _ in () }.eraseToAnyPublisher()
         ).sink { [weak self] in self?.objectWillChange.send() }
+    }
+
+    deinit {
+        task?.cancel()
+        readTask?.cancel()
     }
 
     static var isFake: Bool {
@@ -439,6 +446,9 @@ final class PodcastController: ObservableObject {
             return SystemSpeechEngine(appLanguage: language)
             #endif
         case .onDevice:
+            #if DEBUG
+            if AppModel.isRunningTests { return SilentSpeechEngine() }
+            #endif
             return SystemSpeechEngine(appLanguage: language)
         }
     }
@@ -628,7 +638,10 @@ final class PodcastController: ObservableObject {
         readTask = Task { @MainActor [weak self] in
             try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
             for (index, chunk) in chunks.enumerated() {
-                guard let self, !Task.isCancelled else { return }
+                // Keep `self` weak across `engine.synthesize` so releasing
+                // `AppModel` cancels read-aloud instead of pinning the
+                // controller alive and starting audio on a dead instance.
+                guard self?.app != nil, self?.readAloudID == id, !Task.isCancelled else { return }
                 let url = folder.appendingPathComponent("\(key)-\(index).\(engine.fileExtension)")
                 do {
                     // Read before: the file is reused (no second request).
@@ -636,11 +649,13 @@ final class PodcastController: ObservableObject {
                     if duration == 0 {
                         duration = try await engine.synthesize([PodcastTurn(speaker: .a, text: chunk)], to: url)
                     }
-                    guard !Task.isCancelled else { return }
+                    guard let self, self.app != nil, self.readAloudID == id, !Task.isCancelled else { return }
                     playlist.items[index].url = url
                     playlist.items[index].duration = duration
+                    playlist.isGrowing = index < chunks.count - 1
+                    self.player.update(playlist)
                 } catch {
-                    guard !Task.isCancelled else { return }
+                    guard let self, self.app != nil, self.readAloudID == id, !Task.isCancelled else { return }
                     try? FileManager.default.removeItem(at: url)
                     self.lastError = error.localizedDescription
                     self.app?.presentError(error.localizedDescription)
@@ -650,8 +665,9 @@ final class PodcastController: ObservableObject {
                     self.readTask = nil
                     return
                 }
-                playlist.isGrowing = index < chunks.count - 1
-                self.player.update(playlist)
+            }
+            if let self, self.readAloudID == id {
+                self.readTask = nil
             }
         }
     }
