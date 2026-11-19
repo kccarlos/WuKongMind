@@ -201,8 +201,6 @@ struct ContentView: View {
 
     private func openAssistant() {
         PerfProbe.mark("tap.handler")
-        DCHaptics.tap()
-        PerfProbe.mark("haptic.done")
         if router.usesDrawer, router.wantsDrawer {
             router.closeDrawer()
             return

@@ -187,6 +187,7 @@ Sizes count changed lines, tests included. Phone numbers are the iPhone 13 with 
 - **Scope:** `PhoneBrowserBar.swift` (`PhoneAIButton`): a `Button` with a pressed style (the ring dims and shrinks slightly) and `DCHaptics.tap()` at touch down; the 0.45 s long press for voice as a simultaneous gesture; accessibility traits, value and action unchanged. The haptic leaves `ContentView.openAssistant`.
 - **Size:** about 90. **Depends on:** nothing.
 - **Done when:** a UI test screenshot shows the pressed ring during a 0.3 s press; the long press still starts voice and a tap still opens (`DrawerUITests`, the voice button tests); the timeline shows the haptic before the touch-up.
+- **Measured (iPhone 13, optimized Debug):** before, `m:haptic.done=327 ms` (after `m:up=300 ms`, inside `openAssistant`) with no pressed look; after, `m:down.delivered=14 ms`, `m:haptic.done=15 ms`, `f:haptic.done=29 ms` (`m:up=300 ms`, `m:tap.handler=330 ms`), and `testAIButtonPressedStateAndTimeline` + `testVoiceDockHidesBarLocksProgressExpandedAndRestoresOnClose` pass on the phone.
 
 ### 3. The transcript and the summary card are lazy (changes task 6 of the first page)
 - **Status:** done in WUKO-159 (building on WUKO-152).

@@ -392,6 +392,123 @@ final class DrawerUITests: DCUITestCase {
                       "The summary did not start.")
     }
 
+    /// Pressing the AI button dims and shrinks its ring during the press, fires the
+    /// tap haptic before touch-up, and still opens the drawer on lift.
+    func testAIButtonPressedStateAndTimeline() throws {
+        try skipUnlessPhone("The AI button is an iPhone control.")
+        let app = launch([
+            "-dc-sample", "-dc-page-state", "topic",
+            "-dc-drawer-first-run", "-dc-no-summary",
+            "-dc-perf-probe", "-AppleInterfaceStyle", "Light"
+        ])
+        let button = app.buttons["aiButton"]
+        XCTAssertTrue(waitForBarItem(button, timeout: 20), "The AI button is missing.")
+        RunLoop.current.run(until: Date().addingTimeInterval(0.5))
+        let buttonFrame = button.frame
+        let windowFrame = app.windows.firstMatch.frame
+        XCTAssertGreaterThan(buttonFrame.midY, windowFrame.height * 0.5, "Unexpected AI button frame: \(buttonFrame)")
+
+        let idleShot = XCUIScreen.main.screenshot()
+        let idleAttachment = XCTAttachment(screenshot: idleShot)
+        idleAttachment.name = "ai-button-idle"
+        idleAttachment.lifetime = .keepAlways
+        add(idleAttachment)
+
+        let coord = button.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        var shots: [XCUIScreenshot] = []
+        let shotsLock = NSLock()
+        var pressEnded = false
+        let done = DispatchSemaphore(value: 0)
+        DispatchQueue.global(qos: .userInteractive).async {
+            for delay in [0.24, 0.08, 0.08, 0.08] {
+                Thread.sleep(forTimeInterval: delay)
+                shotsLock.lock()
+                let isEnded = pressEnded
+                shotsLock.unlock()
+                if isEnded { break }
+                let shot = XCUIScreen.main.screenshot()
+                shotsLock.lock()
+                shots.append(shot)
+                shotsLock.unlock()
+            }
+            done.signal()
+        }
+        coord.press(forDuration: 0.3)
+        shotsLock.lock()
+        pressEnded = true
+        shotsLock.unlock()
+        XCTAssertEqual(done.wait(timeout: .now() + 5), .success, "The pressed screenshot did not finish.")
+
+        var bestShot = try XCTUnwrap(shots.first, "No pressed screenshot captured.")
+        var bestDiff = -1
+        for shot in shots {
+            let d = try maxPixelDifference(between: idleShot.image, and: shot.image, in: buttonFrame, windowFrame: windowFrame)
+            if d > bestDiff {
+                bestDiff = d
+                bestShot = shot
+            }
+        }
+        let pressedAttachment = XCTAttachment(screenshot: bestShot)
+        pressedAttachment.name = "ai-button-pressed"
+        pressedAttachment.lifetime = .keepAlways
+        add(pressedAttachment)
+
+        // PerfTimeline closes 3 s after touch-up.
+        RunLoop.current.run(until: Date().addingTimeInterval(3.5))
+        let timelineEl = any(app, "perfTimeline")
+        XCTAssertTrue(timelineEl.waitForExistence(timeout: 5), "Missing perfTimeline element.")
+        let timeline = timelineEl.label
+        print("AI-BUTTON-TIMELINE \(timeline)")
+
+        let state = drawerState(in: app)
+        XCTAssertTrue(state.waitForExistence(timeout: 10), "A 0.3 s tap on the AI button must open the drawer. timeline: \(timeline)")
+
+        func markMs(_ name: String) -> Int? {
+            let prefix = "m:\(name)="
+            for token in timeline.split(separator: " ") where token.hasPrefix(prefix) {
+                return Int(token.dropFirst(prefix.count))
+            }
+            return nil
+        }
+
+        let hapticMs = try XCTUnwrap(markMs("haptic.done"), "Expected m:haptic.done in timeline: \(timeline)")
+        let upMs = try XCTUnwrap(markMs("up"), "Expected m:up in timeline: \(timeline)")
+        XCTAssertLessThan(hapticMs, upMs, "Haptic must fire at touch-down before touch-up; timeline: \(timeline)")
+
+        XCTAssertGreaterThan(bestDiff, 10, "Expected pressed ring visual change during 0.3 s press.")
+    }
+
+    private func maxPixelDifference(between first: UIImage, and second: UIImage, in rect: CGRect, windowFrame: CGRect) throws -> Int {
+        let cgA = try XCTUnwrap(first.cgImage)
+        let cgB = try XCTUnwrap(second.cgImage)
+        let scale = CGFloat(cgA.width) / windowFrame.width
+        let cropRect = CGRect(
+            x: rect.minX * scale, y: rect.minY * scale,
+            width: rect.width * scale, height: rect.height * scale
+        ).integral
+        let cropA = try XCTUnwrap(cgA.cropping(to: cropRect))
+        let cropB = try XCTUnwrap(cgB.cropping(to: cropRect))
+        func rgba(_ img: CGImage) -> [UInt8] {
+            var px = [UInt8](repeating: 0, count: img.width * img.height * 4)
+            px.withUnsafeMutableBytes { bytes in
+                CGContext(
+                    data: bytes.baseAddress, width: img.width, height: img.height,
+                    bitsPerComponent: 8, bytesPerRow: img.width * 4,
+                    space: CGColorSpaceCreateDeviceRGB(),
+                    bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue
+                )?.draw(img, in: CGRect(x: 0, y: 0, width: img.width, height: img.height))
+            }
+            return px
+        }
+        let a = rgba(cropA), b = rgba(cropB)
+        var maxDiff = 0
+        for i in stride(from: 0, to: min(a.count, b.count), by: 4) {
+            let d = max(abs(Int(a[i]) - Int(b[i])), abs(Int(a[i + 1]) - Int(b[i + 1])), abs(Int(a[i + 2]) - Int(b[i + 2])))
+            if d > maxDiff { maxDiff = d }
+        }
+        return maxDiff
+    }
+
     /// §4.6: a topic with the drawer at medium → summarize (the DEBUG fake
     /// summary) → at large, tap `#12` → the page scrolls to post 12 and
     /// marks it, and the drawer steps down to medium. The sample page has
