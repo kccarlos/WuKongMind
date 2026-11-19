@@ -127,6 +127,9 @@ final class AppStateDigestTests: XCTestCase {
             workspaceDirectory: dir.appendingPathComponent("ws", isDirectory: true)
         )
         app.suppressesPersistence = true
+        // No SwiftUI sheet is attached to answer `presentDrawer()` before the async agent turn finishes,
+        // so keep the 2s UIKit drop-recovery watchdog from resetting `.presenting` to `.closed` under CI load.
+        app.router.watchdogDelay = .seconds(60)
         let forum = Forum(siteURL: "https://meta.discourse.org", kind: .discourse, name: "Meta", isPinned: true, pinOrder: 0)
         let topicURL = URL(string: "https://meta.discourse.org/t/perf/42")!
         let topic = ForumTopic(siteURL: forum.siteURL, topicID: "42", url: topicURL, title: "Perf")
