@@ -38,15 +38,15 @@ The owner's report (1.5.1, TestFlight, iPhone 13):
 
 ### Symptom 1: tap to first drawer frame
 
-Medians of six opens, milliseconds from finger lift (range of the first frame in brackets).
+Medians of six opens, milliseconds from finger lift (range of the first frame in brackets). **After** numbers are from the WUKO-164 acceptance run on `main` (`68d074d`, tasks 1–4 and gates merged, same iPhone 13 and optimized-Debug build).
 
-| Case | Summary blocks built | Tap handler | `.presenting` | `.shown` | First frame | Main thread busy, first 1.3 s | Longest pass after the first frame |
+| Case | Summary blocks built (before → after) | Tap handler (before → after) | `.presenting` (before → after) | `.shown` (before → after) | First frame (before → after) | Main thread busy, first 1.3 s (before → after) | Longest pass after the first frame (before → after) |
 |---|---|---|---|---|---|---|---|
-| Real thread, saved summary at the top (lazy) | 5 | 8 to 18 | 22 to 32 | 99 to 109 | **141 to 151** (135 to 160) | 172 | 20 |
-| 20 comments, summary card, English, 2,606 characters | 41 | 18 | 37 | 230 | **365** (349 to 373) | 605 | 169 to 203 |
-| 6,000 comments, the same summary card | 41 | 18 to 21 | 35 to 39 | 234 | **376 to 378** (364 to 393) | 624 to 638 | 161 to 209 |
-| 20 comments, summary card, Chinese, 1,310 characters | 41 | 11 | 33 | 349 | **629** (623 to 638) | 890 | 99 |
-| First open after launch, nothing summarized | 0 to 4 | 10 to 22 | 28 to 39 | 113 to 215 | 141 to 275 | 131 to 285 | none |
+| Real thread, saved summary at the top (lazy) | 5 → **5** | 8 to 18 → **29.5** | 22 to 32 → **45.0** | 99 to 109 → **107.5** | 141 to 151 (135 to 160) → **145.5** (141 to 150) | 172 → **196.5** | 20 → **18.0** |
+| 20 comments, summary card, English, 2,606 characters | 41 → **8** | 18 → **34.5** | 37 → **54.5** | 230 → **132.5** | 365 (349 to 373) → **159.5** (155 to 163) | 605 → **144.5** | 169 to 203 → **8.0** |
+| 6,000 comments, the same summary card | 41 → **8** | 18 to 21 → **35.5** | 35 to 39 → **54.0** | 234 → **134.0** | 376 to 378 (364 to 393) → **166.0** (153 to 168) | 624 to 638 → **239.5** | 161 to 209 → **22.0** |
+| 20 comments, summary card, Chinese, 1,310 characters | 41 → **8** | 11 → **32.5** | 33 → **51.5** | 349 → **131.5** | 629 (623 to 638) → **160.5** (154 to 165) | 890 → **149.5** | 99 → **0.0** (8.0 after 1.3 s) |
+| First open after launch, nothing summarized | 0 to 4 → **0 to 4** | 10 to 22 → **21 to 44** | 28 to 39 → **32 to 93** | 113 to 215 → **133 to 262** | 141 to 275 → **165 to 304** | 131 to 285 → **174 to 350** | none → **0 to 19** |
 
 - Three runs of the real thread (medians 141, 146 and 151 ms) and two of each fixture agree within 15 ms.
 - Per open, every case: `ContentView.body` 3 times, `AssistantPanel.body` 3 times, one run section, and every summary block of the card (41) against 5 for the lazy summary.
@@ -77,17 +77,18 @@ Inside those (a sample counts once per line, so lines overlap):
 | `PhoneAIButton.body` | 11 ms |
 | Any frame of the app's own binary | 9 % of samples |
 
-**Content is what scales** (hosted panel, `DrawerPerformanceTests`, same phone, optimized build; in brackets the first page's Debug number for the same fixture, only where it has one from after its tasks 1 to 3):
+**Content is what scales** (hosted panel, `DrawerPerformanceTests`, same phone, optimized build; **before → after** WUKO-164 on `68d074d`, with the first page's post-task-3 Debug number in brackets where recorded):
 
-| Fixture | Open | Keystroke median | Scroll step median | One more run |
+| Fixture | Open (before → after) | Keystroke median (before → after) | Scroll step median (before → after) | One more run (before → after) |
 |---|---|---|---|---|
-| Baseline | 74 ms | 12.7 ms (13.6) | 28 ms | |
-| Posts: 6,000 | 76 ms (88) | 14.4 ms (14.6) | 34 ms | |
-| Summary: 30 sections (lazy, at the top) | 89 ms | 15.3 ms | 56 ms (58) | |
-| Conversation: 5 runs | 119 ms | 17.2 ms | 20 ms | 122 ms |
-| Conversation: 20 runs | 247 ms | 20.9 ms (21.1) | 14 ms | 121 ms |
-| Conversation: 60 runs | **637 ms** (626) | 26.2 ms (27.9) | 16 ms | 134 ms (177) |
-| Everything: 6,000 posts, 30 sections, 20 runs | 276 ms (298) | 23.5 ms (23.2) | 76 ms | 146 ms (156) |
+| Baseline | 74 → **58.4 ms** | 12.7 (13.6) → **13.1 ms** | 28 → **19.1 ms** | |
+| Posts: 6,000 | 76 (88) → **56.6 ms** | 14.4 (14.6) → **13.7 ms** | 34 → **19.3 ms** | |
+| Summary: 30 sections (lazy, at the top) | 89 → **72.4 ms** | 15.3 → **13.8 ms** | 56 (58) → **17.7 ms** | |
+| Summary: 30 sections, Chinese (added in task 4) | 127.1 → **86.0 ms** | — → **13.7 ms** | 121.9 → **18.0 ms** | |
+| Conversation: 5 runs | 119 → **68.1 ms** | 17.2 → **14.0 ms** | 20 → **17.2 ms** | 122 → **52.8 ms** (`send`: 141.0) |
+| Conversation: 20 runs | 247 → **61.7 ms** | 20.9 (21.1) → **13.8 ms** | 14 → **18.2 ms** | 121 → **67.8 ms** (`send`: 269.7) |
+| Conversation: 60 runs | 637 (626) → **60.7 ms** | 26.2 (27.9) → **15.0 ms** | 16 → **18.6 ms** | 134 (177) → **51.1 ms** (`send`: 307.6) |
+| Everything: 6,000 posts, 30 sections, 20 runs | 276 (298) → **66.6 ms** | 23.5 (23.2) → **15.1 ms** | 76 → **18.7 ms** | 146 (156) → **55.8 ms** (`send`: 127.9) |
 
 The hosted open has no sheet and no cited summary card; in the whole app one cited card of 41 blocks costs 605 ms where five plain runs of 29 blocks cost 119 ms hosted.
 
@@ -97,12 +98,12 @@ Runs on the phone: three thread sizes at the large drawer height (each twice or 
 
 | | 20 comments (7,111 characters) | 6,000 comments (2,113,610) | Real thread (1,828,529) |
 |---|---|---|---|
-| Building the export text (main thread) | 1 to 2 ms | 63 to 76 ms | 71 to 79 ms |
-| Share: main-thread passes after the tap | 179 to 248 ms, then 31 | 337, then 35 to 62 | 290 to 325, then 229 to 367 |
-| The app's share sheet | shown | shown | shown (large and medium) |
-| **Share › Messages** | **the message opens with the text** (2 runs: English and Chinese summary) | **blank sheet for the 15 s watched** (1 run) | **blank sheet for the 15 s watched** (1 run) |
-| Export .txt: main-thread passes after the tap | 59, then 72 | 138, then 83 | 111, then 185 |
-| The Files picker | shown | shown | shown; its file list was still empty 3.9 s after the tap in one run of three |
+| Building the export text (main thread) | 1 to 2 ms → **0 ms** (`Task.detached`) | 63 to 76 ms → **0 ms** (`Task.detached`) | 71 to 79 ms → **0 ms** (`Task.detached`) |
+| Share: main-thread passes after the tap | 179 to 248 ms, then 31 → **33 to 38 ms** tap, then **194 to 212 ms** UIKit sheet | 337, then 35 to 62 → **35 ms** tap, then **287 ms** UIKit sheet | 290 to 325, then 229 to 367 → **52 ms** tap, then **296 ms** UIKit sheet |
+| The app's share sheet | shown → **shown** (inline text) | shown → **shown** (`wukongmind-….txt`, `Text Document · 2.2 MB`) | shown (large and medium) → **shown** (`wukongmind-www-doctorofcredit….txt`, `Text Document · 1.9 MB`) |
+| **Share › Messages** | **the message opens with the text** (2 runs: English and Chinese summary; WUKO-158 confirmed unchanged) | blank sheet for 15 s → **`New Message` with `2.2 MB` `.txt` attachment within 3 s** | blank sheet for 15 s → **`New Message` with `1.9 MB` `.txt` attachment within 3 s** |
+| Export .txt: main-thread passes after the tap | 59, then 72 → **30 to 32 ms** tap, max **36 to 75 ms** | 138, then 83 → **63 ms** max (WUKO-158; skipped here when `DC_PERF_SHARE_TARGET=Messages` exits after Share) | 111, then 185 → not re-run (skipped when `DC_PERF_SHARE_TARGET=Messages` exits after Share) |
+| The Files picker | shown → **shown** (`Save` button visible) | shown | shown; its file list was still empty 3.9 s after the tap in one run of three |
 
 - The share sheet's header shows the app icon and nothing else: no title, no size, no preview of what is being shared.
 - **Why the screen is blank:** `ExportShareAnchor.present` (`SummaryPanel.swift:2368`) gives `UIActivityViewController` one `ExportActivityItem` that returns the whole text as a `String`, as the placeholder and as the item. The target app receives 1.8 million characters as a message body and never gets as far as drawing its screen. The app's own main thread is fine: two passes of about 0.3 s, no long hang.
@@ -237,8 +238,29 @@ Sizes count changed lines, tests included. Phone numbers are the iPhone 13 with 
 - **Gate result (WUKO-162, 2026-11-19):** Added read-only `StateStorageStats` (`Persistence.swift`, `AppModel.measureStateStorageStats()`, `StateStorageReadoutView` in `Settings › Agent › Developer` behind `agentDeveloperMode`) showing `state.json` size on disk, count of sessions holding thread text (`source` or `rawPages`), and largest session's thread text size, computed off the main thread (`Task.detached(priority: .utility)`). Guarded by `CoreTests.testStateStorageStatsCountsSessionsWithTextAndReadsFileSize` and `SettingsNavigationUITests.testThisPageAndSettingsDeveloperShowLiveStateDigest`. Waiting on the owner's readout (> 20 MB to proceed).
 
 ### 7. Acceptance (extends task 10 of the first page)
-- **Scope:** the three open cases, Share › Messages on the real thread, and task 10's typing run, on the phone; update the tables here.
+- **Status:** done in WUKO-164 (2026-11-19, `68d074d`, iPhone 13, optimized Debug, measurement only).
+- **Scope:** the three open cases, Share › Messages on the real thread (and 6,000-post fixture), and task 10's typing run, on the phone; update the tables here and on the first page.
 - **Done when:** first frame within 200 ms of lift on every case; no blank screen; task 10's own targets.
+- **Verdict per target:**
+
+| Target | Before | After (`68d074d`, iPhone 13 opt-Debug) | Verdict |
+|---|---|---|---|
+| Drawer open: real thread, saved summary at top (≤ 200 ms) | 141 to 151 ms | **145.5 ms** (141 to 150) | **Met** (−54.5 ms) |
+| Drawer open: English summary card, 20 posts (≤ 200 ms; busy ≤ 300; post-frame pass < 50) | 365 ms (busy 605; pass 169–203) | **159.5 ms** (155 to 163; busy 144.5; pass 8.0) | **Met** (−40.5 ms) |
+| Drawer open: English summary card, 6,000 posts (≤ 200 ms; busy ≤ 300; post-frame pass < 50) | 376 to 378 ms (busy 624–638; pass 161–209) | **166.0 ms** (153 to 168; busy 239.5; pass 22.0) | **Met** (−34.0 ms) |
+| Drawer open: Chinese summary card, 20 posts (≤ 200 ms; within 20 % of English) | 629 ms (1.72× English) | **160.5 ms** (154 to 165; **1.01×** English) | **Met** (−39.5 ms) |
+| Touch-down haptic before finger lift (`m:haptic.done < m:up`) | 327 ms (after lift) | **8 to 19 ms** (lift at 58 ms) | **Met** |
+| Share › Messages: real thread, 6,185 posts (no blank screen; `.txt` attachment ≤ 3 s) | blank for 15 s | **`New Message` with `1.9 MB` `.txt` attachment within 3 s**; share sheet shows filename and size | **Met** |
+| Share › Messages: 6,000-post fixture (no blank screen; `.txt` attachment ≤ 3 s) | blank for 15 s | **`New Message` with `2.2 MB` `.txt` attachment within 3 s**; share sheet shows filename and size | **Met** |
+| Hosted `runs-60` open (≤ 300 ms) / `all-6000` open (≤ 300 ms) | 637 / 276 ms | **60.7 / 66.6 ms** | **Met** |
+| Hosted `runs-60` one more run `new_run_ms` (≤ 150 ms) | 134 ms (2,144 Debug) | **51.1 ms** (`send_run_ms`: 307.6 ms) | **Met** |
+| Hosted `summary-30` scroll step median (≤ 20 ms) / `summary-30-zh` | 56 / 121.9 ms | **17.7 / 18.0 ms** | **Met** |
+| Hosted `summary-30` scroll steps > 16.7 ms (first page task 7: ≤ 10 of 40) | 40 of 40 | **26 of 40** (even `baseline` is 7 of 10 at 19.1 ms) | **Not met** (+16 steps) |
+| Hosted keystroke median (first page task 2: ≤ 12 ms on every fixture) | 12.7 to 26.2 ms (42–412 original) | **13.1 to 15.1 ms** (composer-only 5.8 ms; all < 16.7 ms frame budget) | **Not met** (+1.1 to +3.1 ms) |
+| Hosted unrelated `AppModel` publish (≤ 5 ms on every fixture) | 47 to 413 ms | **1.6 to 2.2 ms** | **Met** |
+| Task 10: real-thread typing within 20 % of 20-comment control (`≤ 203.5 ms/key`) | 1,985 vs 320 ms (6.2×) | **312.0 ms/key** (3 runs: 309.1, 312.0, 317.5) vs **169.6 ms/key** (**1.84×**; `fixture-6000` is 176.2 ms, +3.9 %) | **Not met** (+108.5 ms/key) |
+| Task 10: no run loop pass > 250 ms while typing | 97 on real thread, 31 on `fixture-6000` | **0** on all three cases (all 3 real-thread runs) | **Met** |
+| Task 10: Instruments trace reports no hang (> 250 ms) | 82 (18 Hangs + 64 Microhangs) | **0 hangs, 0 microhangs** (41.0 s Time Profiler trace) | **Met** |
 
 **Order:** 1 and 2 first (the two things the owner sees on every use, both small and independent), then 3, then 4. Tasks 5 and 6 wait for their gates.
 
@@ -257,3 +279,17 @@ Sizes count changed lines, tests included. Phone numbers are the iPhone 13 with 
 - **How much of the open is the cascade.** Bounded (about 20 ms plus 11 to 13 ms) but not isolated.
 - **The SwiftUI and Animation Hitches instruments:** not recorded (the SwiftUI tables come back empty with all-process recording).
 - **iPad:** phone drawer only.
+
+## 6. Proposed follow-ups (unmet targets)
+
+Ranked by main-thread CPU in the 41.0 s Time Profiler trace of `testRealLongThread` (`6,557 ms` WukongMind main-thread CPU; `0` hangs; `com.apple.WebKit.WebContent` also used `14,120 ms` on the live `doctorofcredit.com` page behind the drawer):
+
+1. **Eliminate per-keystroke keyboard hide/show churn and `AssistantPanel.body` re-evaluations on real pages — `2,661 ms` (40.6 % of WukongMind main-thread CPU).**
+   - *Evidence:* On `real-page` (all three runs), `UIKit` toggles hardware↔software keyboard mode (`setInHardwareKeyboardMode`, `detachHardwareKeyboard`, `setKeyWindowSceneInputViews`) on every XCUITest `typeText` character, posting `keyboardWillHide` + `keyboardWillShow` twice per keystroke (`n:publish.ForumBrowserModel=60`, `n:AssistantPanel.body=60` vs. `2` on `fixture-20` and `fixture-6000`). That accounts for the entire `+142 ms/key` gap between `real-page` (`312.0 ms/key`) and `fixture-20` (`169.6 ms/key`); `ChatThread.body`, `BrowserAgentRunsView.runSection`, `DrawerPageFacts` and `TopicExportPayload.text` are all `0`.
+   - *Proposed follow-up:* Stop `AssistantPanel` (and any view inside the drawer) from observing `ForumBrowserModel.isSystemKeyboardVisible` (or debounce/gate `isSystemKeyboardVisible` while the compact drawer owns first responder), and check why the real page's `WKWebView` / drawer detent still triggers keyboard rebuilds per keystroke while fixtures do not.
+2. **Audit SwiftUI accessibility hierarchy cost under XCUITest / VoiceOver — `2,545 ms` (38.8 %; only `3 ms` in `WKWebView`).**
+   - *Evidence:* Task 3's `accessibilityHidden` on the covered `WKWebView` succeeded (`WKWebView` AX walking is down to `3 ms`), leaving XCUITest's `_accessibilityUserTestingSnapshotWithOptions` walking the SwiftUI drawer itself as the second largest CPU consumer. This is mostly UI-test harness floor (`fixture-20` is `169.6 ms/key`), so it does not affect normal typing unless VoiceOver is active, but flattening redundant accessibility containers in `AssistantPanel` / `DrawerSummary` would cut both VoiceOver and UI-test snapshot time.
+3. **Trim residual SwiftUI/AttributeGraph work per keystroke and per scroll step — `918 ms` (14.0 %, including `34 ms` in `DockLayer` / `AppleIntelligenceClient.currentStatus`).**
+   - *Evidence:* Hosted keystroke median is `13.1–15.1 ms` (target ≤ 12 ms; composer-only is `5.8 ms`) and hosted `summary-30` scroll has `26/40` steps over `16.7 ms` (target ≤ 10/40; median `17.7 ms` meets ≤ 20 ms, and even `baseline` is `19.1 ms`, `7/10` over `16.7 ms` on 300 pt programmatic jumps). Both are already near or under the `16.7 ms` frame budget and flat across thread/run sizes, so this is lower priority than #1.
+   - *Proposed follow-up:* Cache `AppleIntelligenceClient.currentStatus()` / `FoundationModelsBridge.probe()` off the render path (still `33 ms` in the typing trace and `12 ms/open` earlier), and profile `AssistantComposer` + hosted `ScrollView` layout if sub-12 ms keystrokes or ≤ 10/40 300 pt scroll steps are required.
+4. *(Harness-only, not a product follow-up)* **`PerfProbeState` 0.5 s polling timer — `430 ms` (6.6 %).** DEBUG-only measurement overhead; does not ship in Release.
