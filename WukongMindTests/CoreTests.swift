@@ -1082,6 +1082,66 @@ final class CoreTests: XCTestCase {
     }
 
     @MainActor
+    func testStateStorageStatsCountsSessionsWithTextAndReadsFileSize() async throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let file = directory.appendingPathComponent("state.json")
+        let store = PersistentStore(fileURL: file)
+
+        // Missing file and no sessions -> all zeros.
+        let empty = StateStorageStats.measure(sessions: [], stateFileURL: file)
+        XCTAssertEqual(empty, StateStorageStats(stateFileBytes: 0, sessionsWithText: 0, largestSessionBytes: 0))
+
+        var noText = TopicSession(
+            siteURL: "https://forum.example.com",
+            topicID: "1",
+            url: try XCTUnwrap(URL(string: "https://forum.example.com/t/1")),
+            title: "Summary only"
+        )
+        noText.summary = "Summary without thread text"
+
+        var sourceOnly = TopicSession(
+            siteURL: "https://forum.example.com",
+            topicID: "2",
+            url: try XCTUnwrap(URL(string: "https://forum.example.com/t/2")),
+            title: "Small thread"
+        )
+        sourceOnly.source = String(repeating: "a", count: 2_000)
+        sourceOnly.kept = true
+
+        var sourceAndPages = TopicSession(
+            siteURL: "https://forum.example.com",
+            topicID: "3",
+            url: try XCTUnwrap(URL(string: "https://forum.example.com/t/3")),
+            title: "Larger thread"
+        )
+        sourceAndPages.source = String(repeating: "b", count: 5_000)
+        sourceAndPages.rawPages = [
+            RawForumPage(page: 1, content: String(repeating: "c", count: 4_000))
+        ]
+        sourceAndPages.kept = true
+
+        let sessions = [noText, sourceOnly, sourceAndPages]
+        try store.save(AppSnapshot(settings: AppSettings(), sessions: sessions, activities: []))
+
+        let expectedFileBytes = try XCTUnwrap(
+            (FileManager.default.attributesOfItem(atPath: file.path)[.size] as? NSNumber)?.int64Value
+        )
+        let stats = StateStorageStats.measure(sessions: sessions, stateFileURL: file)
+        XCTAssertEqual(stats.stateFileBytes, expectedFileBytes)
+        XCTAssertGreaterThan(stats.stateFileBytes, 0)
+        XCTAssertEqual(stats.sessionsWithText, 2)
+        XCTAssertEqual(stats.largestSessionBytes, 9_000)
+        XCTAssertTrue(stats.formattedLine.contains("2 sessions with text"))
+        XCTAssertTrue(stats.formattedLine.hasPrefix("state.json: "))
+        XCTAssertTrue(stats.formattedLine.contains("largest "))
+
+        let app = AppModel(store: store)
+        let measured = await app.measureStateStorageStats()
+        XCTAssertEqual(measured, stats)
+    }
+
+    @MainActor
     func testDeleteActivityRemovesOnlyTerminalRecords() throws {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

@@ -113,6 +113,7 @@ final class PersistentStore {
     var directoryURL: URL {
         fileURL.deletingLastPathComponent()
     }
+    var stateFileURL: URL { fileURL }
 
     init(fileURL: URL? = nil, keys: ProviderKeyStore? = nil) {
         self.keys = keys ?? (fileURL == nil ? KeychainProviderKeyStore.shared : InMemoryProviderKeyStore())
@@ -217,6 +218,51 @@ final class PersistentStore {
         )
         let data = try encoder.encode(snapshot)
         try data.write(to: fileURL, options: .atomic)
+    }
+}
+
+/// Read-only storage stats for Developer mode (`Settings › Agent › Developer`).
+struct StateStorageStats: Equatable, Sendable {
+    var stateFileBytes: Int64
+    var sessionsWithText: Int
+    var largestSessionBytes: Int64
+
+    static func measure(sessions: [TopicSession], stateFileURL: URL) -> StateStorageStats {
+        let fileBytes: Int64
+        if let size = (try? FileManager.default.attributesOfItem(atPath: stateFileURL.path)[.size]) as? NSNumber {
+            fileBytes = size.int64Value
+        } else {
+            fileBytes = 0
+        }
+        var withText = 0
+        var largest: Int64 = 0
+        for session in sessions {
+            let bytes = session.threadTextByteCount
+            if bytes > 0 {
+                withText += 1
+                if bytes > largest { largest = bytes }
+            }
+        }
+        return StateStorageStats(
+            stateFileBytes: fileBytes,
+            sessionsWithText: withText,
+            largestSessionBytes: largest
+        )
+    }
+
+    var formattedLine: String {
+        let stateSize = ByteCountFormatter.string(fromByteCount: stateFileBytes, countStyle: .file)
+        let largestSize = ByteCountFormatter.string(fromByteCount: largestSessionBytes, countStyle: .file)
+        let noun = sessionsWithText == 1 ? "session" : "sessions"
+        return "state.json: \(stateSize) · \(sessionsWithText) \(noun) with text · largest \(largestSize)"
+    }
+}
+
+extension TopicSession {
+    var threadTextByteCount: Int64 {
+        Int64(source.utf8.count) + rawPages.reduce(into: Int64(0)) { total, page in
+            total += Int64(page.content.utf8.count)
+        }
     }
 }
 
