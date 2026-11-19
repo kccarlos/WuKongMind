@@ -267,6 +267,28 @@ final class CoreTests: XCTestCase {
             }
             XCTAssertFalse(orphanInkBelow, "\(name): full stop must never drop onto its own line below the chip")
         }
+
+        // Multi-line wrapped runs: a chip that fits on the last line of a wrapped run must
+        // follow the last line inline (never drop to a new line alone and never overlap text).
+        for (name, sample) in [
+            ("multiline-en", "The header moves by a few points when the avatar row wraps [#22](wukongmind-post:22)."),
+            ("multiline-zh", "输入框在敲下第一个字后会失去焦点，**仅限**手机端 [#23](wukongmind-post:23)。")
+        ] {
+            let image = render(
+                MarkdownBlockView(row: MarkdownRow(content: .paragraph(sample), topSpacing: 0), citations: true),
+                dynamicTypeSize: .large,
+                width: 340,
+                height: 160
+            )
+            let pills = try measurePills(in: image)
+            let pill = try XCTUnwrap(pills.first, "\(name): expected citation pill")
+            let gapBefore = try XCTUnwrap(
+                pill.gapBefore,
+                "\(name): chip after a multi-line run with room on the last line must stay inline, not drop onto its own line"
+            )
+            XCTAssertGreaterThanOrEqual(gapBefore, 1.0, "\(name): chip must not overlap preceding text (got \(gapBefore) pt)")
+            XCTAssertLessThanOrEqual(gapBefore, 8.0, "\(name): chip gap after wrapped last line must stay tight (got \(gapBefore) pt)")
+        }
     }
 
     @MainActor
@@ -335,6 +357,91 @@ final class CoreTests: XCTestCase {
         attachment.name = "AX5 cited word spacing"
         attachment.lifetime = .keepAlways
         add(attachment)
+    }
+
+    func testCitedTextGroupsRunsBetweenChipsAndCachesTokenization() {
+        CitedTextCache.removeAll()
+        MarkdownLayoutProbe.reset()
+
+        // English: styled runs between chips collapse into one wrapping text token,
+        // and trailing punctuation glues onto its chip.
+        let english = "Several people report **only** one jump with `layout pass` [#3](wukongmind-post:3), and a fix [#7](wukongmind-post:7) ."
+        let englishTokens = CitedText.tokens(english)
+        XCTAssertEqual(englishTokens.count, 4, "Expected [text, #3,, text, #7.]")
+        if case .text(let first, let spaceAfter) = englishTokens[0] {
+            XCTAssertEqual(String(first.characters), "Several people report only one jump with layout pass")
+            XCTAssertTrue(spaceAfter)
+        } else {
+            XCTFail("Expected leading text token")
+        }
+        if case .citation(let number, let suffix, let spaceAfter) = englishTokens[1] {
+            XCTAssertEqual(number, 3)
+            XCTAssertEqual(suffix.map { String($0.characters) }, ",")
+            XCTAssertTrue(spaceAfter)
+        } else {
+            XCTFail("Expected #3 citation token")
+        }
+        if case .text(let middle, let spaceAfter) = englishTokens[2] {
+            XCTAssertEqual(String(middle.characters), "and a fix")
+            XCTAssertTrue(spaceAfter)
+        } else {
+            XCTFail("Expected middle text token")
+        }
+        if case .citation(let number, let suffix, let spaceAfter) = englishTokens[3] {
+            XCTAssertEqual(number, 7)
+            XCTAssertEqual(suffix.map { String($0.characters) }, ".")
+            XCTAssertFalse(spaceAfter)
+        } else {
+            XCTFail("Expected #7 citation token")
+        }
+        XCTAssertEqual(
+            CitedText.plainText(english),
+            "Several people report only one jump with layout pass , and a fix ."
+        )
+
+        // Chinese: wide characters do not split tokens; compound trailing punctuation stays glued.
+        let chinese = "多数读者在规定时间内拿到了开户奖励 [#2](wukongmind-post:2)，少数人需要第二次存款（见 [#3](wukongmind-post:3)）。活动页面仍显示旧条款。"
+        let chineseTokens = CitedText.tokens(chinese)
+        XCTAssertEqual(chineseTokens.count, 5, "Expected [text, #2，, text, #3）。, text]")
+        if case .text(let first, let spaceAfter) = chineseTokens[0] {
+            XCTAssertEqual(String(first.characters), "多数读者在规定时间内拿到了开户奖励")
+            XCTAssertTrue(spaceAfter)
+        } else {
+            XCTFail("Expected Chinese leading text token")
+        }
+        if case .citation(let number, let suffix, let spaceAfter) = chineseTokens[1] {
+            XCTAssertEqual(number, 2)
+            XCTAssertEqual(suffix.map { String($0.characters) }, "，")
+            XCTAssertFalse(spaceAfter)
+        } else {
+            XCTFail("Expected Chinese #2 citation token")
+        }
+        if case .text(let middle, let spaceAfter) = chineseTokens[2] {
+            XCTAssertEqual(String(middle.characters), "少数人需要第二次存款（见")
+            XCTAssertTrue(spaceAfter)
+        } else {
+            XCTFail("Expected Chinese middle text token")
+        }
+        if case .citation(let number, let suffix, let spaceAfter) = chineseTokens[3] {
+            XCTAssertEqual(number, 3)
+            XCTAssertEqual(suffix.map { String($0.characters) }, "）。")
+            XCTAssertFalse(spaceAfter)
+        } else {
+            XCTFail("Expected Chinese #3 citation token")
+        }
+        if case .text(let tail, let spaceAfter) = chineseTokens[4] {
+            XCTAssertEqual(String(tail.characters), "活动页面仍显示旧条款。")
+            XCTAssertFalse(spaceAfter)
+        } else {
+            XCTFail("Expected Chinese trailing text token")
+        }
+
+        // Tokenization cache: repeated lookups do not re-tokenize.
+        XCTAssertEqual(MarkdownLayoutProbe.citedTokenizations, 2)
+        _ = CitedText.tokens(english)
+        _ = CitedText.tokens(chinese)
+        _ = CitedText.plainText(chinese)
+        XCTAssertEqual(MarkdownLayoutProbe.citedTokenizations, 2)
     }
 
     func testMarkdownParserRecognizesStructuredBlocks() {

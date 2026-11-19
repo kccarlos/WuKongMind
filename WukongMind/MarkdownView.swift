@@ -493,10 +493,12 @@ struct MarkdownView: View {
 enum MarkdownLayoutProbe {
     nonisolated(unsafe) static var blockBodies = 0
     nonisolated(unsafe) static var citationLayouts = 0
+    nonisolated(unsafe) static var citedTokenizations = 0
 
     static func reset() {
         blockBodies = 0
         citationLayouts = 0
+        citedTokenizations = 0
     }
 }
 #endif
@@ -712,17 +714,54 @@ struct CitationHoverAction {
     func callAsFunction(_ number: Int) { action(number) }
 }
 
-/// A paragraph with `#N` post citations, laid out word by word so each chip
-/// can be a real button: about 28 pt to look at, 44 × 44 pt to tap, at least
-/// 4 pt apart. VoiceOver reads the paragraph as one element, then the chips.
-private struct CitedText: View {
+/// Cached tokenization of cited paragraphs so re-rendering or scrolling does not
+/// re-parse Markdown inline runs or rebuild the plain VoiceOver string.
+private final class CitedTokensBox: NSObject {
+    let tokens: [CitedText.Token]
+    let plain: String
+
+    init(tokens: [CitedText.Token], plain: String) {
+        self.tokens = tokens
+        self.plain = plain
+    }
+}
+
+enum CitedTextCache {
+    private static let cache: NSCache<NSString, CitedTokensBox> = {
+        let cache = NSCache<NSString, CitedTokensBox>()
+        cache.countLimit = 512
+        return cache
+    }()
+
+    static func removeAll() {
+        cache.removeAllObjects()
+    }
+
+    fileprivate static func entry(for source: String) -> CitedTokensBox {
+        let key = source as NSString
+        if let cached = cache.object(forKey: key) { return cached }
+        #if DEBUG
+        MarkdownLayoutProbe.citedTokenizations += 1
+        #endif
+        let tokens = CitedText.tokenize(source)
+        let box = CitedTokensBox(tokens: tokens, plain: CitedText.plain(tokens))
+        cache.setObject(box, forKey: key)
+        return box
+    }
+}
+
+/// A paragraph with `#N` post citations: each contiguous run of text between
+/// chips is one wrapping `Text`, and each chip is a real button (about 28 pt
+/// visually, 44 × 44 pt to tap, at least 4 pt apart). VoiceOver reads the
+/// paragraph as one element, then the chips.
+struct CitedText: View {
     let source: String
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @ScaledMetric(relativeTo: .body) private var wordSpacing = 4
     @ScaledMetric(relativeTo: .body) private var widePull: CGFloat = 1.25
     @ScaledMetric(relativeTo: .footnote) private var narrowPull: CGFloat = 1
 
-    private enum Token {
+    enum Token: Equatable {
         case text(AttributedString, spaceAfter: Bool)
         /// A chip and the punctuation right after it ("#37."), which never
         /// wraps onto the next line alone.
@@ -735,14 +774,17 @@ private struct CitedText: View {
     }
 
     var body: some View {
-        let tokens = Self.tokens(source)
+        let entry = CitedTextCache.entry(for: source)
         CitationFlowLayout(lineSpacing: 4) {
-            ForEach(Array(tokens.enumerated()), id: \.offset) { _, token in
+            ForEach(Array(entry.tokens.enumerated()), id: \.offset) { _, token in
                 switch token {
                 case .text(let text, let spaceAfter):
                     Text(text)
-                        .fixedSize()
                         .layoutValue(key: TrailingSpace.self, value: spaceAfter ? wordSpacing : 0)
+                        .layoutValue(
+                            key: WrappableTextKey.self,
+                            value: WrappableTextInfo(text: text, dynamicTypeSize: dynamicTypeSize)
+                        )
                         .accessibilityHidden(true)
                 case .citation(let number, let suffix, let spaceAfter):
                     HStack(spacing: suffixSpacing(for: suffix)) {
@@ -756,7 +798,7 @@ private struct CitedText: View {
                     }
                     .frame(minWidth: 46, alignment: .leading)
                     // The expanded target overlaps adjacent text, including
-                    // the next line. Words must not intercept a chip tap.
+                    // the next line. Text must not intercept a chip tap.
                     .zIndex(1)
                     .layoutValue(key: TrailingSpace.self, value: suffix == nil || spaceAfter ? wordSpacing : 0)
                 }
@@ -765,12 +807,20 @@ private struct CitedText: View {
         .background {
             Color.clear
                 .accessibilityElement()
-                .accessibilityLabel(Text(verbatim: Self.plain(tokens)))
+                .accessibilityLabel(Text(verbatim: entry.plain))
         }
         .accessibilityElement(children: .contain)
     }
 
-    private static func plain(_ tokens: [Token]) -> String {
+    static func tokens(_ source: String) -> [Token] {
+        CitedTextCache.entry(for: source).tokens
+    }
+
+    static func plainText(_ source: String) -> String {
+        CitedTextCache.entry(for: source).plain
+    }
+
+    fileprivate static func plain(_ tokens: [Token]) -> String {
         tokens.compactMap { token -> String? in
             switch token {
             case .text(let text, let spaceAfter):
@@ -783,97 +833,120 @@ private struct CitedText: View {
         .trimmingCharacters(in: .whitespaces)
     }
 
-    /// Words (CJK one character each) with their styling, and the chips.
-    private static func tokens(_ source: String) -> [Token] {
+    /// One wrapping text run between chips (preserving inline styling and CJK runs),
+    /// and the chips with any immediately following punctuation glued to them.
+    fileprivate static func tokenize(_ source: String) -> [Token] {
         let value = MarkdownInline.attributed(source.replacingOccurrences(of: "\n", with: " "))
         var tokens: [Token] = []
+        var currentText = AttributedString()
+        var afterCitation = false
+
+        func flushText() {
+            guard !currentText.characters.isEmpty else { return }
+            let chars = currentText.characters
+            let hasTrailingSpace = chars.last?.isWhitespace == true
+            var start = chars.startIndex
+            while start < chars.endIndex, chars[start].isWhitespace {
+                start = chars.index(after: start)
+            }
+            var end = chars.endIndex
+            while end > start {
+                let prev = chars.index(before: end)
+                if chars[prev].isWhitespace {
+                    end = prev
+                } else {
+                    break
+                }
+            }
+            defer { currentText = AttributedString() }
+            guard start < end else {
+                if hasTrailingSpace {
+                    switch tokens.last {
+                    case .text(let previous, _):
+                        tokens[tokens.count - 1] = .text(previous, spaceAfter: true)
+                    case .citation(let number, let suffix?, _):
+                        tokens[tokens.count - 1] = .citation(number, suffix: suffix, spaceAfter: true)
+                    default:
+                        break
+                    }
+                }
+                return
+            }
+            tokens.append(.text(AttributedString(currentText[start..<end]), spaceAfter: hasTrailingSpace))
+        }
+
         let characters = value.characters
         for run in value.runs {
             if let url = run.link, let number = PostCitations.postNumber(from: url) {
+                flushText()
                 tokens.append(.citation(number, suffix: nil, spaceAfter: true))
+                afterCitation = true
                 continue
             }
-            var start = run.range.lowerBound
-            var index = start
-            while index < run.range.upperBound {
-                let character = characters[index]
-                let next = characters.index(after: index)
-                let breaksAfter = character.isWhitespace
-                    || (!character.isOpeningPunctuation && (
-                        character.isWide
-                        || (next < run.range.upperBound && characters[next].isWide)
-                    ))
-                if breaksAfter {
-                    append(AttributedString(value[start..<next]), to: &tokens)
-                    start = next
-                }
-                index = next
-            }
-            if start < run.range.upperBound {
-                append(AttributedString(value[start..<run.range.upperBound]), to: &tokens)
-            }
-        }
-        return tokens
-    }
 
-    private static func append(_ chunk: AttributedString, to tokens: inout [Token]) {
-        let text = String(chunk.characters)
-        let trimmed = text.trimmingCharacters(in: .whitespaces)
-        guard !trimmed.isEmpty else {
-            // A lone space: belongs to the word or punctuated chip before.
-            switch tokens.last {
-            case .text(let previous, _):
-                tokens[tokens.count - 1] = .text(previous, spaceAfter: true)
-            case .citation(let number, let suffix?, _):
-                tokens[tokens.count - 1] = .citation(number, suffix: suffix, spaceAfter: true)
-            default:
-                break
+            var start = run.range.lowerBound
+            let end = run.range.upperBound
+
+            if afterCitation {
+                // Skip leading spaces after a chip ("#37 ." or "#37 next").
+                var cursor = start
+                var skippedLeadingSpace = false
+                while cursor < end, characters[cursor].isWhitespace {
+                    skippedLeadingSpace = true
+                    cursor = characters.index(after: cursor)
+                }
+
+                // Glue any immediately following trailing punctuation onto the chip.
+                var punctEnd = cursor
+                while punctEnd < end, characters[punctEnd].unicodeScalars.allSatisfy(\.isTrailingPunctuation) {
+                    punctEnd = characters.index(after: punctEnd)
+                }
+
+                if punctEnd > cursor, case .citation(let number, let existing, _) = tokens.last {
+                    let piece = AttributedString(value[cursor..<punctEnd])
+                    var combined = existing ?? AttributedString()
+                    combined.append(piece)
+                    var afterPunct = punctEnd
+                    var hasSpaceAfterPunct = false
+                    while afterPunct < end, characters[afterPunct].isWhitespace {
+                        hasSpaceAfterPunct = true
+                        afterPunct = characters.index(after: afterPunct)
+                    }
+                    tokens[tokens.count - 1] = .citation(number, suffix: combined, spaceAfter: hasSpaceAfterPunct)
+                    start = afterPunct
+                    if hasSpaceAfterPunct || start < end {
+                        afterCitation = false
+                    }
+                } else if cursor == end {
+                    // Whitespace-only run after a chip: mark spaceAfter on a punctuated chip.
+                    if skippedLeadingSpace, case .citation(let number, let suffix?, _) = tokens.last {
+                        tokens[tokens.count - 1] = .citation(number, suffix: suffix, spaceAfter: true)
+                    }
+                    continue
+                } else {
+                    // Non-punctuation text starts after the chip; chip's own TrailingSpace provides the gap.
+                    start = cursor
+                    afterCitation = false
+                }
             }
-            return
-        }
-        // Punctuation after a chip ("#37 ." from the model, "#37.", or "#37）。"): glued.
-        if trimmed.unicodeScalars.allSatisfy(\.isTrailingPunctuation),
-           let range = chunk.range(of: trimmed) {
-            let piece = AttributedString(chunk[range])
-            let hasSpace = text.last?.isWhitespace == true
-            switch tokens.last {
-            case .citation(let number, let existing, _):
-                var combined = existing ?? AttributedString()
-                combined.append(piece)
-                tokens[tokens.count - 1] = .citation(number, suffix: combined, spaceAfter: hasSpace)
-                return
-            case .text(let previous, false):
-                var combined = previous
-                combined.append(piece)
-                tokens[tokens.count - 1] = .text(combined, spaceAfter: hasSpace)
-                return
-            default:
-                break
+
+            if start < end {
+                currentText.append(AttributedString(value[start..<end]))
             }
         }
-        var word = chunk
-        if text.last?.isWhitespace == true, let range = word.range(of: trimmed) {
-            word = AttributedString(word[range])
-            tokens.append(.text(word, spaceAfter: true))
-        } else {
-            tokens.append(.text(word, spaceAfter: false))
-        }
+        flushText()
+        return tokens
     }
 }
 
 private extension Character {
-    /// CJK and other scripts written without spaces: lines break anywhere.
+    /// CJK and full-width punctuation, which sits slightly closer to its chip.
     var isWide: Bool {
         guard let scalar = unicodeScalars.first else { return false }
         switch scalar.value {
         case 0x2E80...0x9FFF, 0xAC00...0xD7AF, 0xF900...0xFAFF, 0xFF00...0xFFEF, 0x20000...0x2FA1F: return true
         default: return false
         }
-    }
-
-    var isOpeningPunctuation: Bool {
-        guard let category = unicodeScalars.first?.properties.generalCategory else { return false }
-        return category == .openPunctuation || category == .initialPunctuation
     }
 }
 
@@ -929,74 +1002,281 @@ struct CitationChip: View {
     }
 }
 
-/// Space after a flowed item (a word's trailing space, a chip's gap).
+/// Space after a flowed item (a text run's trailing space, a chip's gap).
 private struct TrailingSpace: LayoutValueKey {
     static let defaultValue: CGFloat = 0
 }
 
-/// Lines of words and chips, each line centred vertically.
+/// Metadata for a wrapping text run so `CitationFlowLayout` can measure its
+/// last line width and continue placing chips on that line.
+private struct WrappableTextInfo {
+    var text: AttributedString
+    var dynamicTypeSize: DynamicTypeSize
+}
+
+private struct WrappableTextKey: LayoutValueKey {
+    static let defaultValue: WrappableTextInfo? = nil
+}
+
+/// Lines of wrapping text runs and citation chips, each line centred vertically.
 private struct CitationFlowLayout: Layout {
     var lineSpacing: CGFloat
 
     struct Item {
-        var size: CGSize
+        var naturalSize: CGSize
         var space: CGFloat
+        var wrappable: WrappableTextInfo?
     }
 
-    func makeCache(subviews: Subviews) -> [Item] {
-        subviews.map { Item(size: $0.sizeThatFits(.unspecified), space: $0[TrailingSpace.self]) }
+    struct WrappedMetrics {
+        var size: CGSize
+        /// Width of the final line when CoreText and SwiftUI agree on line count;
+        /// `nil` falls back to closing the line so a chip can never overlap text.
+        var lastLineWidth: CGFloat?
     }
 
-    func updateCache(_ cache: inout [Item], subviews: Subviews) {
+    struct Cache {
+        var items: [Item]
+        var cachedWidth: CGFloat = -1
+        var wrapped: [Int: WrappedMetrics] = [:]
+
+        mutating func wrappedMetrics(
+            for index: Int,
+            width: CGFloat,
+            lineSpacing: CGFloat,
+            subview: LayoutSubview
+        ) -> WrappedMetrics {
+            if cachedWidth != width {
+                cachedWidth = width
+                wrapped.removeAll(keepingCapacity: true)
+            }
+            if let cached = wrapped[index] { return cached }
+            let size = subview.sizeThatFits(ProposedViewSize(width: width, height: nil))
+            let item = items[index]
+            let lastLineWidth = item.wrappable.flatMap { info in
+                Self.measureLastLineWidth(
+                    info: info,
+                    width: width,
+                    lineSpacing: lineSpacing,
+                    singleLineHeight: item.naturalSize.height,
+                    wrappedSize: size
+                )
+            }
+            let metrics = WrappedMetrics(size: size, lastLineWidth: lastLineWidth)
+            wrapped[index] = metrics
+            return metrics
+        }
+
+        private static func measureLastLineWidth(
+            info: WrappableTextInfo,
+            width: CGFloat,
+            lineSpacing: CGFloat,
+            singleLineHeight: CGFloat,
+            wrappedSize: CGSize
+        ) -> CGFloat? {
+            guard width > 0, singleLineHeight > 0 else { return nil }
+            let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(info.dynamicTypeSize))
+            let bodyFont = UIFont.preferredFont(forTextStyle: .body, compatibleWith: traits)
+            let codeFont = UIFont.monospacedSystemFont(
+                ofSize: UIFont.preferredFont(forTextStyle: .callout, compatibleWith: traits).pointSize,
+                weight: .regular
+            )
+            let paragraph = NSMutableParagraphStyle()
+            paragraph.lineSpacing = lineSpacing
+            paragraph.lineBreakMode = .byWordWrapping
+            paragraph.lineBreakStrategy = .standard
+
+            let attributed = NSMutableAttributedString()
+            for run in info.text.runs {
+                let text = String(info.text[run.range].characters)
+                var font = bodyFont
+                if let intent = run.inlinePresentationIntent {
+                    if intent.contains(.code) {
+                        font = codeFont
+                    } else {
+                        var symbolic: UIFontDescriptor.SymbolicTraits = []
+                        if intent.contains(.stronglyEmphasized) { symbolic.insert(.traitBold) }
+                        if intent.contains(.emphasized) { symbolic.insert(.traitItalic) }
+                        if !symbolic.isEmpty,
+                           let descriptor = bodyFont.fontDescriptor.withSymbolicTraits(symbolic) {
+                            font = UIFont(descriptor: descriptor, size: bodyFont.pointSize)
+                        }
+                    }
+                }
+                attributed.append(NSAttributedString(
+                    string: text,
+                    attributes: [.font: font, .paragraphStyle: paragraph]
+                ))
+            }
+
+            let contentStorage = NSTextContentStorage()
+            contentStorage.attributedString = attributed
+            let layoutManager = NSTextLayoutManager()
+            contentStorage.addTextLayoutManager(layoutManager)
+            let container = NSTextContainer(size: CGSize(width: width, height: 100_000))
+            container.lineFragmentPadding = 0
+            layoutManager.textContainer = container
+            layoutManager.ensureLayout(for: layoutManager.documentRange)
+
+            var lineCount = 0
+            var maxLineWidth: CGFloat = 0
+            var lastLineWidth: CGFloat = 0
+            layoutManager.enumerateTextLayoutFragments(from: nil, options: .ensuresLayout) { fragment in
+                for line in fragment.textLineFragments {
+                    lineCount += 1
+                    let used = line.typographicBounds.width
+                    maxLineWidth = max(maxLineWidth, used)
+                    lastLineWidth = used
+                }
+                return true
+            }
+
+            guard lineCount >= 2 else { return nil }
+            let expectedLines = max(1, Int(round((wrappedSize.height + lineSpacing) / (singleLineHeight + lineSpacing))))
+            guard lineCount == expectedLines, abs(maxLineWidth - wrappedSize.width) <= 3.0 else { return nil }
+
+            return min(width, max(0, ceil(lastLineWidth)))
+        }
+    }
+
+    func makeCache(subviews: Subviews) -> Cache {
+        Cache(items: subviews.map {
+            Item(
+                naturalSize: $0.sizeThatFits(.unspecified),
+                space: $0[TrailingSpace.self],
+                wrappable: $0[WrappableTextKey.self]
+            )
+        })
+    }
+
+    func updateCache(_ cache: inout Cache, subviews: Subviews) {
         cache = makeCache(subviews: subviews)
     }
 
-    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout [Item]) -> CGSize {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) -> CGSize {
         #if DEBUG
         MarkdownLayoutProbe.citationLayouts += 1
         #endif
-        if cache.count != subviews.count { cache = makeCache(subviews: subviews) }
-        let lines = arrange(width: proposal.width ?? .infinity, items: cache)
+        if cache.items.count != subviews.count { cache = makeCache(subviews: subviews) }
+        let lines = arrange(width: proposal.width ?? .infinity, subviews: subviews, cache: &cache)
         let width = lines.map(\.width).max() ?? 0
         let height = lines.reduce(0) { $0 + $1.height } + lineSpacing * CGFloat(max(0, lines.count - 1))
         return CGSize(width: proposal.width ?? width, height: height)
     }
 
-    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout [Item]) {
-        if cache.count != subviews.count { cache = makeCache(subviews: subviews) }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout Cache) {
+        if cache.items.count != subviews.count { cache = makeCache(subviews: subviews) }
         var y = bounds.minY
-        for line in arrange(width: bounds.width, items: cache) {
+        for line in arrange(width: bounds.width, subviews: subviews, cache: &cache) {
             for item in line.items {
-                let size = cache[item.index].size
                 subviews[item.index].place(
-                    at: CGPoint(x: bounds.minX + item.x, y: y + (line.height - size.height) / 2),
-                    proposal: ProposedViewSize(size)
+                    at: CGPoint(x: bounds.minX + item.x, y: y + item.yOffset(in: line)),
+                    proposal: ProposedViewSize(width: item.proposalWidth, height: item.size.height)
                 )
             }
             y += line.height + lineSpacing
         }
     }
 
-    private struct Line {
-        var items: [(index: Int, x: CGFloat)] = []
-        var width: CGFloat = 0
-        var height: CGFloat = 0
+    func explicitAlignment(
+        of guide: VerticalAlignment,
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout Cache
+    ) -> CGFloat? {
+        guard guide == .firstTextBaseline, let first = subviews.first else { return nil }
+        if cache.items.count != subviews.count { cache = makeCache(subviews: subviews) }
+        let lines = arrange(width: bounds.width, subviews: subviews, cache: &cache)
+        guard let firstLine = lines.first, let firstItem = firstLine.items.first else { return nil }
+        let baseline = first.dimensions(
+            in: ProposedViewSize(width: firstItem.proposalWidth, height: firstItem.size.height)
+        )[.firstTextBaseline]
+        return bounds.minY + firstItem.yOffset(in: firstLine) + baseline
     }
 
-    private func arrange(width: CGFloat, items: [Item]) -> [Line] {
+    private struct PlacedItem {
+        var index: Int
+        var x: CGFloat
+        var size: CGSize
+        var proposalWidth: CGFloat
+        /// Explicit vertical offset when placed inside a wrapped run's band;
+        /// `nil` centers the item vertically inside a single-line row.
+        var fixedYOffset: CGFloat?
+
+        func yOffset(in line: Line) -> CGFloat {
+            fixedYOffset ?? (line.height - size.height) / 2
+        }
+    }
+
+    private struct Line {
+        var items: [PlacedItem] = []
+        var width: CGFloat = 0
+        var height: CGFloat = 0
+        /// Band of the last line when this row began with a multi-line wrapped `Text`.
+        var tailBandTop: CGFloat?
+        var tailBandHeight: CGFloat = 0
+    }
+
+    private func arrange(width: CGFloat, subviews: Subviews, cache: inout Cache) -> [Line] {
         var lines: [Line] = [Line()]
         var x: CGFloat = 0
-        for index in items.indices {
-            let size = items[index].size
-            let space = items[index].space
-            if x > 0, x + size.width > width {
+        var lineClosed = false
+        let canWrap = width.isFinite && width > 0
+        for index in cache.items.indices {
+            let item = cache.items[index]
+            if item.wrappable != nil, canWrap, item.naturalSize.width > width {
+                if !lines[lines.count - 1].items.isEmpty {
+                    lines.append(Line())
+                }
+                let metrics = cache.wrappedMetrics(
+                    for: index,
+                    width: width,
+                    lineSpacing: lineSpacing,
+                    subview: subviews[index]
+                )
+                let size = metrics.size
+                lines[lines.count - 1].items.append(
+                    PlacedItem(index: index, x: 0, size: size, proposalWidth: width, fixedYOffset: 0)
+                )
+                lines[lines.count - 1].width = size.width
+                lines[lines.count - 1].height = max(lines[lines.count - 1].height, size.height)
+                if let lastLineWidth = metrics.lastLineWidth {
+                    let singleHeight = item.naturalSize.height
+                    lines[lines.count - 1].tailBandTop = max(0, size.height - singleHeight)
+                    lines[lines.count - 1].tailBandHeight = singleHeight
+                    x = lastLineWidth + item.space
+                    lineClosed = false
+                } else {
+                    x = width
+                    lineClosed = true
+                }
+                continue
+            }
+
+            let size = item.naturalSize
+            if lineClosed || (x > 0 && x + size.width > width) {
                 lines.append(Line())
                 x = 0
+                lineClosed = false
             }
-            lines[lines.count - 1].items.append((index, x))
-            lines[lines.count - 1].width = x + size.width
-            lines[lines.count - 1].height = max(lines[lines.count - 1].height, size.height)
-            x += size.width + space
+            let lastIdx = lines.count - 1
+            if let tailTop = lines[lastIdx].tailBandTop {
+                let tailHeight = lines[lastIdx].tailBandHeight
+                let yOffset = tailTop + (tailHeight - size.height) / 2
+                lines[lastIdx].items.append(
+                    PlacedItem(index: index, x: x, size: size, proposalWidth: size.width, fixedYOffset: yOffset)
+                )
+                lines[lastIdx].width = max(lines[lastIdx].width, x + size.width)
+                lines[lastIdx].height = max(lines[lastIdx].height, yOffset + size.height)
+            } else {
+                lines[lastIdx].items.append(
+                    PlacedItem(index: index, x: x, size: size, proposalWidth: size.width, fixedYOffset: nil)
+                )
+                lines[lastIdx].width = max(lines[lastIdx].width, x + size.width)
+                lines[lastIdx].height = max(lines[lastIdx].height, size.height)
+            }
+            x += size.width + item.space
         }
         return lines
     }
