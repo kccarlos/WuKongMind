@@ -12,6 +12,7 @@ WukongMind is a fork of Forumind into a self-use, open-source iOS/iPadOS browser
 - Drawer performance on long threads and the app's state machines: measurements on the owner's iPhone, causes, decisions and the task split are in [design-performance-and-state.md](design-performance-and-state.md) (proposed, WUKO-139).
 - Voice (Gemini Live) cost: measured session, where the cost goes and the planned cuts are in [voice-cost.md](voice-cost.md); live test rules are in DEVELOPMENT.md "Live Gemini Live budget".
 - App Store review readiness: what would stand in the way of passing App Store review, guideline by guideline, with Forumind's review history, draft review notes and follow-up tasks, is in [app-store-review.md](app-store-review.md) (assessment only, WUKO-148).
+- App Store code compliance audit: a sweep of the code for non-public API, rule-bending flows and hidden or review-conditional behaviour, with a check of the Release binary and follow-up tasks: [app-store-code-audit.md](app-store-code-audit.md)
 - TestFlight feedback: where task exports saved for feedback land on the Mac, their names and how to match them to a feedback item are in [feedback.md](feedback.md).
 - English first: code, docs, commits and pull requests are in English.
 - This repo started as a copy of Forumind `main` (e046b43). The `forumind` remote is fetch-only; never push to it.

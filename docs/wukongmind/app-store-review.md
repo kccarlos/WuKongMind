@@ -2,8 +2,10 @@
 
 A guideline-by-guideline review of what stands between WukongMind and App Store approval. This is an assessment only: no app code changed (WUKO-148).
 
+**Updated 2026-11-19 (WUKO-168):** the owner decided on one build with no store flag, and on the general-browser case for 1.2 (recorded in [requirements.md](requirements.md), section 12). The summary, the checklist rows and the tasks below were changed to match, and the code was audited for non-public API and hidden behaviour: [app-store-code-audit.md](app-store-code-audit.md), summarized in section 6.
+
 - **Guidelines used:** [App Store Review Guidelines](https://developer.apple.com/app-store/review/guidelines/), fetched 2026-11-18, "Last Updated: October 16, 2026". Quotes below are from that text.
-- **Code state:** `main` at `c6974c2` (version 1.5.0). Every `file:line` was checked against that commit.
+- **Code state:** `main` at `c6974c2` (version 1.5.0). Every `file:line` was checked against that commit; the lines added or changed on 2026-11-19 (tasks 0, 1, 4, 5 and section 6) refer to `6c4f66c` (version 1.5.4).
 - **Forumind history:** from the Forumind Claude Code transcripts (through 2026-11-11) and from Forumind's own `docs/APP_STORE.md`, which is still in this repo's history (`git show e046b43:docs/APP_STORE.md`).
 - **Risk levels:** **blocker** (will be rejected, or cannot be reviewed at all), **likely** (a reviewer who looks will reject), **question** (expect a question or a request for an explanation; a good note should settle it), **fine**.
 
@@ -31,12 +33,12 @@ Nothing found is impossible to fix. The engine (WebKit only), the lack of accoun
 1. The owner decides whether WukongMind goes to the store at all, and whether alongside Forumind or instead of it (risks 3 and 4).
 2. Give reviewers a working model (section 4.1): a spend-capped key in the review notes, plus a screen recording.
 3. Bring back AI data consent and an in-app privacy policy link; rewrite `PRIVACY.md` and `README.md` for a store app.
-4. Make Agent-saved scripts wait for the user's approval, and turn "Confirm before writes" on by default in the store build.
-5. Bring back Terms of Use, report, block and filter, or decide to argue the general-browser case and accept one likely rejection round.
+4. Make Agent-saved scripts wait for the user's approval, turn "Confirm before writes" on by default, and stop giving cookie values to the model by default. Each is a visible Settings switch with the safe side as the default.
+5. Argue the general web browser and AI agent case for 1.2 (decided 2026-11-19), with a lightweight Terms acceptance and "Report this answer" on AI output; accept that a rejection round is possible.
 6. Rebuild the listing, privacy site and App Store Connect answers.
 7. Fix the privacy manifest.
 
-Section 5 turns these into tasks. To keep the self-use build as free as it is now, the tasks put store-only limits behind one build flag (`DC_APP_STORE`), the same way `DC_ENABLE_CLOUDKIT` works today. The store binary then simply does not contain the unrestricted paths, which is also the honest answer to 2.5.19.
+Section 5 turns these into tasks. **There is one build and no store flag** (decided 2026-11-19; an earlier version of this page planned a `DC_APP_STORE` compile flag). What the store needs becomes a visible Settings switch with the safe side as the default, and the user may turn it the other way. The TestFlight build is the store build, so a reviewer, a tester and a user all run the same code with the same defaults. That is the honest answer to 2.5.19 and 5.6: nothing depends on the build, the install source or who is looking.
 
 ## 2. Checklist
 
@@ -57,10 +59,10 @@ Guidelines that cannot apply are grouped in one row per section. "Note" means te
 | No. | Title | Applies? | Evidence | Risk | Fix / note |
 |---|---|---|---|---|---|
 | 1.1 | Objectionable content | Partly | The app ships no content; it shows the web and AI output. Apple Intelligence uses `.permissiveContentTransformations` guardrails (docs/APPLE_INTELLIGENCE.md:45) | question | Note: content comes from sites the user opens; AI output comes from the user's own provider. Age rating covers the open web. |
-| 1.2 | User-generated content | Yes | Users can sign in to and post on forums in the web view; forum adapters, summaries and digests remain. Terms, report, block and filter were deleted in `d915ea0` (`Moderation.swift`, `ModerationViews.swift`, `AppModel+Moderation.swift`, `TERMS.md`). 1.2 now also lists "AI content creation apps" | likely | Task 5. The alternative is to argue "general web browser, hosts nothing" and accept a likely rejection round; Forumind lost that argument. |
+| 1.2 | User-generated content | Yes | Users can sign in to and post on forums in the web view; forum adapters, summaries and digests remain. Terms, report, block and filter were deleted in `d915ea0` (`Moderation.swift`, `ModerationViews.swift`, `AppModel+Moderation.swift`, `TERMS.md`). 1.2 now also lists "AI content creation apps" | likely | Decided 2026-11-19: argue "general web browser with an AI agent, hosts nothing", with a lightweight Terms acceptance and "Report this answer" on AI output (task 5). Forumind lost the browser argument as a forum app, so a rejection round is possible; report, block and filter are then the fallback. |
 | 1.2.1 | Creator content | No | No creator platform | fine | |
 | 1.5 | Developer information | Yes | Settings › About has Support and source links (`WukongMind/SettingsDataHelpPages.swift:250-254`), both to GitHub | question | Task 8: a support page with a contact address; GitHub issues alone is thin. |
-| 1.6 | Data security | Yes | Keys in the Keychain (`WukongMind/Persistence.swift:236-247`); password fields masked in page reads (`WukongMind/AgentBridge.swift:1518-1520`); but `cookies_get` returns HttpOnly values to the model after one confirmation (`ToolRegistry+Network.swift:184`, `:212`), and `http_request` can send them to any host (`:58-63`, `:78`) | likely | Task 4: in the store build, don't return cookie values to the model, and default confirmations on. |
+| 1.6 | Data security | Yes | Keys in the Keychain (`WukongMind/Persistence.swift:236-247`); password fields masked in page reads (`WukongMind/AgentBridge.swift:1518-1520`); but `cookies_get` returns HttpOnly values to the model after one confirmation (`ToolRegistry+Network.swift:184`, `:212`), and `http_request` can send them to any host (`:58-63`, `:78`) | likely | Tasks 1 and 4: cookie values are not given to the model unless the user turns on a setting; confirmations are on by default. |
 | 1.3, 1.4, 1.7 | Kids, physical harm, crime reporting | No | Not a kids, health or reporting app | fine | Never select the Kids category. |
 
 ### 2. Performance
@@ -68,7 +70,7 @@ Guidelines that cannot apply are grouped in one row per section. "Note" means te
 | No. | Title | Applies? | Evidence | Risk | Fix / note |
 |---|---|---|---|---|---|
 | 2.1(a) | App completeness | Yes | See risk 1. No in-app purchases, so 2.1(b) does not apply | blocker | Section 4.1; attach a screen recording from a real device (Apple asked Forumind for one as a new account). |
-| 2.2 | Beta testing | Yes | TestFlight goes to the internal group only (`fastlane/Fastfile:86`). 2.2: a TestFlight build "should be intended for public distribution and should comply with the App Review Guidelines" | question | Once the app is submitted, the same app record should carry only store-flavour builds; an unrestricted TestFlight build next to a restricted store build is the mismatch behind Forumind's 5.6. Task 0 (e) and task 1. |
+| 2.2 | Beta testing | Yes | TestFlight goes to the internal group only (`fastlane/Fastfile:86`). 2.2: a TestFlight build "should be intended for public distribution and should comply with the App Review Guidelines" | fine once task 1 ships | Decided 2026-11-19: one build. The TestFlight build is the store build, so the mismatch behind Forumind's 5.6 (an unrestricted TestFlight build next to a restricted store build) cannot happen. Until task 1 changes the defaults, TestFlight builds still have the unrestricted ones. |
 | 2.3 / 2.3.1 | Accurate metadata, describe features | Yes | No listing exists; README and PRIVACY.md describe a non-store app | blocker | Tasks 3 and 8. Every claim in the listing must be true of the submitted build. |
 | 2.3.3, 2.3.9 | Screenshots | Yes | None exist | blocker (process) | Task 8: the app in use, invented data only, no real people's posts. |
 | 2.3.6 | Age rating | Yes | Any website can be opened; forums are user-generated content | likely if answered wrong | Unrestricted Web Access: Yes (gives 16+); User-Generated Content: Yes. Forumind was rejected twice over the second answer (once because the setting silently reverted). Section 4.4. |
@@ -77,7 +79,7 @@ Guidelines that cannot apply are grouped in one row per section. "Note" means te
 | 2.3.12 | What's New | Yes | Release notes come from the tag (`.github/workflows/release.yml:322`) | fine | Write real notes for store versions. |
 | 2.4.1 | iPad | Yes | `TARGETED_DEVICE_FAMILY` "1,2" (`scripts/generate_project.rb:239`) | fine | |
 | 2.4.2 | Power | Yes | Background tasks are bounded: watch refresh every 30 min at most, digest on power only (`WukongMind/WatchSupport.swift:148-165`, `WukongMind/DailyDigest.swift:415-437`) | fine | |
-| 2.5.1 | Public APIs | Yes | Forumind's selector trick in the share extension is gone (`WukongMindShare/ShareViewController.swift:40`); the only `dlopen` is DEBUG and simulator only (`WukongMind/ForumBrowser.swift:1695-1702`) | fine | |
+| 2.5.1 | Public APIs | Yes | Forumind's selector trick in the share extension is gone (`WukongMindShare/ShareViewController.swift:40`); the only `dlopen` and the only private selectors are a DEBUG test helper (`WukongMind/ForumBrowser.swift:1826-1878`), and a Release build was checked not to contain them | fine | Full sweep: [app-store-code-audit.md](app-store-code-audit.md). One undocumented URL scheme (`shareddocuments://`) is a question there. |
 | 2.5.2 | Self-contained; no downloaded code that changes features | **Yes** | (a) `.user.js` links are fetched and installed (`WukongMind/ScriptImport.swift:141-145`, `:298`), with a review sheet, off and isolated by default (`:425`, `:428`). (b) The Agent runs model-written JavaScript in the page (`ToolRegistry.swift:1206`). (c) The Agent saves scripts that run on later visits, enabled at once (`ToolRegistry.swift:1624`, `:1742`). (d) `@require` libraries are downloaded. Everything runs in WebKit's JavaScript; no native code, no other interpreter, no remote config. Filter lists are bundled (`WukongMind/ContentBlocker.swift:340-341`) | likely for (c), question for (a), (b), (d) | The defensible reading: scripts act on web pages inside WebKit and do not change the app's own features, and 4.7 allows JavaScript plug-ins. (Userscript managers are, to my knowledge, on the store already; not checked for this review.) Make (c) match (a): the user sees the code and approves it (task 4). Explain all four in the note. |
 | 2.5.3 | Harmful code | Yes | A user script can do anything a page can | question | Same mitigations as 2.5.2. |
 | 2.5.4 | Background modes | Yes | `audio`, `fetch`, `processing`, `remote-notification` (`Info.plist`, UIBackgroundModes). Audio: podcast and read aloud play in the background (`WukongMind/Podcast/PodcastPlayer.swift:594-598`); voice uses play-and-record (`WukongMind/Voice/VoiceAudioEngine.swift:256`). No silent-audio keep-alive was found. `remote-notification` is for CloudKit's silent pushes (`WukongMind/WukongMindApp.swift:46`) and is declared even when CloudKit is off | question | Task 7: drop `remote-notification` when CloudKit is off; say in the note what each mode is for. |
@@ -87,7 +89,7 @@ Guidelines that cannot apply are grouped in one row per section. "Note" means te
 | 2.5.11 | Shortcuts | Yes | Three intents, all the app's own actions (`WukongMind/System/AppIntents.swift:13`, `:42`, `:76`) | fine | |
 | 2.5.14 | Recording indication | Yes | Voice and dictation ask for the microphone and show a live state (`WukongMind/VoiceViews.swift:310-329`); task records and the audit log stay on the device | fine | Live voice audio goes to Google: covered by consent (task 2). |
 | 2.5.15, 2.5.16 | Files, extensions related to the app | Yes | Workspace is visible in Files (`Info.plist` UIFileSharingEnabled); the share extension is off by default (`generate_project.rb:156`) | fine | |
-| 2.5.19 | No hidden or undocumented features | **Yes** | Developer mode is a visible switch, default off (`WukongMind/SettingsAssistantPages.swift:276`, `Models.swift:123`). `-dc-*` launch arguments are DEBUG only (`AppModel+Browse.swift:195-211`). No remote config or feature flags | question | Forumind's 5.6 lesson. Name developer mode in the note; keep the store flag compile-time, never a run-time switch. |
+| 2.5.19 | No hidden or undocumented features | **Yes** | Developer mode is a visible switch, default off (`WukongMind/SettingsAssistantPages.swift:276`, `Models.swift:123`). `-dc-*` launch arguments are DEBUG only (`AppModel+Browse.swift:195-211`). No remote config or feature flags | question | Forumind's 5.6 lesson. Name developer mode in the note. One build: no store flag, and nothing may depend on the build or the install source. The audit found one such default (`BuildChannel.isTestFlight`, audit task B). |
 | 2.3.2, 2.3.4, 2.3.5, 2.3.8, 2.3.11, 2.3.13, 2.3.14, 2.4.3-2.4.5, 2.5.8, 2.5.12, 2.5.13, 2.5.17, 2.5.18 | In-app purchases, previews, tvOS, Mac, CallKit, Face ID, Matter, ads | No | None of these features exist | fine | Category: Productivity or Utilities. |
 
 ### 3. Business
@@ -202,7 +204,7 @@ HOW TO TEST
 4. Ask "Make the text larger on this page". The Agent runs JavaScript in the page inside WebKit and shows what it did.
 5. Ask it to keep that change. It shows the script and asks before saving (after task 4). Saved scripts are listed in Settings > Scripts, where each can be read, turned off or deleted.
 6. Open meta.discourse.org, open a topic, ask for a summary; try Read aloud.
-7. Report or block: menu > Report or block (after task 5).
+7. Report an AI answer: the menu on an answer > Report this answer (after task 5).
 
 SCRIPTS (guidelines 2.5.2, 4.7)
 All web content is rendered with WKWebView and all scripts run in WebKit's JavaScript. Scripts change web pages only; they cannot change the app's features or interface and get no device APIs (no camera, location, contacts, files, clipboard).
@@ -228,7 +230,7 @@ OTHER
 Free. Not offered in China mainland. Not affiliated with any website or AI provider named. EasyList and EasyPrivacy are used under CC BY-SA 3.0. Source code: [repository link].
 ```
 
-Also fill in the contact name, phone and email in App Store Connect (kept out of the repo), and attach the recording. For the 1.2 flows the recording must show the Terms, report and block screens, as Apple asked Forumind.
+Also fill in the contact name, phone and email in App Store Connect (kept out of the repo), and attach the recording. For 1.2 the recording must show the Terms acceptance and "Report this answer".
 
 ### 4.3 Draft privacy label
 
@@ -259,48 +261,49 @@ The privacy policy must still describe every flow above, name the AI services, a
 
 ## 5. Follow-up tasks
 
-Each is one pull request. Order matters: 1 first; 2 to 7 and 9 are independent of each other; 8 last. Tasks 2, 4 and 5 change behaviour the self-use build chose not to have, so they sit behind the flag from task 1 and leave the default build as it is. Task 0 is not code.
+Each is one pull request. Order matters: 1 first; 2 to 7 and 9 are independent of each other; 8 last. There is one build (decided 2026-11-19): tasks 1, 2, 4 and 5 change every install, and where the owner wants the old freedom back it is a visible Settings switch, never a build flag. Task 0 is not code. The code audit adds tasks B to E ([app-store-code-audit.md](app-store-code-audit.md), section 6).
 
 ### Task 0 (owner): decide
 
-- **What:** five decisions. (a) Does WukongMind go to the App Store, reversing requirements.md line 28? (b) With Forumind or instead of it (4.3)? (c) For 1.2: restore the precautions (task 5) or argue the general-browser case? (d) Will a spend-capped key be shared with reviewers? (e) Where does the unrestricted self-use build live after submission? Recommended: the store app record (its App Store and TestFlight builds) carries only store-flavour builds, and the self-use build is installed from Xcode or gets its own bundle ID that is never submitted, with the README describing both.
-- **Why:** every other task depends on (a); (b) can sink the submission on its own; (e) is Forumind's 5.6 lesson: public pages and TestFlight builds showing features the reviewed build lacks.
+- **Decided 2026-11-19** (recorded in requirements.md, section 12): (c) for 1.2, argue the general web browser and AI agent case, with a lightweight Terms acceptance and "Report this answer" on AI output; (e) one build only, no `DC_APP_STORE` flag: the TestFlight build is the store build, and what the store needs is a visible Settings switch with the safe side as the default.
+- **Still open:** (a) Does WukongMind go to the App Store at all, reversing requirements.md line 28? The decisions above say how, if it does. (b) With Forumind or instead of it (4.3)? (d) Will a spend-capped key be shared with reviewers?
+- **Why:** every other task depends on (a); (b) can sink the submission on its own.
 - **Check:** the answers recorded in requirements.md.
 
-### Task 1: a store build flag
+### Task 1: one build, safe defaults as visible settings
 
-- **What:** add `DC_APP_STORE` (default `NO`) beside the other flags; when `YES`, pass a Swift flag `APP_STORE`. No behaviour change yet. Document it in docs/DEVELOPMENT.md and say that store-only limits are compile-time, never a run-time switch. `release.yml` sets it per task 0 (e): if the store record takes only store builds, the tag release builds with `DC_APP_STORE=YES` and the self-use build gets a separate path (local Xcode, or a second bundle ID).
-- **Why:** keeps the self-use build unrestricted and gives the store binary no hidden paths (2.5.19, 5.6).
-- **Files:** `scripts/generate_project.rb` (near lines 154-217), `.github/workflows/release.yml` (near line 44), `scripts/ci/check-project-drift.sh` if it lists flags, docs/DEVELOPMENT.md.
-- **Check:** `ruby scripts/generate_project.rb` with and without the flag; the drift check passes; `scripts/remote-test.sh` builds both.
+- **What:** no build flag. (a) "Confirm before writes" defaults to on (`WukongMind/Models.swift:118`). (b) A new Settings › Agent switch, off by default, "Give cookie values to the model": while it is off, `cookies_get` returns names and attributes only. This switch covers `cookies_get`, the only way to HttpOnly values. `run_js` can still read `document.cookie` (the cookies a page's own scripts can read) with no card, so the task must do one of two things and say which: remove `document.cookie` values from `run_js` results while the switch is off (wrap the getter in the Agent's worlds and redact known cookie values from tool results), or word the switch and the review notes as "HttpOnly cookie values" and say plainly that scripts on a page can read that page's other cookies. Recommended: the first, since the owner's decision is about values, not about one tool. (c) A new Settings › Agent switch, off by default, "Save scripts without asking", used by task 4. New installs get these defaults. An existing install always has "Confirm before writes" stored (a plain `Bool`, `WukongMind/Models.swift:280`), so "never touched" cannot be told from "chose off": turn it on once at upgrade and say so in the release notes; the user can turn it off again. Say in docs/DEVELOPMENT.md that there is no store variant and that nothing may depend on the build configuration (beyond `#if DEBUG` test hooks), the install source, the date or the region.
+- **Why:** the owner's decision of 2026-11-19; 2.5.19, 5.6, 1.6. One build means App Review, TestFlight testers and users run the same code with the same defaults.
+- **Files:** `WukongMind/Models.swift`, `WukongMind/SettingsAssistantPages.swift` (the Safety section, near line 235), `WukongMind/ToolRegistry+Network.swift` (184-216), `WukongMind/SyncRecords.swift` if the settings sync, docs/DEVELOPMENT.md, `README.md` line 31 ("no confirmation prompts").
+- **Check:** unit tests for the three defaults on a new install and for the one-time switch-on at upgrade; a recorded-response test that `cookies_get` output has no values while the switch is off and has them when it is on; a test that a `run_js` call returning `document.cookie` gives the model no cookie value while the switch is off (or, if the wording route is taken, that the label and notes say so); a UI test finds the three switches.
 
 ### Task 2: AI data consent and the privacy policy link
 
 - **What:** before the first request to a third-party AI service, a full-screen page per service: what is sent, to whom, a link to the privacy policy, Allow / Don't allow; a backstop that refuses any third-party request without consent; withdraw in Settings › Data & privacy. Apple Intelligence and local servers need none. Separate consent for live voice (microphone audio to Google). Add a privacy policy link in Settings › About and on the consent page. Start from the deleted code: `git show d915ea0^:Forumind/AIDataConsent.swift`, `AIDataConsentViews.swift`, `AppModel+AIConsent.swift` and their tests.
 - **Why:** 5.1.2(i) and 5.1.1(i); the two privacy blockers.
 - **Files:** new consent files; `WukongMind/AIService.swift` (the backstop); `WukongMind/Onboarding*.swift`; `WukongMind/SettingsDataHelpPages.swift`; `WukongMind/GMAi.swift` and voice start-up paths (they also send data); tests restored from `ForumindTests/AIDataConsentTests.swift` and `ForumindUITests/AIConsentUITests.swift`.
-- **Check:** unit test that no provider request leaves without consent, including `GM_ai` and voice; a UI test for allow, decline and withdraw; with the flag off, no page appears.
+- **Check:** unit test that no provider request leaves without consent, including `GM_ai` and voice; a UI test for allow, decline and withdraw. The page appears for every install (one build).
 
 ### Task 3: public documents that match a store app
 
-- **What:** rewrite `PRIVACY.md` as a store privacy policy (data flows from section 4.3, named services, retention, how to withdraw consent and delete data, contact). Rewrite the README's opening, "Self-use, not on the App Store" bullet and Risk Statement so they describe both builds truthfully. Update requirements.md and next-phase.md with a note that the store decision supersedes "No App Store compliance". Translate the README changes (`README.zh-Hans.md`, `README.zh-Hant.md`).
+- **What:** rewrite `PRIVACY.md` as a store privacy policy (data flows from section 4.3, named services, retention, how to withdraw consent and delete data, contact). Rewrite the README's opening, "Self-use, not on the App Store" bullet and Risk Statement so they describe the one build truthfully (its defaults, and the switches that loosen them). Update requirements.md and next-phase.md with a note that the store decision supersedes "No App Store compliance". Translate the README changes (`README.zh-Hans.md`, `README.zh-Hant.md`).
 - **Why:** 5.6 and 2.3.1; Forumind's last rejection.
 - **Files:** `PRIVACY.md`, `README*.md`, `SECURITY.md`, `docs/wukongmind/requirements.md`, `docs/wukongmind/next-phase.md`.
-- **Check:** a reader comparing the README with the store build finds no feature named that the build lacks, and no "restrictions removed" wording; links resolve.
+- **Check:** a reader comparing the README with the build finds no feature named that the build lacks, and no "restrictions removed" wording; links resolve.
 
-### Task 4: the Agent asks before it saves code or acts for the user (store build)
+### Task 4: the Agent asks before it saves code or acts for the user
 
-- **What:** with `APP_STORE`: (a) `script_save` and `script_update` show the same review sheet as an import (source, where it runs, what it can do) and save only after the user approves; Learn on ask readers included, approved once per site. (b) "Confirm before writes" defaults to on. (c) `cookies_get` returns names and attributes but not values to the model. (d) The first-run text explains that the Agent can act on pages the user is signed in to.
+- **What:** for every install, unless the user turned on "Save scripts without asking" (task 1): (a) `script_save` shows the same review sheet as an import (source, where it runs, what it can do) and saves only after the user approves; Learn on ask readers included, approved once per site. (b) `script_update` shows the sheet as a diff whenever it changes code, sites, grants or allowed hosts, or turns a script on; this includes scripts the user imported, which it can rewrite today (audit findings 1 and 2). (c) `notify` comes under "Confirm before writes" and no longer raises the notification permission prompt by itself (audit finding 6). (d) The "Confirm before writes" label and footer say what it covers (audit finding 5). (e) The first-run text explains that the Agent can act on pages the user is signed in to. The defaults themselves are task 1.
 - **Why:** 2.5.2, 4.7.3, 1.6, 5.1.1(vi): the user sees and approves code before it runs again, and credentials don't leave the device.
-- **Files:** `WukongMind/ToolRegistry.swift` (1624, 1742, 1973), `WukongMind/AgentConfirmationGate.swift`, `WukongMind/ScriptImportViews.swift` (reuse the sheet), `WukongMind/ToolRegistry+Network.swift` (184-232), `WukongMind/Models.swift` (118), `docs/wukongmind/design-learn-on-ask.md` (line 97, "A learned reader never asks", needs the store exception).
-- **Check:** recorded-response tests: a save without approval stores nothing; declining leaves no script; `cookies_get` output has no values under the flag; with the flag off all current tests pass unchanged.
+- **Files:** `WukongMind/ToolRegistry.swift` (1624, 1742, 1973, 2034, 2116), `WukongMind/AgentConfirmationGate.swift`, `WukongMind/ScriptImportViews.swift` (reuse the sheet), `WukongMind/ToolRegistry+Capabilities.swift` (283-300), `WukongMind/SettingsAssistantPages.swift` (235-240), `docs/wukongmind/design-learn-on-ask.md` (line 97, "A learned reader never asks", now true only with the switch on).
+- **Check:** recorded-response tests: a save without approval stores nothing; declining leaves no script; an update to an imported script waits for approval; with "Save scripts without asking" on, the current tests pass unchanged.
 
-### Task 5: Terms of Use, report, block and filter (store build)
+### Task 5: Terms of Use and "Report this answer"
 
-- **What:** restore Forumind's user-generated-content precautions: Terms of Use accepted before first use (zero tolerance wording), ⋯ › Report or block for a post or page, per-site blocked users hidden from the page and from what is sent to the AI, a word filter, a list of blocked users and words in Settings › Data & privacy, and "Report this answer" on AI output. Do **not** restore the daily remote moderation list as it was: it looked like remote config; if a developer-side list is needed, bundle it and update it with app releases, or name it plainly in the review notes. Source: `git show d915ea0^:Forumind/Moderation.swift`, `ModerationViews.swift`, `AppModel+Moderation.swift`, `TERMS.md`, `ModerationTests.swift`, `ModerationUITests.swift`.
-- **Why:** 1.2, 4.7.1; Forumind's rejection of 10-06.
-- **Files:** as listed, renamed to WukongMind; `WukongMind/Onboarding*.swift`; `WukongMind/SettingsDataHelpPages.swift`. This is the largest task (the deleted tests alone are about 1,900 lines); split into "terms and report" and "block and filter" if it exceeds the size limit.
-- **Check:** the restored unit and UI tests; a recording of terms, report and block for the review notes.
+- **What:** the lightweight precautions that go with the general-browser case (decided 2026-11-19): Terms of Use accepted once before first use (zero-tolerance wording for objectionable content), and "Report this answer" on AI output. For every install; no flag. How a report travels is for the task to propose (Forumind used the user's own Mail app). This page reads "lightweight" as: per-site blocked users, the word filter and the remote moderation list are **not** restored, and are the fallback if Apple rejects the browser argument; the owner did not say this in so many words. If that happens, never restore the daily remote list as it was (it looked like remote config); bundle it and update it with app releases. Source to start from: `git show d915ea0^:Forumind/Moderation.swift`, `ModerationViews.swift`, `AppModel+Moderation.swift`, `TERMS.md` and their tests.
+- **Why:** 1.2, 4.7.1; Forumind's rejection of 10-06. A browser hosts nothing, but 1.2 now names AI content, so the AI answers get a report path.
+- **Files:** a new terms file and view, `WukongMind/Onboarding*.swift`, the answer menu in `WukongMind/AgentPanel.swift` and `WukongMind/SummaryPanel.swift`, `WukongMind/SettingsDataHelpPages.swift` (a link to the terms), `TERMS.md`.
+- **Check:** a UI test that first use waits for the Terms and that an answer's menu has "Report this answer"; a recording of both for the review notes.
 
 ### Task 6: reviewers and new users are never stuck without a model
 
@@ -318,17 +321,26 @@ Each is one pull request. Order matters: 1 first; 2 to 7 and 9 are independent o
 
 ### Task 8: listing, website and App Store Connect
 
-- **What:** recreate `appstore/metadata/` (name, subtitle, description, keywords, URLs) in English and both Chinese scripts, with no provider or product names in name, subtitle or keywords; screenshots with invented content; a small site with the privacy policy and a support page with a contact address; the App Store Connect answers from section 4 (privacy label, age rating, content rights, review notes, recording). Restore what is reusable from `git show 83b4e45^:appstore/`, `mobile-site/`, `scripts/ci/check-appstore-metadata.sh` and the listing lanes in `fastlane/Fastfile`. The owner checks the name against trademarks first (5.2.1).
+- **What:** recreate `appstore/metadata/` (name, subtitle, description, keywords, URLs) in English and both Chinese scripts, with no provider or product names in name, subtitle or keywords; screenshots with invented content; a small site with the privacy policy and a support page with a contact address; the App Store Connect answers from section 4 (privacy label, age rating, content rights, review notes, recording). Add to the notes what the code audit says to state plainly: web views send Safari's user agent; tapped links stay in the browser unless "Open links in apps" is on; what live voice does in the background (after task 7). Restore what is reusable from `git show 83b4e45^:appstore/`, `mobile-site/`, `scripts/ci/check-appstore-metadata.sh` and the listing lanes in `fastlane/Fastfile`. The owner checks the name against trademarks first (5.2.1).
 - **Why:** 2.1, 2.3, 1.5, 5.1.1(i).
 - **Files:** `appstore/`, `mobile-site/` (or another host), `fastlane/Fastfile`, `.github/workflows/release.yml`, a new `docs/APP_STORE.md` based on Forumind's.
 - **Check:** the metadata limit check passes in CI; URLs load; the age rating and privacy answers are read back from App Store Connect after saving (Forumind lost one that way).
 
 ### Task 9: provider key links
 
-- **What:** review the wording around the key links in onboarding and Settings: "Get a key" only, no prices, no "buy credits". Under `APP_STORE`, open them in the app's own browser tab or show the address as text, so no button leads straight to a purchase page.
+- **What:** review the wording around the key links in onboarding and Settings: "Get a key" only, no prices, no "buy credits". Open them in the app's own browser tab or show the address as text, for every install, so no button leads straight to a purchase page.
 - **Why:** 3.1.1(a) outside the United States.
 - **Files:** `WukongMind/AppModel+Onboarding.swift` (121-193), `WukongMind/SettingsProviderForm.swift`.
 - **Check:** a test over `ProviderGuide` strings for banned words; a UI check of where the link opens.
+
+## 6. Code compliance audit (WUKO-168)
+
+The full audit is [app-store-code-audit.md](app-store-code-audit.md): 15 findings with `file:line`, the list of what was searched and found clean, a check of the Release binary, and tasks B to E.
+
+- **No blocker.** The Release binary uses no non-public API (checked with `scripts/audit-release-binary.sh` on two Release builds; a Debug build fails the same check, as it should). The share extension never opens the app. There is no remote configuration, no hidden gesture or menu, no launch argument honoured in Release.
+- **Likely (4):** the Agent saves a script it wrote, on at once, unseen (task 4); the Agent can rewrite and turn on any saved script, imported ones included (task 4); `cookies_get` gives cookie values to the model, and `run_js` can read `document.cookie` unasked (task 1); one default depends on the install source, `BuildChannel.isTestFlight` (audit task B).
+- **Question (9):** `run_js` runs unprompted, and "Confirm before writes" is off by default and does not cover page changes (tasks 1 and 4); the Agent's `notify` tool (task 4); the undocumented `shareddocuments://` link (audit task D); Safari's user agent (say it in the notes, task 8); live voice keeps running in the background (task 7); `remote-notification` declared without CloudKit (task 7); imported user scripts (notes); a test hook compiled into Release and a stale comment about the old share trick (audit task E).
+- **Fine, noted (2):** the DEBUG-only Screen Time test helper that uses private selectors, and a test helper outside `#if DEBUG` that the optimizer drops (audit tasks C and E keep both out of Release).
 
 ## Not verified
 
