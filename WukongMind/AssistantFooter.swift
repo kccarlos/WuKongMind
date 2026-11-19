@@ -146,6 +146,7 @@ struct AssistantFooter: View {
             updateCompletedStatusVisibility(for: session.runState, isInitialAppear: true)
         }
         .onDisappear {
+            onFocusChange(false)
             completedStatusTask?.cancel()
             completedStatusTask = nil
             stopDictation(keepingText: true)

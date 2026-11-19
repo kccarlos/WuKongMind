@@ -702,4 +702,121 @@ final class DrawerRenderCountTests: XCTestCase {
         let eagerBlocks = PerfProbe.snapshot.counts["MarkdownBlockView.body"] ?? 0
         XCTAssertGreaterThanOrEqual(eagerBlocks, totalBlocks, "Eager DCResultCard must build all blocks while streaming")
     }
+
+    // MARK: Keyboard churn isolation (WUKO-166)
+
+    func testKeyboardChurnDoesNotReevaluateAssistantPanelOrPublishBrowser() async {
+        let app = DrawerPerformanceTests.makeApp(.init(name: "keyboard-churn", sourcePosts: 50, runs: 1))
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+        let host = UIHostingController(rootView: AnyView(
+            AssistantPanel(app: app, onExpand: { _ in }).environment(\.colorScheme, .light)
+        ))
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        host.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+
+        // 1. Real keyboard show/hide notifications never re-evaluate AssistantPanel.body or transcript views.
+        PerfProbe.reset()
+        for _ in 0..<5 {
+            NotificationCenter.default.post(name: UIResponder.keyboardWillShowNotification, object: nil)
+            NotificationCenter.default.post(name: UIResponder.keyboardWillHideNotification, object: nil)
+        }
+        CATransaction.flush()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        let afterNotifs = PerfProbe.snapshot
+        XCTAssertEqual(afterNotifs.counts["AssistantPanel.body"] ?? 0, 0, "Keyboard notifications must not re-evaluate AssistantPanel.body")
+        XCTAssertEqual(afterNotifs.counts["ChatThread.body"] ?? 0, 0, "Keyboard notifications must not re-evaluate ChatThread.body")
+        XCTAssertEqual(afterNotifs.counts["BrowserAgentRunsView.runSection"] ?? 0, 0)
+
+        // 2. While the drawer composer owns first responder, transient hide->show churn is coalesced.
+        let browser = app.browser
+        let center = NotificationCenter()
+        let keyboardState = DrawerKeyboardState(notificationCenter: center, hideCoalesceDuration: .milliseconds(80))
+        keyboardState.setComposerFocused(true, browser: browser)
+        keyboardState.handleKeyboardShow()
+        browser.setSystemKeyboardVisible(true)
+        XCTAssertTrue(keyboardState.isKeyboardVisible)
+        XCTAssertTrue(browser.isSystemKeyboardVisible)
+
+        var statePublishes = 0
+        let stateCancellable = keyboardState.objectWillChange.sink { statePublishes += 1 }
+        defer { stateCancellable.cancel() }
+        PerfProbe.reset()
+        for _ in 0..<10 {
+            center.post(name: UIResponder.keyboardWillHideNotification, object: nil)
+            browser.setSystemKeyboardVisible(false, coalesceHideDuration: .milliseconds(80))
+            center.post(name: UIResponder.keyboardWillShowNotification, object: nil)
+            browser.setSystemKeyboardVisible(true, coalesceHideDuration: .milliseconds(80))
+        }
+        XCTAssertEqual(statePublishes, 0, "Coalesced keyboard churn must not publish DrawerKeyboardState")
+        XCTAssertEqual(PerfProbe.snapshot.counts["publish.browser.isSystemKeyboardVisible"] ?? 0, 0,
+                       "Coalesced keyboard churn must not publish ForumBrowserModel.isSystemKeyboardVisible")
+        XCTAssertTrue(keyboardState.isKeyboardVisible)
+        XCTAssertTrue(browser.isSystemKeyboardVisible)
+
+        // 3. A real hide while the composer stays focused (e.g. hardware keyboard attached or iPad shortcut bar)
+        // settles to hidden once the coalesce window elapses.
+        center.post(name: UIResponder.keyboardWillHideNotification, object: nil)
+        browser.setSystemKeyboardVisible(false, coalesceHideDuration: .milliseconds(50))
+        try? await Task.sleep(for: .milliseconds(150))
+        XCTAssertFalse(keyboardState.isKeyboardVisible)
+        XCTAssertFalse(browser.isSystemKeyboardVisible)
+
+        // 4. Blurring the composer flushes a pending hide immediately.
+        keyboardState.handleKeyboardShow()
+        browser.setSystemKeyboardVisible(true)
+        center.post(name: UIResponder.keyboardWillHideNotification, object: nil)
+        browser.setSystemKeyboardVisible(false, coalesceHideDuration: .seconds(1))
+        XCTAssertTrue(keyboardState.isKeyboardVisible)
+        XCTAssertTrue(browser.isSystemKeyboardVisible)
+        keyboardState.setComposerFocused(false, browser: browser)
+        XCTAssertFalse(keyboardState.isKeyboardVisible)
+        XCTAssertFalse(browser.isSystemKeyboardVisible)
+
+        // 5. When composer is not focused, hide applies immediately.
+        keyboardState.handleKeyboardShow()
+        browser.setSystemKeyboardVisible(true)
+        center.post(name: UIResponder.keyboardWillHideNotification, object: nil)
+        browser.setSystemKeyboardVisible(false)
+        XCTAssertFalse(keyboardState.isKeyboardVisible)
+        XCTAssertFalse(browser.isSystemKeyboardVisible)
+    }
+
+    // MARK: Apple Intelligence status caching (WUKO-166)
+
+    func testOpeningDrawerAndEvaluatingHintInputDoesNotProbeAppleIntelligence() {
+        let client = AppleIntelligenceClient()
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"))
+        let app = AppModel(store: store, aiService: AIService(appleIntelligence: client))
+
+        PerfProbe.reset()
+        for _ in 0..<5 {
+            _ = app.appleIntelligenceStatus
+            _ = app.drawerHintInput
+            _ = app.bottomLayer
+            _ = app.readiness(for: .assistant)
+            _ = app.readiness(for: .scripts)
+        }
+        XCTAssertEqual(
+            PerfProbe.snapshot.counts["AppleIntelligenceClient.probe"] ?? 0,
+            0,
+            "Reading appleIntelligenceStatus or drawerHintInput must not probe FoundationModels"
+        )
+
+        _ = client.refreshStatus()
+        XCTAssertEqual(
+            PerfProbe.snapshot.counts["AppleIntelligenceClient.probe"] ?? 0,
+            1,
+            "Explicit refreshStatus() must re-probe FoundationModels"
+        )
+    }
 }

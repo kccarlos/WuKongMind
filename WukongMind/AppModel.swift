@@ -166,6 +166,10 @@ final class AppModel: ObservableObject {
     /// Unsent composer text. Not published here: it changes on every
     /// keystroke, so only the Ask box and the composers observe it.
     let drafts = ComposerDrafts()
+    /// Cached availability of the Apple Intelligence provider (through
+    /// `aiService`, so tests can fake it). Computed once at launch and refreshed
+    /// on activation, locale changes, and settings changes — never from a view body.
+    @Published private(set) var appleIntelligenceStatus: AppleIntelligenceStatus
     /// Errors waiting for the root alert, oldest first: one shows at a time
     /// and a newer one never replaces it (`presentError`).
     @Published private(set) var errorQueue: [PresentedError] = []
@@ -318,6 +322,7 @@ final class AppModel: ObservableObject {
     /// still unwinding never writes over a newer one.
     var digestRunID: UUID?
     private var openTodayObserver: NSObjectProtocol?
+    private var localeChangeCancellable: AnyCancellable?
     private let limiter = TaskLimiter(limit: 2)
     /// The task of each job launched (waiting for a worker or running). The
     /// token tells a job that was paused and launched again from the old
@@ -716,6 +721,7 @@ final class AppModel: ObservableObject {
         self.forumService = forumService
         self.sites = sites
         self.aiService = aiService
+        self.appleIntelligenceStatus = aiService.appleIntelligence.currentStatus()
         self.notifier = notifier
 
         let snapshot = store.load()
@@ -986,6 +992,11 @@ final class AppModel: ObservableObject {
         ) { [weak self] _ in
             Task { @MainActor [weak self] in self?.openTodayFromNotification() }
         }
+        localeChangeCancellable = NotificationCenter.default.publisher(for: NSLocale.currentLocaleDidChangeNotification)
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in
+                self?.refreshAppleIntelligenceStatus()
+            }
         DigestBackgroundPrefetch.perform = { [weak self] in
             await self?.performBackgroundDigestPrefetch()
             await self?.flushPendingSaves()
@@ -1044,10 +1055,13 @@ final class AppModel: ObservableObject {
         return sessions[topicKey]
     }
 
-    /// Live availability of the Apple Intelligence provider (through
-    /// `aiService`, so tests can fake it).
-    var appleIntelligenceStatus: AppleIntelligenceStatus {
-        aiService.appleIntelligence.currentStatus()
+    /// Re-probes Apple Intelligence availability off the render path and publishes
+    /// only when the status actually changed.
+    func refreshAppleIntelligenceStatus() {
+        let next = aiService.appleIntelligence.refreshStatus()
+        if appleIntelligenceStatus != next {
+            appleIntelligenceStatus = next
+        }
     }
 
     /// The assistant role's provider settings and model.
@@ -2539,6 +2553,7 @@ final class AppModel: ObservableObject {
     func handleScenePhase(_ phase: ScenePhase) {
         switch phase {
         case .active:
+            refreshAppleIntelligenceStatus()
             drainSharedInbox()
             startWatchTimer()
             // API keys edited on another device arrive through iCloud
@@ -2845,6 +2860,7 @@ final class AppModel: ObservableObject {
                 tab.pageToolBridge.isEnabled = settings.agentPageToolsEnabled
             }
         }
+        refreshAppleIntelligenceStatus()
         saveSettings()
     }
 

@@ -102,6 +102,9 @@ extension AppModel {
     @discardableResult
     func showAIView() -> Bool {
         guard !browser.showsForumsHome else { return false }
+        if appleIntelligenceStatus == .unavailable(.modelNotReady) {
+            refreshAppleIntelligenceStatus()
+        }
         if router.usesDrawer {
             if !router.wantsDrawer { router.openDrawer(at: .medium) }
         } else if !router.splitPanelMode.isVisible(onHome: false) {

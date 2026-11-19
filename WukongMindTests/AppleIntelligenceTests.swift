@@ -11,8 +11,18 @@ private final class FakeAppleIntelligence: AppleIntelligenceServing {
     /// Each call pops one result; the last one repeats.
     var replies: [Result<String, Error>] = [.success("OK")]
     private(set) var prompts: [(instructions: String, prompt: String, maxTokens: Int)] = []
+    private(set) var currentStatusCalls = 0
+    private(set) var refreshStatusCalls = 0
 
-    func currentStatus() -> AppleIntelligenceStatus { status }
+    func currentStatus() -> AppleIntelligenceStatus {
+        currentStatusCalls += 1
+        return status
+    }
+
+    func refreshStatus() -> AppleIntelligenceStatus {
+        refreshStatusCalls += 1
+        return status
+    }
 
     func contextTokens(for backend: AppleIntelligenceBackend) async -> Int { tokens }
 
@@ -112,6 +122,7 @@ final class AppleIntelligenceTests: XCTestCase {
         app.selectModel(ModelSelection(provider: .appleIntelligence, model: "Automatic"), for: .role(.assistant))
         XCTAssertTrue(app.isProviderReady(for: .assistant))
         fake.status = .unavailable(.appleIntelligenceNotEnabled)
+        app.refreshAppleIntelligenceStatus()
         XCTAssertFalse(app.isProviderReady(for: .assistant))
     }
 
@@ -131,6 +142,7 @@ final class AppleIntelligenceTests: XCTestCase {
         XCTAssertTrue(app.isProviderReady(for: .assistant))
         XCTAssertTrue(app.isProviderReady(for: .browserAgent))
         fake.status = .unavailable(.modelNotReady)
+        app.refreshAppleIntelligenceStatus()
         XCTAssertTrue(app.isProviderSelectable(.appleIntelligence), "A supported device downloading the model still allows selecting it.")
         XCTAssertFalse(app.isProviderReady(for: .assistant))
         XCTAssertTrue(app.isProviderReady(for: .browserAgent))
@@ -142,6 +154,7 @@ final class AppleIntelligenceTests: XCTestCase {
         app.useSameModel(as: .browserAgent) // both on Ollama
         for unsupportedReason in [AppleIntelligenceUnavailableReason.deviceNotEligible, .requiresNewerOS] {
             fake.status = .unavailable(unsupportedReason)
+            app.refreshAppleIntelligenceStatus()
             XCTAssertFalse(app.isProviderSelectable(.appleIntelligence))
             XCTAssertEqual(app.providerMenuSubtitle(for: .appleIntelligence), "Not supported on this device")
 
@@ -594,6 +607,58 @@ final class AppleIntelligenceTests: XCTestCase {
         XCTAssertFalse(summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         XCTAssertTrue(streamed.contains("Reading section 3 of 3"), "context \(tokens) tokens, batch \(batch)")
         XCTAssertFalse(streamed.contains("retrying"), "the derived batch should fit the first time")
+    }
+
+    // MARK: Status caching (WUKO-166)
+
+    @MainActor
+    func testAppModelCachesAppleIntelligenceStatusAndRefreshesOnActivationAndSettingsChange() {
+        let fake = FakeAppleIntelligence()
+        fake.status = .unavailable(.appleIntelligenceNotEnabled)
+        let app = makeApp(fake)
+        XCTAssertEqual(app.appleIntelligenceStatus, .unavailable(.appleIntelligenceNotEnabled))
+        let initialCurrentCalls = fake.currentStatusCalls
+        let initialRefreshCalls = fake.refreshStatusCalls
+
+        // Repeated reads on render paths hit the cached property without probing.
+        fake.status = .available(.onDevice)
+        for _ in 0..<5 {
+            XCTAssertEqual(app.appleIntelligenceStatus, .unavailable(.appleIntelligenceNotEnabled))
+            _ = app.drawerHintInput
+            _ = app.readiness(for: .assistant)
+        }
+        XCTAssertEqual(fake.currentStatusCalls, initialCurrentCalls)
+        XCTAssertEqual(fake.refreshStatusCalls, initialRefreshCalls)
+
+        // Becoming active refreshes the cached status.
+        app.handleScenePhase(.active)
+        XCTAssertEqual(app.appleIntelligenceStatus, .available(.onDevice))
+        XCTAssertEqual(fake.refreshStatusCalls, initialRefreshCalls + 1)
+
+        // Settings changes also refresh the cached status.
+        fake.status = .available(.privateCloudCompute)
+        app.settings.agentDeveloperMode.toggle()
+        XCTAssertEqual(app.appleIntelligenceStatus, .available(.privateCloudCompute))
+        XCTAssertGreaterThanOrEqual(fake.refreshStatusCalls, initialRefreshCalls + 2)
+
+        // Re-selecting Apple Intelligence (even when already selected) refreshes availability.
+        app.selectModel(ModelSelection(provider: .appleIntelligence, model: "Automatic"), for: .role(.assistant))
+        fake.status = .unavailable(.modelNotReady)
+        app.selectModel(ModelSelection(provider: .appleIntelligence, model: "Automatic"), for: .role(.assistant))
+        XCTAssertEqual(app.appleIntelligenceStatus, .unavailable(.modelNotReady))
+
+        // Opening the drawer while status is .modelNotReady re-probes so a finished download surfaces live,
+        // whereas opening when already available does not re-probe.
+        app.browser.load(URL(string: "https://meta.discourse.org/t/example/1")!)
+        fake.status = .available(.onDevice)
+        let refreshesBeforeDownloadingOpen = fake.refreshStatusCalls
+        XCTAssertTrue(app.showAIView())
+        XCTAssertEqual(app.appleIntelligenceStatus, .available(.onDevice))
+        XCTAssertEqual(fake.refreshStatusCalls, refreshesBeforeDownloadingOpen + 1)
+
+        let refreshesBeforeReadyOpen = fake.refreshStatusCalls
+        XCTAssertTrue(app.showAIView())
+        XCTAssertEqual(fake.refreshStatusCalls, refreshesBeforeReadyOpen)
     }
 
     // MARK: Helpers

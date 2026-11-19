@@ -281,7 +281,11 @@ extension AppModel {
     func selectModel(_ selection: ModelSelection, for scope: ModelScope) {
         var updated = settings
         for role in scope.roles { updated.setModel(selection, for: role) }
-        if updated != settings { settings = updated }
+        if updated != settings {
+            settings = updated
+        } else if selection.provider.isAppleIntelligence {
+            refreshAppleIntelligenceStatus()
+        }
         saveSettings()
     }
 

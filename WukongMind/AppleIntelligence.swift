@@ -418,6 +418,8 @@ enum AppleIntelligenceStreaming {
 /// `AppleIntelligenceClient`, tests pass a fake.
 protocol AppleIntelligenceServing: AnyObject {
     func currentStatus() -> AppleIntelligenceStatus
+    /// Re-probes availability (called on app activation, locale/settings changes, or before starting work).
+    func refreshStatus() -> AppleIntelligenceStatus
     /// The backend's context window in tokens.
     func contextTokens(for backend: AppleIntelligenceBackend) async -> Int
     /// Streams a reply as deltas and returns the full text.
@@ -431,9 +433,13 @@ protocol AppleIntelligenceServing: AnyObject {
 }
 
 extension AppleIntelligenceServing {
+    func refreshStatus() -> AppleIntelligenceStatus {
+        currentStatus()
+    }
+
     /// The backend available now, or the reason there is none.
     func requireBackend() throws -> AppleIntelligenceBackend {
-        let status = currentStatus()
+        let status = refreshStatus()
         guard let backend = status.backend else {
             throw AppleIntelligenceError.unavailable(status.reason ?? .requiresNewerOS)
         }

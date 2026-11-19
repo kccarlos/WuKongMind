@@ -339,6 +339,97 @@ private final class DrawerAppRelay {
     }
 }
 
+/// Isolated keyboard visibility and composer-focus state for the AI drawer.
+///
+/// Observed only by `HeaderSectionObserver` and `FooterSectionObserver`, never by
+/// `AssistantPanel` or the transcript. While the drawer's composer owns first responder,
+/// transient `keyboardWillHide` → `keyboardWillShow` churn (such as hardware-keyboard mode
+/// toggles) is coalesced with a bounded timeout so neither the drawer nor `ForumBrowserModel`
+/// re-renders mid-keystroke, while a genuine hide while focused (e.g. hardware keyboard
+/// attached or iPad shortcut bar) still settles to hidden.
+@MainActor
+final class DrawerKeyboardState: ObservableObject {
+    @Published private(set) var isKeyboardVisible = false
+    @Published private(set) var isComposerFocused = false
+
+    private let hideCoalesceDuration: Duration
+    private var pendingHideTask: Task<Void, Never>?
+    private var cancellables: Set<AnyCancellable> = []
+    private weak var focusedBrowser: ForumBrowserModel?
+
+    init(
+        notificationCenter: NotificationCenter = .default,
+        hideCoalesceDuration: Duration = .seconds(2)
+    ) {
+        self.hideCoalesceDuration = hideCoalesceDuration
+        notificationCenter.publisher(for: UIResponder.keyboardWillShowNotification)
+            .sink { [weak self] note in
+                guard (note.userInfo?[UIResponder.keyboardIsLocalUserInfoKey] as? Bool) != false else { return }
+                self?.handleKeyboardShow()
+            }
+            .store(in: &cancellables)
+        notificationCenter.publisher(for: UIResponder.keyboardWillHideNotification)
+            .sink { [weak self] note in
+                guard (note.userInfo?[UIResponder.keyboardIsLocalUserInfoKey] as? Bool) != false else { return }
+                self?.handleKeyboardHide()
+            }
+            .store(in: &cancellables)
+    }
+
+    func setComposerFocused(_ focused: Bool, browser: ForumBrowserModel? = nil) {
+        if let previous = focusedBrowser, previous !== browser || !focused {
+            previous.setDrawerComposerFocused(false)
+            focusedBrowser = nil
+        }
+        if focused, let browser {
+            focusedBrowser = browser
+            browser.setDrawerComposerFocused(true)
+        }
+        if isComposerFocused != focused {
+            isComposerFocused = focused
+        }
+        if !focused, let pending = pendingHideTask {
+            pending.cancel()
+            pendingHideTask = nil
+            if isKeyboardVisible {
+                isKeyboardVisible = false
+            }
+        }
+    }
+
+    func handleKeyboardShow() {
+        pendingHideTask?.cancel()
+        pendingHideTask = nil
+        if !isKeyboardVisible {
+            isKeyboardVisible = true
+        }
+    }
+
+    func handleKeyboardHide() {
+        guard isKeyboardVisible else {
+            pendingHideTask?.cancel()
+            pendingHideTask = nil
+            return
+        }
+        if isComposerFocused, hideCoalesceDuration > .zero {
+            let duration = hideCoalesceDuration
+            pendingHideTask?.cancel()
+            pendingHideTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: duration)
+                guard let self, !Task.isCancelled else { return }
+                self.pendingHideTask = nil
+                if self.isKeyboardVisible {
+                    self.isKeyboardVisible = false
+                }
+            }
+        } else {
+            pendingHideTask?.cancel()
+            pendingHideTask = nil
+            isKeyboardVisible = false
+        }
+    }
+}
+
 /// The unified Agent panel (`design-unified.md` §1): one conversation view
 /// shared by the iPhone drawer (`AIDrawer`) and iPad split sidebar (`SplitWorkspace`),
 /// with the `"Agent"` + This page header, unified transcript, transient status line,
@@ -350,6 +441,7 @@ struct AssistantPanel: View {
     /// Opens a forum URL in the Browse workspace (the agent's step log uses it).
     let onOpenURL: ((URL) -> Void)?
     @State private var relay = DrawerAppRelay()
+    @State private var keyboardState = DrawerKeyboardState()
     @State private var exporting = false
     /// Built when Export .txt is tapped (under the file limit), dropped when the exporter closes.
     @State private var exportDocument: PlainTextDocument?
@@ -363,9 +455,6 @@ struct AssistantPanel: View {
     @State private var scriptMatchesCache = PageScriptMatchesCache()
     /// "Tap a post number to jump to it", shown with the first summary.
     @State private var showsCitationTip = false
-    @State private var isKeyboardVisible = false
-    /// Reported by the footer, which owns the focus: the header folds the status line while it holds.
-    @State private var composerFocused = false
     @State private var expandedToolRowIDs: Set<UUID> = []
     @State private var requestedProviderSetup = false
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -393,8 +482,8 @@ struct AssistantPanel: View {
             PanelRouteObserver(
                 slice: relay.route, relay: relay, app: app,
                 scriptMatchesCache: scriptMatchesCache, strippedSummaryCache: strippedSummaryCache,
-                exportShareAnchor: exportShareAnchor, isKeyboardVisible: isKeyboardVisible,
-                composerFocused: $composerFocused, showsCitationTip: $showsCitationTip,
+                exportShareAnchor: exportShareAnchor, keyboardState: keyboardState,
+                showsCitationTip: $showsCitationTip,
                 expandedToolRowIDs: $expandedToolRowIDs, requestedProviderSetup: $requestedProviderSetup,
                 onExport: presentExport,
                 onExpand: onExpand, onOpenURL: openInBrowser
@@ -404,7 +493,6 @@ struct AssistantPanel: View {
         .overlay(alignment: .bottom) { FeedbackToastObserver(slice: relay.feedbackToast, app: app) }
         .background { PanelCommandsObserver(slice: relay.commands, app: app) }
         .background(Color.clear)
-        .dcKeyboardVisible($isKeyboardVisible)
         .environment(\.citationHover, CitationHoverAction { number in
             Task { await app.browser.highlight([], flash: PostFlash(number: number)) }
         })
@@ -424,6 +512,7 @@ struct AssistantPanel: View {
             if !shown { clearExportFile() }
         }
         .onDisappear {
+            keyboardState.setComposerFocused(false)
             if !movingExport { clearExportFile() }
         }
         .fileExporter(
@@ -529,10 +618,9 @@ private struct PanelCommandsBody: View, Equatable {
 
 private struct HeaderSectionObserver: View {
     @ObservedObject var slice: SliceBox<HeaderAppSlice>
+    @ObservedObject var keyboardState: DrawerKeyboardState
     let app: AppModel
     let scriptMatchesCache: PageScriptMatchesCache
-    let isKeyboardVisible: Bool
-    let composerFocused: Bool
     let onNewConversation: () -> Void
     let onFixScript: (UserScript) -> Void
 
@@ -540,7 +628,7 @@ private struct HeaderSectionObserver: View {
         let s = slice.value
         let session = app.browserAgent
         let scriptMatches = scriptMatchesCache.summary(for: s.pageURL, in: app.scriptStore)
-        let foldedStep: Int? = if isKeyboardVisible && composerFocused, case .running(let step, _) = session.runState { max(1, step) } else { nil }
+        let foldedStep: Int? = if keyboardState.isKeyboardVisible && keyboardState.isComposerFocused, case .running(let step, _) = session.runState { max(1, step) } else { nil }
         let hasConv = !session.runs.isEmpty || !session.messages.isEmpty || session.isRunning
         let presentation = SummaryPresentation.resolve(
             jobState: s.summaryRun, hasStreamText: s.hasStreamText, hasSavedSummary: s.hasSummaryOnSession,
@@ -941,8 +1029,7 @@ private struct PanelRouteObserver: View {
     let scriptMatchesCache: PageScriptMatchesCache
     let strippedSummaryCache: StrippedSummaryCache
     let exportShareAnchor: ExportShareAnchor
-    let isKeyboardVisible: Bool
-    @Binding var composerFocused: Bool
+    let keyboardState: DrawerKeyboardState
     @Binding var showsCitationTip: Bool
     @Binding var expandedToolRowIDs: Set<UUID>
     @Binding var requestedProviderSetup: Bool
@@ -955,8 +1042,8 @@ private struct PanelRouteObserver: View {
         TopicPanelBody(
             route: s.route, relay: relay, app: app, currentTabID: s.currentTabID, scriptMatchesCache: scriptMatchesCache,
             strippedSummaryCache: strippedSummaryCache,
-            exportShareAnchor: exportShareAnchor, isKeyboardVisible: isKeyboardVisible,
-            composerFocused: $composerFocused, showsCitationTip: $showsCitationTip,
+            exportShareAnchor: exportShareAnchor, keyboardState: keyboardState,
+            showsCitationTip: $showsCitationTip,
             expandedToolRowIDs: $expandedToolRowIDs, requestedProviderSetup: $requestedProviderSetup,
             onExport: onExport, onExpand: onExpand, onOpenURL: onOpenURL
         )
@@ -972,8 +1059,7 @@ private struct TopicPanelBody: View, Equatable {
     let scriptMatchesCache: PageScriptMatchesCache
     let strippedSummaryCache: StrippedSummaryCache
     let exportShareAnchor: ExportShareAnchor
-    let isKeyboardVisible: Bool
-    @Binding var composerFocused: Bool
+    let keyboardState: DrawerKeyboardState
     @Binding var showsCitationTip: Bool
     @Binding var expandedToolRowIDs: Set<UUID>
     @Binding var requestedProviderSetup: Bool
@@ -988,7 +1074,7 @@ private struct TopicPanelBody: View, Equatable {
 
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.route == rhs.route && ObjectIdentifier(lhs.app) == ObjectIdentifier(rhs.app) && lhs.currentTabID == rhs.currentTabID
-            && lhs.isKeyboardVisible == rhs.isKeyboardVisible && lhs.composerFocused == rhs.composerFocused
+            && ObjectIdentifier(lhs.keyboardState) == ObjectIdentifier(rhs.keyboardState)
             && lhs.showsCitationTip == rhs.showsCitationTip && lhs.expandedToolRowIDs == rhs.expandedToolRowIDs
             && lhs.requestedProviderSetup == rhs.requestedProviderSetup
     }
@@ -1038,8 +1124,7 @@ private struct TopicPanelBody: View, Equatable {
     private var topicContent: some View {
         VStack(spacing: 0) {
             HeaderSectionObserver(
-                slice: relay.header, app: app, scriptMatchesCache: scriptMatchesCache,
-                isKeyboardVisible: isKeyboardVisible, composerFocused: composerFocused,
+                slice: relay.header, keyboardState: keyboardState, app: app, scriptMatchesCache: scriptMatchesCache,
                 onNewConversation: { app.hideDrawerSummaryForNewConversation(); browserAgent.resetConversation() },
                 onFixScript: sendFixScriptRequest
             )
@@ -1052,8 +1137,8 @@ private struct TopicPanelBody: View, Equatable {
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             FooterSectionObserver(
-                slice: relay.footer, relay: relay, app: app, scriptMatchesCache: scriptMatchesCache,
-                isKeyboardVisible: isKeyboardVisible, onFocusChange: { composerFocused = $0 },
+                slice: relay.footer, keyboardState: keyboardState, relay: relay, app: app, scriptMatchesCache: scriptMatchesCache,
+                onFocusChange: { keyboardState.setComposerFocused($0, browser: app.browser) },
                 onSuggestion: runSuggestion, onSend: submitPrompt
             )
         }
@@ -1142,10 +1227,10 @@ private struct TopicPanelBody: View, Equatable {
 
 private struct FooterSectionObserver: View {
     @ObservedObject var slice: SliceBox<FooterAppSlice>
+    @ObservedObject var keyboardState: DrawerKeyboardState
     let relay: DrawerAppRelay
     let app: AppModel
     let scriptMatchesCache: PageScriptMatchesCache
-    let isKeyboardVisible: Bool
     let onFocusChange: (Bool) -> Void
     let onSuggestion: (PageSuggestion) -> Void
     let onSend: (String, String?) -> ComposerSendOutcome
@@ -1164,7 +1249,7 @@ private struct FooterSectionObserver: View {
         }()
         EquatableFooter(
             app: app, sessionID: ObjectIdentifier(app.browserAgent), suggestions: suggestions,
-            isKeyboardVisible: isKeyboardVisible, canTalk: s.canTalk,
+            isKeyboardVisible: keyboardState.isKeyboardVisible, canTalk: s.canTalk,
             developerMode: s.developerMode,
             onFocusChange: onFocusChange, onSuggestion: onSuggestion, onSend: onSend
         )
