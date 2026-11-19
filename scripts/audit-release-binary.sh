@@ -11,6 +11,9 @@
 # WukongMind.app/WukongMind.debug.dylib, which has every item below.
 #
 # Exit 0: clean. Exit 1: something from the "must be absent" lists was found.
+# Exit 3: the binary is stripped of local symbols (an archived or exported
+# app), so the selector and symbol checks cannot run; use the product of
+# `xcodebuild build`.
 # The lists of DEBUG launch arguments are read from the sources, so a new
 # `-dc-` argument is covered without editing this script.
 #
@@ -88,7 +91,13 @@ for bundle in "$@"; do
   # Every Objective-C message the binary sends has a stub named objc_msgSend$<selector>.
   symbols="$(nm "$bin" 2>/dev/null)"
   sent="$(sed -n 's/.*objc_msgSend\$//p' <<<"$symbols" | sort -u)"
-  echo "-- Objective-C selectors sent: $(grep -c . <<<"$sent" | tr -d ' ')"
+  sent_count="$(grep -c . <<<"$sent" | tr -d ' ')"
+  if [[ "$sent_count" == 0 ]]; then
+    echo "   no objc_msgSend\$ symbols: a stripped binary. The selector and symbol checks" >&2
+    echo "   cannot run on it; use the unstripped product of xcodebuild build." >&2
+    exit 3
+  fi
+  echo "-- Objective-C selectors sent: $sent_count"
   echo "   starting with an underscore (expect none):"
   # (__swift_* are the Swift runtime's own bridging selectors.)
   sels="$(grep -E '^_' <<<"$sent" | grep -v -E '^__swift_' || true)"
