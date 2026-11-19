@@ -249,17 +249,21 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
             RunLoop.current.run(until: Date().addingTimeInterval(1.5))
         }
 
-        // 3. Share and Export .txt from the summary's menu.
+        // 3. Share and Export .txt from the summary's menu, at the large height unless
+        // `TEST_RUNNER_DC_PERF_DETENT=medium` (the height the drawer opens at).
+        let atMedium = ProcessInfo.processInfo.environment["DC_PERF_DETENT"] == "medium"
         showAssistant(in: app)
-        dragDrawer(in: app, to: 0.05)
+        if !atMedium { dragDrawer(in: app, to: 0.05) }
+        note("share_export_detent=\(drawerState(in: app).label)")
         let more = app.buttons["summaryMoreMenu"].firstMatch
         if !more.waitForExistence(timeout: 10) { attachTree(app, named: "\(name)-no-summary-menu") }
         XCTAssertTrue(more.exists, "The summary's menu is missing.")
         for (action, label) in [("shareExport", "Share"), ("exportExport", "Export .txt")] {
             if !drawerState(in: app).exists {
                 showAssistant(in: app)
-                dragDrawer(in: app, to: 0.05)
+                if !atMedium { dragDrawer(in: app, to: 0.05) }
             }
+            note("\(action) detent before=\(drawerState(in: app).label)")
             // The menu sits under the summary: scroll to it.
             let scroll = any(app, "agentScroll")
             for _ in 0..<14 where !more.isHittable { scroll.swipeUp(velocity: .slow) }
