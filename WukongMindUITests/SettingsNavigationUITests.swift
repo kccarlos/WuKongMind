@@ -299,10 +299,16 @@ final class SettingsNavigationUITests: DCUITestCase {
         let devSwitch = settingsApp.switches["agentDeveloperMode"]
         XCTAssertTrue(reveal(devSwitch, in: settingsApp))
         XCTAssertFalse(any(settingsApp, "devAppStateDigest").exists)
+        XCTAssertFalse(any(settingsApp, "devStateStorageReadout").exists)
         devSwitch.tap()
         let settingsDigest = any(settingsApp, "devAppStateDigest")
         XCTAssertTrue(reveal(settingsDigest, in: settingsApp))
         XCTAssertEqual(settingsDigest.label, "drawer=closed summary=saved run=idle page=topic voice=idle")
+        let storageReadout = any(settingsApp, "devStateStorageReadout")
+        XCTAssertTrue(reveal(storageReadout, in: settingsApp))
+        XCTAssertTrue(wait(timeout: 5) {
+            storageReadout.label.hasPrefix("state.json: ") && storageReadout.label.contains(" with text · largest ")
+        }, "got: \(storageReadout.label)")
         capture("settings-agent-developer-state-digest")
     }
 

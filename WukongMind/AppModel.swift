@@ -295,6 +295,14 @@ final class AppModel: ObservableObject {
 
     private let store: PersistentStore
     // Also used by the feature slices in other files (AppModel+Digest.swift).
+
+    func measureStateStorageStats() async -> StateStorageStats {
+        let snapshotSessions = Array(sessions.values)
+        let fileURL = store.stateFileURL
+        return await Task.detached(priority: .utility) {
+            StateStorageStats.measure(sessions: snapshotSessions, stateFileURL: fileURL)
+        }.value
+    }
     let forumService: ForumService
     /// Every platform this build reads; tests inject their own.
     let sites: SiteRegistry

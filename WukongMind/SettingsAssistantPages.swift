@@ -296,6 +296,7 @@ struct SettingsAgentPage: View {
                 .accessibilityIdentifier("saveFailedTasksForFeedback")
                 if app.settings.agentDeveloperMode {
                     AppStateDigestView(app: app)
+                    StateStorageReadoutView(app: app)
                 }
             } header: {
                 Text("Developer", comment: "Settings › Agent section header for developer diagnostics")
@@ -366,6 +367,22 @@ struct SettingsAgentPage: View {
         .onChange(of: app.settings.agentReadLimit) { app.saveSettings() }
         .onChange(of: app.settings.browserAgentMaxSteps) { app.saveSettings() }
         .onChange(of: app.settings.browserAgentTruncationLimit) { app.saveSettings() }
+    }
+}
+
+private struct StateStorageReadoutView: View {
+    @ObservedObject var app: AppModel
+    @State private var stats: StateStorageStats?
+
+    var body: some View {
+        Text(verbatim: stats?.formattedLine ?? "state.json: …")
+            .font(DCType.code)
+            .foregroundStyle(.secondary)
+            .textSelection(.enabled)
+            .accessibilityIdentifier("devStateStorageReadout")
+            .task {
+                stats = await app.measureStateStorageStats()
+            }
     }
 }
 
