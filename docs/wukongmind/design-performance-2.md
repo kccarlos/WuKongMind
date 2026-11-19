@@ -159,7 +159,7 @@ Runs on the phone: three thread sizes at the large drawer height (each twice or 
 
 ## 3. Decisions
 
-1. **Long text leaves the app as a file.** Over a size limit (100,000 characters as a starting guess; task 1 sets it by trying sizes against Messages and Notes) Share and Export hand over `wukongmind-<slug>.txt`, written off the main thread, with its name and size in the share sheet. Under the limit Share stays plain text, so a short summary still lands as a message body. Copy keeps the pasteboard string, built off the main thread. One busy state on the menu's button while a large text is written.
+1. **Long text leaves the app as a file.** Over a size limit (**20,000 characters**, set by probing Messages and Quick Note on iPhone 13 in task 1) Share and Export hand over `wukongmind-<slug>.txt`, written off the main thread, with its name and size in the share sheet. Under the limit Share stays plain text, so a short summary still lands as a message body. Copy keeps the pasteboard string, built off the main thread. One busy state on the menu's button while a large text is written.
 2. **The button answers the finger.** A pressed look and the haptic at touch down; the long press for voice stays.
 3. **Open cost follows what is visible.** The card's blocks and the runs are lazy, as the top summary already is. Measured gap: 141 against 365 ms for summaries of similar length. The target is one for every content: first frame within 200 ms of lift.
 4. **A cited paragraph is a few views, not hundreds.** Runs of words between chips become one `Text`; Chinese stops being per character. Chips keep their size, spacing and 44 pt targets.
@@ -181,6 +181,18 @@ Sizes count changed lines, tests included. Phone numbers are the iPhone 13 with 
 - **Scope:** `SummaryPanel.swift` (`ExportShareAnchor`, `ExportActivityItem`, the menu's three actions, `fileExporter`). Build the text off the main thread. Over the limit: write the file to a temporary folder, share its URL, and export with `fileMover`; under it: today's string. A busy state on the More button while writing. Remove the temporary file when the sheet closes. Tests: text and file bytes equal today's text for every option combination; the limit's two sides.
 - **Size:** about 250. **Depends on:** nothing. Not at the same time as another `SummaryPanel.swift` task.
 - **Done when:** on the phone, `testOpenShareExportLongThread` with `TEST_RUNNER_DC_PERF_SHARE_TARGET=Messages` shows the message with a .txt attachment within 3 s (from blank at 15 s); the short thread still opens with the text in the body; no main-thread pass over 100 ms after either tap (from 290 to 352 ms); the share sheet's header names the file.
+- **Result (WUKO-158, iPhone 13, optimized Debug):**
+  - **Size-limit probe (plain-text handoff before the change):**
+    - ~7,100 chars (20 comments): Messages opens immediately with text in the body.
+    - ~53,300 chars (145 comments): Messages is still blank at 3 s and opens by 6 s with the compose sheet overflowed; Add to New Quick Note opens by 6 s.
+    - ~102,300 chars (285 comments): Messages is blank through 6 s and opens by 10 s (overflowed); Add to New Quick Note opens by 6 s.
+    - ~202,000 and ~504,000 chars (570 and 1,430 comments): Messages stays blank through 10 s.
+    - Set `TopicExportFile.inlineCharacterLimit = 20_000` characters so short threads and summary-only exports stay inline while long threads hand over `wukongmind-<slug>.txt`.
+  - **Before vs after (`fixture-6000`, 2,113,610 chars, and `fixture-20`, 7,111 chars):**
+    - Share › Messages (`fixture-6000`): blank at 15 s before → `New Message` with `wukongmind-….txt` (`Text Document · 2.2 MB`) attachment within 3 s after.
+    - Share sheet header (`fixture-6000`): app icon only before → document preview, filename, and `Text Document · 2.2 MB` after.
+    - Share › Messages (`fixture-20`): still opens with the plain text in the message body within 3 s.
+    - Main-thread work: `TopicExportPayload.text` dropped from 63 ms on the main thread to **0 ms** (`Task.detached`). Export .txt (`fileMover`) max main-thread pass dropped from 138 ms to **63 ms** (tap pass 49 ms; Files picker opens with `Save as wukongmind-…`). Share tap pass dropped from 280 ms to **42 to 44 ms**; UIKit's own `UIActivityViewController` init/presentation pass on the main thread remains 157 ms on the short thread and 253 to 422 ms on the 2.2 MB file (cannot run off the main thread).
 
 ### 2. The AI button answers the finger
 - **Why:** cause 4.

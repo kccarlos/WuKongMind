@@ -181,6 +181,100 @@ final class DrawerRenderCountTests: XCTestCase {
         """)
     }
 
+    func testExportPreparationMatchesTextBytesForEveryOptionCombination() throws {
+        let tempRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("wukongmind-test-export-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: tempRoot, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempRoot) }
+
+        let slug = "www-doctorofcredit-com-123"
+        for mask in 0..<16 {
+            let options = ExportOptions(
+                excludeTitleAndURL: mask & 1 != 0,
+                excludeSummary: mask & 2 != 0,
+                excludePostAndResponses: mask & 4 != 0,
+                excludeChatHistory: mask & 8 != 0
+            )
+            let expectedText = payload.text(options: options)
+            let expectedBytes = Data(expectedText.utf8)
+
+            // Under the limit: plain text.
+            let inline = try TopicExportFile.prepare(
+                payload: payload, options: options, slug: slug, limit: Int.max, temporaryDirectory: tempRoot
+            )
+            XCTAssertEqual(inline, .text(expectedText, slug: slug), "mask \(mask)")
+            if case .text(let text, _) = inline {
+                let item = ExportActivityItem(text: text)
+                let controller = UIActivityViewController(activityItems: [item], applicationActivities: nil)
+                let shared = item.activityViewController(controller, itemForActivityType: .message) as? String
+                XCTAssertEqual(shared.map { Data($0.utf8) }, expectedBytes, "mask \(mask)")
+            }
+
+            // Over the limit (when non-empty): temporary .txt file with identical UTF-8 bytes.
+            guard !expectedText.isEmpty else { continue }
+            let over = try TopicExportFile.prepare(
+                payload: payload, options: options, slug: slug, limit: 0, temporaryDirectory: tempRoot
+            )
+            guard case .file(let url) = over else {
+                XCTFail("Expected .file for mask \(mask)")
+                continue
+            }
+            defer { TopicExportFile.removeTemporaryFile(at: url) }
+            XCTAssertEqual(url.lastPathComponent, "wukongmind-\(slug).txt")
+            XCTAssertEqual(try Data(contentsOf: url), expectedBytes, "File bytes differ for mask \(mask)")
+
+            let fileItem = ExportActivityItem(fileURL: url)
+            let controller = UIActivityViewController(activityItems: [fileItem], applicationActivities: nil)
+            XCTAssertEqual(fileItem.activityViewControllerPlaceholderItem(controller) as? URL, url)
+            XCTAssertEqual(fileItem.activityViewController(controller, itemForActivityType: .message) as? URL, url)
+            XCTAssertEqual(fileItem.activityViewController(controller, subjectForActivityType: .mail), "wukongmind-\(slug).txt")
+
+            let folder = url.deletingLastPathComponent()
+            TopicExportFile.removeTemporaryFile(at: url)
+            XCTAssertFalse(FileManager.default.fileExists(atPath: url.path), "Temp file not removed")
+            XCTAssertFalse(FileManager.default.fileExists(atPath: folder.path), "Temp folder not removed")
+        }
+    }
+
+    func testExportPreparationLimitBoundaryAndCleanupAfterMove() throws {
+        let tempRoot = FileManager.default.temporaryDirectory
+            .appendingPathComponent("wukongmind-test-boundary-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: tempRoot, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: tempRoot) }
+
+        let options = ExportOptions()
+        let text = payload.text(options: options)
+        let exactLength = text.count
+        XCTAssertGreaterThan(exactLength, 10)
+
+        // At the limit: stays inline text.
+        let atLimit = try TopicExportFile.prepare(
+            payload: payload, options: options, slug: "topic-1", limit: exactLength, temporaryDirectory: tempRoot
+        )
+        XCTAssertEqual(atLimit, .text(text, slug: "topic-1"))
+
+        // One character over the limit: writes a file.
+        let overLimit = try TopicExportFile.prepare(
+            payload: payload, options: options, slug: "topic-1", limit: exactLength - 1, temporaryDirectory: tempRoot
+        )
+        guard case .file(let url) = overLimit else {
+            return XCTFail("Expected .file when one character over the limit")
+        }
+        XCTAssertEqual(url.lastPathComponent, "wukongmind-topic-1.txt")
+        XCTAssertEqual(try Data(contentsOf: url), Data(text.utf8))
+
+        XCTAssertEqual(TopicExportFile.filename(slug: "127-0-0-1:54317-1001"), "wukongmind-127-0-0-1-54317-1001.txt")
+        XCTAssertEqual(TopicExportFile.filename(slug: "a/b"), "wukongmind-a-b.txt")
+
+        // Simulate `fileMover` having moved the file out of the temp folder: cleanup still removes the folder.
+        let movedTo = tempRoot.appendingPathComponent("moved.txt")
+        try FileManager.default.moveItem(at: url, to: movedTo)
+        let folder = url.deletingLastPathComponent()
+        XCTAssertTrue(FileManager.default.fileExists(atPath: folder.path))
+        TopicExportFile.removeTemporaryFile(at: url)
+        XCTAssertFalse(FileManager.default.fileExists(atPath: folder.path))
+    }
+
     // MARK: Stripped summary
 
     /// `PostCitations.stripped` as it was before its expressions became static.

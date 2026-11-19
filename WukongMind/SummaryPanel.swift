@@ -351,9 +351,12 @@ struct AssistantPanel: View {
     let onOpenURL: ((URL) -> Void)?
     @State private var relay = DrawerAppRelay()
     @State private var exporting = false
-    /// Built when Export .txt is tapped, dropped when the exporter closes.
+    /// Built when Export .txt is tapped (under the file limit), dropped when the exporter closes.
     @State private var exportDocument: PlainTextDocument?
     @State private var exportSlug = "topic"
+    @State private var movingExport = false
+    /// Temporary `.txt` file for large Export .txt; removed when `fileMover` closes.
+    @State private var exportFileURL: URL?
     @State private var exportShareAnchor = ExportShareAnchor()
     /// The summary without citations (Translate, Read aloud), kept per summary text.
     @State private var strippedSummaryCache = StrippedSummaryCache()
@@ -393,7 +396,7 @@ struct AssistantPanel: View {
                 exportShareAnchor: exportShareAnchor, isKeyboardVisible: isKeyboardVisible,
                 composerFocused: $composerFocused, showsCitationTip: $showsCitationTip,
                 expandedToolRowIDs: $expandedToolRowIDs, requestedProviderSetup: $requestedProviderSetup,
-                onExportDocument: { exportSlug = $1; exportDocument = $0; exporting = true },
+                onExport: presentExport,
                 onExpand: onExpand, onOpenURL: openInBrowser
             )
         }
@@ -417,16 +420,49 @@ struct AssistantPanel: View {
         .onChange(of: exporting) { _, shown in
             if !shown { exportDocument = nil }
         }
+        .onChange(of: movingExport) { _, shown in
+            if !shown { clearExportFile() }
+        }
+        .onDisappear {
+            if !movingExport { clearExportFile() }
+        }
         .fileExporter(
             isPresented: $exporting,
             document: exportDocument,
             contentType: .plainText,
-            defaultFilename: "wukongmind-\(exportSlug).txt"
+            defaultFilename: TopicExportFile.filename(slug: exportSlug)
         ) { result in
             if case .failure(let error) = result {
                 app.presentError(error.localizedDescription)
             }
         }
+        .fileMover(isPresented: $movingExport, file: exportFileURL) { result in
+            clearExportFile()
+            if case .failure(let error) = result {
+                app.presentError(error.localizedDescription)
+            }
+        } onCancellation: {
+            clearExportFile()
+        }
+    }
+
+    private func presentExport(_ delivery: ExportDelivery) {
+        switch delivery {
+        case .text(let text, let slug):
+            exportSlug = slug
+            exportDocument = PlainTextDocument(text: text)
+            exporting = true
+        case .file(let url):
+            clearExportFile()
+            exportFileURL = url
+            movingExport = true
+        }
+    }
+
+    private func clearExportFile() {
+        guard let url = exportFileURL else { return }
+        exportFileURL = nil
+        TopicExportFile.removeTemporaryFile(at: url)
     }
 
     private func openInBrowser(_ url: URL) {
@@ -910,7 +946,7 @@ private struct PanelRouteObserver: View {
     @Binding var showsCitationTip: Bool
     @Binding var expandedToolRowIDs: Set<UUID>
     @Binding var requestedProviderSetup: Bool
-    let onExportDocument: (PlainTextDocument, String) -> Void
+    let onExport: (ExportDelivery) -> Void
     let onExpand: (ExpandedPanelRoute) -> Void
     let onOpenURL: (URL) -> Void
 
@@ -922,7 +958,7 @@ private struct PanelRouteObserver: View {
             exportShareAnchor: exportShareAnchor, isKeyboardVisible: isKeyboardVisible,
             composerFocused: $composerFocused, showsCitationTip: $showsCitationTip,
             expandedToolRowIDs: $expandedToolRowIDs, requestedProviderSetup: $requestedProviderSetup,
-            onExportDocument: onExportDocument, onExpand: onExpand, onOpenURL: onOpenURL
+            onExport: onExport, onExpand: onExpand, onOpenURL: onOpenURL
         )
         .equatable()
     }
@@ -941,7 +977,7 @@ private struct TopicPanelBody: View, Equatable {
     @Binding var showsCitationTip: Bool
     @Binding var expandedToolRowIDs: Set<UUID>
     @Binding var requestedProviderSetup: Bool
-    let onExportDocument: (PlainTextDocument, String) -> Void
+    let onExport: (ExportDelivery) -> Void
     let onExpand: (ExpandedPanelRoute) -> Void
     let onOpenURL: (URL) -> Void
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -1012,7 +1048,7 @@ private struct TopicPanelBody: View, Equatable {
                 slice: relay.transcript, summarySlice: relay.summary, app: app, strippedSummaryCache: strippedSummaryCache,
                 exportShareAnchor: exportShareAnchor, showsCitationTip: $showsCitationTip,
                 expandedToolRowIDs: $expandedToolRowIDs, requestedProviderSetup: $requestedProviderSetup,
-                onExportDocument: onExportDocument, onExpand: onExpand, onOpenURL: onOpenURL
+                onExport: onExport, onExpand: onExpand, onOpenURL: onOpenURL
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             FooterSectionObserver(
@@ -1195,7 +1231,7 @@ private struct TranscriptSectionObserver: View {
     @Binding var showsCitationTip: Bool
     @Binding var expandedToolRowIDs: Set<UUID>
     @Binding var requestedProviderSetup: Bool
-    let onExportDocument: (PlainTextDocument, String) -> Void
+    let onExport: (ExportDelivery) -> Void
     let onExpand: (ExpandedPanelRoute) -> Void
     let onOpenURL: (URL) -> Void
 
@@ -1229,7 +1265,7 @@ private struct TranscriptSectionObserver: View {
             app: app, session: session, strippedSummaryCache: strippedSummaryCache,
             exportShareAnchor: exportShareAnchor, showsCitationTip: $showsCitationTip,
             expandedToolRowIDs: $expandedToolRowIDs, requestedProviderSetup: $requestedProviderSetup,
-            onExportDocument: onExportDocument, onExpand: onExpand, onOpenURL: onOpenURL
+            onExport: onExport, onExpand: onExpand, onOpenURL: onOpenURL
         )
         .equatable()
     }
@@ -1244,7 +1280,7 @@ private struct SummarySectionObserver: View {
     let exportShareAnchor: ExportShareAnchor
     @Binding var showsCitationTip: Bool
     @Binding var requestedProviderSetup: Bool
-    let onExportDocument: (PlainTextDocument, String) -> Void
+    let onExport: (ExportDelivery) -> Void
     let onExpand: (ExpandedPanelRoute) -> Void
     @State private var renderedSummary: ThrottledParse<DrawerSummarySections.Input, (sections: Int, hasCitations: Bool, rows: [MarkdownRow])>?
     @State private var parsedCache = ParsedSummaryCache()
@@ -1259,7 +1295,7 @@ private struct SummarySectionObserver: View {
         DrawerSummary(
             model: model, app: app, strippedSummaryCache: strippedSummaryCache, exportShareAnchor: exportShareAnchor,
             renderedSummary: $renderedSummary, showsCitationTip: $showsCitationTip,
-            onDismissCitationTip: { showsCitationTip = false }, onExportDocument: onExportDocument, onExpand: onExpand
+            onDismissCitationTip: { showsCitationTip = false }, onExport: onExport, onExpand: onExpand
         )
         .equatable()
     }
@@ -1359,17 +1395,13 @@ struct DrawerSummary: View, Equatable {
     @Binding var renderedSummary: ThrottledParse<DrawerSummarySections.Input, (sections: Int, hasCitations: Bool, rows: [MarkdownRow])>?
     @Binding var showsCitationTip: Bool
     let onDismissCitationTip: () -> Void
-    let onExportDocument: (PlainTextDocument, String) -> Void
+    let onExport: (ExportDelivery) -> Void
     let onExpand: (ExpandedPanelRoute) -> Void
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.model == rhs.model && ObjectIdentifier(lhs.app) == ObjectIdentifier(rhs.app)
-    }
-
-    private var exportText: String {
-        PerfProbe.time("AssistantPanel.exportText") { app.currentExportPayload.text(options: app.exportOptions) }
     }
 
     private var exportDisabled: Bool {
@@ -1646,69 +1678,15 @@ struct DrawerSummary: View, Equatable {
 
     /// Summary-specific actions moved out of the panel header (`design-unified.md` §1).
     private func summaryMoreMenu(_ meta: SummaryMetaModel) -> some View {
-        Menu {
-            Section {
-                Button {
-                    UIPasteboard.general.string = exportText
-                    DCHaptics.success()
-                } label: {
-                    Label("Copy", systemImage: "doc.on.doc")
-                }
-                .accessibilityIdentifier("copyExport")
-                .disabled(exportDisabled)
-
-                Button {
-                    exportShareAnchor.present(text: exportText)
-                } label: {
-                    Label("Share", systemImage: "square.and.arrow.up")
-                }
-                .accessibilityIdentifier("shareExport")
-                .disabled(exportDisabled)
-
-                Button {
-                    onExportDocument(PlainTextDocument(text: exportText), DrawerInputs.exportSlug(for: app))
-                } label: {
-                    Label("Export .txt", systemImage: "arrow.down.doc")
-                }
-                .accessibilityIdentifier("exportExport")
-                .disabled(exportDisabled)
-
-                Button {
-                    app.router.item = .exportOptions
-                } label: {
-                    Label("Export Options…", systemImage: "slider.horizontal.3")
-                }
-                .accessibilityIdentifier("exportOptions")
-            }
-
-            Section {
-                Button {
-                    onExpand(.post)
-                } label: {
-                    Label("Post & Responses", systemImage: "text.bubble")
-                }
-                .accessibilityIdentifier("viewPost")
-                .disabled(!meta.hasSource)
-
-                Button {
-                    app.pullTopic()
-                } label: {
-                    Label("Pull Post + Replies Only", systemImage: "arrow.down.circle")
-                }
-                .accessibilityIdentifier("pullPost")
-                .disabled(!model.hasCurrentTopic || model.activeSummary != nil || model.activePull != nil)
-            }
-        } label: {
-            Image(systemName: "ellipsis")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.secondary)
-                .frame(minWidth: 32, minHeight: DCTheme.controlHeight)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .background(exportShareAnchor)
-        .accessibilityLabel(Text("Summary actions", comment: "Accessibility label of the summary card's more menu"))
-        .accessibilityIdentifier("summaryMoreMenu")
+        SummaryMoreMenu(
+            app: app,
+            exportShareAnchor: exportShareAnchor,
+            exportDisabled: exportDisabled,
+            hasSource: meta.hasSource,
+            pullDisabled: !model.hasCurrentTopic || model.activeSummary != nil || model.activePull != nil,
+            onExport: onExport,
+            onExpand: onExpand
+        )
     }
 
     private var summaryNotice: some View {
@@ -1812,7 +1790,7 @@ private struct ChatThread: View, Equatable {
     @Binding var showsCitationTip: Bool
     @Binding var expandedToolRowIDs: Set<UUID>
     @Binding var requestedProviderSetup: Bool
-    let onExportDocument: (PlainTextDocument, String) -> Void
+    let onExport: (ExportDelivery) -> Void
     let onExpand: (ExpandedPanelRoute) -> Void
     let onOpenURL: (URL) -> Void
     @State private var atBottom = true
@@ -1835,7 +1813,7 @@ private struct ChatThread: View, Equatable {
             slice: summarySlice, app: app, session: session, isCardFooter: isCardFooter,
             strippedSummaryCache: strippedSummaryCache, exportShareAnchor: exportShareAnchor,
             showsCitationTip: $showsCitationTip, requestedProviderSetup: $requestedProviderSetup,
-            onExportDocument: onExportDocument, onExpand: onExpand
+            onExport: onExport, onExpand: onExpand
         )
     }
 
@@ -2306,6 +2284,183 @@ struct ExpandedPanel: View {
     }
 }
 
+private struct SummaryMoreMenu: View {
+    let app: AppModel
+    let exportShareAnchor: ExportShareAnchor
+    let exportDisabled: Bool
+    let hasSource: Bool
+    let pullDisabled: Bool
+    let onExport: (ExportDelivery) -> Void
+    let onExpand: (ExpandedPanelRoute) -> Void
+    @State private var isPreparingExport = false
+
+    var body: some View {
+        Menu {
+            Section {
+                Button(action: copyExport) {
+                    Label("Copy", systemImage: "doc.on.doc")
+                }
+                .accessibilityIdentifier("copyExport")
+                .disabled(exportDisabled || isPreparingExport)
+
+                Button(action: shareExport) {
+                    Label("Share", systemImage: "square.and.arrow.up")
+                }
+                .accessibilityIdentifier("shareExport")
+                .disabled(exportDisabled || isPreparingExport)
+
+                Button(action: exportFile) {
+                    Label("Export .txt", systemImage: "arrow.down.doc")
+                }
+                .accessibilityIdentifier("exportExport")
+                .disabled(exportDisabled || isPreparingExport)
+
+                Button {
+                    app.router.item = .exportOptions
+                } label: {
+                    Label("Export Options…", systemImage: "slider.horizontal.3")
+                }
+                .accessibilityIdentifier("exportOptions")
+            }
+
+            Section {
+                Button {
+                    onExpand(.post)
+                } label: {
+                    Label("Post & Responses", systemImage: "text.bubble")
+                }
+                .accessibilityIdentifier("viewPost")
+                .disabled(!hasSource)
+
+                Button {
+                    app.pullTopic()
+                } label: {
+                    Label("Pull Post + Replies Only", systemImage: "arrow.down.circle")
+                }
+                .accessibilityIdentifier("pullPost")
+                .disabled(pullDisabled)
+            }
+        } label: {
+            Group {
+                if isPreparingExport {
+                    ProgressView()
+                        .controlSize(.small)
+                } else {
+                    Image(systemName: "ellipsis")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .frame(minWidth: 32, minHeight: DCTheme.controlHeight)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(isPreparingExport)
+        .background(exportShareAnchor)
+        .accessibilityLabel(Text("Summary actions", comment: "Accessibility label of the summary card's more menu"))
+        .accessibilityIdentifier("summaryMoreMenu")
+    }
+
+    private func copyExport() {
+        guard !isPreparingExport else { return }
+        let payload = app.currentExportPayload
+        let options = app.exportOptions
+        isPreparingExport = true
+        Task {
+            let text = await Task.detached(priority: .userInitiated) {
+                PerfProbe.time("AssistantPanel.exportText") {
+                    payload.text(options: options)
+                }
+            }.value
+            UIPasteboard.general.string = text
+            DCHaptics.success()
+            isPreparingExport = false
+        }
+    }
+
+    private func shareExport() {
+        prepareDelivery { exportShareAnchor.present($0) }
+    }
+
+    private func exportFile() {
+        prepareDelivery { onExport($0) }
+    }
+
+    private func prepareDelivery(_ deliver: @escaping (ExportDelivery) -> Void) {
+        guard !isPreparingExport else { return }
+        let payload = app.currentExportPayload
+        let options = app.exportOptions
+        let slug = DrawerInputs.exportSlug(for: app)
+        isPreparingExport = true
+        Task {
+            do {
+                let delivery = try await Task.detached(priority: .userInitiated) {
+                    try TopicExportFile.prepare(payload: payload, options: options, slug: slug)
+                }.value
+                deliver(delivery)
+            } catch {
+                app.presentError(error.localizedDescription)
+            }
+            isPreparingExport = false
+        }
+    }
+}
+
+/// How an export leaves the app: inline text under the limit, a temporary `.txt` file over it.
+enum ExportDelivery: Equatable, Sendable {
+    case text(String, slug: String)
+    case file(URL)
+}
+
+/// Builds export text off the main thread and writes long exports to a temporary `.txt` file
+/// (`docs/wukongmind/design-performance-2.md`, decision 1).
+enum TopicExportFile {
+    /// Text above this character count is handed over as `wukongmind-<slug>.txt` instead of an
+    /// inline string. Probed on iPhone 13 (iOS 27.2.1): Messages opens 7k chars immediately,
+    /// stalls >3 s and overflows its compose sheet at 50k chars, stalls >6 s at 100k, and stays
+    /// blank >10 s at 200k+. 20,000 keeps short threads and summary-only exports inline.
+    static let inlineCharacterLimit = 20_000
+    private static let tempFolderPrefix = "wukongmind-export-"
+
+    static func filename(slug: String) -> String {
+        let safe = slug
+            .replacingOccurrences(of: "/", with: "-")
+            .replacingOccurrences(of: ":", with: "-")
+        return "wukongmind-\(safe).txt"
+    }
+
+    static func prepare(
+        payload: TopicExportPayload,
+        options: ExportOptions,
+        slug: String,
+        limit: Int = inlineCharacterLimit,
+        temporaryDirectory: URL = FileManager.default.temporaryDirectory
+    ) throws -> ExportDelivery {
+        let text = PerfProbe.time("AssistantPanel.exportText") {
+            payload.text(options: options)
+        }
+        guard text.count > limit else {
+            return .text(text, slug: slug)
+        }
+        let folder = temporaryDirectory
+            .appendingPathComponent("\(tempFolderPrefix)\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let url = folder.appendingPathComponent(filename(slug: slug))
+        try Data(text.utf8).write(to: url, options: .atomic)
+        return .file(url)
+    }
+
+    /// Removes the temporary folder created by `prepare`. Safe even after `fileMover` moves the file out.
+    static func removeTemporaryFile(at url: URL) {
+        let folder = url.deletingLastPathComponent()
+        guard folder.lastPathComponent.hasPrefix(tempFolderPrefix) else {
+            try? FileManager.default.removeItem(at: url)
+            return
+        }
+        try? FileManager.default.removeItem(at: folder)
+    }
+}
+
 /// Anchors the system share popover to the summary's More button on iPad.
 struct ExportShareAnchor: UIViewRepresentable {
     @MainActor
@@ -2323,17 +2478,38 @@ struct ExportShareAnchor: UIViewRepresentable {
 
     func updateUIView(_ uiView: UIView, context: Context) {}
 
-    func present(text: String) {
+    func present(_ delivery: ExportDelivery) {
         let anchor = storage.view
+        let item: ExportActivityItem
+        let tempFileURL: URL?
+        switch delivery {
+        case .text(let text, _):
+            item = ExportActivityItem(text: text)
+            tempFileURL = nil
+        case .file(let url):
+            item = ExportActivityItem(fileURL: url)
+            tempFileURL = url
+        }
         // Let SwiftUI finish the menu action before presenting UIKit's sheet.
         DispatchQueue.main.async {
-            guard anchor.window != nil else { return }
+            guard anchor.window != nil else {
+                if let tempFileURL { TopicExportFile.removeTemporaryFile(at: tempFileURL) }
+                return
+            }
             var responder: UIResponder? = anchor
             while let current = responder, !(current is UIViewController) {
                 responder = current.next
             }
-            guard let presenter = responder as? UIViewController else { return }
-            let controller = UIActivityViewController(activityItems: [ExportActivityItem(text: text)], applicationActivities: nil)
+            guard let presenter = responder as? UIViewController, presenter.presentedViewController == nil else {
+                if let tempFileURL { TopicExportFile.removeTemporaryFile(at: tempFileURL) }
+                return
+            }
+            let controller = UIActivityViewController(activityItems: [item], applicationActivities: nil)
+            if let tempFileURL {
+                controller.completionWithItemsHandler = { _, _, _, _ in
+                    TopicExportFile.removeTemporaryFile(at: tempFileURL)
+                }
+            }
             controller.popoverPresentationController?.sourceView = anchor
             controller.popoverPresentationController?.sourceRect = anchor.bounds
             presenter.present(controller, animated: true)
@@ -2341,18 +2517,37 @@ struct ExportShareAnchor: UIViewRepresentable {
     }
 }
 
-/// A plain string gives the system its text preview and Copy action.
+/// Shares either an inline string (short exports) or a temporary `.txt` file URL (long exports).
 final class ExportActivityItem: NSObject, UIActivityItemSource {
-    private let text: String
+    enum Content: Equatable {
+        case text(String)
+        case file(URL)
+    }
 
-    init(text: String) { self.text = text }
+    let content: Content
+
+    init(text: String) { self.content = .text(text) }
+    init(fileURL: URL) { self.content = .file(fileURL) }
 
     func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
-        text
+        switch content {
+        case .text(let text): return text
+        case .file(let url): return url
+        }
     }
 
     func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any? {
-        text
+        switch content {
+        case .text(let text): return text
+        case .file(let url): return url
+        }
+    }
+
+    func activityViewController(_ activityViewController: UIActivityViewController, subjectForActivityType activityType: UIActivity.ActivityType?) -> String {
+        switch content {
+        case .text: return ""
+        case .file(let url): return url.lastPathComponent
+        }
     }
 }
 
