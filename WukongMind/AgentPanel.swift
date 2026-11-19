@@ -87,7 +87,7 @@ struct AgentStatusLine: View {
         let state = session.runState
         if let pose = BrowserAgentPanelView.mascotPose(
             runState: state,
-            toolCalls: session.toolCalls,
+            toolCalls: session.runs.last?.toolCalls ?? [],
             reduceMotion: reduceMotion
         ),
            let text = BrowserAgentPanelView.statusText(
@@ -145,11 +145,19 @@ enum ConversationItem: Identifiable, Equatable {
 @MainActor
 private final class TimelineCache {
     struct Stamp: Equatable { let id: UUID; let startedAt: Date }
+    struct Split {
+        let lazyItems: [ConversationItem]
+        let eagerItems: [ConversationItem]
+        let earlierRuns: [BrowserAgentRun]
+    }
     private var stamps: [Stamp]?
     private var voices: [BrowserAgentMessage]?
     private var items: [ConversationItem] = []
+    private var lazyItems: [ConversationItem] = []
+    private var eagerItems: [ConversationItem] = []
+    private var earlierRuns: [BrowserAgentRun] = []
 
-    func timeline(runs: [BrowserAgentRun], messages: [BrowserAgentMessage]) -> [ConversationItem] {
+    func split(runs: [BrowserAgentRun], messages: [BrowserAgentMessage], isRunning: Bool) -> Split {
         let nextStamps = runs.map { Stamp(id: $0.id, startedAt: $0.startedAt) }
         let nextVoices = messages.filter(\.role.isVoice)
         if nextStamps != stamps || nextVoices != voices {
@@ -162,8 +170,26 @@ private final class TimelineCache {
                     lhs.element.date == rhs.element.date ? lhs.offset < rhs.offset : lhs.element.date < rhs.element.date
                 }.map(\.element)
             }
+            if let latestID = runs.last?.id, let pivot = items.lastIndex(where: { $0.id == latestID }) {
+                lazyItems = Array(items[..<pivot])
+                eagerItems = Array(items[pivot...])
+            } else {
+                lazyItems = items
+                eagerItems = []
+            }
         }
-        return items
+        let earlierCount = max(0, runs.count - 1)
+        if earlierRuns.count != earlierCount {
+            earlierRuns = Array(runs.prefix(earlierCount))
+        } else if isRunning, earlierCount > 0 {
+            if earlierRuns[earlierCount - 1].id != runs[earlierCount - 1].id
+                || earlierRuns[earlierCount - 1].state != runs[earlierCount - 1].state {
+                earlierRuns = Array(runs.prefix(earlierCount))
+            }
+        } else if earlierCount > 0, runs.prefix(earlierCount) != earlierRuns[...] {
+            earlierRuns = Array(runs.prefix(earlierCount))
+        }
+        return Split(lazyItems: lazyItems, eagerItems: eagerItems, earlierRuns: earlierRuns)
     }
 }
 
@@ -291,73 +317,161 @@ struct BrowserAgentRunsView: View {
         }
     }
 
+    static func scrollID(for id: UUID) -> String { "agentItem-\(id.uuidString)" }
+
     private func runsBody(context: AgentRunsContext) -> some View {
         let runs = session.runs
         let latestRunID = runs.last?.id
-        let items = timelineCache.timeline(runs: runs, messages: session.messages)
+        let split = timelineCache.split(runs: runs, messages: session.messages, isRunning: session.isRunning)
+        let latestToolRowIDs: Set<UUID> = expandedToolRowIDs.isEmpty ? [] : Set((runs.last?.toolCalls ?? []).map(\.id))
+        let earlierModel = EarlierConversationItemsView.Model(
+            items: split.lazyItems, runs: split.earlierRuns, context: context,
+            manuallyExpandedRunIDs: manuallyExpandedRunIDs.isEmpty ? [] : manuallyExpandedRunIDs.subtracting(latestRunID.map { [$0] } ?? []),
+            expandedToolRowIDs: expandedToolRowIDs.isEmpty ? [] : expandedToolRowIDs.subtracting(latestToolRowIDs)
+        )
         return VStack(alignment: .leading, spacing: 12) {
-            ForEach(items) { item in
-                switch item {
-                case .run(let index, let runID, _):
-                    if index < runs.count, runs[index].id == runID {
-                        let run = runs[index]
-                        let showableTabs = Set(run.toolCalls.lazy.compactMap { row -> String? in
-                            guard !row.isRunning, !row.isError, let id = row.openedTabID,
-                                  context.openTabIDs.contains(id), context.currentTabID != id else { return nil }
-                            return id
-                        })
-                        let showsFailure: Bool = if case .failed = run.state { context.isBrowserAgentReady } else { false }
-                        let siteURL: String = {
-                            guard !run.assistantText.isEmpty else { return "" }
-                            let sample = run.toolCalls.lazy.compactMap { row -> URL? in
-                                guard !row.isRunning, let shape = row.shape else { return nil }
-                                switch shape {
-                                case .thread(let t): return URL(string: t.url)
-                                case .list(let l): return l.items.first.flatMap { URL(string: $0.url) }
-                                }
-                            }.first
-                            return sample.flatMap { app.siteURL(containing: $0) } ?? ""
-                        }()
-                        let hasSummaryCard = run.toolCalls.contains { $0.toolName == "summarize_topic" && !$0.isRunning && !$0.isError }
-                        let ownsSummaryCard = hasSummaryCard && context.currentTopicSummary.map { snap in
-                            run.toolCalls.contains { row in
-                                guard row.toolName == "summarize_topic", !row.isRunning, !row.isError, case .thread(let t) = row.shape else { return false }
-                                return app.session(forThreadShape: t)?.topicKey == snap.topicKey
-                            }
-                        } == true
-                        let hasScriptCards = !BrowserAgentRunsView.savedScriptEntries(in: run).isEmpty
-                        AgentRunSectionView(
-                            model: .init(
-                                run: run, isLatest: run.id == latestRunID, developerMode: context.developerMode,
-                                showsFailureCard: showsFailure, stepsExpanded: manuallyExpandedRunIDs.contains(run.id),
-                                expandedRowIDs: expandedToolRowIDs.isEmpty ? [] : Set(run.toolCalls.lazy.map(\.id).filter { expandedToolRowIDs.contains($0) }),
-                                showableTabIDs: showableTabs, forumSiteURL: siteURL,
-                                activeCitation: hasSummaryCard ? context.activeCitation : nil,
-                                cardRowID: ownsSummaryCard ? context.cardRowID : nil,
-                                currentTopicSummary: hasSummaryCard ? context.currentTopicSummary : nil,
-                                scriptsModelDisplayName: hasScriptCards ? context.scriptsModelDisplayName : ""
-                            ),
+            if !split.lazyItems.isEmpty {
+                EarlierConversationItemsView(
+                    model: earlierModel, app: app, session: session, sourcesCache: sourcesCache,
+                    onToggleSteps: { toggleSet(&manuallyExpandedRunIDs, id: $0) },
+                    onToggleToolRow: { toggleSet(&expandedToolRowIDs, id: $0) },
+                    onShowScreenshot: { screenshotSheet = $0 }, onOpenURL: onOpenURL
+                )
+                .equatable()
+                .accessibilityElement(children: .contain)
+                .accessibilitySortPriority(2)
+                .transition(.identity)
+            }
+            if !split.eagerItems.isEmpty {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(Array(split.eagerItems.enumerated()), id: \.element.id) { offset, item in
+                        Self.itemView(
+                            item: item, runs: runs, latestRunID: latestRunID, context: context,
+                            manuallyExpandedRunIDs: manuallyExpandedRunIDs, expandedToolRowIDs: expandedToolRowIDs,
                             app: app, session: session, sourcesCache: sourcesCache,
-                            onToggleSteps: { toggleSet(&manuallyExpandedRunIDs, id: run.id) },
+                            onToggleSteps: { toggleSet(&manuallyExpandedRunIDs, id: $0) },
                             onToggleToolRow: { toggleSet(&expandedToolRowIDs, id: $0) },
-                            onShowScreenshot: { screenshotSheet = $0 },
-                            onOpenURL: onOpenURL
+                            onShowScreenshot: { screenshotSheet = $0 }, onOpenURL: onOpenURL
                         )
-                        .equatable()
+                        .id(Self.scrollID(for: item.id))
+                        .accessibilitySortPriority(Double(1_000 - offset))
+                        .transition(.identity)
                     }
-                case .voice(let message):
-                    DCVoiceBubble(text: message.text, isUser: message.role == .voiceUser)
                 }
+                .accessibilityElement(children: .contain)
+                .accessibilitySortPriority(1)
             }
         }
+        .accessibilityElement(children: .contain)
         .sheet(item: $screenshotSheet) { item in
             DCScreenshotSheet(item: item)
+        }
+    }
+
+    @MainActor
+    @ViewBuilder
+    fileprivate static func itemView(
+        item: ConversationItem, runs: [BrowserAgentRun], latestRunID: UUID?, context: AgentRunsContext,
+        manuallyExpandedRunIDs: Set<UUID>, expandedToolRowIDs: Set<UUID>,
+        app: AppModel, session: BrowserAgentSession, sourcesCache: ForumSourcesCache,
+        onToggleSteps: @escaping (UUID) -> Void, onToggleToolRow: @escaping (UUID) -> Void,
+        onShowScreenshot: @escaping (ScreenshotSheetItem) -> Void, onOpenURL: ((URL) -> Void)?
+    ) -> some View {
+        switch item {
+        case .run(let index, let runID, _):
+            if index < runs.count, runs[index].id == runID {
+                let run = runs[index]
+                let showableTabs = Set(run.toolCalls.lazy.compactMap { row -> String? in
+                    guard !row.isRunning, !row.isError, let id = row.openedTabID,
+                          context.openTabIDs.contains(id), context.currentTabID != id else { return nil }
+                    return id
+                })
+                let showsFailure: Bool = if case .failed = run.state { context.isBrowserAgentReady } else { false }
+                let siteURL: String = {
+                    guard !run.assistantText.isEmpty else { return "" }
+                    let sample = run.toolCalls.lazy.compactMap { row -> URL? in
+                        guard !row.isRunning, let shape = row.shape else { return nil }
+                        switch shape {
+                        case .thread(let t): return URL(string: t.url)
+                        case .list(let l): return l.items.first.flatMap { URL(string: $0.url) }
+                        }
+                    }.first
+                    return sample.flatMap { app.siteURL(containing: $0) } ?? ""
+                }()
+                let hasSummaryCard = run.toolCalls.contains { $0.toolName == "summarize_topic" && !$0.isRunning && !$0.isError }
+                let ownsSummaryCard = hasSummaryCard && context.currentTopicSummary.map { snap in
+                    run.toolCalls.contains { row in
+                        guard row.toolName == "summarize_topic", !row.isRunning, !row.isError, case .thread(let t) = row.shape else { return false }
+                        return app.session(forThreadShape: t)?.topicKey == snap.topicKey
+                    }
+                } == true
+                let hasScriptCards = !BrowserAgentRunsView.savedScriptEntries(in: run).isEmpty
+                AgentRunSectionView(
+                    model: .init(
+                        run: run, isLatest: run.id == latestRunID, developerMode: context.developerMode,
+                        showsFailureCard: showsFailure, stepsExpanded: manuallyExpandedRunIDs.contains(run.id),
+                        expandedRowIDs: expandedToolRowIDs.isEmpty ? [] : Set(run.toolCalls.lazy.map(\.id).filter { expandedToolRowIDs.contains($0) }),
+                        showableTabIDs: showableTabs, forumSiteURL: siteURL,
+                        activeCitation: hasSummaryCard ? context.activeCitation : nil,
+                        cardRowID: ownsSummaryCard ? context.cardRowID : nil,
+                        currentTopicSummary: hasSummaryCard ? context.currentTopicSummary : nil,
+                        scriptsModelDisplayName: hasScriptCards ? context.scriptsModelDisplayName : ""
+                    ),
+                    app: app, session: session, sourcesCache: sourcesCache,
+                    onToggleSteps: { onToggleSteps(run.id) },
+                    onToggleToolRow: onToggleToolRow,
+                    onShowScreenshot: onShowScreenshot,
+                    onOpenURL: onOpenURL
+                )
+                .equatable()
+            }
+        case .voice(let message):
+            DCVoiceBubble(text: message.text, isUser: message.role == .voiceUser)
         }
     }
 
     private func toggleSet(_ set: inout Set<UUID>, id: UUID) {
         withAnimation(DCMotion.respecting(reduceMotion, DCMotion.quick)) {
             if set.contains(id) { set.remove(id) } else { set.insert(id) }
+        }
+    }
+}
+
+private struct EarlierConversationItemsView: View, Equatable {
+    struct Model: Equatable {
+        let items: [ConversationItem]
+        let runs: [BrowserAgentRun]
+        let context: AgentRunsContext
+        let manuallyExpandedRunIDs: Set<UUID>
+        let expandedToolRowIDs: Set<UUID>
+    }
+    let model: Model
+    let app: AppModel
+    let session: BrowserAgentSession
+    let sourcesCache: ForumSourcesCache
+    let onToggleSteps: (UUID) -> Void
+    let onToggleToolRow: (UUID) -> Void
+    let onShowScreenshot: (ScreenshotSheetItem) -> Void
+    let onOpenURL: ((URL) -> Void)?
+
+    static func == (lhs: Self, rhs: Self) -> Bool {
+        lhs.model == rhs.model && ObjectIdentifier(lhs.app) == ObjectIdentifier(rhs.app) && ObjectIdentifier(lhs.session) == ObjectIdentifier(rhs.session)
+    }
+
+    var body: some View {
+        LazyVStack(alignment: .leading, spacing: 12) {
+            ForEach(Array(model.items.enumerated()), id: \.element.id) { offset, item in
+                BrowserAgentRunsView.itemView(
+                    item: item, runs: model.runs, latestRunID: nil, context: model.context,
+                    manuallyExpandedRunIDs: model.manuallyExpandedRunIDs, expandedToolRowIDs: model.expandedToolRowIDs,
+                    app: app, session: session, sourcesCache: sourcesCache,
+                    onToggleSteps: onToggleSteps, onToggleToolRow: onToggleToolRow,
+                    onShowScreenshot: onShowScreenshot, onOpenURL: onOpenURL
+                )
+                .id(BrowserAgentRunsView.scrollID(for: item.id))
+                .accessibilitySortPriority(Double(100_000 - offset))
+                .transition(.identity)
+            }
         }
     }
 }

@@ -1203,11 +1203,7 @@ private struct TranscriptSectionObserver: View {
         let s = slice.value
         let session = app.browserAgent
         let runs = session.runs
-        let runsCount = runs.count
-        let voiceCount = session.voiceTurns.count
-        let toolCount = runs.reduce(0) { $0 + $1.toolCalls.count }
-        let runState = session.runState
-        let hasConv = runsCount > 0 || voiceCount > 0
+        let hasConv = !runs.isEmpty || session.messages.contains(where: \.role.isVoice)
         let presentation = SummaryPresentation.resolve(
             jobState: s.summaryRun, hasStreamText: s.hasStreamText, hasSavedSummary: s.hasSummaryOnSession,
             isHiddenByNewConversation: s.hiddenByReset, isPulling: s.activePull != nil,
@@ -1222,9 +1218,7 @@ private struct TranscriptSectionObserver: View {
             runsContext.cardRowID = cardRowID
             return ChatThread.Model(
                 topicKey: s.topicKey, hasSummaryOnSession: s.hasSummaryOnSession, hasLeadingContent: hasLeading,
-                hasConversation: hasConv, runsCount: runsCount, voiceTurnsCount: voiceCount,
-                toolCallsCount: toolCount, runState: runState,
-                runsContext: runsContext,
+                hasConversation: hasConv, runsContext: runsContext,
                 cardRowID: cardRowID, activeCitation: s.activeCitation,
                 showsCitationTip: showsCitationTip, requestedProviderSetup: requestedProviderSetup,
                 expandedToolRowIDs: expandedToolRowIDs
@@ -1804,8 +1798,7 @@ struct DrawerSummary: View, Equatable {
 private struct ChatThread: View, Equatable {
     struct Model: Equatable {
         let topicKey: String; let hasSummaryOnSession: Bool; let hasLeadingContent: Bool; let hasConversation: Bool
-        let runsCount: Int; let voiceTurnsCount: Int; let toolCallsCount: Int
-        let runState: BrowserAgentRunState; let runsContext: AgentRunsContext
+        let runsContext: AgentRunsContext
         let cardRowID: UUID?; let activeCitation: Int?; let showsCitationTip: Bool
         let requestedProviderSetup: Bool; let expandedToolRowIDs: Set<UUID>
     }
@@ -1860,6 +1853,8 @@ private struct ChatThread: View, Equatable {
                         VStack(alignment: .leading, spacing: 12) {
                             if model.hasLeadingContent {
                                 summaryObserver(isCardFooter: false)
+                                    .accessibilityElement(children: .contain)
+                                    .accessibilitySortPriority(2)
                             }
 
                             if model.hasConversation {
@@ -1870,6 +1865,7 @@ private struct ChatThread: View, Equatable {
                                     expandedToolRowIDs: $expandedToolRowIDs,
                                     onOpenURL: onOpenURL
                                 )
+                                .accessibilitySortPriority(1)
                                 .transition(.identity)
                             }
 
@@ -1898,22 +1894,30 @@ private struct ChatThread: View, Equatable {
                     .frame(maxWidth: 860, alignment: .leading)
                     .frame(maxWidth: .infinity)
                     .onGeometryChange(for: Int.self) { Int($0.size.height.rounded()) } action: { newHeight in
-                        apply(.contentGrew(height: newHeight, isRunning: session.isRunning), proxy: proxy)
+                        apply(.contentGrew(height: newHeight, isRunning: session.isRunning || follow.finishingLayoutTurn), proxy: proxy)
                     }
-                    .animation(DCMotion.respecting(reduceMotion), value: model.runsCount)
                 }
                 .defaultScrollAnchor(.top)
                 .modifier(ChatScrollTracker(
                     onEvent: { apply($0, proxy: proxy) },
-                    isRunning: { session.isRunning }
+                    isRunning: { session.isRunning || follow.finishingLayoutTurn }
                 ))
                 .scrollDismissesKeyboard(.interactively)
                 .accessibilityIdentifier("agentScroll")
+                .background {
+                    TranscriptSessionEvents(
+                        session: session,
+                        follow: follow,
+                        expandedToolRowIDs: $expandedToolRowIDs,
+                        onEvent: { apply($0, proxy: proxy) },
+                        onAnnounce: announceAgentStateIfNeeded
+                    )
+                }
                 .onAppear {
                     #if DEBUG
                     if AssistantDebug.has("-dc-browser-agent-expand-first-tool"),
                        expandedToolRowIDs.isEmpty,
-                       let first = session.toolCalls.first {
+                       let first = session.runs.first?.toolCalls.first {
                         expandedToolRowIDs.insert(first.id)
                     }
                     #endif
@@ -1928,30 +1932,6 @@ private struct ChatThread: View, Equatable {
                 }
                 .onChange(of: model.topicKey) {
                     apply(.topicChanged(hasRuns: !session.runs.isEmpty), proxy: proxy)
-                }
-                .onChange(of: model.runsCount) { oldCount, newCount in
-                    if newCount > oldCount {
-                        apply(.runAdded, proxy: proxy)
-                    }
-                }
-                .onChange(of: model.voiceTurnsCount) { oldCount, newCount in
-                    if newCount > oldCount {
-                        apply(.voiceTurnAdded, proxy: proxy)
-                    }
-                }
-                .onChange(of: model.toolCallsCount) { _, _ in
-                    #if DEBUG
-                    if AssistantDebug.has("-dc-browser-agent-expand-first-tool"),
-                       expandedToolRowIDs.isEmpty,
-                       let first = session.toolCalls.first {
-                        expandedToolRowIDs.insert(first.id)
-                    }
-                    #endif
-                    apply(.runStepChanged, proxy: proxy)
-                }
-                .onChange(of: model.runState) { _, newState in
-                    apply(.runStepChanged, proxy: proxy)
-                    announceAgentStateIfNeeded(newState)
                 }
                 .onDisappear {
                     apply(.disappeared, proxy: proxy)
@@ -2021,7 +2001,12 @@ private struct ChatThread: View, Equatable {
         case .none:
             break
         case .scrollNow(let anchor, let afterTurn):
-            scrollUnanimated(anchor.scrollID, anchor: anchor == .top ? .top : .bottom, proxy: proxy)
+            if anchor == .top {
+                follow.cancelBottomScroll()
+                scrollUnanimated(anchor.scrollID, anchor: .top, proxy: proxy)
+            } else if !follow.state.isSettling {
+                follow.scheduleBottomScroll(proxy: proxy, session: session)
+            }
             switch afterTurn {
             case nil:
                 break
@@ -2035,10 +2020,11 @@ private struct ChatThread: View, Equatable {
                 }
             }
         case .settleToBottom(let interruptMomentum):
+            let targetID = follow.currentSettleTargetID(session: session)
             follow.cancelSettle()
             if interruptMomentum {
                 // An immediate scroll interrupts any momentum before the settling animation.
-                scrollUnanimated(proxy: proxy)
+                scrollUnanimated(targetID, proxy: proxy)
             }
             let token = UUID()
             follow.settleID = token
@@ -2049,11 +2035,35 @@ private struct ChatThread: View, Equatable {
                 #if DEBUG
                 defer { ChatScrollProbe.end(token) }
                 #endif
-                await settleScroll(reduceMotion: reduceMotion, shouldStop: { follow.state.isUserScrolling }) {
-                    proxy.scrollTo("chatBottom", anchor: .bottom)
+                if UIView.areAnimationsEnabled {
+                    withAnimation(.easeOut(duration: reduceMotion ? 0.04 : 0.16)) {
+                        proxy.scrollTo(targetID, anchor: .bottom)
+                    }
+                    try? await Task.sleep(for: .milliseconds(reduceMotion ? 50 : 180))
+                } else {
+                    scrollUnanimated(targetID, proxy: proxy)
+                    try? await Task.sleep(for: .milliseconds(16))
                 }
-                for _ in 0..<24 where !follow.state.nearBottom && !follow.state.isUserScrolling && !Task.isCancelled {
-                    scrollUnanimated(proxy: proxy)
+                let bottomID = TranscriptFollow.Anchor.bottom.scrollID
+                var snappedBottomInset = targetID == bottomID
+                var settledPasses = 0
+                var previousHeight = follow.state.contentHeight
+                let requiredSettledPasses = interruptMomentum ? 8 : 1
+                for _ in 0..<24 {
+                    if Task.isCancelled || follow.state.isUserScrolling { break }
+                    let currentHeight = follow.state.contentHeight
+                    if !follow.state.nearBottom || currentHeight != previousHeight {
+                        settledPasses = 0
+                        snappedBottomInset = targetID == bottomID
+                        scrollUnanimated(targetID, proxy: proxy)
+                    } else if !snappedBottomInset {
+                        snappedBottomInset = true
+                        scrollUnanimated(bottomID, proxy: proxy)
+                    } else {
+                        settledPasses += 1
+                        if settledPasses >= requiredSettledPasses { break }
+                    }
+                    previousHeight = currentHeight
                     try? await Task.sleep(for: .milliseconds(16))
                 }
                 guard !Task.isCancelled, follow.settleID == token else { return }
@@ -2587,13 +2597,97 @@ private final class TranscriptFollowPlumbing {
     var state = TranscriptFollow()
     var scrollTask: Task<Void, Never>?
     var settleID = UUID()
+    var finishingLayoutTurn = false
+    private var pendingBottomScroll = false
+    private var bottomBlockScheduled = false
+
+    func currentSettleTargetID(session: BrowserAgentSession) -> String {
+        let latestVoice = session.messages.last(where: \.role.isVoice)
+        if let latestRun = session.runs.last, latestVoice.map({ $0.createdAt <= latestRun.startedAt }) ?? true {
+            return BrowserAgentRunsView.scrollID(for: latestRun.id)
+        }
+        return TranscriptFollow.Anchor.bottom.scrollID
+    }
+
+    func cancelBottomScroll() {
+        pendingBottomScroll = false
+    }
+
+    func scheduleBottomScroll(proxy: ScrollViewProxy, session: BrowserAgentSession) {
+        pendingBottomScroll = true
+        guard !bottomBlockScheduled else { return }
+        bottomBlockScheduled = true
+        CFRunLoopPerformBlock(CFRunLoopGetMain(), CFRunLoopMode.commonModes.rawValue) { [weak self] in
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.bottomBlockScheduled = false
+                guard self.pendingBottomScroll else { return }
+                self.pendingBottomScroll = false
+                guard !self.state.isSettling, !self.state.isUserScrolling, !self.state.phase.isScrolledUp else { return }
+                let target = self.state.nearBottom
+                    ? TranscriptFollow.Anchor.bottom.scrollID
+                    : self.currentSettleTargetID(session: session)
+                var transaction = Transaction()
+                transaction.disablesAnimations = true
+                withTransaction(transaction) { proxy.scrollTo(target, anchor: .bottom) }
+            }
+        }
+        CFRunLoopWakeUp(CFRunLoopGetMain())
+    }
 
     func cancelSettle() {
+        pendingBottomScroll = false
         scrollTask?.cancel()
         scrollTask = nil
         #if DEBUG
         ChatScrollProbe.reset()
         #endif
+    }
+}
+
+private struct TranscriptSessionEvents: View {
+    struct StepStamp: Equatable {
+        let toolCalls: Int
+        let state: BrowserAgentRunState
+    }
+    let session: BrowserAgentSession
+    let follow: TranscriptFollowPlumbing
+    @Binding var expandedToolRowIDs: Set<UUID>
+    let onEvent: (TranscriptFollow.Event) -> Void
+    let onAnnounce: (BrowserAgentRunState) -> Void
+
+    var body: some View {
+        let runs = session.runs
+        let runsCount = runs.count
+        let voiceCount = session.messages.contains(where: \.role.isVoice)
+            ? session.messages.reduce(0) { $0 + ($1.role.isVoice ? 1 : 0) }
+            : 0
+        let step = StepStamp(toolCalls: runs.last?.toolCalls.count ?? 0, state: session.runState)
+        Color.clear.frame(width: 0, height: 0).allowsHitTesting(false).accessibilityHidden(true)
+            .onChange(of: runsCount) { oldCount, newCount in
+                if newCount > oldCount { onEvent(.runAdded) }
+            }
+            .onChange(of: voiceCount) { oldCount, newCount in
+                if newCount > oldCount { onEvent(.voiceTurnAdded) }
+            }
+            .onChange(of: step) { oldStep, newStep in
+                #if DEBUG
+                if newStep.toolCalls != oldStep.toolCalls,
+                   AssistantDebug.has("-dc-browser-agent-expand-first-tool"),
+                   expandedToolRowIDs.isEmpty,
+                   let first = session.runs.first?.toolCalls.first {
+                    expandedToolRowIDs.insert(first.id)
+                }
+                #endif
+                if oldStep.state.isRunning, !newStep.state.isRunning {
+                    follow.finishingLayoutTurn = true
+                    DispatchQueue.main.async { follow.finishingLayoutTurn = false }
+                }
+                onEvent(.runStepChanged)
+                if newStep.state != oldStep.state {
+                    onAnnounce(newStep.state)
+                }
+            }
     }
 }
 

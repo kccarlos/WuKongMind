@@ -79,6 +79,30 @@ The panel stops observing `ForumBrowserModel` and whole `AppModel` publishes dir
   - **Task 6 (lazy transcript):** `AgentRunSectionView.equatable()` already cuts "one more run" on `runs-60` from **2,144 ms to 177 ms** (and `all-6000` open from **666 ms to 298 ms**, new run from **589 ms to 156 ms**), but opening `runs-60` still costs **626 ms** (target: ≤ 300 ms). Task 6's gate holds for opening long multi-run conversations.
   - **Task 7 (cheaper cited text):** `summary-30` scroll step median is **58.4 ms** with **40 of 40** steps over 16.7 ms (from 57 ms, 40 of 40). Task 7's gate holds unchanged.
 
+### After task 6 (WUKO-152, 2026-11-18)
+
+Gate re-checked on clean `main` (`1afdead`) on the iPhone 13: `runs-60` open was **599.2 ms** (target: ≤ 300 ms) and `new_run_ms` (`restoreConversation`) was **153.4 ms** (target: ≤ 150 ms). Before changing app code, `DrawerPerformanceTests` added `send_run_ms`, appending one run through `BrowserAgentSession.send` with a 4-turn `RecordedModelClient` (three `wait_for` tool turns plus the reply). That confirmed the ~2.1 s cost on the real path: **2,344.5 ms** on `runs-60` (scaling linearly from **310.9 ms** at 5 runs and **777.5 ms** at 20 runs), because `restoreConversation` mutated `runs` once while `send` fired 14 `@Observable` step/text/state updates across 61 eager `ForEach` items and 25+ unconditional `settleScroll` passes to `"chatBottom"`.
+
+Earlier timeline items now sit in an `Equatable` `EarlierConversationItemsView` backed by `LazyVStack` with stable `"agentItem-<uuid>"` IDs and a cached `earlierRuns` slice; the newest run (and any trailing voice bubbles) stays eager below it so streaming height is exact. `TranscriptSessionEvents` observes run/voice/step changes outside `ChatThread.Model`, `AgentStatusLine` reads `runs.last?.toolCalls` instead of `runs.flatMap(\.toolCalls)`, and `ChatThread`'s settle loop targets the newest run's stable ID and exits once `nearBottom` and `contentHeight` settle.
+
+**iPhone 13, Debug, hosted harness (`DrawerPerformanceTests`):**
+
+| Fixture / Metric | Original | Before (`1afdead`) | After |
+|---|---|---|---|
+| `runs-5` open (`open_run_sections` / `open_block_bodies`) | 141 ms (5 / —) | 122.5 ms (5 / 29) | **99.8 ms** (3 / 19) |
+| `runs-20` open (`open_run_sections` / `open_block_bodies`) | 305 ms (20 / —) | 252.6 ms (20 / 104) | **95.4 ms** (3 / 19) |
+| `runs-60` open (`open_run_sections` / `open_block_bodies`) | **658 ms** (60 / —) | **599.2 ms** (60 / 304) | **83.7 ms** (3 / 19) |
+| `all-2000` open (`open_run_sections` / `open_block_bodies`) | — | 303.2 ms (20 / 104) | **108.7 ms** (3 / 19) |
+| `all-6000` open (`open_run_sections` / `open_block_bodies`) | **666 ms** (20 / —) | 276.6 ms (20 / 104) | **105.8 ms** (3 / 19) |
+| `runs-5` / `runs-20` / `runs-60` one more run (`new_run_ms`) | 134 / 687 / **2,144 ms** | 119.0 / 121.6 / **153.4 ms** | **65.3 / 57.1 / 58.2 ms** |
+| `all-2000` / `all-6000` one more run (`new_run_ms`) | — / 589 ms | 150.6 / 154.3 ms | **95.5 / 98.3 ms** |
+| `runs-5` / `runs-20` / `runs-60` 4-turn `send` (`send_run_ms`) | — | 310.9 / 777.5 / **2,344.5 ms** | **218.2 / 376.5 / 472.8 ms** |
+| `all-2000` / `all-6000` 4-turn `send` (`send_run_ms`) | — | 551.3 / 581.3 ms | **351.4 / 399.2 ms** |
+| `runs-5` / `runs-20` / `runs-60` keystroke median | 49 / 59 / 60 ms | 18.6 / 21.2 / 25.3 ms | **17.7 / 18.4 / 19.1 ms** |
+
+- All three targets pass with margin on the iPhone 13: `runs-60` open **83.7 ms** (≤ 300 ms), `runs-60` one more run **58.2 ms** (≤ 150 ms; real 4-turn `send` including `ToolRegistry`, `AuditLog` and `TaskRecordStore` after scrolling 40 steps through the transcript drops **5.0×** from **2,344.5 ms** to **472.8 ms**), and `all-6000` open **105.8 ms** (≤ 300 ms). Keystroke median no longer grows from 5 to 60 runs (**17.7 to 19.1 ms**).
+- Whole-app 1-run control (`LongThreadDrawerPerfUITests`, iPhone 13): `fixture-20` **276.4 → 276.3 ms/key** (reopen 3.59 → 3.56 s), `fixture-6000` **286.0 → 291.0 ms/key** (reopen 4.10 → 4.23 s), `real-page` (6,185 comments) **422.2 → 431.7 ms/key** (reopen 2.99 → 2.88 s), with `0` `ChatThread.body` and `0` `BrowserAgentRunsView.runSection` evaluations during typing and scrolling.
+
 - How to run each: [DEVELOPMENT.md, "Performance measurements"](../DEVELOPMENT.md#performance-measurements).
 
 ### The real thread, on the iPhone 13
@@ -324,10 +348,12 @@ Nine tasks and one acceptance task. Sizes count changed lines, tests included.
 - **Result (WUKO-150):** `TranscriptFollow.transition` (`TranscriptFollow.swift`) maps `Phase` (`following`, `pinning(scrolledUp:)`, `settling(atBottom:)`, `pausedNearBottom`, `detached(scrolledUp:)`) and scroll/transcript events (`dragBegan`, `dragEnded`, `geometryChanged`, `contentGrew`, `runStepChanged`, `runAdded`, `voiceTurnAdded`, `jumpTapped`, `topicChanged`, `followUp`, `settleFinished`, `bottomAnchorChanged`, `disappeared`) to the next state and one `Effect` (`none`, `scrollNow`, `settleToBottom`); `ChatThread` (`SummaryPanel.swift`) keeps only the `ScrollViewReader` and `Task` plumbing, with `ScrollMetricsBox`, `ScrollState` and inline scroll-flag rules removed. `TranscriptFollowTests` covers every `ChatThread` callback and `onChange`, including "scrolled up while a run streams stays put", "a new run jumps to the bottom", 1.3.1 B momentum jump-to-bottom and iOS 17 anchor fallback. No performance numbers: state task with behaviour unchanged.
 
 ### 6. Performance 4: a lazy transcript
+- **Status:** done in WUKO-152; numbers in "After task 6". `DrawerRenderCountTests` guards O(1) run-section evaluation on open, top-anchor stability across sheet viewport settlement, and `send` settle-to-bottom; `DrawerUITests.testJumpToBottomDuringDeceleration` guards accessibility order across the lazy-to-eager seam.
 - **Why:** cause 4: 658 ms to open 60 runs, 2.1 s for one more run (a stand-in measurement). Gated: see "Gates".
 - **Scope:** first measure a run appended by `send` (a recorded model client) so the 2.1 s is confirmed on the real path. Then `AgentPanel.swift`, `SummaryPanel.swift`: runs in a `LazyVStack` with stable ids; the settle loop scrolls to the last run's id instead of re-laying out the stack; the newest run stays eager so its height is exact while it streams.
 - **Size:** about 300. **Depends on:** 5.
 - **Done when:** on the iPhone 13, `runs-60` opens in at most 300 ms (from 658) and takes one more run in at most 150 ms (from 2,144); `all-6000` opens in at most 300 ms (from 666); scroll-to-bottom, the jump button and VoiceOver order behave as before (task 5's table and `DrawerUITests`).
+- **Result (WUKO-152):** `TimelineCache.split` (`AgentPanel.swift`) splits earlier conversation items (`LazyVStack` in `EarlierConversationItemsView`, O(1) equality while the newest run streams) from the newest run and any trailing voice turns (eager in the outer `VStack`, with stable `"agentItem-<uuid>"` scroll IDs and explicit `.accessibilityElement(children: .contain)` / `.accessibilitySortPriority` groups so VoiceOver order stays top-to-bottom across the seam). `ChatThread` (`SummaryPanel.swift`) moves run/voice/step observation into `TranscriptSessionEvents` and settles to `currentSettleTargetID` until `nearBottom` and `contentHeight` stabilize before snapping `"chatBottom"` once. On the iPhone 13, `runs-60` open drops from 599.2 to **83.7 ms** (658 ms original), `all-6000` open from 276.6 to **105.8 ms** (666 ms original), `runs-60` `new_run_ms` from 153.4 to **58.2 ms** (2,144 ms original), and a 4-turn `send_run_ms` from **2,344.5 to 472.8 ms**.
 
 ### 7. Performance 5: cheaper cited text
 - **Why:** cause 5 (likely, not isolated). Gated: see "Gates".
@@ -363,7 +389,7 @@ Nine tasks and one acceptance task. Sizes count changed lines, tests included.
 - **A real model summary.** The real page's summary text came from the fixture model (a realistic shape, 2,753 characters). No model was called.
 - **Why the real page publishes 11 times per keystroke.** Explained and fixed in task 3 (WUKO-143): 10.0 publishes/key came from `<head>` `MutationObserver` firing on ad/analytics mutations and `updateNavigationState()` assigning 5 unchanged `@Published` properties per message (`60 × 5 = 300`), and 2.0 publishes/key (`isSystemKeyboardVisible = 60`) came from XCUITest snapshotting the non-modal covered `WKWebView` while the drawer was at `.large`.
 - **The SwiftUI instrument.** The trace is Time Profiler and Hangs; body counts come from `PerfProbe` instead.
-- **"One more run".** Measured by replacing the conversation with one that has one more run, not by a run the Agent appends; task 6 measures the real path first.
+- **"One more run".** Originally measured by replacing the conversation with one that has one more run (`new_run_ms`); task 6 (WUKO-152) added `send_run_ms` (`RecordedModelClient` through `BrowserAgentSession.send`), confirming 2,344.5 ms before and 472.8 ms after on `runs-60` alongside `new_run_ms` (58.2 ms).
 - **Cited text as the scroll cost.** No citation-free control, and Animation Hitches was not recorded; task 7 starts with both.
 - **iPad.** All numbers are the phone drawer; the split panel uses the same `AssistantPanel`.
 - **Streaming while typing.** Not measured separately; it publishes through `StreamStore`, which the panel observes, so cause 3 covers it.

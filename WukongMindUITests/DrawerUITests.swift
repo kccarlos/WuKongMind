@@ -228,11 +228,15 @@ final class DrawerUITests: DCUITestCase {
         let status = any(app, "agentStatusLine")
         let input = app.textFields["agentPromptInput"].firstMatch
         let send = app.buttons["agentSendButton"].firstMatch
+        let focusedInput = app.textFields.matching(NSPredicate(format: "identifier == 'agentPromptInput' AND hasKeyboardFocus == 1")).firstMatch
         // Fill the conversation until it scrolls.
         for _ in 0..<5 {
             XCTAssertTrue(wait(timeout: 40) { status.exists && status.label.contains("Done ·") })
             XCTAssertTrue(input.waitForExistence(timeout: 10))
-            input.tap()
+            for _ in 0..<3 where !focusedInput.exists {
+                input.tap()
+                _ = focusedInput.waitForExistence(timeout: 1)
+            }
             input.typeText("Another step please")
             XCTAssertTrue(send.waitForExistence(timeout: 5))
             send.tap()
@@ -250,6 +254,11 @@ final class DrawerUITests: DCUITestCase {
         // The tap lands while the momentum of the last drag may still run.
         jump.tap()
         XCTAssertTrue(wait(timeout: 5) { !jump.exists }, "Tapping while momentum continues must reach the bottom")
+        // VoiceOver / accessibility order across the LazyVStack -> eager newest-run seam stays top-to-bottom.
+        let orderedYs = app.staticTexts.matching(identifier: "agentUserMessage")
+            .allElementsBoundByIndex.filter { $0.frame.height > 0 }.map(\.frame.minY)
+        XCTAssertGreaterThanOrEqual(orderedYs.count, 2)
+        XCTAssertTrue(zip(orderedYs, orderedYs.dropFirst()).allSatisfy { $0 < $1 }, "Out-of-order prompt Ys: \(orderedYs)")
     }
 
     /// A Settings page request (Start a Voice Chat without voice set up).
