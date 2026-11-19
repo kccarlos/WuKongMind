@@ -25,7 +25,7 @@ WukongMind (Chinese name 悟空, "Wukong") is an iOS/iPadOS app with its own bro
 - Open-source repository; the README explains how to build it and the risks.
 
 **Not doing**
-- No App Store compliance, and no limits on any capability for its sake.
+- No App Store compliance, and no limits on any capability for its sake. (2026-11-19: if the app goes to the store, section 12 says how; whether it goes is still open.)
 - No Safari extension.
 - No onboarding, tutorials or misuse protection for general users; the UI can be plain.
 - No hosted backend, accounts or payments.
@@ -282,3 +282,15 @@ These need the owner's decision; until then, follow the default in brackets.
 - Whether the bundle ID and iCloud container are separate from Forumind's. (Default: separate, so both apps can be installed at once with separate data.)
 - The default model for agent mode. (Default: none preset; the user picks on first use.)
 - Whether the Discourse-specific features stay long term. (Default: they stay.)
+
+## 12. App Store decisions (2026-11-19)
+
+The owner's decisions on how WukongMind would go to the App Store. Whether it goes at all is still open ([app-store-review.md](app-store-review.md), task 0); until then section 2 stands. Nothing here is built yet: the tasks are in app-store-review.md, section 5, and [app-store-code-audit.md](app-store-code-audit.md), section 6.
+
+- **How it is argued:** a general web browser with an AI agent (guideline 1.2), with a lightweight Terms acceptance before first use and "Report this answer" on AI output. Forumind's per-site block list, word filter and remote moderation list are not restored.
+- **One build only.** No `DC_APP_STORE` compile flag and no store variant. The TestFlight build is the store build; App Review, testers and users run the same code with the same defaults.
+- **Restrictions are visible Settings switches with the safe side as the default,** and the user may turn each the other way:
+  - "Confirm before writes" is on by default (today off, section 8).
+  - The Agent saves a script only after the user approves it, unless the user turns on a setting.
+  - Cookie values are not given to the model unless the user turns on a setting.
+- **What follows from one build:** nothing may depend on the build configuration (beyond `#if DEBUG` test hooks, which a Release build must not contain), the install source, the date, the region or who is looking. The code audit (WUKO-168) found one default that depends on the install source and lists it for removal.
