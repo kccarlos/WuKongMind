@@ -337,6 +337,91 @@ final class CoreTests: XCTestCase {
         add(attachment)
     }
 
+    func testCitedTextGroupsRunsBetweenChipsAndCachesTokenization() {
+        CitedTextCache.removeAll()
+        MarkdownLayoutProbe.reset()
+
+        // English: styled runs between chips collapse into one wrapping text token,
+        // and trailing punctuation glues onto its chip.
+        let english = "Several people report **only** one jump with `layout pass` [#3](wukongmind-post:3), and a fix [#7](wukongmind-post:7) ."
+        let englishTokens = CitedText.tokens(english)
+        XCTAssertEqual(englishTokens.count, 4, "Expected [text, #3,, text, #7.]")
+        if case .text(let first, let spaceAfter) = englishTokens[0] {
+            XCTAssertEqual(String(first.characters), "Several people report only one jump with layout pass")
+            XCTAssertTrue(spaceAfter)
+        } else {
+            XCTFail("Expected leading text token")
+        }
+        if case .citation(let number, let suffix, let spaceAfter) = englishTokens[1] {
+            XCTAssertEqual(number, 3)
+            XCTAssertEqual(suffix.map { String($0.characters) }, ",")
+            XCTAssertTrue(spaceAfter)
+        } else {
+            XCTFail("Expected #3 citation token")
+        }
+        if case .text(let middle, let spaceAfter) = englishTokens[2] {
+            XCTAssertEqual(String(middle.characters), "and a fix")
+            XCTAssertTrue(spaceAfter)
+        } else {
+            XCTFail("Expected middle text token")
+        }
+        if case .citation(let number, let suffix, let spaceAfter) = englishTokens[3] {
+            XCTAssertEqual(number, 7)
+            XCTAssertEqual(suffix.map { String($0.characters) }, ".")
+            XCTAssertFalse(spaceAfter)
+        } else {
+            XCTFail("Expected #7 citation token")
+        }
+        XCTAssertEqual(
+            CitedText.plainText(english),
+            "Several people report only one jump with layout pass , and a fix ."
+        )
+
+        // Chinese: wide characters do not split tokens; compound trailing punctuation stays glued.
+        let chinese = "多数读者在规定时间内拿到了开户奖励 [#2](wukongmind-post:2)，少数人需要第二次存款（见 [#3](wukongmind-post:3)）。活动页面仍显示旧条款。"
+        let chineseTokens = CitedText.tokens(chinese)
+        XCTAssertEqual(chineseTokens.count, 5, "Expected [text, #2，, text, #3）。, text]")
+        if case .text(let first, let spaceAfter) = chineseTokens[0] {
+            XCTAssertEqual(String(first.characters), "多数读者在规定时间内拿到了开户奖励")
+            XCTAssertTrue(spaceAfter)
+        } else {
+            XCTFail("Expected Chinese leading text token")
+        }
+        if case .citation(let number, let suffix, let spaceAfter) = chineseTokens[1] {
+            XCTAssertEqual(number, 2)
+            XCTAssertEqual(suffix.map { String($0.characters) }, "，")
+            XCTAssertFalse(spaceAfter)
+        } else {
+            XCTFail("Expected Chinese #2 citation token")
+        }
+        if case .text(let middle, let spaceAfter) = chineseTokens[2] {
+            XCTAssertEqual(String(middle.characters), "少数人需要第二次存款（见")
+            XCTAssertTrue(spaceAfter)
+        } else {
+            XCTFail("Expected Chinese middle text token")
+        }
+        if case .citation(let number, let suffix, let spaceAfter) = chineseTokens[3] {
+            XCTAssertEqual(number, 3)
+            XCTAssertEqual(suffix.map { String($0.characters) }, "）。")
+            XCTAssertFalse(spaceAfter)
+        } else {
+            XCTFail("Expected Chinese #3 citation token")
+        }
+        if case .text(let tail, let spaceAfter) = chineseTokens[4] {
+            XCTAssertEqual(String(tail.characters), "活动页面仍显示旧条款。")
+            XCTAssertFalse(spaceAfter)
+        } else {
+            XCTFail("Expected Chinese trailing text token")
+        }
+
+        // Tokenization cache: repeated lookups do not re-tokenize.
+        XCTAssertEqual(MarkdownLayoutProbe.citedTokenizations, 2)
+        _ = CitedText.tokens(english)
+        _ = CitedText.tokens(chinese)
+        _ = CitedText.plainText(chinese)
+        XCTAssertEqual(MarkdownLayoutProbe.citedTokenizations, 2)
+    }
+
     func testMarkdownParserRecognizesStructuredBlocks() {
         let document = MarkdownDocument(
             source: """

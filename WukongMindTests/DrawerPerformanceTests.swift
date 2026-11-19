@@ -30,6 +30,8 @@ final class DrawerPerformanceTests: XCTestCase {
         var sourcePosts = 0
         /// `##` sections in the saved summary (each has a paragraph and four cited bullets).
         var summarySections = 6
+        /// Use a Chinese summary with `#N` citations (measures CJK cited-text layout and scrolling).
+        var summaryChinese = false
         /// Finished Agent runs in the conversation (each: three tool rows and a Markdown reply).
         var runs = 0
         /// Posts in the thread shape the first tool row of every run carries; 0 for none.
@@ -66,6 +68,23 @@ final class DrawerPerformanceTests: XCTestCase {
             - The composer loses focus after the first keystroke, **only** on phones [#\(base + 3)](wukongmind-post:\(base + 3)).
             - A workaround is to pin the sidebar before rotating; it costs one tap [#\(base + 4)](wukongmind-post:\(base + 4)).
             - The maintainers asked for logs with `layout pass` lines [#\(base + 5)](wukongmind-post:\(base + 5)).
+            """
+        }.joined(separator: "\n\n")
+    }
+
+    static func chineseSummary(sections: Int, posts: Int) -> String {
+        (1...max(sections, 1)).map { section -> String in
+            let base = max(1, (section * max(posts, 40)) / (sections + 1))
+            return """
+            ## 主题 \(section)：旋转后界面跳动
+
+            多位读者反馈在侧边栏收起时旋转屏幕会出现同样的跳动 [#\(base)](wukongmind-post:\(base))，\
+            第一次修复只对最新版本有效 [#\(base + 1)](wukongmind-post:\(base + 1))。银行代表说条款在春季改过，但活动页面仍显示旧条款。
+
+            - 头像行换行时，顶部标题会偏移几个点 [#\(base + 2)](wukongmind-post:\(base + 2))。
+            - 输入框在敲下第一个字后会失去焦点，**仅限**手机端 [#\(base + 3)](wukongmind-post:\(base + 3))。
+            - 临时办法是在旋转前固定侧边栏，只需多点一下 [#\(base + 4)](wukongmind-post:\(base + 4))。
+            - 维护者希望能提供包含 `layout pass` 记录的日志 [#\(base + 5)](wukongmind-post:\(base + 5))。
             """
         }.joined(separator: "\n\n")
     }
@@ -152,7 +171,9 @@ final class DrawerPerformanceTests: XCTestCase {
         )
         var session = TopicSession(siteURL: topic.siteURL, topicID: topic.topicID, url: topic.url, title: topic.title)
         if fixture.sourcePosts > 0 { session.seedSource(Self.source(posts: fixture.sourcePosts)) }
-        session.summary = Self.summary(sections: fixture.summarySections, posts: fixture.sourcePosts)
+        session.summary = fixture.summaryChinese
+            ? Self.chineseSummary(sections: fixture.summarySections, posts: fixture.sourcePosts)
+            : Self.summary(sections: fixture.summarySections, posts: fixture.sourcePosts)
         session.totalPosts = max(fixture.sourcePosts, 40)
         session.summaryPostCount = session.totalPosts
         session.model = "claude-haiku-5-5"
@@ -410,6 +431,7 @@ final class DrawerPerformanceTests: XCTestCase {
             Fixture(name: "source-6000", sourcePosts: 6_000),
             Fixture(name: "summary-15", summarySections: 15),
             Fixture(name: "summary-30", summarySections: 30),
+            Fixture(name: "summary-30-zh", summarySections: 30, summaryChinese: true),
             Fixture(name: "summary-60", summarySections: 60),
             Fixture(name: "runs-5", runs: 5),
             Fixture(name: "runs-20", runs: 20),
@@ -545,5 +567,56 @@ final class DrawerPerformanceTests: XCTestCase {
             XCTAssertEqual(runs, 5)
         }
         attachLines(named: "state-load.tsv")
+    }
+
+    /// Captures PNG snapshots of a cited paragraph and cited bullets in English and Chinese
+    /// for before/after visual verification (docs/wukongmind/design-performance-2.md task 4).
+    func testCaptureCitedParagraphSnapshots() {
+        let samples: [(name: String, markdown: String)] = [
+            ("cited-paragraph-en", Self.summary(sections: 1, posts: 40)),
+            ("cited-paragraph-zh", Self.chineseSummary(sections: 1, posts: 40))
+        ]
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let width: CGFloat = 390
+        for sample in samples {
+            let rows = DrawerSummarySections.parsed(for: .init(text: sample.markdown, maximumPost: 40)).rows
+            let content = VStack(alignment: .leading, spacing: 8) {
+                DrawerSummarySections(rows: rows, layout: .singleColumn)
+            }
+            .padding(16)
+            .frame(width: width, alignment: .leading)
+            .background(Color.white)
+            .environment(\.colorScheme, .light)
+            .environment(\.dynamicTypeSize, .large)
+
+            let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: width, height: 600))
+            let host = UIHostingController(rootView: content)
+            window.rootViewController = host
+            window.frame = CGRect(x: 0, y: 0, width: width, height: 600)
+            window.makeKeyAndVisible()
+            host.view.frame = window.bounds
+            window.layoutIfNeeded()
+            let fitted = host.sizeThatFits(in: CGSize(width: width, height: 2_000))
+            let height = max(120, ceil(fitted.height))
+            window.frame = CGRect(x: 0, y: 0, width: width, height: height)
+            host.view.frame = window.bounds
+            window.layoutIfNeeded()
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+            window.layoutIfNeeded()
+
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = 3
+            format.opaque = true
+            let image = UIGraphicsImageRenderer(bounds: host.view.bounds, format: format).image { ctx in
+                host.view.layer.render(in: ctx.cgContext)
+            }
+            let attachment = XCTAttachment(image: image)
+            attachment.name = sample.name
+            attachment.lifetime = .keepAlways
+            add(attachment)
+
+            window.isHidden = true
+            window.rootViewController = nil
+        }
     }
 }
