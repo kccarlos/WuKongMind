@@ -115,14 +115,33 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
             RunLoop.current.run(until: Date().addingTimeInterval(10))
         }
         let keys = 30
+        let useKeyTaps = ProcessInfo.processInfo.environment["DC_PERF_KEY_TAPS"] == "1"
+        if useKeyTaps {
+            XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5), "Software keyboard did not appear")
+        }
         before = probe(app)
         let typingStarted = Date()
         for index in 0..<keys {
-            input.typeText(String(UnicodeScalar(UInt8(97 + index % 26))))
+            let letter = String(UnicodeScalar(UInt8(97 + index % 26)))
+            if useKeyTaps {
+                let primary = index == 0 ? letter.uppercased() : letter
+                let fallback = index == 0 ? letter : letter.uppercased()
+                let key = app.keyboards.keys[primary]
+                if key.exists {
+                    key.tap()
+                } else {
+                    let alt = app.keyboards.keys[fallback]
+                    XCTAssertTrue(alt.exists, "Software keyboard key '\(primary)'/'\(fallback)' not found")
+                    alt.tap()
+                }
+            } else {
+                input.typeText(letter)
+            }
         }
         let typingSeconds = Date().timeIntervalSince(typingStarted)
         RunLoop.current.run(until: Date().addingTimeInterval(1))
         after = probe(app)
+        note("typing_mode=\(useKeyTaps ? "key-taps" : "typeText")")
         note("typing_wall_seconds=\(String(format: "%.1f", typingSeconds))")
         note(delta(before, after, per: keys, named: "typing"))
 

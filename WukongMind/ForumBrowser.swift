@@ -241,6 +241,11 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     @Published private(set) var isPageFormInputFocused = false { didSet { PerfProbe.hit("publish.browser.isPageFormInputFocused") } }
     /// Whether UIKit's software keyboard or input-assistant bar currently overlaps the screen.
     @Published private(set) var isSystemKeyboardVisible = false { didSet { PerfProbe.hit("publish.browser.isSystemKeyboardVisible") } }
+    /// True while the AI drawer's composer owns first responder; transient keyboard hide→show
+    /// churn is gated until the composer resigns first responder so `ForumBrowserModel` does
+    /// not publish mid-keystroke.
+    private(set) var isDrawerComposerFocused = false
+    private var hasPendingSystemKeyboardHide = false
     /// Additional page-keyboard freeze signal reported by the UIKit/SwiftUI keyboard observers.
     private var isExternalKeyboardFrozen = false
     /// Dedicated publisher of the small slice of page facts the AI drawer reads.
@@ -378,9 +383,33 @@ final class ForumBrowserModel: NSObject, ObservableObject {
         syncPageKeyboardFreeze()
     }
 
-    func setSystemKeyboardVisible(_ visible: Bool) {
-        if isSystemKeyboardVisible != visible {
-            isSystemKeyboardVisible = visible
+    func setDrawerComposerFocused(_ focused: Bool) {
+        isDrawerComposerFocused = focused
+        if !focused, hasPendingSystemKeyboardHide {
+            hasPendingSystemKeyboardHide = false
+            if isSystemKeyboardVisible {
+                isSystemKeyboardVisible = false
+            }
+        }
+    }
+
+    func setSystemKeyboardVisible(_ visible: Bool, force: Bool = false) {
+        if visible {
+            hasPendingSystemKeyboardHide = false
+            if !isSystemKeyboardVisible {
+                isSystemKeyboardVisible = true
+            }
+            return
+        }
+        guard isSystemKeyboardVisible else {
+            hasPendingSystemKeyboardHide = false
+            return
+        }
+        if isDrawerComposerFocused, !force {
+            hasPendingSystemKeyboardHide = true
+        } else {
+            hasPendingSystemKeyboardHide = false
+            isSystemKeyboardVisible = false
         }
     }
 

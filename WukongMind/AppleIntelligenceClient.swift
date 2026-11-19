@@ -1,4 +1,5 @@
 import Foundation
+import os
 #if canImport(FoundationModels)
 import FoundationModels
 #endif
@@ -18,6 +19,8 @@ import FoundationModels
 final class AppleIntelligenceClient: AppleIntelligenceServing {
     static let shared = AppleIntelligenceClient()
 
+    private let cachedStatus = OSAllocatedUnfairLock<AppleIntelligenceStatus?>(initialState: nil)
+
     /// True in builds compiled with `-D PCC_ENABLED`.
     static var isPrivateCloudComputeCompiled: Bool {
         #if PCC_ENABLED
@@ -28,6 +31,7 @@ final class AppleIntelligenceClient: AppleIntelligenceServing {
     }
 
     func probe() -> AppleIntelligenceProbe {
+        PerfProbe.hit("AppleIntelligenceClient.probe")
         #if canImport(FoundationModels)
         if #available(iOS 26.0, *) {
             return FoundationModelsBridge.probe()
@@ -40,7 +44,20 @@ final class AppleIntelligenceClient: AppleIntelligenceServing {
         #if DEBUG
         if let forced = Self.debugStatus { return forced }
         #endif
-        return AppleIntelligenceAvailability.resolve(probe())
+        if let cached = cachedStatus.withLock({ $0 }) {
+            return cached
+        }
+        return refreshStatus()
+    }
+
+    @discardableResult
+    func refreshStatus() -> AppleIntelligenceStatus {
+        #if DEBUG
+        if let forced = Self.debugStatus { return forced }
+        #endif
+        let resolved = AppleIntelligenceAvailability.resolve(probe())
+        cachedStatus.withLock { $0 = resolved }
+        return resolved
     }
 
     #if DEBUG

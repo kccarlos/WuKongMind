@@ -1,11 +1,10 @@
 import SwiftUI
 import UIKit
 
-/// Live availability of the Apple Intelligence provider, with the
+/// Availability of the Apple Intelligence provider, with the
 /// "No API key needed · Private" note (provider setup and Settings).
-/// `SystemLanguageModel` is Observable, so reading the status in `body`
-/// refreshes this view when availability changes (e.g. the model finishes
-/// downloading).
+/// Reads the cached status on `AppModel` in `body` and refreshes off the render
+/// path on appearance (and on app activation / settings changes).
 struct AppleIntelligenceStatusView: View {
     @ObservedObject var app: AppModel
     /// Card chrome for onboarding; plain for a Form row.
@@ -40,6 +39,7 @@ struct AppleIntelligenceStatusView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .modifier(OptionalCard(enabled: carded))
         .accessibilityElement(children: .combine)
+        .onAppear { app.refreshAppleIntelligenceStatus() }
     }
 }
 
