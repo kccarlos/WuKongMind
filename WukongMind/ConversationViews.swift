@@ -275,6 +275,7 @@ struct DCStepsFold<Content: View>: View {
 struct DCResultCard<Trailing: View, Content: View>: View {
     let label: String
     var systemImage = "doc.text"
+    var isLazy = false
     @ViewBuilder var trailing: () -> Trailing
     @ViewBuilder var content: () -> Content
 
@@ -292,9 +293,15 @@ struct DCResultCard<Trailing: View, Content: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(DCTheme.jadeWash)
 
-            VStack(alignment: .leading, spacing: 12) { content() }
-                .padding(14)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            Group {
+                if isLazy {
+                    LazyVStack(alignment: .leading, spacing: 12) { content() }
+                } else {
+                    VStack(alignment: .leading, spacing: 12) { content() }
+                }
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .background(DCTheme.surface)
         .clipShape(RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous))
@@ -307,8 +314,8 @@ struct DCResultCard<Trailing: View, Content: View>: View {
 }
 
 extension DCResultCard where Trailing == EmptyView {
-    init(label: String, systemImage: String = "doc.text", @ViewBuilder content: @escaping () -> Content) {
-        self.init(label: label, systemImage: systemImage, trailing: { EmptyView() }, content: content)
+    init(label: String, systemImage: String = "doc.text", isLazy: Bool = false, @ViewBuilder content: @escaping () -> Content) {
+        self.init(label: label, systemImage: systemImage, isLazy: isLazy, trailing: { EmptyView() }, content: content)
     }
 }
 
