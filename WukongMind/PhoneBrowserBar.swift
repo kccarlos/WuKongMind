@@ -1865,39 +1865,45 @@ struct PhoneAIButton: View {
         .contentShape(Circle())
     }
 
+    @ViewBuilder
+    private var buttonControl: some View {
+        Button {
+            guard isAvailable else { return }
+            onOpen()
+        } label: {
+            ringVisual
+        }
+        .buttonStyle(
+            PhoneAIButtonStyle(
+                isAvailable: isAvailable,
+                allowLongPress: !dynamicTypeSize.isAccessibilitySize,
+                reduceMotion: reduceMotion,
+                onTouchDown: {
+                    DCHaptics.tap()
+                    PerfProbe.mark("haptic.done")
+                },
+                onLongPress: {
+                    DCHaptics.tap()
+                    voice.toggle()
+                }
+            )
+        )
+        .accessibilityRemoveTraits(isAvailable ? [] : .isButton)
+    }
+
     var body: some View {
         Group {
             if dynamicTypeSize.isAccessibilitySize {
-                Button {
-                    guard isAvailable else { return }
-                    onOpen()
-                } label: {
-                    ringVisual
-                }
-                .buttonStyle(.plain)
-                .disabled(!isAvailable)
-                .accessibilityShowsLargeContentViewer {
-                    Label {
-                        Text("Agent", comment: "Browser bar button that opens the Agent panel")
-                    } icon: {
-                        Image(systemName: voice.isActive ? "waveform" : "circle")
+                buttonControl
+                    .accessibilityShowsLargeContentViewer {
+                        Label {
+                            Text("Agent", comment: "Browser bar button that opens the Agent panel")
+                        } icon: {
+                            Image(systemName: voice.isActive ? "waveform" : "circle")
+                        }
                     }
-                }
             } else {
-                ringVisual
-                    .onTapGesture {
-                        guard isAvailable else { return }
-                        onOpen()
-                    }
-                    .onLongPressGesture(minimumDuration: 0.45) {
-                        guard isAvailable else { return }
-                        DCHaptics.tap()
-                        voice.toggle()
-                    }
-                    .accessibilityElement()
-                    .accessibilityAddTraits(.isButton)
-                    .accessibilityRemoveTraits(isAvailable ? [] : .isButton)
-                    .accessibilityAction { if isAvailable { onOpen() } }
+                buttonControl
             }
         }
         .onAppear { observedAgentID = ObjectIdentifier(browserAgent) }
@@ -1925,6 +1931,122 @@ struct PhoneAIButton: View {
             }
         }
         .accessibilityIdentifier("aiButton")
+    }
+}
+
+/// Dims and shrinks the AI button ring at touch-down, fires the tap haptic before
+/// lift, and keeps the 0.45 s long press for voice as a simultaneous gesture.
+private struct PhoneAIButtonStyle: PrimitiveButtonStyle {
+    let isAvailable: Bool
+    let allowLongPress: Bool
+    let reduceMotion: Bool
+    let onTouchDown: () -> Void
+    let onLongPress: () -> Void
+
+    @State private var isPressing = false
+    @State private var didTouchDown = false
+    @State private var didLongPress = false
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = isAvailable && isPressing
+        configuration.label
+            .opacity(pressed ? 0.65 : 1)
+            .scaleEffect(pressed && !reduceMotion ? 0.92 : 1)
+            .animation(reduceMotion ? nil : .easeOut(duration: 0.08), value: pressed)
+            .overlay {
+                TouchDownWatcher(
+                    onTouchDown: {
+                        guard isAvailable, !didTouchDown else { return }
+                        didTouchDown = true
+                        didLongPress = false
+                        isPressing = true
+                        onTouchDown()
+                    },
+                    onTouchUp: {
+                        isPressing = false
+                    }
+                )
+            }
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onEnded { value in
+                        defer {
+                            didTouchDown = false
+                            isPressing = false
+                        }
+                        guard isAvailable else { return }
+                        if didLongPress {
+                            didLongPress = false
+                            return
+                        }
+                        if abs(value.translation.width) < DCTheme.controlHeight,
+                           abs(value.translation.height) < DCTheme.controlHeight {
+                            configuration.trigger()
+                        }
+                    }
+            )
+            .simultaneousGesture(
+                LongPressGesture(minimumDuration: 0.45)
+                    .onEnded { _ in
+                        guard isAvailable, allowLongPress else { return }
+                        didLongPress = true
+                        isPressing = false
+                        onLongPress()
+                    }
+            )
+    }
+}
+
+/// Fires `onTouchDown` immediately on `touchesBegan` without delaying or
+/// cancelling SwiftUI's tap or long-press gestures.
+private struct TouchDownWatcher: UIViewRepresentable {
+    let onTouchDown: () -> Void
+    let onTouchUp: () -> Void
+
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.backgroundColor = .clear
+        let recognizer = TouchDownRecognizer()
+        recognizer.onTouchDown = onTouchDown
+        recognizer.onTouchUp = onTouchUp
+        view.addGestureRecognizer(recognizer)
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {
+        for case let recognizer as TouchDownRecognizer in uiView.gestureRecognizers ?? [] {
+            recognizer.onTouchDown = onTouchDown
+            recognizer.onTouchUp = onTouchUp
+        }
+    }
+
+    private final class TouchDownRecognizer: UIGestureRecognizer {
+        var onTouchDown: () -> Void = {}
+        var onTouchUp: () -> Void = {}
+
+        override init(target: Any? = nil, action: Selector? = nil) {
+            super.init(target: target, action: action)
+            cancelsTouchesInView = false
+            delaysTouchesBegan = false
+            delaysTouchesEnded = false
+        }
+
+        override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+            onTouchDown()
+        }
+
+        override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+            onTouchUp()
+            state = .failed
+        }
+
+        override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+            onTouchUp()
+            state = .failed
+        }
+
+        override func canPrevent(_ preventedGestureRecognizer: UIGestureRecognizer) -> Bool { false }
+        override func canBePrevented(by preventingGestureRecognizer: UIGestureRecognizer) -> Bool { false }
     }
 }
 
