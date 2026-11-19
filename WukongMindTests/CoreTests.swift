@@ -267,6 +267,28 @@ final class CoreTests: XCTestCase {
             }
             XCTAssertFalse(orphanInkBelow, "\(name): full stop must never drop onto its own line below the chip")
         }
+
+        // Multi-line wrapped runs: a chip that fits on the last line of a wrapped run must
+        // follow the last line inline (never drop to a new line alone and never overlap text).
+        for (name, sample) in [
+            ("multiline-en", "The header moves by a few points when the avatar row wraps [#22](wukongmind-post:22)."),
+            ("multiline-zh", "输入框在敲下第一个字后会失去焦点，**仅限**手机端 [#23](wukongmind-post:23)。")
+        ] {
+            let image = render(
+                MarkdownBlockView(row: MarkdownRow(content: .paragraph(sample), topSpacing: 0), citations: true),
+                dynamicTypeSize: .large,
+                width: 340,
+                height: 160
+            )
+            let pills = try measurePills(in: image)
+            let pill = try XCTUnwrap(pills.first, "\(name): expected citation pill")
+            let gapBefore = try XCTUnwrap(
+                pill.gapBefore,
+                "\(name): chip after a multi-line run with room on the last line must stay inline, not drop onto its own line"
+            )
+            XCTAssertGreaterThanOrEqual(gapBefore, 1.0, "\(name): chip must not overlap preceding text (got \(gapBefore) pt)")
+            XCTAssertLessThanOrEqual(gapBefore, 8.0, "\(name): chip gap after wrapped last line must stay tight (got \(gapBefore) pt)")
+        }
     }
 
     @MainActor

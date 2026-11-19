@@ -781,7 +781,10 @@ struct CitedText: View {
                 case .text(let text, let spaceAfter):
                     Text(text)
                         .layoutValue(key: TrailingSpace.self, value: spaceAfter ? wordSpacing : 0)
-                        .layoutValue(key: WrappableText.self, value: true)
+                        .layoutValue(
+                            key: WrappableTextKey.self,
+                            value: WrappableTextInfo(text: text, dynamicTypeSize: dynamicTypeSize)
+                        )
                         .accessibilityHidden(true)
                 case .citation(let number, let suffix, let spaceAfter):
                     HStack(spacing: suffixSpacing(for: suffix)) {
@@ -1004,9 +1007,15 @@ private struct TrailingSpace: LayoutValueKey {
     static let defaultValue: CGFloat = 0
 }
 
-/// Marks a text run that can wrap across lines when wider than the container.
-private struct WrappableText: LayoutValueKey {
-    static let defaultValue = false
+/// Metadata for a wrapping text run so `CitationFlowLayout` can measure its
+/// last line width and continue placing chips on that line.
+private struct WrappableTextInfo {
+    var text: AttributedString
+    var dynamicTypeSize: DynamicTypeSize
+}
+
+private struct WrappableTextKey: LayoutValueKey {
+    static let defaultValue: WrappableTextInfo? = nil
 }
 
 /// Lines of wrapping text runs and citation chips, each line centred vertically.
@@ -1016,23 +1025,117 @@ private struct CitationFlowLayout: Layout {
     struct Item {
         var naturalSize: CGSize
         var space: CGFloat
-        var isWrappable: Bool
+        var wrappable: WrappableTextInfo?
+    }
+
+    struct WrappedMetrics {
+        var size: CGSize
+        /// Width of the final line when CoreText and SwiftUI agree on line count;
+        /// `nil` falls back to closing the line so a chip can never overlap text.
+        var lastLineWidth: CGFloat?
     }
 
     struct Cache {
         var items: [Item]
         var cachedWidth: CGFloat = -1
-        var wrappedSizes: [Int: CGSize] = [:]
+        var wrapped: [Int: WrappedMetrics] = [:]
 
-        mutating func wrappedSize(for index: Int, width: CGFloat, subview: LayoutSubview) -> CGSize {
+        mutating func wrappedMetrics(
+            for index: Int,
+            width: CGFloat,
+            lineSpacing: CGFloat,
+            subview: LayoutSubview
+        ) -> WrappedMetrics {
             if cachedWidth != width {
                 cachedWidth = width
-                wrappedSizes.removeAll(keepingCapacity: true)
+                wrapped.removeAll(keepingCapacity: true)
             }
-            if let cached = wrappedSizes[index] { return cached }
+            if let cached = wrapped[index] { return cached }
             let size = subview.sizeThatFits(ProposedViewSize(width: width, height: nil))
-            wrappedSizes[index] = size
-            return size
+            let item = items[index]
+            let lastLineWidth = item.wrappable.flatMap { info in
+                Self.measureLastLineWidth(
+                    info: info,
+                    width: width,
+                    lineSpacing: lineSpacing,
+                    singleLineHeight: item.naturalSize.height,
+                    wrappedSize: size
+                )
+            }
+            let metrics = WrappedMetrics(size: size, lastLineWidth: lastLineWidth)
+            wrapped[index] = metrics
+            return metrics
+        }
+
+        private static func measureLastLineWidth(
+            info: WrappableTextInfo,
+            width: CGFloat,
+            lineSpacing: CGFloat,
+            singleLineHeight: CGFloat,
+            wrappedSize: CGSize
+        ) -> CGFloat? {
+            guard width > 0, singleLineHeight > 0 else { return nil }
+            let traits = UITraitCollection(preferredContentSizeCategory: UIContentSizeCategory(info.dynamicTypeSize))
+            let bodyFont = UIFont.preferredFont(forTextStyle: .body, compatibleWith: traits)
+            let codeFont = UIFont.monospacedSystemFont(
+                ofSize: UIFont.preferredFont(forTextStyle: .callout, compatibleWith: traits).pointSize,
+                weight: .regular
+            )
+            let paragraph = NSMutableParagraphStyle()
+            paragraph.lineSpacing = lineSpacing
+            paragraph.lineBreakMode = .byWordWrapping
+            paragraph.lineBreakStrategy = .standard
+
+            let attributed = NSMutableAttributedString()
+            for run in info.text.runs {
+                let text = String(info.text[run.range].characters)
+                var font = bodyFont
+                if let intent = run.inlinePresentationIntent {
+                    if intent.contains(.code) {
+                        font = codeFont
+                    } else {
+                        var symbolic: UIFontDescriptor.SymbolicTraits = []
+                        if intent.contains(.stronglyEmphasized) { symbolic.insert(.traitBold) }
+                        if intent.contains(.emphasized) { symbolic.insert(.traitItalic) }
+                        if !symbolic.isEmpty,
+                           let descriptor = bodyFont.fontDescriptor.withSymbolicTraits(symbolic) {
+                            font = UIFont(descriptor: descriptor, size: bodyFont.pointSize)
+                        }
+                    }
+                }
+                attributed.append(NSAttributedString(
+                    string: text,
+                    attributes: [.font: font, .paragraphStyle: paragraph]
+                ))
+            }
+
+            let contentStorage = NSTextContentStorage()
+            contentStorage.attributedString = attributed
+            let layoutManager = NSTextLayoutManager()
+            contentStorage.addTextLayoutManager(layoutManager)
+            let container = NSTextContainer(size: CGSize(width: width, height: 100_000))
+            container.lineFragmentPadding = 0
+            layoutManager.textContainer = container
+            layoutManager.ensureLayout(for: layoutManager.documentRange)
+
+            var lineCount = 0
+            var maxLineWidth: CGFloat = 0
+            var lastLineWidth: CGFloat = 0
+            layoutManager.enumerateTextLayoutFragments(from: nil, options: .ensuresLayout) { fragment in
+                for line in fragment.textLineFragments {
+                    lineCount += 1
+                    let used = line.typographicBounds.width
+                    maxLineWidth = max(maxLineWidth, used)
+                    lastLineWidth = used
+                }
+                return true
+            }
+
+            guard lineCount >= 2 else { return nil }
+            let expectedLines = max(1, Int(round((wrappedSize.height + lineSpacing) / (singleLineHeight + lineSpacing))))
+            guard lineCount == expectedLines, abs(maxLineWidth - wrappedSize.width) <= 3.0 else { return nil }
+
+            return min(width, max(0, ceil(lastLineWidth)))
         }
     }
 
@@ -1041,7 +1144,7 @@ private struct CitationFlowLayout: Layout {
             Item(
                 naturalSize: $0.sizeThatFits(.unspecified),
                 space: $0[TrailingSpace.self],
-                isWrappable: $0[WrappableText.self]
+                wrappable: $0[WrappableTextKey.self]
             )
         })
     }
@@ -1067,7 +1170,7 @@ private struct CitationFlowLayout: Layout {
         for line in arrange(width: bounds.width, subviews: subviews, cache: &cache) {
             for item in line.items {
                 subviews[item.index].place(
-                    at: CGPoint(x: bounds.minX + item.x, y: y + (line.height - item.size.height) / 2),
+                    at: CGPoint(x: bounds.minX + item.x, y: y + item.yOffset(in: line)),
                     proposal: ProposedViewSize(width: item.proposalWidth, height: item.size.height)
                 )
             }
@@ -1086,11 +1189,10 @@ private struct CitationFlowLayout: Layout {
         if cache.items.count != subviews.count { cache = makeCache(subviews: subviews) }
         let lines = arrange(width: bounds.width, subviews: subviews, cache: &cache)
         guard let firstLine = lines.first, let firstItem = firstLine.items.first else { return nil }
-        let topOffset = (firstLine.height - firstItem.size.height) / 2
         let baseline = first.dimensions(
             in: ProposedViewSize(width: firstItem.proposalWidth, height: firstItem.size.height)
         )[.firstTextBaseline]
-        return bounds.minY + topOffset + baseline
+        return bounds.minY + firstItem.yOffset(in: firstLine) + baseline
     }
 
     private struct PlacedItem {
@@ -1098,12 +1200,22 @@ private struct CitationFlowLayout: Layout {
         var x: CGFloat
         var size: CGSize
         var proposalWidth: CGFloat
+        /// Explicit vertical offset when placed inside a wrapped run's band;
+        /// `nil` centers the item vertically inside a single-line row.
+        var fixedYOffset: CGFloat?
+
+        func yOffset(in line: Line) -> CGFloat {
+            fixedYOffset ?? (line.height - size.height) / 2
+        }
     }
 
     private struct Line {
         var items: [PlacedItem] = []
         var width: CGFloat = 0
         var height: CGFloat = 0
+        /// Band of the last line when this row began with a multi-line wrapped `Text`.
+        var tailBandTop: CGFloat?
+        var tailBandHeight: CGFloat = 0
     }
 
     private func arrange(width: CGFloat, subviews: Subviews, cache: inout Cache) -> [Line] {
@@ -1113,18 +1225,32 @@ private struct CitationFlowLayout: Layout {
         let canWrap = width.isFinite && width > 0
         for index in cache.items.indices {
             let item = cache.items[index]
-            if item.isWrappable, canWrap, item.naturalSize.width > width {
+            if item.wrappable != nil, canWrap, item.naturalSize.width > width {
                 if !lines[lines.count - 1].items.isEmpty {
                     lines.append(Line())
                 }
-                let size = cache.wrappedSize(for: index, width: width, subview: subviews[index])
+                let metrics = cache.wrappedMetrics(
+                    for: index,
+                    width: width,
+                    lineSpacing: lineSpacing,
+                    subview: subviews[index]
+                )
+                let size = metrics.size
                 lines[lines.count - 1].items.append(
-                    PlacedItem(index: index, x: 0, size: size, proposalWidth: width)
+                    PlacedItem(index: index, x: 0, size: size, proposalWidth: width, fixedYOffset: 0)
                 )
                 lines[lines.count - 1].width = size.width
                 lines[lines.count - 1].height = max(lines[lines.count - 1].height, size.height)
-                x = width
-                lineClosed = true
+                if let lastLineWidth = metrics.lastLineWidth {
+                    let singleHeight = item.naturalSize.height
+                    lines[lines.count - 1].tailBandTop = max(0, size.height - singleHeight)
+                    lines[lines.count - 1].tailBandHeight = singleHeight
+                    x = lastLineWidth + item.space
+                    lineClosed = false
+                } else {
+                    x = width
+                    lineClosed = true
+                }
                 continue
             }
 
@@ -1134,11 +1260,22 @@ private struct CitationFlowLayout: Layout {
                 x = 0
                 lineClosed = false
             }
-            lines[lines.count - 1].items.append(
-                PlacedItem(index: index, x: x, size: size, proposalWidth: size.width)
-            )
-            lines[lines.count - 1].width = x + size.width
-            lines[lines.count - 1].height = max(lines[lines.count - 1].height, size.height)
+            let lastIdx = lines.count - 1
+            if let tailTop = lines[lastIdx].tailBandTop {
+                let tailHeight = lines[lastIdx].tailBandHeight
+                let yOffset = tailTop + (tailHeight - size.height) / 2
+                lines[lastIdx].items.append(
+                    PlacedItem(index: index, x: x, size: size, proposalWidth: size.width, fixedYOffset: yOffset)
+                )
+                lines[lastIdx].width = max(lines[lastIdx].width, x + size.width)
+                lines[lastIdx].height = max(lines[lastIdx].height, yOffset + size.height)
+            } else {
+                lines[lastIdx].items.append(
+                    PlacedItem(index: index, x: x, size: size, proposalWidth: size.width, fixedYOffset: nil)
+                )
+                lines[lastIdx].width = max(lines[lastIdx].width, x + size.width)
+                lines[lastIdx].height = max(lines[lastIdx].height, size.height)
+            }
             x += size.width + item.space
         }
         return lines
