@@ -242,10 +242,11 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     /// Whether UIKit's software keyboard or input-assistant bar currently overlaps the screen.
     @Published private(set) var isSystemKeyboardVisible = false { didSet { PerfProbe.hit("publish.browser.isSystemKeyboardVisible") } }
     /// True while the AI drawer's composer owns first responder; transient keyboard hide→show
-    /// churn is gated until the composer resigns first responder so `ForumBrowserModel` does
-    /// not publish mid-keystroke.
+    /// churn is coalesced with a bounded timeout so `ForumBrowserModel` does not publish
+    /// mid-keystroke while still settling if the keyboard stays hidden (e.g. hardware keyboard
+    /// attached or iPad shortcut bar).
     private(set) var isDrawerComposerFocused = false
-    private var hasPendingSystemKeyboardHide = false
+    private var pendingSystemKeyboardHideTask: Task<Void, Never>?
     /// Additional page-keyboard freeze signal reported by the UIKit/SwiftUI keyboard observers.
     private var isExternalKeyboardFrozen = false
     /// Dedicated publisher of the small slice of page facts the AI drawer reads.
@@ -385,30 +386,42 @@ final class ForumBrowserModel: NSObject, ObservableObject {
 
     func setDrawerComposerFocused(_ focused: Bool) {
         isDrawerComposerFocused = focused
-        if !focused, hasPendingSystemKeyboardHide {
-            hasPendingSystemKeyboardHide = false
+        if !focused, let pending = pendingSystemKeyboardHideTask {
+            pending.cancel()
+            pendingSystemKeyboardHideTask = nil
             if isSystemKeyboardVisible {
                 isSystemKeyboardVisible = false
             }
         }
     }
 
-    func setSystemKeyboardVisible(_ visible: Bool, force: Bool = false) {
+    func setSystemKeyboardVisible(_ visible: Bool, coalesceHideDuration: Duration = .seconds(2)) {
         if visible {
-            hasPendingSystemKeyboardHide = false
+            pendingSystemKeyboardHideTask?.cancel()
+            pendingSystemKeyboardHideTask = nil
             if !isSystemKeyboardVisible {
                 isSystemKeyboardVisible = true
             }
             return
         }
         guard isSystemKeyboardVisible else {
-            hasPendingSystemKeyboardHide = false
+            pendingSystemKeyboardHideTask?.cancel()
+            pendingSystemKeyboardHideTask = nil
             return
         }
-        if isDrawerComposerFocused, !force {
-            hasPendingSystemKeyboardHide = true
+        if isDrawerComposerFocused, coalesceHideDuration > .zero {
+            pendingSystemKeyboardHideTask?.cancel()
+            pendingSystemKeyboardHideTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: coalesceHideDuration)
+                guard let self, !Task.isCancelled else { return }
+                self.pendingSystemKeyboardHideTask = nil
+                if self.isSystemKeyboardVisible {
+                    self.isSystemKeyboardVisible = false
+                }
+            }
         } else {
-            hasPendingSystemKeyboardHide = false
+            pendingSystemKeyboardHideTask?.cancel()
+            pendingSystemKeyboardHideTask = nil
             isSystemKeyboardVisible = false
         }
     }

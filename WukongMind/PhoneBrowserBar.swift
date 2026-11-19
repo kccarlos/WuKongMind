@@ -233,7 +233,7 @@ private struct PhoneBarObserverHost: View {
                 syncMorphConfiguration()
             }
             .onDisappear {
-                browser.setSystemKeyboardVisible(false, force: true)
+                browser.setSystemKeyboardVisible(false, coalesceHideDuration: .zero)
                 browser.setExternalKeyboardFrozen(false)
             }
             .onChange(of: ObjectIdentifier(browser)) { _, _ in
@@ -241,7 +241,7 @@ private struct PhoneBarObserverHost: View {
             }
             .onChange(of: isSplit) { _, _ in
                 hasActiveKeyboardSession = false
-                browser.setSystemKeyboardVisible(false, force: true)
+                browser.setSystemKeyboardVisible(false, coalesceHideDuration: .zero)
                 browser.setExternalKeyboardFrozen(false)
                 syncMorphConfiguration()
             }

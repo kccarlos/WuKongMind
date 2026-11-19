@@ -640,6 +640,25 @@ final class AppleIntelligenceTests: XCTestCase {
         app.settings.agentDeveloperMode.toggle()
         XCTAssertEqual(app.appleIntelligenceStatus, .available(.privateCloudCompute))
         XCTAssertGreaterThanOrEqual(fake.refreshStatusCalls, initialRefreshCalls + 2)
+
+        // Re-selecting Apple Intelligence (even when already selected) refreshes availability.
+        app.selectModel(ModelSelection(provider: .appleIntelligence, model: "Automatic"), for: .role(.assistant))
+        fake.status = .unavailable(.modelNotReady)
+        app.selectModel(ModelSelection(provider: .appleIntelligence, model: "Automatic"), for: .role(.assistant))
+        XCTAssertEqual(app.appleIntelligenceStatus, .unavailable(.modelNotReady))
+
+        // Opening the drawer while status is .modelNotReady re-probes so a finished download surfaces live,
+        // whereas opening when already available does not re-probe.
+        app.browser.load(URL(string: "https://meta.discourse.org/t/example/1")!)
+        fake.status = .available(.onDevice)
+        let refreshesBeforeDownloadingOpen = fake.refreshStatusCalls
+        XCTAssertTrue(app.showAIView())
+        XCTAssertEqual(app.appleIntelligenceStatus, .available(.onDevice))
+        XCTAssertEqual(fake.refreshStatusCalls, refreshesBeforeDownloadingOpen + 1)
+
+        let refreshesBeforeReadyOpen = fake.refreshStatusCalls
+        XCTAssertTrue(app.showAIView())
+        XCTAssertEqual(fake.refreshStatusCalls, refreshesBeforeReadyOpen)
     }
 
     // MARK: Helpers

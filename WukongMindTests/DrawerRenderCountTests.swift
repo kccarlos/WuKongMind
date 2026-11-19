@@ -735,10 +735,10 @@ final class DrawerRenderCountTests: XCTestCase {
         XCTAssertEqual(afterNotifs.counts["ChatThread.body"] ?? 0, 0, "Keyboard notifications must not re-evaluate ChatThread.body")
         XCTAssertEqual(afterNotifs.counts["BrowserAgentRunsView.runSection"] ?? 0, 0)
 
-        // 2. While the drawer composer owns first responder, transient hide->show churn is gated.
+        // 2. While the drawer composer owns first responder, transient hide->show churn is coalesced.
         let browser = app.browser
         let center = NotificationCenter()
-        let keyboardState = DrawerKeyboardState(notificationCenter: center)
+        let keyboardState = DrawerKeyboardState(notificationCenter: center, hideCoalesceDuration: .milliseconds(80))
         keyboardState.setComposerFocused(true, browser: browser)
         keyboardState.handleKeyboardShow()
         browser.setSystemKeyboardVisible(true)
@@ -751,26 +751,36 @@ final class DrawerRenderCountTests: XCTestCase {
         PerfProbe.reset()
         for _ in 0..<10 {
             center.post(name: UIResponder.keyboardWillHideNotification, object: nil)
-            browser.setSystemKeyboardVisible(false)
+            browser.setSystemKeyboardVisible(false, coalesceHideDuration: .milliseconds(80))
             center.post(name: UIResponder.keyboardWillShowNotification, object: nil)
-            browser.setSystemKeyboardVisible(true)
+            browser.setSystemKeyboardVisible(true, coalesceHideDuration: .milliseconds(80))
         }
-        XCTAssertEqual(statePublishes, 0, "Gated keyboard churn must not publish DrawerKeyboardState")
+        XCTAssertEqual(statePublishes, 0, "Coalesced keyboard churn must not publish DrawerKeyboardState")
         XCTAssertEqual(PerfProbe.snapshot.counts["publish.browser.isSystemKeyboardVisible"] ?? 0, 0,
-                       "Gated keyboard churn must not publish ForumBrowserModel.isSystemKeyboardVisible")
+                       "Coalesced keyboard churn must not publish ForumBrowserModel.isSystemKeyboardVisible")
         XCTAssertTrue(keyboardState.isKeyboardVisible)
         XCTAssertTrue(browser.isSystemKeyboardVisible)
 
-        // 3. Blurring the composer flushes a pending hide immediately.
+        // 3. A real hide while the composer stays focused (e.g. hardware keyboard attached or iPad shortcut bar)
+        // settles to hidden once the coalesce window elapses.
         center.post(name: UIResponder.keyboardWillHideNotification, object: nil)
-        browser.setSystemKeyboardVisible(false)
+        browser.setSystemKeyboardVisible(false, coalesceHideDuration: .milliseconds(50))
+        try? await Task.sleep(for: .milliseconds(150))
+        XCTAssertFalse(keyboardState.isKeyboardVisible)
+        XCTAssertFalse(browser.isSystemKeyboardVisible)
+
+        // 4. Blurring the composer flushes a pending hide immediately.
+        keyboardState.handleKeyboardShow()
+        browser.setSystemKeyboardVisible(true)
+        center.post(name: UIResponder.keyboardWillHideNotification, object: nil)
+        browser.setSystemKeyboardVisible(false, coalesceHideDuration: .seconds(1))
         XCTAssertTrue(keyboardState.isKeyboardVisible)
         XCTAssertTrue(browser.isSystemKeyboardVisible)
         keyboardState.setComposerFocused(false, browser: browser)
         XCTAssertFalse(keyboardState.isKeyboardVisible)
         XCTAssertFalse(browser.isSystemKeyboardVisible)
 
-        // 4. When composer is not focused, hide applies immediately.
+        // 5. When composer is not focused, hide applies immediately.
         keyboardState.handleKeyboardShow()
         browser.setSystemKeyboardVisible(true)
         center.post(name: UIResponder.keyboardWillHideNotification, object: nil)

@@ -344,18 +344,24 @@ private final class DrawerAppRelay {
 /// Observed only by `HeaderSectionObserver` and `FooterSectionObserver`, never by
 /// `AssistantPanel` or the transcript. While the drawer's composer owns first responder,
 /// transient `keyboardWillHide` → `keyboardWillShow` churn (such as hardware-keyboard mode
-/// toggles) is gated until the composer resigns first responder so neither the drawer nor
-/// `ForumBrowserModel` re-renders mid-keystroke.
+/// toggles) is coalesced with a bounded timeout so neither the drawer nor `ForumBrowserModel`
+/// re-renders mid-keystroke, while a genuine hide while focused (e.g. hardware keyboard
+/// attached or iPad shortcut bar) still settles to hidden.
 @MainActor
 final class DrawerKeyboardState: ObservableObject {
     @Published private(set) var isKeyboardVisible = false
     @Published private(set) var isComposerFocused = false
 
-    private var hasPendingHide = false
+    private let hideCoalesceDuration: Duration
+    private var pendingHideTask: Task<Void, Never>?
     private var cancellables: Set<AnyCancellable> = []
     private weak var focusedBrowser: ForumBrowserModel?
 
-    init(notificationCenter: NotificationCenter = .default) {
+    init(
+        notificationCenter: NotificationCenter = .default,
+        hideCoalesceDuration: Duration = .seconds(2)
+    ) {
+        self.hideCoalesceDuration = hideCoalesceDuration
         notificationCenter.publisher(for: UIResponder.keyboardWillShowNotification)
             .sink { [weak self] note in
                 guard (note.userInfo?[UIResponder.keyboardIsLocalUserInfoKey] as? Bool) != false else { return }
@@ -382,8 +388,9 @@ final class DrawerKeyboardState: ObservableObject {
         if isComposerFocused != focused {
             isComposerFocused = focused
         }
-        if !focused, hasPendingHide {
-            hasPendingHide = false
+        if !focused, let pending = pendingHideTask {
+            pending.cancel()
+            pendingHideTask = nil
             if isKeyboardVisible {
                 isKeyboardVisible = false
             }
@@ -391,7 +398,8 @@ final class DrawerKeyboardState: ObservableObject {
     }
 
     func handleKeyboardShow() {
-        hasPendingHide = false
+        pendingHideTask?.cancel()
+        pendingHideTask = nil
         if !isKeyboardVisible {
             isKeyboardVisible = true
         }
@@ -399,13 +407,24 @@ final class DrawerKeyboardState: ObservableObject {
 
     func handleKeyboardHide() {
         guard isKeyboardVisible else {
-            hasPendingHide = false
+            pendingHideTask?.cancel()
+            pendingHideTask = nil
             return
         }
-        if isComposerFocused {
-            hasPendingHide = true
+        if isComposerFocused, hideCoalesceDuration > .zero {
+            let duration = hideCoalesceDuration
+            pendingHideTask?.cancel()
+            pendingHideTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(for: duration)
+                guard let self, !Task.isCancelled else { return }
+                self.pendingHideTask = nil
+                if self.isKeyboardVisible {
+                    self.isKeyboardVisible = false
+                }
+            }
         } else {
-            hasPendingHide = false
+            pendingHideTask?.cancel()
+            pendingHideTask = nil
             isKeyboardVisible = false
         }
     }
