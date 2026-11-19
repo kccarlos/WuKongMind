@@ -189,10 +189,15 @@ Sizes count changed lines, tests included. Phone numbers are the iPhone 13 with 
 - **Done when:** a UI test screenshot shows the pressed ring during a 0.3 s press; the long press still starts voice and a tap still opens (`DrawerUITests`, the voice button tests); the timeline shows the haptic before the touch-up.
 
 ### 3. The transcript and the summary card are lazy (changes task 6 of the first page)
+- **Status:** done in WUKO-159 (building on WUKO-152).
 - **Why:** causes 2 and 5.
 - **Scope:** as task 6 there (runs in a `LazyVStack`, scroll to the last run's id), with one change: the newest run stays eager **only while it streams**; once finished, its card's blocks are lazy too. Today's usual case is one finished run holding a 41-block card, which task 6 as written would leave eager.
 - **Size:** about 350. **Depends on:** task 5 of the first page (WUKO-150).
 - **Done when:** on the phone, the summary-card fixture's first frame is within 200 ms of lift (from 365) and its main thread busy within 300 ms (from 605); `runs-60` opens hosted in at most 300 ms (from 637); the pass after the first frame is under 50 ms (from 169 to 203); scroll-to-bottom, the jump button and VoiceOver order as before.
+- **Result (WUKO-159, 2026-11-19):** `TimelineCache.split` (`AgentPanel.swift`) keeps the newest run eager only while `isRunning && runs.last?.state.isRunning == true`; once finished, all runs live in `EarlierConversationItemsView`'s `LazyVStack` (preserving `latestRunID` and expansion state). `DCResultCard` (`ConversationViews.swift`) takes `isLazy` and renders its content in a `LazyVStack` when true, passed as `!run.state.isRunning` from `AgentRunSectionView` / `CapabilityThreadSummaryCard`. On the iPhone 13 (optimized-Debug, `4f0bfa7` before vs. after):
+  - `fixture-20` summary-card open (medians of 6 opens): blocks built **41 → 8**; `.shown` **230 → 128 ms**; first frame from lift **361.5 ms** (354–367; 365 original) **→ 167.0 ms** (153–175; target ≤ 200); main thread busy in first 1.3 s **612.0 ms** (605 original) **→ 159.5 ms** (target ≤ 300); longest pass after first frame **178.0 ms** (143–203; 169–203 original) **→ 4.0 ms** (0–8, none ≥ 8 ms on 3 of 6 opens; target < 50).
+  - Hosted `DrawerPerformanceTests`: `runs-60` open **82.6 ms** (3 sections / 19 blocks; 637 original) **→ 78.2 ms** (2 sections / 14 blocks; target ≤ 300); `all-6000` open **101.9 ms** (276 original) **→ 85.4 ms** (2 sections / 14 blocks).
+  - Guarded by `DrawerRenderCountTests.testFinishedSummaryCardOpensLazilyAndStreamingRunStaysEager`, `TranscriptFollowTests`, and `DrawerUITests` (`testJumpToBottomDuringDeceleration`, `testScrollToBottomButtonFloatsOverTheConversation`, `testSummarizeShowsOneSummaryAndNewConversationClearsIt`, `testRealKeyboardKeepsChatVStackPinnedAtBottom`).
 
 ### 4. Cheaper cited text (task 7 of the first page, gate passed)
 - **Why:** cause 3. The gate that task set (is cited text the cost?) is answered here for opening: 48 % of an open is text drawing and layers, and Chinese is 1.7 times English at half the length.

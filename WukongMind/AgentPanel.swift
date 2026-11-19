@@ -148,14 +148,15 @@ private final class TimelineCache {
     struct Split {
         let lazyItems: [ConversationItem]
         let eagerItems: [ConversationItem]
-        let earlierRuns: [BrowserAgentRun]
+        let lazyRuns: [BrowserAgentRun]
     }
     private var stamps: [Stamp]?
     private var voices: [BrowserAgentMessage]?
+    private var lastSplitEager: Bool?
     private var items: [ConversationItem] = []
     private var lazyItems: [ConversationItem] = []
     private var eagerItems: [ConversationItem] = []
-    private var earlierRuns: [BrowserAgentRun] = []
+    private var lazyRuns: [BrowserAgentRun] = []
 
     func split(runs: [BrowserAgentRun], messages: [BrowserAgentMessage], isRunning: Bool) -> Split {
         let nextStamps = runs.map { Stamp(id: $0.id, startedAt: $0.startedAt) }
@@ -163,6 +164,7 @@ private final class TimelineCache {
         if nextStamps != stamps || nextVoices != voices {
             stamps = nextStamps
             voices = nextVoices
+            lastSplitEager = nil
             items = PerfProbe.time("BrowserAgentRunsView.timeline") {
                 let raw = nextStamps.enumerated().map { ConversationItem.run(index: $0.offset, id: $0.element.id, startedAt: $0.element.startedAt) }
                     + nextVoices.map(ConversationItem.voice)
@@ -170,7 +172,11 @@ private final class TimelineCache {
                     lhs.element.date == rhs.element.date ? lhs.offset < rhs.offset : lhs.element.date < rhs.element.date
                 }.map(\.element)
             }
-            if let latestID = runs.last?.id, let pivot = items.lastIndex(where: { $0.id == latestID }) {
+        }
+        let splitEager = isRunning && runs.last?.state.isRunning == true
+        if splitEager != lastSplitEager {
+            lastSplitEager = splitEager
+            if splitEager, let latestID = runs.last?.id, let pivot = items.lastIndex(where: { $0.id == latestID }) {
                 lazyItems = Array(items[..<pivot])
                 eagerItems = Array(items[pivot...])
             } else {
@@ -178,18 +184,18 @@ private final class TimelineCache {
                 eagerItems = []
             }
         }
-        let earlierCount = max(0, runs.count - 1)
-        if earlierRuns.count != earlierCount {
-            earlierRuns = Array(runs.prefix(earlierCount))
-        } else if isRunning, earlierCount > 0 {
-            if earlierRuns[earlierCount - 1].id != runs[earlierCount - 1].id
-                || earlierRuns[earlierCount - 1].state != runs[earlierCount - 1].state {
-                earlierRuns = Array(runs.prefix(earlierCount))
+        let lazyRunCount = splitEager ? max(0, runs.count - 1) : runs.count
+        if lazyRuns.count != lazyRunCount {
+            lazyRuns = Array(runs.prefix(lazyRunCount))
+        } else if splitEager, lazyRunCount > 0 {
+            if lazyRuns[lazyRunCount - 1].id != runs[lazyRunCount - 1].id
+                || lazyRuns[lazyRunCount - 1].state != runs[lazyRunCount - 1].state {
+                lazyRuns = Array(runs.prefix(lazyRunCount))
             }
-        } else if earlierCount > 0, runs.prefix(earlierCount) != earlierRuns[...] {
-            earlierRuns = Array(runs.prefix(earlierCount))
+        } else if lazyRunCount > 0, runs.prefix(lazyRunCount) != lazyRuns[...] {
+            lazyRuns = Array(runs.prefix(lazyRunCount))
         }
-        return Split(lazyItems: lazyItems, eagerItems: eagerItems, earlierRuns: earlierRuns)
+        return Split(lazyItems: lazyItems, eagerItems: eagerItems, lazyRuns: lazyRuns)
     }
 }
 
@@ -323,11 +329,14 @@ struct BrowserAgentRunsView: View {
         let runs = session.runs
         let latestRunID = runs.last?.id
         let split = timelineCache.split(runs: runs, messages: session.messages, isRunning: session.isRunning)
-        let latestToolRowIDs: Set<UUID> = expandedToolRowIDs.isEmpty ? [] : Set((runs.last?.toolCalls ?? []).map(\.id))
+        let hasEager = !split.eagerItems.isEmpty
+        let latestToolRowIDs: Set<UUID> = (!hasEager || expandedToolRowIDs.isEmpty) ? [] : Set((runs.last?.toolCalls ?? []).map(\.id))
         let earlierModel = EarlierConversationItemsView.Model(
-            items: split.lazyItems, runs: split.earlierRuns, context: context,
-            manuallyExpandedRunIDs: manuallyExpandedRunIDs.isEmpty ? [] : manuallyExpandedRunIDs.subtracting(latestRunID.map { [$0] } ?? []),
-            expandedToolRowIDs: expandedToolRowIDs.isEmpty ? [] : expandedToolRowIDs.subtracting(latestToolRowIDs)
+            items: split.lazyItems, runs: split.lazyRuns,
+            latestRunID: hasEager ? nil : latestRunID,
+            context: context,
+            manuallyExpandedRunIDs: (!hasEager || manuallyExpandedRunIDs.isEmpty) ? manuallyExpandedRunIDs : manuallyExpandedRunIDs.subtracting(latestRunID.map { [$0] } ?? []),
+            expandedToolRowIDs: (!hasEager || expandedToolRowIDs.isEmpty) ? expandedToolRowIDs : expandedToolRowIDs.subtracting(latestToolRowIDs)
         )
         return VStack(alignment: .leading, spacing: 12) {
             if !split.lazyItems.isEmpty {
@@ -441,6 +450,7 @@ private struct EarlierConversationItemsView: View, Equatable {
     struct Model: Equatable {
         let items: [ConversationItem]
         let runs: [BrowserAgentRun]
+        let latestRunID: UUID?
         let context: AgentRunsContext
         let manuallyExpandedRunIDs: Set<UUID>
         let expandedToolRowIDs: Set<UUID>
@@ -462,7 +472,7 @@ private struct EarlierConversationItemsView: View, Equatable {
         LazyVStack(alignment: .leading, spacing: 12) {
             ForEach(Array(model.items.enumerated()), id: \.element.id) { offset, item in
                 BrowserAgentRunsView.itemView(
-                    item: item, runs: model.runs, latestRunID: nil, context: model.context,
+                    item: item, runs: model.runs, latestRunID: model.latestRunID, context: model.context,
                     manuallyExpandedRunIDs: model.manuallyExpandedRunIDs, expandedToolRowIDs: model.expandedToolRowIDs,
                     app: app, session: session, sourcesCache: sourcesCache,
                     onToggleSteps: onToggleSteps, onToggleToolRow: onToggleToolRow,
@@ -885,11 +895,12 @@ private struct AgentRunSectionView: View, Equatable {
 
     @ViewBuilder
     private func capabilityCard(for entry: BrowserAgentRunsView.CapabilityResultEntry) -> some View {
+        let isLazy = !run.state.isRunning
         switch entry {
         case .threadSummary(let id, let thread, let fallbackText):
-            CapabilityThreadSummaryCard(app: app, currentTopicSummary: model.currentTopicSummary, rowID: id, thread: thread, fallbackText: fallbackText)
+            CapabilityThreadSummaryCard(app: app, currentTopicSummary: model.currentTopicSummary, rowID: id, thread: thread, fallbackText: fallbackText, isLazy: isLazy)
         case .textSummary(_, let title, let markdown):
-            DCResultCard(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text") {
+            DCResultCard(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text", isLazy: isLazy) {
                 if !title.isEmpty { Text(verbatim: title).font(.caption).lineLimit(1) }
             } content: {
                 MarkdownView(markdown).textSelection(.enabled)
@@ -1006,6 +1017,7 @@ private struct CapabilityThreadSummaryCard: View {
     let rowID: UUID
     let thread: ThreadShape
     let fallbackText: String
+    let isLazy: Bool
     @State private var parsedCache = ParsedSummaryCache()
     @Environment(\.threadSummaryCardFooter) private var footer
 
@@ -1021,7 +1033,7 @@ private struct CapabilityThreadSummaryCard: View {
         CapabilityThreadSummaryCardBody(
             model: .init(parsed: parsed, count: count, isCurrentTopic: isCurrent,
                          targetURL: (isCurrent ? currentTopicSummary?.url : session?.url) ?? URL(string: thread.url),
-                         footerRowID: showsFooter ? rowID : nil),
+                         footerRowID: showsFooter ? rowID : nil, isLazy: isLazy),
             app: app, footer: showsFooter ? footer?.content : nil
         )
         .equatable()
@@ -1035,6 +1047,7 @@ private struct CapabilityThreadSummaryCardBody: View, Equatable {
         let isCurrentTopic: Bool
         let targetURL: URL?
         let footerRowID: UUID?
+        let isLazy: Bool
     }
 
     let model: Model
@@ -1047,7 +1060,7 @@ private struct CapabilityThreadSummaryCardBody: View, Equatable {
 
     var body: some View {
         if !model.parsed.rows.isEmpty {
-            DCResultCard(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text") {
+            DCResultCard(label: String(localized: "Summary", comment: "Summary result card header"), systemImage: "doc.text", isLazy: model.isLazy) {
                 if let count = model.count, count > 0 { Text(String(localized: "\(count) posts")).font(.caption) }
             } content: {
                 DrawerSummarySections(rows: model.parsed.rows, layout: .singleColumn)

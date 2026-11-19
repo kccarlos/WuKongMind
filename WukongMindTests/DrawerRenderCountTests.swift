@@ -541,4 +541,71 @@ final class DrawerRenderCountTests: XCTestCase {
         let distance = scroll.contentSize.height - (scroll.contentOffset.y + scroll.bounds.height)
         XCTAssertLessThan(distance, TranscriptFollow.nearBottomThreshold, "Settle loop must land at the bottom")
     }
+
+    func testFinishedSummaryCardOpensLazilyAndStreamingRunStaysEager() throws {
+        UIView.setAnimationsEnabled(false)
+        defer { UIView.setAnimationsEnabled(true) }
+
+        let app = DrawerPerformanceTests.makeApp(
+            .init(name: "lazy-summary-card", sourcePosts: 100, summarySections: 8, runs: 1, shapePosts: 20)
+        )
+        let topicURL = try XCTUnwrap(app.currentTopic?.url)
+        app.browser.simulatePageUpdateForTesting(url: topicURL, title: "Layout jumps after rotation")
+        let summaryText = try XCTUnwrap(app.currentSession?.summary)
+        let totalBlocks = DrawerSummarySections.parsed(for: .init(text: summaryText, maximumPost: 100)).rows.count
+        XCTAssertGreaterThanOrEqual(totalBlocks, 40)
+
+        var saved = SavedAgentConversation(
+            messages: app.browserAgent.messages, runs: app.browserAgent.runs,
+            toolCalls: app.browserAgent.toolCalls, runState: app.browserAgent.runState,
+            tokenUsage: app.browserAgent.tokenUsage, history: []
+        )
+        saved.runs[0].toolCalls[0].toolName = "summarize_topic"
+        saved.runs[0].toolCalls[0].resultText = summaryText
+        app.browserAgent.restoreConversation(saved)
+
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        // 1. Finished run holding a 48-block summary card: only the visible blocks evaluate on open.
+        PerfProbe.reset()
+        let host = UIHostingController(rootView: AnyView(
+            AssistantPanel(app: app, onExpand: { _ in }).environment(\.colorScheme, .light)
+        ))
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        host.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+
+        let finishedOpen = PerfProbe.snapshot
+        let finishedBlocks = finishedOpen.counts["MarkdownBlockView.body"] ?? 0
+        XCTAssertGreaterThan(finishedBlocks, 0)
+        XCTAssertLessThan(finishedBlocks, totalBlocks / 2, "Finished summary card built \(finishedBlocks) of \(totalBlocks) blocks on open")
+        XCTAssertEqual(finishedOpen.counts["BrowserAgentRunsView.runSection"] ?? 0, 1)
+
+        // 2. While streaming (`isLazy: false`), `DCResultCard` stays eager so streaming height is exact.
+        let parsedRows = DrawerSummarySections.parsed(for: .init(text: summaryText, maximumPost: 100)).rows
+        PerfProbe.reset()
+        let eagerHost = UIHostingController(rootView: AnyView(
+            ScrollView {
+                DCResultCard(label: "Summary", isLazy: false) {
+                    DrawerSummarySections(rows: parsedRows, layout: .singleColumn)
+                }
+                .padding(14)
+            }
+            .environment(\.colorScheme, .light)
+        ))
+        window.rootViewController = eagerHost
+        window.makeKeyAndVisible()
+        eagerHost.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+
+        let eagerBlocks = PerfProbe.snapshot.counts["MarkdownBlockView.body"] ?? 0
+        XCTAssertGreaterThanOrEqual(eagerBlocks, totalBlocks, "Eager DCResultCard must build all blocks while streaming")
+    }
 }
