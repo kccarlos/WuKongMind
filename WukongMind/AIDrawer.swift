@@ -259,6 +259,7 @@ private struct AIDrawerContent: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
+        let _ = PerfProbe.hit("AIDrawerContent.body")
         AssistantPanel(
             app: app,
             // Post & responses opens as a sheet over the drawer.
