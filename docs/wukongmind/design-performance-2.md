@@ -12,11 +12,11 @@ The owner's report (1.5.1, TestFlight, iPhone 13):
 
 ## The short version
 
-- **Share: reproduced, and the owner's guess is right, one step later than expected.** The app's own share sheet and the Files picker open on every thread size. The blank screen comes when the text is handed on: Share › Messages with a 1.8 or 2.1 million character thread shows an empty sheet for at least 15 s; with a 7,000 character thread the message opens with the text in it. The app hands the system one in-memory string, and the receiving app has to draw all of it.
-- **Drawer open: the cost is building and drawing everything in the transcript, every time.** The sheet is rebuilt on each open, and a summary card in the conversation is not lazy. From finger lift to the sheet's first frame: **141 ms** when the summary is the lazy one at the top (the owner's real thread), **365 ms** for the same length summary as a card, **629 ms** for a Chinese summary card half as long. Then the system's sheet animation runs, with a 100 to 200 ms stall for drawing text at its start.
+- **Share: a blank screen reproduced, one step later than expected.** The app's own share sheet and the Files picker opened on every thread size. The blank screen comes when the text is handed on: Share › Messages with a 1.8 or 2.1 million character thread shows an empty sheet for at least 15 s (three runs); with a 7,000 character thread the message opens with the text in it (two runs). The app hands the system one in-memory string, and the receiving app has to draw all of it. Whether this is the blank screen the owner saw is not confirmed, and **a blank screen on Export .txt was not reproduced**.
+- **Drawer open: the cost is building and drawing everything in the transcript, every time.** The sheet is rebuilt on each open, and a summary card in the conversation is not lazy. From finger lift to the sheet's first frame: **141 ms** when the summary is the lazy one at the top (the owner's real thread), **365 ms** for a summary of similar length as a card (the fixture's text, not the same one), **629 ms** for a Chinese summary card half as long. Then the system's sheet animation runs, with a 100 to 200 ms stall for drawing text at its start.
 - **Chinese costs more than English because cited text is one view per Chinese character** (one per word in English). Drawing text and making its layers is 48 % of the open.
 - **Thread length no longer matters for opening** (20 or 6,000 comments: 365 against 378 ms). What matters is how much the conversation holds: summary blocks and runs.
-- **The optimized build is not much faster than Debug.** The same hosted numbers on the phone are within 0 to 25 %: the time is in SwiftUI, UIKit and CoreText, not in the app's own code (an app frame is on the stack in 9 % of the samples of an open).
+- **The optimized build is not much faster than Debug** where both were measured: the hosted panel's numbers on the phone are within 0 to 25 % of the first page's latest Debug ones. The time is in SwiftUI, UIKit and CoreText, not in the app's own code (an app frame is on the stack in 9 % of the samples of an open).
 - **The button gives no feedback until the finger lifts** (read in the code, not timed), so the whole press is added to what is felt.
 - **Saved state grows with every long thread:** 3.1 MB of `state.json` per 6,000-comment thread, read on the main thread at launch (136 ms for 20 of them) and rewritten whole on each save.
 
@@ -77,15 +77,15 @@ Inside those (a sample counts once per line, so lines overlap):
 | `PhoneAIButton.body` | 11 ms |
 | Any frame of the app's own binary | 9 % of samples |
 
-**Content is what scales** (hosted panel, `DrawerPerformanceTests`, same phone, optimized build; in brackets the first page's Debug number for the same fixture, its latest where it has one):
+**Content is what scales** (hosted panel, `DrawerPerformanceTests`, same phone, optimized build; in brackets the first page's Debug number for the same fixture, only where it has one from after its tasks 1 to 3):
 
 | Fixture | Open | Keystroke median | Scroll step median | One more run |
 |---|---|---|---|---|
-| Baseline | 74 ms (93) | 12.7 ms (13.6) | 28 ms | |
+| Baseline | 74 ms | 12.7 ms (13.6) | 28 ms | |
 | Posts: 6,000 | 76 ms (88) | 14.4 ms (14.6) | 34 ms | |
-| Summary: 30 sections (lazy, at the top) | 89 ms (119) | 15.3 ms | 56 ms (58) | |
-| Conversation: 5 runs | 119 ms (141) | 17.2 ms | 20 ms | 122 ms |
-| Conversation: 20 runs | 247 ms (305) | 20.9 ms (21.1) | 14 ms | 121 ms |
+| Summary: 30 sections (lazy, at the top) | 89 ms | 15.3 ms | 56 ms (58) | |
+| Conversation: 5 runs | 119 ms | 17.2 ms | 20 ms | 122 ms |
+| Conversation: 20 runs | 247 ms | 20.9 ms (21.1) | 14 ms | 121 ms |
 | Conversation: 60 runs | **637 ms** (626) | 26.2 ms (27.9) | 16 ms | 134 ms (177) |
 | Everything: 6,000 posts, 30 sections, 20 runs | 276 ms (298) | 23.5 ms (23.2) | 76 ms | 146 ms (156) |
 
@@ -100,7 +100,7 @@ Runs on the phone: three thread sizes at the large drawer height (each twice or 
 | Building the export text (main thread) | 1 to 2 ms | 63 to 76 ms | 71 to 79 ms |
 | Share: main-thread passes after the tap | 179 to 248 ms, then 31 | 337, then 35 to 62 | 290 to 325, then 229 to 367 |
 | The app's share sheet | shown | shown | shown (large and medium) |
-| **Share › Messages** | **the message opens with the text** | **blank sheet for the 15 s watched** | **blank sheet for the 15 s watched** |
+| **Share › Messages** | **the message opens with the text** (2 runs: English and Chinese summary) | **blank sheet for the 15 s watched** (1 run) | **blank sheet for the 15 s watched** (2 runs) |
 | Export .txt: main-thread passes after the tap | 59, then 72 | 138, then 83 | 111, then 185 |
 | The Files picker | shown | shown | shown; its file list was still empty 3.9 s after the tap in one run of three |
 
@@ -131,8 +131,8 @@ Runs on the phone: three thread sizes at the large drawer height (each twice or 
 
 ## 2. Causes, ranked by what the owner feels
 
-1. **Share hands the system 1.8 million characters as one string.** Blank screen in the receiving app, every time, on any long thread. A correctness bug more than a speed one. Evidence: the Messages rows above, with the short control.
-2. **The drawer builds, lays out and draws its whole transcript on every open.** `.sheet` makes `AssistantPanel` from nothing each time (`AIDrawer.swift:50`), and the summary card and the runs are in plain `VStack`s (`AgentPanel.swift`), so cost follows content, not what is visible: 141 ms lazy against 365 ms as a card for the same summary; 119 to 637 ms hosted from 5 to 60 runs.
+1. **Share hands the system 1.8 million characters as one string.** Blank screen in the receiving app in all three runs on the two long threads, and in neither run on the short one. A correctness bug more than a speed one. Only Messages was tried.
+2. **The drawer builds, lays out and draws its whole transcript on every open.** `.sheet` makes `AssistantPanel` from nothing each time (`AIDrawer.swift:50`), and the summary card and the runs are in plain `VStack`s (`AgentPanel.swift`, `DCResultCard` in `ConversationViews.swift:275`), so cost follows content, not what is visible: 141 ms lazy against 365 ms as a card for summaries of similar length (different text and page, so the gap is indicative; the block counts, 5 against 41, are exact); 119 to 637 ms hosted from 5 to 60 runs.
 3. **Cited text is one `Text` per word, and one per Chinese character** (`CitedText.tokens`, `MarkdownView.swift:787`: a wide character ends a token). Half the characters, 1.7 times the time: 629 ms against 365 ms. Text drawing and its layers are 48 % of an open.
 4. **No feedback on touch down.** `PhoneAIButton` is a bare `onTapGesture` with `onLongPressGesture` (`PhoneBrowserBar.swift:1888`): nothing changes on screen and the haptic (`ContentView.openAssistant`) comes at lift. The handler runs 4 to 23 ms after lift, so the gesture itself adds no delay; the press does.
 5. **A stall at the start of the sheet's animation.** 100 to 200 ms of text drawing in the pass right after the first frame. Same root as 2 and 3.
@@ -149,18 +149,19 @@ Runs on the phone: three thread sizes at the large drawer height (each twice or 
 | `ChatThread` and `BrowserAgentRunsView` are `VStack`s, so cost is O(runs) | **Confirmed** | Hosted open 119, 247, 637 ms for 5, 20, 60 runs; lazy summary 5 blocks against 41 |
 | `PhoneAIButton` has no pressed state | **Confirmed by reading; its felt cost unmeasured** | No `Button`, no pressed style; handler 4 to 23 ms after lift |
 | `CitedText` is one `Text` per Chinese character | **Confirmed** | `tokens` breaks after every wide character; 629 against 365 ms |
-| `DCResultCard` is a plain `VStack` | **Confirmed** (same evidence as the card rows) | 41 blocks built for the card |
-| `MarkdownInline.attributed`, `ForumSourcesCache`, `timelineCache`, saved-script JSON are recomputed on every open | **Rejected as a cost** | `matchingPageScripts`, `timeline`, `forumSources`, `parsed`, `strippedSummary` each under 1 ms per open; `MarkdownInline.attributed` 1.8 ms |
+| `DCResultCard` is a plain `VStack` | **Confirmed** | `ConversationViews.swift:275`: its content is a `VStack`; all 41 blocks of the card are built on each open |
+| `MarkdownInline.attributed`, `ForumSourcesCache`, `timelineCache` are recomputed on every open | **Rejected as a cost** | `matchingPageScripts`, `timeline`, `forumSources`, `parsed`, `strippedSummary` each under 1 ms per open; `MarkdownInline.attributed` 1.8 ms |
+| `savedScriptEntries`' JSON is parsed again on every open | **Unmeasured** | No probe on it, and the fixtures have no saved scripts |
 | Cold start reads `state.json` and every tab's conversation on the main thread | **Confirmed by reading; cost measured on generated state** | `AppModel.swift:713`, `BrowserTabs.init`; 7 ms per long thread, 72 ms per heavy conversation |
 | Large text is kept in memory and in `state.json`; SQLite would help | **Confirmed in size; SQLite not needed yet** | 3.1 MB per long thread; see decision 5 |
-| A very long exported text overwhelms the system | **Confirmed for the receiving app, rejected for the app's own sheets** | Symptom 2 |
-| TestFlight is much faster than the Debug numbers | **Rejected** | Hosted numbers within 0 to 25 % of Debug |
+| A very long exported text overwhelms the system | **Confirmed for the receiving app (Messages); not seen in the app's own share sheet or the Files picker; Export .txt's blank screen not reproduced** | Symptom 2 |
+| TestFlight is much faster than the Debug numbers | **Rejected for the hosted panel; the whole-app open was not run unoptimized** | Hosted numbers within 0 to 25 % of Debug |
 
 ## 3. Decisions
 
-1. **Long text leaves the app as a file.** Over a size limit (about 100,000 characters) Share and Export hand over `wukongmind-<slug>.txt`, written off the main thread, with its name and size in the share sheet. Under the limit Share stays plain text, so a short summary still lands as a message body. Copy keeps the pasteboard string, built off the main thread. One busy state on the menu's button while a large text is written.
+1. **Long text leaves the app as a file.** Over a size limit (100,000 characters as a starting guess; task 1 sets it by trying sizes against Messages and Notes) Share and Export hand over `wukongmind-<slug>.txt`, written off the main thread, with its name and size in the share sheet. Under the limit Share stays plain text, so a short summary still lands as a message body. Copy keeps the pasteboard string, built off the main thread. One busy state on the menu's button while a large text is written.
 2. **The button answers the finger.** A pressed look and the haptic at touch down; the long press for voice stays.
-3. **Open cost follows what is visible.** The card's blocks and the runs are lazy, as the top summary already is. Measured gap: 141 against 365 ms for the same summary. The target is one for every content: first frame within 200 ms of lift.
+3. **Open cost follows what is visible.** The card's blocks and the runs are lazy, as the top summary already is. Measured gap: 141 against 365 ms for summaries of similar length. The target is one for every content: first frame within 200 ms of lift.
 4. **A cited paragraph is a few views, not hundreds.** Runs of words between chips become one `Text`; Chinese stops being per character. Chips keep their size, spacing and 44 pt targets.
 5. **A thread's text is not app state.** `source` and `rawPages` move to one file per topic, read when a summary, chat or export needs them, the way tab conversations already are (`TabStateStore`). No SQLite now: nothing queries across threads, and files are the house pattern. Gated on a readout of real sizes first.
 6. **Not chosen:**
@@ -222,10 +223,12 @@ Sizes count changed lines, tests included. Phone numbers are the iPhone 13 with 
 ## 5. Not proven here
 
 - **The owner's 1 to 2 s, end to end.** The longest tap to first frame measured is 0.63 s, then the system's animation. Their conversation's size, their summary's language and their press are not known; a Chinese summary of normal length or a long conversation would reach it, by the scaling above.
-- **A true Release build.** Optimized Debug stands in for it.
+- **A true Release build.** Optimized Debug stands in for it. The whole-app open was not also run unoptimized, so its Debug-to-optimized ratio is unknown; only the hosted panel has both.
 - **The sheet animation's own length** and the pressed state's felt effect: read from the code, not timed.
-- **Whether Messages ever recovers** after 15 s, and other targets (Notes, Mail, WeChat, AirDrop): only Messages was tried, twice long and once short. A second short run's tap did not land.
-- **Export .txt to the end.** Save was never pressed; the picker's slow first paint (one run of three) was not explained.
+- **Whether this is the owner's blank screen.** They did not say which step was blank; the reproduction is Share › Messages.
+- **Whether Messages ever recovers** after 15 s, and other targets (Notes, Mail, WeChat, AirDrop): only Messages was tried.
+- **Whether a blank leaves the share sheet stuck.** Twice a short-thread run that came right after a blank long-thread run showed nothing after the tap on Messages; run by itself, and before any blank, the short thread opened the message. Not pursued.
+- **Export .txt's blank screen.** Not reproduced: the picker opened in every run. Save was never pressed, and the picker's slow first paint (one run of three) was not explained.
 - **The owner's real `state.json`** size and launch time; memory pressure on a phone with many tabs.
 - **How much of the open is the cascade.** Bounded (about 20 ms plus 11 to 13 ms) but not isolated.
 - **The SwiftUI and Animation Hitches instruments:** not recorded (the SwiftUI tables come back empty with all-process recording).
