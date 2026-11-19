@@ -328,7 +328,9 @@ final class DrawerPerformanceTests: XCTestCase {
 
         // Scrolling: 300 pt steps down the transcript.
         let scrollViews = Self.descendants(of: host.view, as: UIScrollView.self).filter { !($0 is UITextView) }
-        if let scroll = scrollViews.max(by: { $0.contentSize.height < $1.contentSize.height }) {
+        let mainScroll = scrollViews.max(by: { $0.contentSize.height < $1.contentSize.height })
+        var lastScrollOffset: CGFloat = 0
+        if let scroll = mainScroll {
             record(fixture.name, "content_height_pt", Double(scroll.contentSize.height))
             var steps: [Double] = []
             let limit = max(0, scroll.contentSize.height - scroll.bounds.height)
@@ -340,6 +342,7 @@ final class DrawerPerformanceTests: XCTestCase {
                     scroll.layoutIfNeeded()
                 })
             }
+            lastScrollOffset = offset
             if !steps.isEmpty {
                 recordSamples(fixture.name, "scroll_step", steps)
                 record(fixture.name, "scroll_steps_over_16ms", Double(steps.filter { $0 > 16.7 }.count))
@@ -347,13 +350,65 @@ final class DrawerPerformanceTests: XCTestCase {
             }
         }
 
-        // One more finished run arrives in the conversation.
+        // One more finished run arrives in the conversation (stand-in: restoreConversation).
         if fixture.runs > 0 {
             let grown = Self.conversation(runs: fixture.runs + 1, shapePosts: fixture.shapePosts)
             record(fixture.name, "new_run_ms", mainThreadMilliseconds(settle: 0.3) {
                 app.browserAgent.restoreConversation(grown)
             })
+
+            // Real path: one more run appended by `send` through a recorded model client.
+            let cleanupDeadline = Date().addingTimeInterval(2)
+            while ChatScrollProbe.isSettling, Date() < cleanupDeadline {
+                RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            }
+            app.selectModel(ModelSelection(provider: .ollama, model: "llama3.1"), for: .role(.browserAgent))
+            app.browserAgent.restoreConversation(Self.conversation(runs: fixture.runs, shapePosts: fixture.shapePosts))
+            host.view.layoutIfNeeded()
+            if let scroll = mainScroll {
+                let clamp = max(0, min(lastScrollOffset, scroll.contentSize.height - scroll.bounds.height))
+                scroll.setContentOffset(CGPoint(x: 0, y: clamp), animated: false)
+                scroll.layoutIfNeeded()
+            }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+
+            let nextIndex = fixture.runs
+            let toolTurns = (1...3).map { step -> Result<AgentModelTurnResponse, Error> in
+                .success(AgentModelTurnResponse(
+                    text: "", toolCalls: [AgentModelToolCall(id: "send_\(nextIndex)_\(step)", name: "wait_for", arguments: ["ms": .int(1)])],
+                    usage: AgentTokenUsage(inputTokens: 9_000, outputTokens: 80)
+                ))
+            }
+            let client = RecordedModelClient(toolTurns + [
+                .success(AgentModelTurnResponse(text: Self.reply(nextIndex), usage: AgentTokenUsage(inputTokens: 9_000, outputTokens: 300)))
+            ])
+            app.browserAgent.configureDebugModelClient(client)
+
+            PerfProbe.reset()
+            let sendMs = sendRunMilliseconds(app: app, prompt: "What does the thread say about question \(nextIndex)?")
+            let sendProbe = PerfProbe.snapshot
+            XCTAssertEqual(app.browserAgent.runs.count, fixture.runs + 1, "Recorded send did not append a run")
+            XCTAssertFalse(app.browserAgent.isRunning, "Recorded send did not finish")
+            record(fixture.name, "send_run_ms", sendMs)
+            record(fixture.name, "send_run_sections", Double(sendProbe.counts["BrowserAgentRunsView.runSection"] ?? 0))
+            record(fixture.name, "send_block_bodies", Double(sendProbe.counts["MarkdownBlockView.body"] ?? 0))
         }
+    }
+
+    /// Runs a prompt through `browserAgent.send` and spins the main run loop until both the turn
+    /// and the transcript's settle-to-bottom task finish; returns main-thread busy milliseconds.
+    private func sendRunMilliseconds(app: AppModel, prompt: String) -> Double {
+        let meter = BusyMeter()
+        let start = DispatchTime.now().uptimeNanoseconds
+        app.browserAgent.send(prompt)
+        CATransaction.flush()
+        let sync = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000
+        let deadline = Date().addingTimeInterval(5.0)
+        while (app.browserAgent.isRunning || ChatScrollProbe.isSettling), Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+        }
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        return (sync + meter.busy) * 1_000
     }
 
     /// The composer by itself, its draft in a small view of its own: what a keystroke costs

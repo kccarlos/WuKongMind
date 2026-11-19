@@ -275,9 +275,11 @@ final class DrawerRenderCountTests: XCTestCase {
         XCTAssertGreaterThan(opened.counts["DrawerSummary.body"] ?? 0, 0)
         XCTAssertGreaterThan(opened.counts["DrawerSummarySections.body"] ?? 0, 0)
         XCTAssertGreaterThan(opened.counts["MarkdownBlockView.body"] ?? 0, 0)
-        XCTAssertEqual(opened.counts["BrowserAgentRunsView.runSection"] ?? 0, 5)
+        // Only the initial LazyVStack window + eager newest run evaluate on open, not all 5 runs.
+        XCTAssertLessThanOrEqual(opened.counts["BrowserAgentRunsView.runSection"] ?? 0, 3)
+        XCTAssertGreaterThanOrEqual(opened.counts["BrowserAgentRunsView.runSection"] ?? 0, 1)
         XCTAssertEqual(opened.counts["BrowserAgentRunsView.timeline"] ?? 0, 1)
-        XCTAssertEqual(opened.counts["BrowserAgentRunsView.forumSources"] ?? 0, 5)
+        XCTAssertLessThanOrEqual(opened.counts["BrowserAgentRunsView.forumSources"] ?? 0, 3)
         XCTAssertEqual(opened.counts["AssistantPanel.matchingPageScripts"] ?? 0, 1)
 
         var browserPublishes = 0
@@ -473,5 +475,70 @@ final class DrawerRenderCountTests: XCTestCase {
         app.siteToolStateStore.forget(host: "meta.discourse.org")
         XCTAssertGreaterThan(app.siteToolStateStore.currentRevision, rev1)
         XCTAssertNil(app.siteToolStateStore.state(forURL: topicURL))
+    }
+
+    // MARK: Lazy transcript (task 6)
+
+    func testLazyTranscriptOpensWithoutOffscreenRunsAndSettlesToBottom() throws {
+        UIView.setAnimationsEnabled(false)
+        defer { UIView.setAnimationsEnabled(true) }
+
+        let app = DrawerPerformanceTests.makeApp(.init(name: "lazy-60", runs: 60))
+        app.selectModel(ModelSelection(provider: .ollama, model: "llama3.1"), for: .role(.browserAgent))
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+        defer {
+            window.isHidden = true
+            window.rootViewController = nil
+        }
+
+        PerfProbe.reset()
+        let host = UIHostingController(rootView: AnyView(
+            AssistantPanel(app: app, onExpand: { _ in }).environment(\.colorScheme, .light)
+        ))
+        window.rootViewController = host
+        window.makeKeyAndVisible()
+        host.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.3))
+
+        // O(1) run sections evaluate on open (eager newest run + initial LazyVStack window), never all 60.
+        let openSections = PerfProbe.snapshot.counts["BrowserAgentRunsView.runSection"] ?? 0
+        XCTAssertGreaterThanOrEqual(openSections, 1)
+        XCTAssertLessThanOrEqual(openSections, 4)
+
+        let scroll = try XCTUnwrap(
+            DrawerPerformanceTests.descendants(of: host.view, as: UIScrollView.self)
+                .filter { !($0 is UITextView) }
+                .max(by: { $0.contentSize.height < $1.contentSize.height })
+        )
+        // Sheet detent settlement shrinks the viewport right after open; an idle drawer opened at the top stays at the top.
+        window.frame = CGRect(x: 0, y: 0, width: 393, height: 760)
+        host.view.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        XCTAssertLessThanOrEqual(scroll.contentOffset.y, 1, "Opening an idle drawer must stay at the top across sheet settlement")
+
+        // Append run 60 via `send` and settle to the bottom.
+        let client = RecordedModelClient([
+            .success(AgentModelTurnResponse(text: "", toolCalls: [AgentModelToolCall(id: "c1", name: "wait_for", arguments: ["ms": .int(1)])])),
+            .success(AgentModelTurnResponse(text: DrawerPerformanceTests.reply(60)))
+        ])
+        app.browserAgent.configureDebugModelClient(client)
+        PerfProbe.reset()
+        app.browserAgent.send("What does the thread say about question 60?")
+        let deadline = Date().addingTimeInterval(4)
+        while (app.browserAgent.isRunning || ChatScrollProbe.isSettling), Date() < deadline {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+        }
+        RunLoop.current.run(until: Date().addingTimeInterval(0.08))
+        host.view.layoutIfNeeded()
+
+        let afterSend = PerfProbe.snapshot
+        XCTAssertEqual(app.browserAgent.runs.count, 61)
+        XCTAssertLessThanOrEqual(afterSend.counts["ChatThread.body"] ?? 0, 4)
+        XCTAssertLessThan(afterSend.counts["BrowserAgentRunsView.runSection"] ?? 0, 15)
+
+        let distance = scroll.contentSize.height - (scroll.contentOffset.y + scroll.bounds.height)
+        XCTAssertLessThan(distance, TranscriptFollow.nearBottomThreshold, "Settle loop must land at the bottom")
     }
 }
