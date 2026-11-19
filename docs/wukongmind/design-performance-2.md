@@ -12,8 +12,8 @@ The owner's report (1.5.1, TestFlight, iPhone 13):
 
 ## The short version
 
-- **Share: a blank screen reproduced, one step later than expected.** The app's own share sheet and the Files picker opened on every thread size. The blank screen comes when the text is handed on: Share › Messages with a 1.8 or 2.1 million character thread shows an empty sheet for at least 15 s (three runs); with a 7,000 character thread the message opens with the text in it (two runs). The app hands the system one in-memory string, and the receiving app has to draw all of it. Whether this is the blank screen the owner saw is not confirmed, and **a blank screen on Export .txt was not reproduced**.
-- **Drawer open: the cost is building and drawing everything in the transcript, every time.** The sheet is rebuilt on each open, and a summary card in the conversation is not lazy. From finger lift to the sheet's first frame: **141 ms** when the summary is the lazy one at the top (the owner's real thread), **365 ms** for a summary of similar length as a card (the fixture's text, not the same one), **629 ms** for a Chinese summary card half as long. Then the system's sheet animation runs, with a 100 to 200 ms stall for drawing text at its start.
+- **Share: a blank screen reproduced, one step later than expected.** The app's own share sheet and the Files picker opened on every thread size. The blank screen comes when the text is handed on: Share › Messages with a 1.8 or 2.1 million character thread shows an empty sheet for at least 15 s (two runs, one on each long thread); with a 7,000 character thread the message opens with the text in it (two runs). The app hands the system one in-memory string, and the receiving app has to draw all of it. Whether this is the blank screen the owner saw is not confirmed, and **a blank screen on Export .txt was not reproduced**.
+- **Drawer open: the cost is building and drawing everything in the transcript, every time.** The sheet is rebuilt on each open, and a summary card in the conversation is not lazy. From finger lift to the sheet's first frame: **141 to 151 ms** when the summary is the lazy one at the top (the owner's real thread), **365 ms** for a summary of similar length as a card (the fixture's text, not the same one), **629 ms** for a Chinese summary card half as long. Then the system's sheet animation runs, with a 100 to 200 ms stall for drawing text at its start.
 - **Chinese costs more than English because cited text is one view per Chinese character** (one per word in English). Drawing text and making its layers is 48 % of the open.
 - **Thread length no longer matters for opening** (20 or 6,000 comments: 365 against 378 ms). What matters is how much the conversation holds: summary blocks and runs.
 - **The optimized build is not much faster than Debug** where both were measured: the hosted panel's numbers on the phone are within 0 to 25 % of the first page's latest Debug ones. The time is in SwiftUI, UIKit and CoreText, not in the app's own code (an app frame is on the stack in 9 % of the samples of an open).
@@ -42,13 +42,13 @@ Medians of six opens, milliseconds from finger lift (range of the first frame in
 
 | Case | Summary blocks built | Tap handler | `.presenting` | `.shown` | First frame | Main thread busy, first 1.3 s | Longest pass after the first frame |
 |---|---|---|---|---|---|---|---|
-| Real thread, saved summary at the top (lazy) | 5 | 8 to 11 | 22 to 26 | 99 to 104 | **141 to 146** (135 to 154) | 172 | 20 |
+| Real thread, saved summary at the top (lazy) | 5 | 8 to 18 | 22 to 32 | 99 to 109 | **141 to 151** (135 to 160) | 172 | 20 |
 | 20 comments, summary card, English, 2,606 characters | 41 | 18 | 37 | 230 | **365** (349 to 373) | 605 | 169 to 203 |
 | 6,000 comments, the same summary card | 41 | 18 to 21 | 35 to 39 | 234 | **376 to 378** (364 to 393) | 624 to 638 | 161 to 209 |
 | 20 comments, summary card, Chinese, 1,310 characters | 41 | 11 | 33 | 349 | **629** (623 to 638) | 890 | 99 |
 | First open after launch, nothing summarized | 0 to 4 | 10 to 22 | 28 to 39 | 113 to 215 | 141 to 275 | 131 to 285 | none |
 
-- Two runs of the real thread and two of each fixture agree within 15 ms.
+- Three runs of the real thread (medians 141, 146 and 151 ms) and two of each fixture agree within 15 ms.
 - Per open, every case: `ContentView.body` 3 times, `AssistantPanel.body` 3 times, one run section, and every summary block of the card (41) against 5 for the lazy summary.
 - Instruments' Hangs track reports each of the five traced opens as a microhang of 359 to 376 ms.
 - The whole open is one run loop pass from the tap to the first frame (the display link is silent for 345 to 373 ms), then a second pass of 100 to 200 ms that draws the text while the sheet is already moving.
@@ -100,7 +100,7 @@ Runs on the phone: three thread sizes at the large drawer height (each twice or 
 | Building the export text (main thread) | 1 to 2 ms | 63 to 76 ms | 71 to 79 ms |
 | Share: main-thread passes after the tap | 179 to 248 ms, then 31 | 337, then 35 to 62 | 290 to 325, then 229 to 367 |
 | The app's share sheet | shown | shown | shown (large and medium) |
-| **Share › Messages** | **the message opens with the text** (2 runs: English and Chinese summary) | **blank sheet for the 15 s watched** (1 run) | **blank sheet for the 15 s watched** (2 runs) |
+| **Share › Messages** | **the message opens with the text** (2 runs: English and Chinese summary) | **blank sheet for the 15 s watched** (1 run) | **blank sheet for the 15 s watched** (1 run) |
 | Export .txt: main-thread passes after the tap | 59, then 72 | 138, then 83 | 111, then 185 |
 | The Files picker | shown | shown | shown; its file list was still empty 3.9 s after the tap in one run of three |
 
@@ -131,7 +131,7 @@ Runs on the phone: three thread sizes at the large drawer height (each twice or 
 
 ## 2. Causes, ranked by what the owner feels
 
-1. **Share hands the system 1.8 million characters as one string.** Blank screen in the receiving app in all three runs on the two long threads, and in neither run on the short one. A correctness bug more than a speed one. Only Messages was tried.
+1. **Share hands the system 1.8 million characters as one string.** Blank screen in the receiving app in both runs on the long threads (one each), and in neither run on the short one. A correctness bug more than a speed one. Only Messages was tried.
 2. **The drawer builds, lays out and draws its whole transcript on every open.** `.sheet` makes `AssistantPanel` from nothing each time (`AIDrawer.swift:50`), and the summary card and the runs are in plain `VStack`s (`AgentPanel.swift`, `DCResultCard` in `ConversationViews.swift:275`), so cost follows content, not what is visible: 141 ms lazy against 365 ms as a card for summaries of similar length (different text and page, so the gap is indicative; the block counts, 5 against 41, are exact); 119 to 637 ms hosted from 5 to 60 runs.
 3. **Cited text is one `Text` per word, and one per Chinese character** (`CitedText.tokens`, `MarkdownView.swift:787`: a wide character ends a token). Half the characters, 1.7 times the time: 629 ms against 365 ms. Text drawing and its layers are 48 % of an open.
 4. **No feedback on touch down.** `PhoneAIButton` is a bare `onTapGesture` with `onLongPressGesture` (`PhoneBrowserBar.swift:1888`): nothing changes on screen and the haptic (`ContentView.openAssistant`) comes at lift. The handler runs 4 to 23 ms after lift, so the gesture itself adds no delay; the press does.
@@ -202,7 +202,7 @@ Sizes count changed lines, tests included. Phone numbers are the iPhone 13 with 
 
 ### 5. Text selection on demand
 - **Why:** cause 6. Gated: only if task 3 leaves more than 20 ms of it per open.
-- **Scope:** `AgentPanel.swift`, `ConversationViews.swift`: `.textSelection(.enabled)` only on blocks on screen, or switched on by a long press.
+- **Scope:** `AgentPanel.swift` (`:444` to `:781`), `MarkdownView.swift:592`, `ConversationViews.swift:506`: `.textSelection(.enabled)` only on blocks on screen, or switched on by a long press.
 - **Size:** about 80. **Depends on:** 3.
 - **Done when:** no `UITextInteractionAssistant` frame in a trace of five opens; selecting and copying a paragraph works as before.
 
