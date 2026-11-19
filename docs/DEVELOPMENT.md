@@ -485,7 +485,8 @@ DEBUG builds read these arguments for QA and screenshots. Set them in Xcode
 `xcrun simctl launch <device> io.github.kccarlos.wukongmind <args>`.
 They never overwrite real saved data, and Release builds ignore them.
 `scripts/audit-release-binary.sh <WukongMind.app>` checks that on a built app:
-it fails if the binary reads launch arguments at all, holds any `-dc-` literal
+it fails if the binary sends `ProcessInfo`'s `arguments` selector or imports
+Swift's `CommandLine`, holds any `-dc-` literal
 or DEBUG-only symbol, or uses the private selectors of the DEBUG test helpers
 (see [app-store-code-audit.md](wukongmind/app-store-code-audit.md), section 5).
 

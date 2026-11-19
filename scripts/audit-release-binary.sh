@@ -19,8 +19,9 @@
 #
 # Limits: Swift keeps string literals of 15 bytes or fewer inside the
 # instruction stream, so `strings` cannot see them. Short literals are covered
-# by the selector and symbol checks instead: with no `arguments` selector the
-# binary never reads its launch arguments, whatever literals it holds.
+# by the selector and symbol checks instead: a binary that neither sends
+# ProcessInfo's `arguments` selector nor imports Swift's CommandLine has no
+# public way to read its launch arguments, whatever literals it holds.
 # shellcheck disable=SC2001 # sed keeps the multi-line indents readable
 set -uo pipefail
 
@@ -107,6 +108,8 @@ for bundle in "$@"; do
   if [[ -n "$sels" ]]; then echo "$sels" | sed 's/^/   FOUND /'; fail=1; else echo "   none"; fi
   c="$(grep -c -x -F arguments <<<"$sent" || true)"
   echo "   'arguments' (ProcessInfo launch arguments; expect 0): $c"; [[ "$c" == 0 ]] || fail=1
+  c="$(grep -c -F 11CommandLine <<<"$undefined" || true)"
+  echo "   Swift CommandLine imports (expect 0): $c"; [[ "$c" == 0 ]] || fail=1
 
   c="$(grep -c -E "$DEBUG_SYMBOLS" <<<"$symbols" || true)"
   echo "-- DEBUG-only symbols among $(grep -c . <<<"$symbols" | tr -d ' ') (expect 0): $c"; [[ "$c" == 0 ]] || fail=1
