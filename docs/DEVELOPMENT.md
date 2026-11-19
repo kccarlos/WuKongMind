@@ -250,6 +250,26 @@ TEST_RUNNER_DC_PERF_TRACE=1 scripts/device-check.sh test --xctrace SwiftUI --xct
   -only-testing:WukongMindUITests/LongThreadDrawerPerfUITests/testLongFixtureThread
 ```
 
+Tap to first frame, Share and Export (design, numbers and follow-up tasks:
+[design-performance-2.md](wukongmind/design-performance-2.md)):
+
+```sh
+# An optimized build that keeps the DEBUG hooks (TestFlight is optimized; Release has no hooks)
+printf 'SWIFT_OPTIMIZATION_LEVEL = -O\nSWIFT_COMPILATION_MODE = wholemodule\nGCC_OPTIMIZATION_LEVEL = s\nENABLE_TESTABILITY = YES\n' > "$OUT/opt.xcconfig"
+# First open, six opens of a summarized thread, then Share and Export .txt with screenshots
+XCODE_XCCONFIG_FILE="$OUT/opt.xcconfig" scripts/device-check.sh test --out "$OUT/run" --derived-data "$OUT/dd-opt" \
+  -only-testing:WukongMindUITests/LongThreadDrawerPerfUITests/testOpenShareExportLongThread
+# What saved threads cost at launch (generated state in a temporary folder)
+scripts/remote-test.sh -only-testing:WukongMindTests/DrawerPerformanceTests/testStateLoadScalesWithSavedThreads
+```
+
+- `testOpenShareExport…` (short, long, Chinese summary, and a real page with `TEST_RUNNER_DC_PERF_URL`) prints
+  `DRAWER-OPEN-PERF` lines: the app's `perfTimeline` element after each tap, in milliseconds from the touch
+  down (`m:` a named moment, `f:` the first display-link tick after it, `h:name=first/last×count` a probed
+  view body, `s:` a timed span, `p:start+length` a main run loop pass of 8 ms or more, `g:` a display-link gap).
+  `TEST_RUNNER_DC_PERF_DETENT=medium` keeps the drawer at its opening height for Share and Export;
+  `TEST_RUNNER_DC_PERF_SHARE_TARGET=Messages` hands the text to that app from the share sheet and watches its
+  screen for 15 s (nothing is sent; the app is terminated).
 - `DrawerPerformanceTests` prints `PERF<tab>case<tab>metric<tab>value` lines (also attached as
   `drawer-perf.tsv`). Times are main-thread milliseconds for one action, measured around the run
   loop pass that renders it; counts are view body evaluations from `PerfProbe` (DEBUG only and off unless
