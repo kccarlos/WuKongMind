@@ -109,22 +109,22 @@ Earlier timeline items now sit in an `Equatable` `EarlierConversationItemsView` 
 
 Thread as the app held it: 6,185 posts, `TopicSession.source` 1,828,529 characters, summary 2,753 characters, one Agent run. Two fixture threads ran through the same test as controls. The test drives the app through XCUITest, whose own accessibility snapshots cost about 0.3 s of app main-thread time per typed character: the 20-comment row is that floor.
 
-| Typing 30 characters | 20 comments (fixture) | 6,000 comments (fixture) | Real thread, 6,185 |
+| Typing 30 characters (before Debug → after WUKO-164 opt-Debug) | 20 comments (fixture) | 6,000 comments (fixture) | Real thread, 6,185 |
 |---|---|---|---|
-| Main-thread time per keystroke | 320 ms | 570 ms | **1,985 ms** |
-| of which building export text | 2 ms | 299 ms | **1,527 ms** |
-| Panel renders per keystroke | 1.1 | 1.1 | **5.7** |
-| Export text builds per keystroke | 5.5 | 5.5 | **28.3** |
-| Browser model publishes per keystroke | 0.07 | 0.07 | **11.2** |
-| Run loop passes over 250 ms | 0 | 31 | **97** |
-| Run loop passes over 1 s | 0 | 0 | **18** |
+| Main-thread time per keystroke | 320 → **169.6 ms** | 570 → **176.2 ms** | 1,985 → **312.0 ms** (3 runs: 309.1, 312.0, 317.5) |
+| of which building export text | 2 → **0 ms** | 299 → **0 ms** | 1,527 → **0 ms** |
+| Panel renders (`AssistantPanel.body`) per keystroke | 1.1 → **0.07** | 1.1 → **0.07** | 5.7 → **2.00** (`ChatThread.body`: **0.00**, `runSection`: **0.00**) |
+| Export text builds per keystroke | 5.5 → **0** | 5.5 → **0** | 28.3 → **0** |
+| Browser model publishes per keystroke | 0.07 → **0.07** (`DrawerPageFacts`: **0**) | 0.07 → **0.07** (`DrawerPageFacts`: **0**) | 11.2 → **2.00** (`DrawerPageFacts`: **0**) |
+| Run loop passes over 250 ms | 0 → **0** | 31 → **0** | 97 → **0** |
+| Run loop passes over 1 s | 0 → **0** | 0 → **0** | 18 → **0** |
 
-| Other actions | 20 comments | 6,000 comments | Real thread |
+| Other actions (before Debug → after WUKO-164 opt-Debug) | 20 comments | 6,000 comments | Real thread |
 |---|---|---|---|
-| Close and reopen the drawer, main-thread time | 3.9 s | 6.7 s | 5.7 s |
-| of which building export text | 0.02 s | 2.4 s | 2.4 s |
-| One swipe of the transcript | 600 ms | 664 ms | 491 ms |
-| Idle for 5 s | 372 ms | 522 ms | 477 ms |
+| Close and reopen the drawer, main-thread time | 3.9 → **2.22 s** | 6.7 → **2.51 s** | 5.7 → **2.76 s** (2.62 to 2.79 s) |
+| of which building export text | 0.02 → **0 s** | 2.4 → **0 s** | 2.4 → **0 s** |
+| One swipe of the transcript | 600 → **671 ms** | 664 → **654 ms** | 491 → **494 ms** (490 to 510 ms) |
+| Idle for 5 s | 372 → **320 ms** | 522 → **501 ms** | 477 → **442 ms** (434 to 450 ms) |
 
 - Scrolling the transcript does not re-render the panel (0 renders in 8 swipes), so it does not depend on thread length. What the owner felt as "the drawer is slow" is the renders: typing, opening, and anything that publishes while the drawer is up.
 - Two more runs of the real thread gave 1,873 and 1,978 ms per keystroke: the result repeats.
@@ -146,21 +146,22 @@ Heaviest stack of the longest hang: `AssistantPanel.body` → `drawerThread` →
 
 One keystroke renders the panel once here (no browser publishes), so these are per-render costs.
 
-| Fixture | Open | Keystroke (median) | Unrelated publish | Scroll step (median) | Steps over 16.7 ms | One more run |
+| Fixture (before Debug → after WUKO-164 opt-Debug) | Open | Keystroke (median) | Unrelated publish | Scroll step (median) | Steps over 16.7 ms | One more run (`new_run` / `send`) |
 |---|---|---|---|---|---|---|
-| Composer by itself | | **6.9 ms** | | | | |
-| Baseline (short summary, no posts, no runs) | 93 ms | 42 ms | 47 ms | 32 ms | 7 of 10 | |
-| Posts: 100 | 93 ms | 55 ms | 56 ms | 33 ms | 8 of 10 | |
-| Posts: 500 | 116 ms | 60 ms | 62 ms | 34 ms | 8 of 10 | |
-| Posts: 2,000 | 208 ms | 148 ms | 149 ms | 34 ms | 8 of 10 | |
-| Posts: 6,000 | 448 ms | **383 ms** | 387 ms | 38 ms | 8 of 10 | |
-| Summary: 15 sections | 95 ms | 51 ms | 55 ms | 44 ms | 21 of 26 | |
-| Summary: 30 sections | 119 ms | 59 ms | 61 ms | 57 ms | **40 of 40** | |
-| Summary: 60 sections | 125 ms | 60 ms | 60 ms | 60 ms | 40 of 40 | |
-| Conversation: 5 runs | 141 ms | 49 ms | 51 ms | 17 ms | 9 of 17 | 134 ms |
-| Conversation: 20 runs | 305 ms | 59 ms | 59 ms | 15 ms | 18 of 39 | 687 ms |
-| Conversation: 60 runs | **658 ms** | 60 ms | 59 ms | 16 ms | 14 of 40 | **2,144 ms** |
-| Everything: 6,000 posts, 30 sections, 20 runs | 666 ms | 412 ms | 413 ms | 81 ms | 40 of 40 | 589 ms |
+| Composer by itself | | 6.9 → **5.8 ms** | | | | |
+| Baseline (short summary, no posts, no runs) | 93 → **58.4 ms** | 42 → **13.1 ms** | 47 → **1.7 ms** | 32 → **19.1 ms** | 7/10 → **7/10** | |
+| Posts: 100 | 93 → **61.9 ms** | 55 → **14.8 ms** | 56 → **2.2 ms** | 33 → **19.6 ms** | 8/10 → **6/10** | |
+| Posts: 500 | 116 → **56.9 ms** | 60 → **13.3 ms** | 62 → **1.6 ms** | 34 → **19.8 ms** | 8/10 → **7/10** | |
+| Posts: 2,000 | 208 → **64.6 ms** | 148 → **13.6 ms** | 149 → **1.9 ms** | 34 → **20.1 ms** | 8/10 → **7/10** | |
+| Posts: 6,000 | 448 → **56.6 ms** | 383 → **13.7 ms** | 387 → **1.8 ms** | 38 → **19.3 ms** | 8/10 → **7/10** | |
+| Summary: 15 sections | 95 → **66.7 ms** | 51 → **13.3 ms** | 55 → **1.6 ms** | 44 → **16.4 ms** | 21/26 → **11/27** | |
+| Summary: 30 sections | 119 → **72.4 ms** | 59 → **13.8 ms** | 61 → **1.6 ms** | 57 → **17.7 ms** | 40/40 → **26/40** | |
+| Summary: 30 sections (Chinese) | — → **86.0 ms** | — → **13.7 ms** | — → **1.7 ms** | — → **18.0 ms** | — → **32/40** | |
+| Summary: 60 sections | 125 → **69.1 ms** | 60 → **14.1 ms** | 60 → **1.7 ms** | 60 → **17.8 ms** | 40/40 → **28/40** | |
+| Conversation: 5 runs | 141 → **68.1 ms** | 49 → **14.0 ms** | 51 → **1.7 ms** | 17 → **17.2 ms** | 9/17 → **9/18** | 134 → **52.8** / **141.0 ms** |
+| Conversation: 20 runs | 305 → **61.7 ms** | 59 → **13.8 ms** | 59 → **1.7 ms** | 15 → **18.2 ms** | 18/39 → **24/39** | 687 → **67.8** / **269.7 ms** |
+| Conversation: 60 runs | 658 → **60.7 ms** | 60 → **15.0 ms** | 59 → **1.7 ms** | 16 → **18.6 ms** | 14/40 → **24/40** | 2,144 → **51.1** / **307.6 ms** |
+| Everything: 6,000 posts, 30 sections, 20 runs | 666 → **66.6 ms** | 412 → **15.1 ms** | 413 → **1.7 ms** | 81 → **18.7 ms** | 40/40 → **35/40** | 589 → **55.8** / **127.9 ms** |
 
 Deterministic counts per keystroke, the same on every run and on the simulator:
 
@@ -380,8 +381,14 @@ Nine tasks and one acceptance task. Sizes count changed lines, tests included.
 - Provider-wide checks have no model target. A role without a model can show its own validation message and still waits for a model in first-run setup. A check can update or clear its result only while it owns that provider's pending status.
 
 ### 10. Acceptance
-- **Scope:** run both measurement suites and one Instruments trace on the iPhone 13 on the owner's thread; update the tables on this page with before and after; list any target missed and why.
+- **Status:** done in WUKO-164 (2026-11-19, `68d074d`, iPhone 13, optimized Debug, measurement only; extended by task 7 of [design-performance-2.md](design-performance-2.md)).
+- **Scope:** run both measurement suites (`DrawerPerformanceTests` and `LongThreadDrawerPerfUITests`) and one Instruments Time Profiler trace on the iPhone 13 on the owner's thread; update the tables on this page with before and after; list any target missed and why.
 - **Done when:** on the real thread, typing costs within 20 % of the 20-comment control, no run loop pass is over 250 ms while typing, and the trace reports no hang.
+- **Verdict per target:**
+  - **No run loop pass > 250 ms while typing:** **Met** — `0` passes > 250 ms (and `0` > 500 ms / > 1 s) across all three `real-page` runs, `fixture-6000` and `fixture-20` (down from 97 > 250 ms and 18 > 1 s on `real-page`).
+  - **Instruments trace reports no hang:** **Met** — `0` hangs and `0` microhangs (> 250 ms) in the 41.0 s Time Profiler trace of `testRealLongThread` (down from 82: 18 Hangs + 64 Microhangs).
+  - **Real-thread typing within 20 % of 20-comment control (`≤ 203.5 ms/key`):** **Not met** — `real-page` is **312.0 ms/key** (three runs: `309.1`, `312.0`, `317.5 ms/key`, down 6.4× from `1,985 ms/key`) against `169.6 ms/key` on `fixture-20` (**1.84×**, gap **+108.5 ms/key**; `fixture-6000` is `176.2 ms/key`, +3.9 %). Time Profiler (`6,557 ms` WukongMind main-thread CPU) shows `2,661 ms` (40.6 %) in per-keystroke hardware↔software keyboard toggles (`setInHardwareKeyboardMode` / `setKeyWindowSceneInputViews`) publishing `ForumBrowserModel` twice per keystroke (`60` publishes and `60` `AssistantPanel.body` evaluations vs. `2` on the fixtures; `ChatThread.body`, `runSection`, `DrawerPageFacts` and `TopicExportPayload.text` are all `0`), `2,545 ms` (38.8 %) in XCUITest accessibility snapshots of the SwiftUI drawer (only `3 ms` in `WKWebView`), `918 ms` (14.0 %) in SwiftUI/AttributeGraph composer & layout, and `430 ms` (6.6 %) in the DEBUG `PerfProbeState` timer.
+  - **Earlier hosted targets:** `runs-60` open (**60.7 ms** ≤ 300 ms), `all-6000` open (**66.6 ms** ≤ 300 ms), `runs-60` `new_run_ms` (**51.1 ms** ≤ 150 ms), `summary-30` scroll median (**17.7 ms** ≤ 20 ms), and unrelated publish (**1.6–2.2 ms** ≤ 5 ms) are all **Met**. Hosted keystroke median (**13.1–15.1 ms** vs. ≤ 12 ms, gap +1.1 to +3.1 ms; all under 16.7 ms) and `summary-30` scroll steps > 16.7 ms (**26/40** vs. ≤ 10/40, gap +16 steps; `baseline` is 7/10 at 19.1 ms) are **Not met**. See [design-performance-2.md, section 6](design-performance-2.md#6-proposed-follow-ups-unmet-targets) for the ranked follow-up list.
 
 ## 5. Not proven here
 
