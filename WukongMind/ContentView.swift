@@ -27,6 +27,7 @@ struct ContentView: View {
     }
 
     var body: some View {
+        let _ = PerfProbe.hit("ContentView.body")
         GeometryReader { proxy in
             ContentWorkspaceStage(
                 app: app,
@@ -49,6 +50,9 @@ struct ContentView: View {
             if AssistantDebug.has("-dc-state-debug"), router.drawerPhase != .shown {
                 AppStateDigestDebugView(app: app)
             }
+        }
+        .overlay(alignment: .bottomLeading) {
+            if AssistantDebug.has("-dc-perf-probe") { PerfTimelineState() }
         }
         #endif
         .task {
@@ -196,7 +200,9 @@ struct ContentView: View {
     }
 
     private func openAssistant() {
+        PerfProbe.mark("tap.handler")
         DCHaptics.tap()
+        PerfProbe.mark("haptic.done")
         if router.usesDrawer, router.wantsDrawer {
             router.closeDrawer()
             return

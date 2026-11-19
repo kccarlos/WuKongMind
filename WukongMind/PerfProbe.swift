@@ -1,5 +1,11 @@
 import Foundation
 import os
+#if DEBUG
+import Combine
+import SwiftUI
+import UIKit
+import UIKit.UIGestureRecognizerSubclass
+#endif
 
 /// Counts and times the drawer's hot paths (docs/wukongmind/design-performance-and-state.md).
 ///
@@ -26,6 +32,13 @@ enum PerfProbe {
         signposter.emitEvent(name)
         let key = "\(name)"
         state.withLock { $0.counts[key, default: 0] += 1 }
+        PerfTimeline.hit(key)
+    }
+
+    /// A named moment in the timeline of the current touch (`PerfTimeline`).
+    static func mark(_ name: @autoclosure () -> String) {
+        guard isEnabled else { return }
+        PerfTimeline.mark(name())
     }
 
     static func time<T>(_ name: StaticString, _ body: () throws -> T) rethrows -> T {
@@ -36,6 +49,7 @@ enum PerfProbe {
             let elapsed = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000
             signposter.endInterval(name, interval)
             let key = "\(name)"
+            PerfTimeline.span(key, start: Double(start) / 1_000_000_000, seconds: elapsed)
             state.withLock {
                 $0.counts[key, default: 0] += 1
                 $0.seconds[key, default: 0] += elapsed
@@ -86,6 +100,7 @@ enum PerfProbe {
                 guard let start = passStartedAt else { return }
                 passStartedAt = nil
                 let seconds = Double(DispatchTime.now().uptimeNanoseconds - start) / 1_000_000_000
+                PerfTimeline.pass(start: Double(start) / 1_000_000_000, seconds: seconds)
                 mainThread.withLock { report in
                     report.passes += 1
                     report.busySeconds += seconds
@@ -99,6 +114,197 @@ enum PerfProbe {
     }
     #else
     @inline(__always) static func hit(_ name: StaticString) {}
+    @inline(__always) static func mark(_ name: @autoclosure () -> String) {}
     @inline(__always) static func time<T>(_ name: StaticString, _ body: () throws -> T) rethrows -> T { try body() }
     #endif
 }
+
+#if DEBUG
+/// What the main thread did after one touch (docs/wukongmind/design-performance-2.md), with `-dc-perf-probe`.
+///
+/// A window opens at a touch down and closes 3 s after the touch up. In it: the touch's own
+/// times (when the screen was touched, when the app was told), `PerfProbe.mark` moments, the first
+/// and last `PerfProbe.hit` of each name, `PerfProbe.time` spans, every main run loop pass of 8 ms
+/// or more, display-link gaps over 34 ms, and the first display-link tick after each mark. All in
+/// milliseconds from the touch down. The closed window is the `perfTimeline` accessibility
+/// element's label; a UI test taps, waits without asking the app anything, then reads it.
+/// Main thread only; measurement only.
+enum PerfTimeline {
+    final class Store: ObservableObject {
+        @Published var text = ""
+    }
+
+    @MainActor static let store = Store()
+    nonisolated(unsafe) private static var origin: Double?
+    nonisolated(unsafe) private static var generation = 0
+    nonisolated(unsafe) private static var windows = 0
+    nonisolated(unsafe) private static var marks: [(name: String, at: Double)] = []
+    nonisolated(unsafe) private static var hits: [String: (first: Double, last: Double, count: Int)] = [:]
+    nonisolated(unsafe) private static var hitOrder: [String] = []
+    nonisolated(unsafe) private static var spans: [(name: String, at: Double, seconds: Double)] = []
+    nonisolated(unsafe) private static var passes: [(at: Double, seconds: Double)] = []
+    nonisolated(unsafe) private static var gaps: [(at: Double, seconds: Double)] = []
+    nonisolated(unsafe) private static var awaitingFrame: [String] = []
+    nonisolated(unsafe) private static var frames: [(name: String, at: Double)] = []
+    nonisolated(unsafe) private static var lastTick: Double?
+    nonisolated(unsafe) private static var link: CADisplayLink?
+    nonisolated(unsafe) private static var ticker: Ticker?
+    nonisolated(unsafe) private static var windowObserver: NSObjectProtocol?
+
+    private static var now: Double { Double(DispatchTime.now().uptimeNanoseconds) / 1_000_000_000 }
+    private static var recording: Bool { origin != nil && Thread.isMainThread }
+
+    /// Watches touches in every window, and starts the main-thread monitor.
+    @MainActor
+    static func install() {
+        guard PerfProbe.isEnabled, windowObserver == nil else { return }
+        PerfProbe.startMainThreadMonitor()
+        let attach: (UIWindow) -> Void = { window in
+            guard !(window.gestureRecognizers ?? []).contains(where: { $0 is TouchWatcher }) else { return }
+            window.addGestureRecognizer(TouchWatcher())
+        }
+        UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.flatMap(\.windows).forEach(attach)
+        windowObserver = NotificationCenter.default.addObserver(
+            forName: UIWindow.didBecomeVisibleNotification, object: nil, queue: .main
+        ) { note in
+            guard let window = note.object as? UIWindow else { return }
+            MainActor.assumeIsolated { attach(window) }
+        }
+    }
+
+    /// A touch went down at `timestamp` (the event's own time): a new window.
+    @MainActor
+    fileprivate static func touchDown(at timestamp: Double) {
+        generation += 1
+        origin = timestamp
+        marks = [("down.delivered", now)]
+        hits = [:]; hitOrder = []; spans = []; passes = []; gaps = []; awaitingFrame = []; frames = []
+        lastTick = nil
+        if link == nil {
+            let ticker = Ticker()
+            let link = CADisplayLink(target: ticker, selector: #selector(Ticker.tick))
+            link.add(to: .main, forMode: .common)
+            self.ticker = ticker
+            self.link = link
+        }
+    }
+
+    @MainActor
+    fileprivate static func touchUp(at timestamp: Double) {
+        guard origin != nil else { return }
+        marks.append(("up", timestamp))
+        marks.append(("up.delivered", now))
+        let token = generation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            guard token == generation else { return }
+            close()
+        }
+    }
+
+    static func mark(_ name: String) {
+        guard recording else { return }
+        marks.append((name, now))
+        awaitingFrame.append(name)
+    }
+
+    static func hit(_ name: String) {
+        guard recording else { return }
+        let at = now
+        if let seen = hits[name] {
+            hits[name] = (seen.first, at, seen.count + 1)
+        } else {
+            hits[name] = (at, at, 1)
+            hitOrder.append(name)
+        }
+    }
+
+    static func span(_ name: String, start: Double, seconds: Double) {
+        guard recording else { return }
+        spans.append((name, start, seconds))
+    }
+
+    static func pass(start: Double, seconds: Double) {
+        guard recording, seconds >= 0.008 else { return }
+        passes.append((start, seconds))
+    }
+
+    fileprivate static func tick() {
+        guard recording else { return }
+        let at = now
+        if let last = lastTick, at - last > 0.034 { gaps.append((last, at - last)) }
+        lastTick = at
+        if !awaitingFrame.isEmpty {
+            frames += awaitingFrame.map { ($0, at) }
+            awaitingFrame = []
+        }
+    }
+
+    @MainActor
+    private static func close() {
+        guard let origin else { return }
+        func ms(_ at: Double) -> Int { Int(((at - origin) * 1_000).rounded()) }
+        func dur(_ seconds: Double) -> Int { Int((seconds * 1_000).rounded()) }
+        windows += 1
+        var fields = ["n=\(windows)"]
+        fields += marks.map { "m:\($0.name)=\(ms($0.at))" }
+        fields += frames.map { "f:\($0.name)=\(ms($0.at))" }
+        fields += hitOrder.compactMap { name in hits[name].map { "h:\(name)=\(ms($0.first))/\(ms($0.last))x\($0.count)" } }
+        fields += spans.map { "s:\($0.name)=\(ms($0.at))+\(dur($0.seconds))" }
+        fields += passes.map { "p:\(ms($0.at))+\(dur($0.seconds))" }
+        fields += gaps.map { "g:\(ms($0.at))+\(dur($0.seconds))" }
+        fields.append("busy_ms=\(dur(passes.reduce(0) { $0 + $1.seconds }))")
+        self.origin = nil
+        link?.invalidate()
+        link = nil
+        ticker = nil
+        store.text = fields.joined(separator: " ")
+    }
+
+    private final class Ticker: NSObject {
+        @objc func tick() { PerfTimeline.tick() }
+    }
+
+    /// Sees every touch and claims none.
+    private final class TouchWatcher: UIGestureRecognizer {
+        override init(target: Any?, action: Selector?) {
+            super.init(target: target, action: action)
+            cancelsTouchesInView = false
+            delaysTouchesBegan = false
+            delaysTouchesEnded = false
+        }
+
+        override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
+            if let touch = touches.first { PerfTimeline.touchDown(at: touch.timestamp) }
+        }
+
+        override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+            if let touch = touches.first { PerfTimeline.touchUp(at: touch.timestamp) }
+            state = .failed
+        }
+
+        override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) {
+            if let touch = touches.first { PerfTimeline.touchUp(at: touch.timestamp) }
+            state = .failed
+        }
+
+        override func canPrevent(_ preventedGestureRecognizer: UIGestureRecognizer) -> Bool { false }
+        override func canBePrevented(by preventingGestureRecognizer: UIGestureRecognizer) -> Bool { false }
+    }
+}
+
+/// `-dc-perf-probe`: the last closed `PerfTimeline` window as the `perfTimeline` accessibility element.
+struct PerfTimelineState: View {
+    @ObservedObject private var store = PerfTimeline.store
+
+    var body: some View {
+        Text(verbatim: "t")
+            .font(.system(size: 2))
+            .frame(width: 4, height: 4)
+            .opacity(0.02)
+            .allowsHitTesting(false)
+            .accessibilityLabel(Text(verbatim: store.text.isEmpty ? "n=0" : store.text))
+            .accessibilityIdentifier("perfTimeline")
+            .onAppear { PerfTimeline.install() }
+    }
+}
+#endif

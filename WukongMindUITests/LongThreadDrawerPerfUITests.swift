@@ -9,6 +9,9 @@ import XCTest
 /// (`scripts/device-check.sh`).
 final class LongThreadDrawerPerfUITests: DCUITestCase {
     private var server: FixtureWordPressServer!
+    /// The drawer-open tests time the sheet as people see it, animations on.
+    private var animated = false
+    override var disablesAnimations: Bool { !animated }
 
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -175,6 +178,151 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
         }
         server.summaryReply = Self.summary(posts: 6_000)
         summarizeAndMeasure("real-page", open: url, summaryTimeout: 1_200)
+    }
+
+    // MARK: Drawer open, Share and Export (docs/wukongmind/design-performance-2.md)
+
+    /// The app's record of its last touch (`PerfTimeline`): milliseconds from the touch down.
+    private func timeline(_ app: XCUIApplication) -> String {
+        let element = any(app, "perfTimeline")
+        return element.waitForExistence(timeout: 10) ? element.label : "missing"
+    }
+
+    private func point(_ frame: CGRect, in app: XCUIApplication) -> XCUICoordinate {
+        app.coordinate(withNormalizedOffset: .zero).withOffset(CGVector(dx: frame.midX, dy: frame.midY))
+    }
+
+    /// Taps, asks the app nothing while it works (an accessibility query costs main-thread time), then reads.
+    private func tapAndReadTimeline(_ app: XCUIApplication, at point: XCUICoordinate, wait seconds: TimeInterval = 4.5) -> String {
+        point.tap()
+        RunLoop.current.run(until: Date().addingTimeInterval(seconds))
+        return timeline(app)
+    }
+
+    /// Tap to first drawer frame (first open on the page, then repeated opens on the summarized
+    /// thread), then Share and Export .txt from the summary's menu with screenshots over 15 s.
+    private func measureOpenShareExport(_ name: String, open url: String, summaryTimeout: TimeInterval, settle: TimeInterval) {
+        animated = true
+        let app = launch(["-dc-open", url, "-dc-fixture-model", server.baseURL, "-dc-perf-probe"])
+        var report: [String] = []
+        func note(_ line: String) {
+            report.append(line)
+            print("DRAWER-OPEN-PERF \(name) | \(line)")
+        }
+        let button = app.buttons["aiButton"]
+        XCTAssertTrue(waitForBarItem(button, timeout: 60), "No AI button.")
+        // The page finishes loading and goes quiet.
+        RunLoop.current.run(until: Date().addingTimeInterval(settle))
+        let opener = point(button.frame, in: app)
+
+        // 1. The first open after launch.
+        note("first_open " + tapAndReadTimeline(app, at: opener))
+
+        let summarize = app.buttons["suggestion-summarizeThread"].firstMatch
+        for _ in 0..<4 where !summarize.exists {
+            showAssistant(in: app)
+            _ = summarize.waitForExistence(timeout: 15)
+        }
+        XCTAssertTrue(waitOrDump(summarize, timeout: 20, in: app), "No summary offered.")
+        XCTAssertTrue(waitForHittable(summarize))
+        summarize.tap()
+        XCTAssertTrue(wait(timeout: summaryTimeout) {
+            self.any(app, "summaryContent").exists || self.any(app, "capabilityThreadSummaryCard").exists
+        }, "The summary did not appear.")
+        _ = wait(timeout: summaryTimeout) { (self.probe(app)["summary_chars"] ?? 0) > 0 }
+        let status = any(app, "agentStatusLine")
+        _ = wait(timeout: 120) { !status.exists }
+        let sizes = probe(app)
+        note("source_chars=\(sizes["source_chars"] ?? 0) summary_chars=\(sizes["summary_chars"] ?? 0) posts=\(sizes["posts"] ?? 0) runs=\(sizes["runs"] ?? 0)")
+
+        // 2. Repeated opens on the summarized thread.
+        closeDrawer(in: app)
+        RunLoop.current.run(until: Date().addingTimeInterval(2))
+        // `scripts/device-check.sh --xctrace <template>` starts recording at this line.
+        print("XCTRACE-START \(name)")
+        if ProcessInfo.processInfo.environment["DC_PERF_TRACE"] == "1" {
+            RunLoop.current.run(until: Date().addingTimeInterval(10))
+        }
+        for index in 0..<6 {
+            note("open_\(index) " + tapAndReadTimeline(app, at: opener))
+            closeDrawer(in: app)
+            RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+        }
+
+        // 3. Share and Export .txt from the summary's menu.
+        showAssistant(in: app)
+        dragDrawer(in: app, to: 0.05)
+        let more = app.buttons["summaryMoreMenu"].firstMatch
+        if !more.waitForExistence(timeout: 10) { attachTree(app, named: "\(name)-no-summary-menu") }
+        XCTAssertTrue(more.exists, "The summary's menu is missing.")
+        for (action, label) in [("shareExport", "Share"), ("exportExport", "Export .txt")] {
+            if !drawerState(in: app).exists {
+                showAssistant(in: app)
+                dragDrawer(in: app, to: 0.05)
+            }
+            // The menu sits under the summary: scroll to it.
+            let scroll = any(app, "agentScroll")
+            for _ in 0..<14 where !more.isHittable { scroll.swipeUp(velocity: .slow) }
+            if !more.isHittable { attachTree(app, named: "\(name)-menu-not-hittable") }
+            XCTAssertTrue(waitForHittable(more), "The summary's menu is not hittable before \(action).")
+            more.tap()
+            // Menu items answer to their titles, not their identifiers.
+            let item = app.buttons[label].firstMatch
+            XCTAssertTrue(item.waitForExistence(timeout: 10), "\(action) is missing from the menu.")
+            note("\(action) enabled=\(item.isEnabled)")
+            let target = point(item.frame, in: app)
+            let before = probe(app)
+            let started = Date()
+            target.tap()
+            for (index, seconds) in [0.5, 1, 2, 4, 8, 15].enumerated() {
+                let remaining = started.addingTimeInterval(seconds).timeIntervalSinceNow
+                if remaining > 0 { RunLoop.current.run(until: Date().addingTimeInterval(remaining)) }
+                capture("\(name)-\(action)-\(index)-at-\(seconds)s")
+                note("\(action) screenshot \(index) asked at \(seconds)s taken at \(String(format: "%.2f", Date().timeIntervalSince(started)))s")
+            }
+            note("\(action) timeline " + timeline(app))
+            // The drawer's probe is out of reach under a system sheet.
+            let probeElement = any(app, "perfProbeState")
+            if probeElement.exists { note(delta(before, probe(app), per: 1, named: "\(action), 15 s")) }
+            // What the system put up.
+            let wanted = ["Copy", "Close", "Save", "Move", "Cancel", "Save to Files", "Open", "Browse", "Recents", "Done"]
+            note("\(action) system buttons: " + wanted.filter { app.buttons[$0].firstMatch.exists }.joined(separator: ","))
+            note("\(action) ActivityListView=\(any(app, "ActivityListView").exists) navigationBars=\(app.navigationBars.allElementsBoundByIndex.map(\.identifier).joined(separator: ","))")
+            capture("\(name)-\(action)-final")
+            // Away again.
+            var dismissed = false
+            for label in ["Close", "Cancel"] where !dismissed {
+                let dismiss = app.buttons[label].firstMatch
+                if dismiss.exists, dismiss.isHittable { dismiss.tap(); dismissed = true }
+            }
+            // No button: a tap above the sheet closes it.
+            if !dismissed { app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.2)).tap() }
+            RunLoop.current.run(until: Date().addingTimeInterval(2.5))
+            capture("\(name)-\(action)-after-dismiss")
+        }
+        attachText(report.joined(separator: "\n"), named: "drawer-open-perf-\(name).txt")
+    }
+
+    func testOpenShareExportShortThread() {
+        server.commentCount = 20
+        server.commentBody = Self.comment
+        server.summaryReply = Self.summary(posts: 20)
+        measureOpenShareExport("fixture-20", open: server.postURL, summaryTimeout: 120, settle: 6)
+    }
+
+    func testOpenShareExportLongThread() {
+        server.commentCount = 6_000
+        server.commentBody = Self.comment
+        server.summaryReply = Self.summary(posts: 6_000)
+        measureOpenShareExport("fixture-6000", open: server.postURL, summaryTimeout: 900, settle: 6)
+    }
+
+    func testOpenShareExportRealThread() throws {
+        guard let url = ProcessInfo.processInfo.environment["DC_PERF_URL"], !url.isEmpty else {
+            throw XCTSkip("Set TEST_RUNNER_DC_PERF_URL to a long thread's address to measure a real page.")
+        }
+        server.summaryReply = Self.summary(posts: 6_000)
+        measureOpenShareExport("real-page", open: url, summaryTimeout: 1_200, settle: 20)
     }
 
     /// Screenshots of the drawer at medium and large heights in light and dark appearance.

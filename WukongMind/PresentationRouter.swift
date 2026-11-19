@@ -267,6 +267,7 @@ final class PresentationRouter: ObservableObject {
     func openDrawer(at detent: DrawerDetent = .medium) {
         drawerDetent = detent
         droppedPresentations = 0
+        PerfProbe.mark("wantsDrawer")
         wantsDrawer = true
     }
 
@@ -303,6 +304,7 @@ final class PresentationRouter: ObservableObject {
     }
 
     private func move(to phase: DrawerPhase) {
+        PerfProbe.mark("phase.\(phase)")
         drawerPhase = phase
         watchdog?.cancel()
         let delay: Duration

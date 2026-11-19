@@ -499,4 +499,51 @@ final class DrawerPerformanceTests: XCTestCase {
         }
         attachLines(named: "hot-functions.tsv")
     }
+
+    /// Cold start (docs/wukongmind/design-performance-2.md): `AppModel.init` calls `PersistentStore.load()` on
+    /// the main thread and restores every tab's conversation. What that costs as saved threads grow,
+    /// on generated state in a temporary folder (never the app's own).
+    func testStateLoadScalesWithSavedThreads() throws {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("perf-state-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        for (threads, posts) in [(1, 100), (40, 100), (1, 6_000), (5, 6_000), (20, 6_000)] {
+            let name = "state-\(threads)x\(posts)"
+            let source = Self.source(posts: posts)
+            let summary = Self.summary(sections: 8, posts: posts)
+            var snapshot = AppSnapshot()
+            snapshot.sessions = (0..<threads).map { index in
+                var session = TopicSession(
+                    siteURL: Self.siteURL, topicID: "\(index)",
+                    url: URL(string: "\(Self.siteURL)/t/x/\(index)")!, title: "Thread \(index)"
+                )
+                session.seedSource(source)
+                session.summary = summary
+                return session
+            }
+            let fileURL = directory.appendingPathComponent("\(name).json")
+            let store = PersistentStore(fileURL: fileURL)
+            record(name, "save_ms", milliseconds(repeating: 1) { try? store.save(snapshot) })
+            let size = (try? FileManager.default.attributesOfItem(atPath: fileURL.path))?[.size] as? NSNumber
+            record(name, "state_bytes", size?.doubleValue ?? 0)
+            var loaded = 0
+            record(name, "load_ms", milliseconds(repeating: 3) {
+                loaded = PersistentStore(fileURL: fileURL).load().sessions.count
+            })
+            XCTAssertEqual(loaded, threads)
+            try? FileManager.default.removeItem(at: fileURL)
+        }
+        for posts in [500, 6_000] {
+            let name = "conversation-5x\(posts)"
+            let data = try JSONEncoder().encode(Self.conversation(runs: 5, shapePosts: posts))
+            record(name, "conversation_bytes", Double(data.count))
+            var runs = 0
+            record(name, "conversation_decode_ms", milliseconds(repeating: 3) {
+                runs = (try? JSONDecoder().decode(SavedAgentConversation.self, from: data))?.runs.count ?? 0
+            })
+            XCTAssertEqual(runs, 5)
+        }
+        attachLines(named: "state-load.tsv")
+    }
 }
