@@ -299,8 +299,14 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
                 let target = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", targetName)).firstMatch
                 note("share target \(targetName) exists=\(target.exists)")
                 if target.exists {
+                    // The match can be the name under the icon: tap the icon.
+                    let frame = target.frame
+                    let spot = frame.height < 30
+                        ? CGRect(x: frame.minX, y: frame.minY - 56, width: frame.width, height: 56)
+                        : CGRect(x: frame.minX, y: frame.minY, width: frame.width, height: frame.height * 0.6)
+                    note("share target frame=\(Int(frame.width))x\(Int(frame.height))")
                     let targetStarted = Date()
-                    target.tap()
+                    point(spot, in: app).tap()
                     for (index, seconds) in [1.0, 3, 6, 10, 15].enumerated() {
                         let remaining = targetStarted.addingTimeInterval(seconds).timeIntervalSinceNow
                         if remaining > 0 { RunLoop.current.run(until: Date().addingTimeInterval(remaining)) }
@@ -332,6 +338,26 @@ final class LongThreadDrawerPerfUITests: DCUITestCase {
         server.commentBody = Self.comment
         server.summaryReply = Self.summary(posts: 20)
         measureOpenShareExport("fixture-20", open: server.postURL, summaryTimeout: 120, settle: 6)
+    }
+
+    /// The short thread with its summary in Chinese: a cited paragraph lays out one view per
+    /// Chinese character (`CitedText.tokens`), against one per word in English.
+    func testOpenShareExportChineseSummary() {
+        server.commentCount = 20
+        server.commentBody = Self.comment
+        server.summaryReply = (1...8).map { section -> String in
+            let base = max(1, section * 20 / 9)
+            return """
+            ## 主题 \(section)：读者反馈
+
+            多数读者在规定时间内拿到了开户奖励 #\(base)，少数人需要第二次存款才算达标 #\(base + 1)。银行代表说条款在春季改过，但活动页面仍显示旧条款。
+
+            - 两家券商的转账都被算作直接存款 #\(base + 2) #\(base + 3)。
+            - 保持规定余额可免月费，**仅限**第一年 #\(base + 4)。
+            - 有读者因为二十四个月内拿过奖励而被拒 #\(base + 5)。
+            """
+        }.joined(separator: "\n\n")
+        measureOpenShareExport("fixture-20-zh", open: server.postURL, summaryTimeout: 120, settle: 6)
     }
 
     func testOpenShareExportLongThread() {
