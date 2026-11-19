@@ -227,6 +227,20 @@ final class PodcastPlayer: ObservableObject {
         nowPlaying?.attach(self)
     }
 
+    /// In-memory player for the unit-test host: keeps playlist, chapter and
+    /// state transitions intact without touching `AVAudioPlayer`,
+    /// `AVAudioSession`, `MPNowPlayingInfoCenter`, or `UserDefaults.standard`.
+    static func makeForTesting() -> PodcastPlayer {
+        let suite = "wukong.podcast.test.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite) ?? .standard
+        return PodcastPlayer(
+            audio: DisabledPodcastAudio(),
+            session: DisabledPodcastAudioSession(),
+            positions: PodcastPositionStore(defaults: defaults),
+            nowPlaying: nil
+        )
+    }
+
     var timeline: PodcastTimeline {
         PodcastTimeline(durations: playlist?.items.map { $0.isReady ? $0.duration : nil } ?? [])
     }
@@ -741,6 +755,43 @@ final class SystemPodcastNowPlaying: PodcastNowPlayingCenter {
             command.isEnabled = enabled
         }
     }
+}
+
+/// Unit-test host playback: tracks state in memory without `AVAudioPlayer` or
+/// `AudioQueue` (headless macOS CI VMs have no audio output device and can
+/// block `@MainActor` inside `-[AVAudioPlayer prepareToPlay]` /
+/// `AQIONodeManager::_FindAQIONode`).
+@MainActor
+final class DisabledPodcastAudio: PodcastAudioPlayback {
+    var onFinish: (() -> Void)?
+    var currentTime: TimeInterval = 0
+    private(set) var isPlaying = false
+
+    func load(_ url: URL) throws -> TimeInterval {
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            throw CocoaError(.fileNoSuchFile, userInfo: [NSFilePathErrorKey: url.path])
+        }
+        currentTime = 0
+        if let data = try? Data(contentsOf: url), let wav = WAVFile.parse(data) {
+            return wav.duration
+        }
+        return 1.0
+    }
+
+    func play() { isPlaying = true }
+    func pause() { isPlaying = false }
+
+    func stop() {
+        isPlaying = false
+        currentTime = 0
+    }
+}
+
+@MainActor
+final class DisabledPodcastAudioSession: PodcastAudioSessioning {
+    func activateForPlayback() throws {}
+    func deactivate() {}
+    var routeIsHandsFree: Bool { false }
 }
 
 private extension Array {

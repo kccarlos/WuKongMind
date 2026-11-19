@@ -360,9 +360,14 @@ final class AppModel: ObservableObject {
     var voicePageSubscription: AnyCancellable?
     /// Starts voice sessions for the UI (Voice/VoiceController.swift).
     private(set) lazy var voice = VoiceController(app: self)
+    private let injectedPodcastPlayer: PodcastPlayer?
     /// The podcast: episodes, the player, read-aloud (Podcast/PodcastController.swift).
     private(set) lazy var podcast: PodcastController = {
-        let controller = PodcastController(app: self, store: PodcastStore(directory: podcastDirectory))
+        let controller = PodcastController(
+            app: self,
+            store: PodcastStore(directory: podcastDirectory),
+            player: injectedPodcastPlayer
+        )
         controller.voice = voice
         return controller
     }()
@@ -667,6 +672,7 @@ final class AppModel: ObservableObject {
         cloudSync: CloudSyncController? = nil,
         backgroundScheduler: BackgroundTaskScheduling = BGTaskScheduler.shared,
         podcastDirectory: URL? = nil,
+        podcastPlayer: PodcastPlayer? = nil,
         workspaceDirectory: URL? = nil,
         spotlightIndex: SpotlightIndexing? = nil,
         topicActivityDonor: TopicActivityDonating? = nil,
@@ -694,6 +700,7 @@ final class AppModel: ObservableObject {
         spotlight = Self.makeSpotlightIndexer(index: spotlightIndex, store: store)
         self.topicActivityDonor = topicActivityDonor ?? Self.makeTopicActivityDonor(store: store)
         self.podcastDirectory = podcastDirectory ?? PodcastStore.defaultDirectory
+        self.injectedPodcastPlayer = podcastPlayer
         self.backgroundScheduler = backgroundScheduler
         digestStore = DigestStore(directory: store.directoryURL)
         self.keyStore = store.keys
