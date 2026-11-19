@@ -14,9 +14,16 @@ final class SuggestionRowUITests: DCUITestCase {
     private func scrollToChip(_ app: XCUIApplication, _ id: String) -> XCUIElement {
         let element = chip(app, id)
         XCTAssertTrue(waitOrDump(element, timeout: 20, in: app), "Missing suggestion \(id).")
+        // Swipe only once the row itself is on screen: right after launch the
+        // drawer is still sliding up, the row's visible frame is empty and a
+        // swipe there does nothing useful while the retries scroll the row past
+        // the chip (WUKO-153: "Suggestion readAloud cannot be tapped").
+        let row = any(app, "suggestionRow")
         var swipes = 0
         while !element.isHittable, swipes < 4 {
-            any(app, "suggestionRow").swipeLeft()
+            guard waitForHittable(row, timeout: 20) else { break }
+            if element.isHittable { break }
+            row.swipeLeft()
             swipes += 1
         }
         XCTAssertTrue(waitForHittable(element), "Suggestion \(id) cannot be tapped.")

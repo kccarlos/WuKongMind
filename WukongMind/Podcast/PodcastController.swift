@@ -633,6 +633,12 @@ final class PodcastController: ObservableObject {
             language = preferredLanguage
         }
         let engine = engine(kind, voices: voices, language: language)
+        #if DEBUG
+        // The fake engine's silence outlasts any UI test: the listen row reads
+        // "Pause" only while playing, and a test that polls for it on a slow
+        // runner must not find the 4 s file already finished (WUKO-153).
+        (engine as? SilentSpeechEngine)?.secondsPerTurn = 120
+        #endif
         let folder = store.readAloudDirectory
         let key = Self.cacheKey("\(kind.rawValue)|\(voices.a)|\(language)|\(text)")
         readTask = Task { @MainActor [weak self] in
