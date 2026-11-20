@@ -376,30 +376,6 @@ struct WorkProgressBar: View {
     }
 }
 
-/// Three pulsing dots while an answer is on its way.
-struct TypingIndicator: View {
-    var tint: Color = .secondary
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 20, paused: reduceMotion)) { context in
-            let time = context.date.timeIntervalSinceReferenceDate
-            HStack(spacing: 5) {
-                ForEach(0..<3, id: \.self) { index in
-                    let phase = reduceMotion ? 0.5 : (sin(time * 5 - Double(index) * 0.9) + 1) / 2
-                    Circle()
-                        .fill(tint)
-                        .frame(width: 7, height: 7)
-                        .opacity(0.35 + 0.65 * phase)
-                        .scaleEffect(0.8 + 0.25 * phase)
-                }
-            }
-        }
-        .accessibilityElement()
-        .accessibilityLabel("Answering")
-    }
-}
-
 // MARK: - Forum rows & loading state
 
 /// A tappable forum row (icon, name, host).
@@ -441,9 +417,6 @@ struct AssistantForumRow: View {
 
 /// Subtle placeholder while the page has not been checked yet.
 struct AssistantLoadingState: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var pulse = false
-
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 10) {
@@ -465,13 +438,6 @@ struct AssistantLoadingState: View {
                 .font(.footnote)
                 .foregroundStyle(.secondary)
                 .frame(maxWidth: .infinity)
-        }
-        .opacity(pulse ? 0.55 : 1)
-        .onAppear {
-            guard !reduceMotion else { return }
-            withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
-                pulse = true
-            }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Loading page")
