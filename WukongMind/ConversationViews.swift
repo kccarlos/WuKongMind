@@ -212,7 +212,7 @@ struct DCToolRow<Detail: View>: View {
     private var disc: some View {
         switch state {
         case .running:
-            DCAgentRing(size: 28, lineWidth: DCTheme.ringWidth, isTurning: true)
+            DCAgentRing(state: .working, size: 28, lineWidth: DCTheme.ringWidth)
         case .done:
             Circle().fill(DCTheme.surfaceRaised).frame(width: 28, height: 28)
                 .overlay { Image(systemName: doneSymbol).font(.caption.weight(.bold)).foregroundStyle(DCTheme.inkMuted) }

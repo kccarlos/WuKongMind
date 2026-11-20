@@ -1329,6 +1329,9 @@ final class BrowserAgentSession {
     private(set) var wireSizes: [String: (request: Int, response: Int)] = [:]
     /// Shown under the composer when starting a run is refused (for example when 3 runs are going).
     private(set) var runLimitNotice: String?
+    /// In-memory ID of the last finished run the user has seen (panel open when it ended or opened afterwards).
+    /// Restored conversations initialize this to the last restored run's ID so they never show as unseen.
+    private(set) var seenRunID: UUID?
 
     var toolCalls: [BrowserAgentToolCallRow] { runs.flatMap(\.toolCalls) }
     var runState: BrowserAgentRunState { runs.last?.state ?? .idle }
@@ -1573,6 +1576,14 @@ final class BrowserAgentSession {
         }
     }
 
+    /// Marks the latest finished run as seen so the bar ring returns to idle.
+    func markCurrentRunSeen() {
+        guard let last = runs.last, !last.state.isRunning else { return }
+        if seenRunID != last.id {
+            seenRunID = last.id
+        }
+    }
+
     func exportConversation() -> SavedAgentConversation {
         SavedAgentConversation(
             messages: messages,
@@ -1618,6 +1629,7 @@ final class BrowserAgentSession {
         pageBaselineImage = nil
         wireSizes = [:]
         runLimitNotice = nil
+        seenRunID = normalizedRuns.last?.id
         healDanglingToolCallsInHistory()
     }
 
@@ -1703,6 +1715,7 @@ final class BrowserAgentSession {
         wireSizes = [:]
         pageBaselineImage = nil
         runLimitNotice = nil
+        seenRunID = nil
         onConversationReset?()
     }
 
