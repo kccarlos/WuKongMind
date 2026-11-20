@@ -12,7 +12,7 @@ WukongMind (Chinese name 悟空, "Wukong") is an iOS/iPadOS app with its own bro
 
 ## 1. Background and goals
 
-- **Background:** the owner's other project, Forumind, keeps its AI's read and write powers restrained to pass App Store review. This project is not for the App Store: it is for the owner's own use and open source, and aims to give the AI as much freedom as possible.
+- **Background:** the owner's other project, Forumind, keeps its AI's read and write powers restrained to pass App Store review. This project is not for the App Store: it is for the owner's own use and open source, and aims to give the AI as much freedom as possible. (Reversed on 2026-11-19: WukongMind goes to the App Store; see section 12.)
 - **Core principle:** the AI never touches the page directly. It only writes code; the app runs that code in the page and feeds the result back.
 - **Success:** open any web page and say "show only the original poster's posts, and switch to dark mode". The agent makes the change on the spot and saves it as a script, and it still applies after a reload and after restarting the app.
 
@@ -25,7 +25,7 @@ WukongMind (Chinese name 悟空, "Wukong") is an iOS/iPadOS app with its own bro
 - Open-source repository; the README explains how to build it and the risks.
 
 **Not doing**
-- No App Store compliance, and no limits on any capability for its sake. (2026-11-19: if the app goes to the store, section 12 says how; whether it goes is still open.)
+- ~~No App Store compliance, and no limits on any capability for its sake.~~ Reversed on 2026-11-19: WukongMind goes to the App Store and everything must comply with its rules (section 12). What the store needs is a visible setting with the safe side as the default, never a second build.
 - No Safari extension.
 - No onboarding, tutorials or misuse protection for general users; the UI can be plain.
 - No hosted backend, accounts or payments.
@@ -285,8 +285,15 @@ These need the owner's decision; until then, follow the default in brackets.
 
 ## 12. App Store decisions (2026-11-19)
 
-The owner's decisions on how WukongMind would go to the App Store. Whether it goes at all is still open ([app-store-review.md](app-store-review.md), task 0); until then section 2 stands. Nothing here is built yet: the tasks are in app-store-review.md, section 5, and [app-store-code-audit.md](app-store-code-audit.md), section 6.
+The owner's decisions on taking WukongMind to the App Store. They reverse section 1's "not for the App Store" and section 2's "No App Store compliance". The work is not done yet: the tasks are in [app-store-review.md](app-store-review.md), section 5, and [app-store-code-audit.md](app-store-code-audit.md), section 6; how WukongMind is kept apart from Forumind, and the name, are in [store-positioning.md](store-positioning.md).
 
+- **It goes to the App Store.** The owner's words (translated): "Yes, go to the store; reverse the old decision."
+- **Both apps go up, with different positions.** "Both go up. WukongMind is positioned as an AI-assisted browser; Forumind is just forum browsing."
+- **The central idea.** "We maintain only one codebase and hide no logic, so everything must comply."
+- **App Store Connect.** The assistant may fill in App Store Connect with the `asc` CLI.
+- **The name is open.** The owner is considering a rename such as "Wukong Browser" to widen the gap from Forumind. [store-positioning.md](store-positioning.md), section 4, recommends the store name "WukongMind Browser" and advises against "Wukong Browser"; the bundle id does not change either way. Until the owner decides, the name stays WukongMind.
+- **Reviewers get a working model:** a spend-capped key in the review notes (recorded from the WUKO-169 task brief, which lists it as decided; not in the words quoted above).
+- **Owner principles for all of this work:** speed comes first; the smallest complete change, deleting what can be deleted; design gaps go back to the design documents; code the way Apple would agree with and never work around a store rule; verification is re-run with its raw output kept.
 - **How it is argued:** a general web browser with an AI agent (guideline 1.2), with a lightweight Terms acceptance before first use and "Report this answer" on AI output.
 - **One build only.** No `DC_APP_STORE` compile flag and no store variant. The TestFlight build is the store build; App Review, testers and users run the same code with the same defaults.
 - **Restrictions are visible Settings switches with the safe side as the default,** and the user may turn each the other way:
