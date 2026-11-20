@@ -1049,4 +1049,289 @@ final class ScriptImportTests: XCTestCase {
         XCTAssertEqual(installed.metadata.installURL, alphaURL.absoluteString)
         XCTAssertEqual(store.scripts.map(\.name), ["Alpha Reader"])
     }
+
+    // MARK: - 14. Agent Script Save & Update Approval (WUKO-176 / Task 4)
+
+    func testAgentScriptSaveWithoutApprovalStoresNothingAndDeclineLeavesNoScript() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("agent-approval-save-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let store = ScriptStore(directoryURL: dir)
+        let driver = FixturePageDriver(page: .init(url: "https://other.example.net/home", title: "Home"))
+
+        // 1. Default (saveScriptsWithoutAsking == false) with no approver fails closed,
+        // stores nothing, and never runs verification/reload on a matching page.
+        let matchingPageDriver = FixturePageDriver(page: .init(url: "https://example.org/post/1", title: "Post"))
+        let noApproverRegistry = ToolRegistry.m3(context: AgentToolContext(
+            bridge: matchingPageDriver, workspace: nil, scriptStore: store
+        ))
+        let unapproved = try await noApproverRegistry.dispatch(
+            toolName: "script_save",
+            arguments: [
+                "name": .string("Hide Banner"),
+                "match_rules": .array([.string("*://example.org/*")]),
+                "js": .string("document.body.dataset.ran = 'yes';")
+            ]
+        )
+        XCTAssertTrue(unapproved.isError)
+        XCTAssertTrue(unapproved.output.contains(ToolRegistry.declinedMessage), "Decline must happen before verify/reload: \(unapproved.output)")
+        XCTAssertTrue(store.scripts.isEmpty, "A save without approval must store nothing")
+
+        // 2. Recorded-response run through ScriptImporter: declining leaves no script; approving saves it.
+        let importer = ScriptImporter(scriptStore: store, stateDirectoryURL: dir) { self.httpClient }
+        let registryBuilder: @MainActor (AgentPageDriving, Int, [String]) -> ToolRegistry = { bridge, limit, secrets in
+            ToolRegistry.m3(context: AgentToolContext(
+                bridge: bridge,
+                workspace: nil,
+                scriptStore: store,
+                settings: AgentToolSettings(truncationLimit: limit, redactedSecrets: secrets, saveScriptsWithoutAsking: false),
+                scriptApprover: { review in
+                    try await importer.requestAgentApproval(review: review)
+                }
+            ))
+        }
+        var cfg = ProviderConfiguration(provider: .ollama); cfg.model = "agent-model"
+        let runtime = BrowserAgentRuntimeConfig(
+            selection: ModelSelection(provider: .ollama, model: "agent-model"),
+            configuration: cfg, maxSteps: 6, truncationLimit: 20_000, customInstructions: "", redactedSecrets: []
+        )
+
+        // 2a. User declines via ScriptImporter.dismissImport().
+        let declineClient = RecordedModelClient([
+            .success(AgentModelTurnResponse(text: "", toolCalls: [
+                AgentModelToolCall(id: "s1", name: "script_save", arguments: [
+                    "name": .string("Dark Reader"),
+                    "match_rules": .array([.string("*://example.org/*")]),
+                    "js": .string("document.body.dataset.dark = '1';"),
+                    "environment": .string("page")
+                ])
+            ])),
+            .success(AgentModelTurnResponse(text: "Okay, I didn't save the script."))
+        ])
+        let declineSession = BrowserAgentSession(
+            pageDriver: driver, modelClient: declineClient, configProvider: { runtime }, registryBuilder: registryBuilder
+        )
+        declineSession.send("Always make example.org dark")
+        for _ in 0..<100 {
+            if case .ready = importer.phase { break }
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        guard case .ready(let pendingCreate) = importer.phase else {
+            return XCTFail("Expected Agent script_save to open the shared review sheet")
+        }
+        XCTAssertTrue(pendingCreate.isAgentProposal)
+        XCTAssertFalse(pendingCreate.isUpdate)
+        XCTAssertEqual(pendingCreate.candidate.name, "Dark Reader")
+        XCTAssertEqual(pendingCreate.candidate.environment, .page)
+        XCTAssertTrue(ScriptImporter.capabilitySummaries(for: pendingCreate.candidate, scriptsModelName: "Test", forImportSheet: true).contains { $0.id == "pageWorld" && $0.isDanger })
+        XCTAssertTrue(store.scripts.isEmpty, "Script must not be saved while awaiting approval")
+
+        importer.dismissImport()
+        for _ in 0..<100 where declineSession.isRunning {
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        XCTAssertTrue(store.scripts.isEmpty, "Declining must leave no saved script")
+
+        // 2b. User approves via ScriptImporter.confirmImport(turnOn: true).
+        let approveClient = RecordedModelClient([
+            .success(AgentModelTurnResponse(text: "", toolCalls: [
+                AgentModelToolCall(id: "s2", name: "script_save", arguments: [
+                    "name": .string("Dark Reader"),
+                    "match_rules": .array([.string("*://example.org/*")]),
+                    "css": .string("body { background: #111; }")
+                ])
+            ])),
+            .success(AgentModelTurnResponse(text: "Saved Dark Reader."))
+        ])
+        let approveSession = BrowserAgentSession(
+            pageDriver: driver, modelClient: approveClient, configProvider: { runtime }, registryBuilder: registryBuilder
+        )
+        approveSession.send("Always make example.org dark")
+        for _ in 0..<100 {
+            if case .ready = importer.phase { break }
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        guard case .ready(let approvedReview) = importer.phase, let sid = importer.activeSessionID else {
+            return XCTFail("Expected review sheet for second script_save")
+        }
+        _ = try importer.confirmImport(turnOn: true, expectedSessionID: sid, expectedReview: approvedReview)
+        for _ in 0..<100 where approveSession.isRunning {
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        XCTAssertEqual(store.scripts.count, 1)
+        XCTAssertEqual(store.scripts.first?.name, "Dark Reader")
+        XCTAssertEqual(store.scripts.first?.isEnabled, true)
+
+        // 2c. User chooses "Add, keep off" (turnOn: false) -> saved disabled.
+        let keepOffClient = RecordedModelClient([
+            .success(AgentModelTurnResponse(text: "", toolCalls: [
+                AgentModelToolCall(id: "s3", name: "script_save", arguments: [
+                    "name": .string("Muted Sidebar"),
+                    "match_rules": .array([.string("*://example.org/*")]),
+                    "css": .string(".sidebar { opacity: 0.4; }")
+                ])
+            ])),
+            .success(AgentModelTurnResponse(text: "Saved Muted Sidebar turned off."))
+        ])
+        let keepOffSession = BrowserAgentSession(
+            pageDriver: driver, modelClient: keepOffClient, configProvider: { runtime }, registryBuilder: registryBuilder
+        )
+        keepOffSession.send("Save sidebar dimmer")
+        for _ in 0..<100 {
+            if case .ready = importer.phase { break }
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        guard case .ready(let keepOffReview) = importer.phase, let keepOffSID = importer.activeSessionID else {
+            return XCTFail("Expected review sheet for keep-off script_save")
+        }
+        _ = try importer.confirmImport(turnOn: false, expectedSessionID: keepOffSID, expectedReview: keepOffReview)
+        for _ in 0..<100 where keepOffSession.isRunning {
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        let savedOff = try XCTUnwrap(store.scripts.first { $0.name == "Muted Sidebar" })
+        XCTAssertFalse(savedOff.isEnabled, "Choosing 'Add, keep off' must save the script disabled")
+    }
+
+    func testAgentScriptUpdateOnImportedScriptWaitsForDiffApprovalAndAllowsDisableWithoutPrompt() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("agent-approval-update-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let store = ScriptStore(directoryURL: dir)
+        let importer = ScriptImporter(scriptStore: store, stateDirectoryURL: dir) { self.httpClient }
+        let driver = FixturePageDriver(page: .init(url: "https://other.example.net/", title: "Other"))
+
+        // Install an imported script first.
+        let parsed = try ScriptImporter.parseExternalUserScript("""
+        // ==UserScript==
+        // @name        Imported Helper
+        // @version     1.0.0
+        // @match       https://example.org/*
+        // @grant       GM_getValue
+        // ==/UserScript==
+        console.log('original');
+        """)
+        let imported = try store.saveImportedScript(
+            parsed.script,
+            installURL: "https://scripts.example.org/helper.user.js",
+            sourceHost: "scripts.example.org",
+            upstreamHash: "abc123",
+            libraries: [],
+            turnOn: false
+        )
+        XCTAssertEqual(imported.source, .imported)
+        XCTAssertFalse(imported.isEnabled)
+
+        let registry = ToolRegistry.m3(context: AgentToolContext(
+            bridge: driver,
+            workspace: nil,
+            scriptStore: store,
+            settings: AgentToolSettings(saveScriptsWithoutAsking: false),
+            scriptApprover: { review in
+                try await importer.requestAgentApproval(review: review)
+            }
+        ))
+
+        // 1. Renaming or disabling without changing code/sites/grants/hosts/world or turning on does not ask.
+        let renameResult = try await registry.dispatch(
+            toolName: "script_update",
+            arguments: ["script_id": .string(imported.id), "name": .string("Imported Helper Renamed")]
+        )
+        XCTAssertFalse(renameResult.isError, renameResult.output)
+        XCTAssertNil(importer.phase)
+        XCTAssertEqual(store.script(id: imported.id)?.name, "Imported Helper Renamed")
+
+        // 2. Rewriting code, adding grants/connect, switching to page world, and turning on opens diff sheet.
+        let updateTask = Task {
+            try await registry.dispatch(
+                toolName: "script_update",
+                arguments: [
+                    "script_id": .string(imported.id),
+                    "js": .string("console.log('rewritten');"),
+                    "match_rules": .array([.string("https://example.org/*"), .string("https://blog.example.org/*")]),
+                    "grants": .array([.string("GM_getValue"), .string("GM_xmlhttpRequest")]),
+                    "connect": .array([.string("evil.example.net")]),
+                    "environment": .string("page"),
+                    "enabled": .bool(true)
+                ]
+            )
+        }
+        for _ in 0..<100 {
+            if case .ready = importer.phase { break }
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        guard case .ready(let diffReview) = importer.phase,
+              case .update(let existing, let diff) = diffReview.mode else {
+            return XCTFail("Expected script_update on imported script to open update diff sheet")
+        }
+        XCTAssertTrue(diffReview.isAgentProposal)
+        XCTAssertEqual(existing.id, imported.id)
+        XCTAssertTrue(diff.turnedOn)
+        XCTAssertEqual(diff.changedEnvironment, .page)
+        XCTAssertEqual(diff.addedMatches, ["https://blog.example.org/*"])
+        XCTAssertEqual(diff.addedGrants, ["GM_xmlhttpRequest"])
+        XCTAssertEqual(diff.addedConnects, ["evil.example.net"])
+
+        // Declining leaves the imported script completely untouched.
+        importer.dismissImport()
+        let declinedUpdate = try await updateTask.value
+        XCTAssertTrue(declinedUpdate.isError)
+        XCTAssertTrue(declinedUpdate.output.contains(ToolRegistry.declinedMessage))
+        let unchanged = try XCTUnwrap(store.script(id: imported.id))
+        XCTAssertEqual(unchanged.js.trimmingCharacters(in: .whitespacesAndNewlines), "console.log('original');")
+        XCTAssertFalse(unchanged.isEnabled)
+        XCTAssertEqual(unchanged.environment, .isolated)
+
+        // 3. Approving applies the update.
+        let approveTask = Task {
+            try await registry.dispatch(
+                toolName: "script_update",
+                arguments: [
+                    "script_id": .string(imported.id),
+                    "js": .string("console.log('approved rewrite');"),
+                    "enabled": .bool(true)
+                ]
+            )
+        }
+        for _ in 0..<100 {
+            if case .ready = importer.phase { break }
+            try await Task.sleep(nanoseconds: 20_000_000)
+        }
+        guard case .ready(let approveReview) = importer.phase, let sid = importer.activeSessionID else {
+            return XCTFail("Expected review sheet for approved update")
+        }
+        _ = try importer.confirmImport(turnOn: true, expectedSessionID: sid, expectedReview: approveReview)
+        let approvedUpdate = try await approveTask.value
+        XCTAssertFalse(approvedUpdate.isError, approvedUpdate.output)
+        let updated = try XCTUnwrap(store.script(id: imported.id))
+        XCTAssertEqual(updated.js, "console.log('approved rewrite');")
+        XCTAssertTrue(updated.isEnabled)
+    }
+
+    func testAgentScriptSaveWithSwitchOnBypassesApprovalSheet() async throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent("agent-no-ask-\(UUID().uuidString)", isDirectory: true)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let store = ScriptStore(directoryURL: dir)
+        let driver = FixturePageDriver(page: .init(url: "https://other.example.net/", title: "Home"))
+        var approvalCalls = 0
+        let registry = ToolRegistry.m3(context: AgentToolContext(
+            bridge: driver,
+            workspace: nil,
+            scriptStore: store,
+            settings: AgentToolSettings(saveScriptsWithoutAsking: true),
+            scriptApprover: { _ in
+                approvalCalls += 1
+                return .declined
+            }
+        ))
+
+        let saved = try await registry.dispatch(
+            toolName: "script_save",
+            arguments: [
+                "name": .string("Auto Saved"),
+                "match_rules": .array([.string("*://example.org/*")]),
+                "css": .string("body { color: #222; }")
+            ]
+        )
+        XCTAssertFalse(saved.isError, saved.output)
+        XCTAssertEqual(approvalCalls, 0)
+        XCTAssertEqual(store.scripts.map(\.name), ["Auto Saved"])
+    }
 }

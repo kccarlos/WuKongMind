@@ -6359,19 +6359,19 @@
         }
       }
     },
-    "Confirm before writes asks before the Agent sends a network request. Reading cookies, and sending your login to another site, always ask; cookie values stay hidden unless Give cookie values to the model is on." : {
+    "Confirm before writes asks before the Agent sends a network request, posts a notification, or runs a script tool that can make changes (it does not prompt for JavaScript on the open page). Reading cookies, and sending your login to another site, always ask; cookie values stay hidden unless Give cookie values to the model is on. Saving or updating a script asks for approval unless Save scripts without asking is on." : {
       "comment" : "Settings › Agent › Safety footer explaining the safety switches",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“写入前确认”会在代理发送网络请求前先询问。读取 Cookie 和向其他网站发送你的登录状态时，一律会询问；除非开启“向模型提供 Cookie 值”，否则 Cookie 值会被隐藏。"
+            "value" : "写入前确认会在智能体发送网络请求、发送通知或运行可能做出更改的脚本工具前询问（不会对当前页面上的 JavaScript 弹窗）。读取 Cookie 以及将你的登录状态发送到其他网站时始终会询问；除非开启“向模型提供 Cookie 值”，否则 Cookie 值保持隐藏。除非开启“无需询问即保存脚本”，否则保存或更新脚本前都会请求批准。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「寫入前確認」會在代理傳送網路請求前先詢問。讀取 Cookie 和向其他網站傳送你的登入狀態時，一律會詢問；除非開啟「向模型提供 Cookie 值」，否則 Cookie 值會被隱藏。"
+            "value" : "寫入前確認會在代理傳送網路請求、傳送通知或執行可能做出變更的指令碼工具前詢問（不會對目前頁面上的 JavaScript 顯示提示）。讀取 Cookie 以及將你的登入狀態傳送到其他網站時一律會詢問；除非開啟「向模型提供 Cookie 值」，否則 Cookie 值會保持隱藏。除非開啟「無需詢問即儲存指令碼」，否則儲存或更新指令碼前都會請求核准。"
           }
         }
       }
@@ -17703,6 +17703,40 @@
         }
       }
     },
+    "Runs in an isolated JavaScript world" : {
+      "comment" : "Update diff row when an update switches a script to the isolated JavaScript world",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在隔离的 JavaScript 环境中运行"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在隔離的 JavaScript 環境中執行"
+          }
+        }
+      }
+    },
+    "Runs in the page’s JavaScript world" : {
+      "comment" : "Capability row when a script runs in the page's JavaScript world instead of an isolated world",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在页面的 JavaScript 环境中运行"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在頁面的 JavaScript 環境中執行"
+          }
+        }
+      }
+    },
     "Runs on" : {
       "comment" : "Section header in Script detail for @match URL patterns",
       "localizations" : {
@@ -18765,6 +18799,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "要將麥克風音訊傳送至 %@ 嗎？"
+          }
+        }
+      }
+    },
+    "Send notification “%@”?" : {
+      "comment" : "Confirmation card: the Agent wants to send a local notification. The placeholder is the notification title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送通知“%@”？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "傳送通知「%@」？"
           }
         }
       }
@@ -21480,6 +21531,23 @@
         }
       }
     },
+    "The Agent can read and act on pages you’re signed in to, and asks before saving scripts or sending requests." : {
+      "comment" : "First-run step 1 footnote explaining that the Agent can act on signed-in pages and asks before saving scripts or sending requests",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "智能体可以读取并操作你已登录的页面，并在保存脚本或发送请求前询问你。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理可以讀取並操作你已登入的頁面，並在儲存指令碼或傳送請求前詢問你。"
+          }
+        }
+      }
+    },
     "The Apple Intelligence model isn’t ready yet (it may still be downloading). Try again in a few minutes." : {
       "localizations" : {
         "zh-Hans" : {
@@ -23628,6 +23696,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "一次關閉所有指令碼。共 %1$lld 個指令碼，%2$lld 個已開啟。"
+          }
+        }
+      }
+    },
+    "Turns the script on" : {
+      "comment" : "Update diff row when an update enables a disabled script",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启用此脚本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟用此指令碼"
           }
         }
       }
