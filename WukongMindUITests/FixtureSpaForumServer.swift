@@ -17,6 +17,7 @@ final class FixtureSpaForumServer: @unchecked Sendable {
     private let queue = DispatchQueue(label: "fixture-spa-forum")
     private let lock = NSLock()
     private var listener: NWListener?
+    private var activeConnections: [ObjectIdentifier: NWConnection] = [:]
     private var pathCounts: [String: Int] = [:]
     private var htmlLoads = 0
     private(set) var port: UInt16 = 0
@@ -77,16 +78,53 @@ final class FixtureSpaForumServer: @unchecked Sendable {
     func stop() {
         listener?.cancel()
         listener = nil
+        let connections = lock.withLock {
+            let values = Array(activeConnections.values)
+            activeConnections.removeAll()
+            return values
+        }
+        for connection in connections {
+            connection.cancel()
+        }
     }
 
     private func handle(_ connection: NWConnection) {
+        let id = ObjectIdentifier(connection)
+        lock.withLock { activeConnections[id] = connection }
         connection.start(queue: queue)
         receive(connection, buffer: Data())
     }
 
+    private func finish(_ connection: NWConnection) {
+        let id = ObjectIdentifier(connection)
+        lock.withLock { _ = activeConnections.removeValue(forKey: id) }
+        connection.cancel()
+    }
+
+    private func waitForPeerClose(_ connection: NWConnection) {
+        // Wait for the peer (WKWebView's networking process) to finish reading the
+        // response and close its end instead of calling `connection.cancel()` right
+        // inside `.contentProcessed`, which can send a TCP RST on a loaded VM before
+        // WebKit drains the loopback socket buffer.
+        connection.receive(minimumIncompleteLength: 1, maximumLength: 1024) { [weak self] _, _, isComplete, error in
+            guard let self else {
+                connection.cancel()
+                return
+            }
+            if isComplete || error != nil {
+                self.finish(connection)
+            } else {
+                self.waitForPeerClose(connection)
+            }
+        }
+    }
+
     private func receive(_ connection: NWConnection, buffer: Data) {
         connection.receive(minimumIncompleteLength: 1, maximumLength: 65_536) { [weak self] data, _, isComplete, error in
-            guard let self else { return }
+            guard let self else {
+                connection.cancel()
+                return
+            }
             var buffer = buffer
             if let data { buffer.append(data) }
             if let path = Self.parseRequestPath(buffer) {
@@ -95,12 +133,20 @@ final class FixtureSpaForumServer: @unchecked Sendable {
                     content: payload,
                     contentContext: .finalMessage,
                     isComplete: true,
-                    completion: .contentProcessed { _ in
-                        connection.cancel()
+                    completion: .contentProcessed { [weak self] sendError in
+                        guard let self else {
+                            connection.cancel()
+                            return
+                        }
+                        if sendError != nil {
+                            self.finish(connection)
+                        } else {
+                            self.waitForPeerClose(connection)
+                        }
                     }
                 )
             } else if isComplete || error != nil {
-                connection.cancel()
+                self.finish(connection)
             } else {
                 self.receive(connection, buffer: buffer)
             }
@@ -535,8 +581,12 @@ extension DCUITestCase {
         let app = makeConfiguredApp(resetBox: true)
         let webView = app.webViews.firstMatch
         XCTAssertTrue(webView.waitForExistence(timeout: 20), "Browser web view did not appear.")
+        let initialStamp = waitForLoadStamp(in: webView, after: 0, timeout: 20)
+        if initialStamp == nil {
+            attachTree(app, named: "Initial load failure tree")
+        }
         XCTAssertNotNil(
-            waitForLoadStamp(in: webView, after: 0, timeout: 20),
+            initialStamp,
             "Fixture thread #101 did not load (htmlLoads=\(server.totalHTMLLoads), /threads/101=\(server.requestCount(forPath: "/threads/101")))."
         )
         XCTAssertTrue(webView.staticTexts[FixtureSpaForumServer.thread101OP].waitForExistence(timeout: 10))
