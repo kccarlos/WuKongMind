@@ -20,6 +20,8 @@ struct Forum: Codable, Identifiable, Equatable, Hashable {
     /// `host[/basePath]` for display.
     var host: String { ForumSite.host(of: siteURL) }
     var displayName: String { ForumSite.displayName(siteURL: siteURL, name: name) }
+    /// Whether this site has a built-in reader (not a plain `.web` favourite or `.unknown` placeholder).
+    var hasReader: Bool { kind != .web && kind != .unknown }
 
     init(
         siteURL: String,
@@ -59,45 +61,41 @@ struct Forum: Codable, Identifiable, Equatable, Hashable {
     }
 }
 
-/// A well-known public forum offered before the user adds any.
-struct SuggestedForum: Identifiable, Equatable {
-    /// The platform it declares, which picks the adapter once it is added.
-    var kind: SiteKind
+/// An ordinary public website offered as a starting point on first run and
+/// on an empty Home screen.
+struct SuggestedSite: Identifiable, Equatable {
     var name: String
     var siteURL: String
-    /// One line about the community.
+    /// One line about the site.
     var description: String
 
     var id: String { siteURL }
     var host: String { ForumSite.host(of: siteURL) }
+    var url: URL? { URL(string: siteURL) }
 }
 
 enum ForumDirectoryError: LocalizedError, Equatable {
     case invalidAddress
-    case notSupported(String)
+    case offline
 
     var errorDescription: String? {
         switch self {
         case .invalidAddress:
-            String(localized: "Enter a forum address such as meta.discourse.org.", comment: "Add forum error; keep the example address as is")
-        case .notSupported(let host):
-            String(
-                localized: "\(host) doesn’t look like a supported site. WukongMind works with \(SiteRecognizers.platformNames()).",
-                comment: "Add forum error; the first placeholder is a web address such as forum.example.com, the second the supported platforms such as Discourse and WordPress"
-            )
+            String(localized: "Enter a web address such as example.com.", comment: "Add site error; keep the example address as is")
+        case .offline:
+            String(localized: "You’re offline. Check your connection and try again.", comment: "Add site error when the device has no internet connection")
         }
     }
 }
 
-/// Add forum: detecting the platform of a typed address and its outcome.
+/// Add site: checking whether a typed address matches a built-in reader and its outcome.
 /// `detecting` is entered once per address (a repeated tap joins it);
-/// `failed` is the network's fault and may be retried; `unsupported` is
-/// shown as `ForumDirectoryError.notSupported`.
+/// `failed` is the network's fault and may be retried; an ordinary site with no
+/// reader is stored with `SiteKind.web`.
 enum AddForumPhase: Equatable {
     case idle
     case detecting(address: String)
     case recognized(kind: SiteKind, siteURL: String)
-    case unsupported
     case failed(NetworkFailure)
 }
 
@@ -150,9 +148,9 @@ struct ForumDirectory: Equatable {
         guard kind != .unknown, let normalized = ForumSite.normalizeSiteURL(siteURL) else { return nil }
         let trimmedName = name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if let index = forums.firstIndex(where: { $0.siteURL == normalized }) {
-            if overwritingKind || forums[index].kind == .unknown {
+            if overwritingKind || forums[index].kind == .unknown || (forums[index].kind == .web && kind != .web) {
                 forums[index].kind = kind
-            } else {
+            } else if kind != .web {
                 assert(forums[index].kind == kind, "\(normalized) is \(forums[index].kind), not \(kind)")
             }
             if !trimmedName.isEmpty { forums[index].name = trimmedName }
@@ -205,11 +203,4 @@ struct ForumDirectory: Equatable {
             }
         }
     }
-}
-
-/// A site's well-known public forums (`SiteAdapter.suggestedForums`).
-struct SuggestedForums {
-    var general: [SuggestedForum]
-    /// Offered first in the walkthrough when the app language is Chinese.
-    var chinese: [SuggestedForum]
 }

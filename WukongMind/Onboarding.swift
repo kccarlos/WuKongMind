@@ -218,7 +218,7 @@ struct OnboardingFlow: View {
                     app.browser.load(url)
                 }
             } else if let suggested {
-                app.openForum(suggested)
+                app.openSuggestedSite(suggested)
             }
         }
     }

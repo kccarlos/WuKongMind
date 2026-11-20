@@ -41,13 +41,14 @@ final class OnboardingTests: XCTestCase {
         XCTAssertEqual(AppModel.firstRunSuggestions, ["Make this page easier to read", "Hide everything but the article"])
     }
 
-    func testChineseLanguageSuggestsTheChineseForumsFirst() {
+    func testOnboardingSuggestionsAreOrdinaryWebPagesWithChineseWikipediaFirst() {
         let chinese = AppModel.onboardingSuggestions(chineseFirst: true).map(\.siteURL)
-        XCTAssertEqual(Array(chinese.prefix(2)), ["https://www.uscardforum.com", "https://linux.do"])
-        XCTAssertEqual(chinese.count, AppModel.suggestedForums.count + 2)
+        XCTAssertEqual(chinese.first, "https://zh.wikipedia.org")
+        XCTAssertEqual(chinese.count, AppModel.suggestedSites.count)
         let english = AppModel.onboardingSuggestions(chineseFirst: false)
-        XCTAssertEqual(english, AppModel.suggestedForums)
-        XCTAssertTrue(SiteRegistry.standard.adapters.flatMap(\.suggestedForums.chinese).allSatisfy { ForumSite.normalizeSiteURL($0.siteURL) == $0.siteURL })
+        XCTAssertEqual(english, AppModel.suggestedSites)
+        XCTAssertTrue(english.allSatisfy { ForumSite.normalizeSiteURL($0.siteURL) == $0.siteURL })
+        XCTAssertTrue(english.allSatisfy { !$0.host.contains("discourse") && !$0.host.contains("ycombinator") })
     }
 
     func testEveryProviderHasGuidance() {

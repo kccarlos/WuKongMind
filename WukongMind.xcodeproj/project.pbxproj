@@ -794,7 +794,6 @@
 		FB761578986498DC36111BA83E611E55 /* WordPressUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49ACBEF5C3F23731890FB5D8A695896A /* WordPressUITests.swift */; };
 		FBA41C1CA094A2A5944F27B61DA030BF /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-31d84363d429.json in Resources */ = {isa = PBXBuildFile; fileRef = AAC4AA3EE4A9463B60A91D6B6D041C63 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-31d84363d429.json */; };
 		FBAEACC57F0722B83A5CB7823C09E1B4 /* LiveBudget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BA39DEF6DAE81A7DFDE38841CF5721C /* LiveBudget.swift */; };
-		FBB2E59F1D195CB291FA62E32CCAB66E /* DiscourseSuggestions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 17551BDF76305BD55363ACEF267510D5 /* DiscourseSuggestions.swift */; };
 		FC0F05C64112ACA2EDEC0AF9832BD621 /* discourse-meta-appinn-net-raw-7930-f5fe9ea1c421.json in Resources */ = {isa = PBXBuildFile; fileRef = C3BA22F59D6487AB5454EE781EA0E749 /* discourse-meta-appinn-net-raw-7930-f5fe9ea1c421.json */; };
 		FD9DC200999F053A24029E382C176744 /* page-21.html in Resources */ = {isa = PBXBuildFile; fileRef = F65F2714C12D8BADCE36454491616612 /* page-21.html */; };
 		FDE1108AC744F30A311DE369CDBEC255 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-8a2a6f296bb2.json in Resources */ = {isa = PBXBuildFile; fileRef = 782F21C17D5AFA585EB16D989A0D581A /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-8a2a6f296bb2.json */; };
@@ -899,7 +898,6 @@
 		161A46B5355DDD0B106C777621940C10 /* TodayUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TodayUITests.swift; sourceTree = "<group>"; };
 		1675DC2DD77B5FB0E218EE0D120F0644 /* markup-generator.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "markup-generator.html"; path = "Fixtures/LookLikeThread/markup-generator.html"; sourceTree = "<group>"; };
 		16F87277892E91E25C38DB2E2163A8B5 /* wordpress-www-doctorofcredit-com-wp-json-wp-v2-5d55a71deaf0.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "wordpress-www-doctorofcredit-com-wp-json-wp-v2-5d55a71deaf0.json"; path = "Fixtures/Comparison/wordpress/wordpress-www-doctorofcredit-com-wp-json-wp-v2-5d55a71deaf0.json"; sourceTree = "<group>"; };
-		17551BDF76305BD55363ACEF267510D5 /* DiscourseSuggestions.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = DiscourseSuggestions.swift; path = Sites/Discourse/DiscourseSuggestions.swift; sourceTree = "<group>"; };
 		17F01909A49F63558B2AF94221B431FD /* discourse-meta-appinn-net-raw-90860-979ec776a344.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-meta-appinn-net-raw-90860-979ec776a344.json"; path = "Fixtures/Comparison/discourse/discourse-meta-appinn-net-raw-90860-979ec776a344.json"; sourceTree = "<group>"; };
 		180A729ADC76151CA1BBA64B904FDCFA /* SiteToolVerifierTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SiteToolVerifierTests.swift; sourceTree = "<group>"; };
 		194B03CB35445A352A9A3196124C198A /* DesignSystem.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
@@ -1853,7 +1851,6 @@
 				457052E0DF146A4E415191621D888675 /* DiscoursePagePlan.swift */,
 				8829E3304F09566A331625D5F4AD2F85 /* DiscourseParsing.swift */,
 				095F3B1E265CE6569B70F4FDC94046DC /* DiscourseRoutes.swift */,
-				17551BDF76305BD55363ACEF267510D5 /* DiscourseSuggestions.swift */,
 				C00EDB2B1AE5354C7F60897CD5C714F2 /* DiscussionProfile.swift */,
 				97448C612A021D63853EF309FE756889 /* HackerNewsAPI.swift */,
 				F100891CAFFDE64AD2C47B781D0FE96A /* HackerNewsAdapter.swift */,
@@ -3359,7 +3356,6 @@
 				6352FF1ED16CAA45341B678F2FF3DD80 /* DiscoursePagePlan.swift in Sources */,
 				4245E8410CC76C81DD82BF5FAAF4B9F8 /* DiscourseParsing.swift in Sources */,
 				1D00C8704C06A514772553C839E61371 /* DiscourseRoutes.swift in Sources */,
-				FBB2E59F1D195CB291FA62E32CCAB66E /* DiscourseSuggestions.swift in Sources */,
 				E856FEDCB3D48A3B4EB9E4E82F750A04 /* DiscussionProfile.swift in Sources */,
 				891FC10DFCE97AF75724F61C699D9417 /* HackerNewsAPI.swift in Sources */,
 				04750A0062CB2F47542F791B12CF361A /* HackerNewsAdapter.swift in Sources */,

@@ -162,7 +162,9 @@ extension AppModel {
             return true
         }
 
-        let listForums = options.includesTrending ? Array(pinnedForums.prefix(DigestLimits.trendingForums)) : []
+        let listForums = options.includesTrending
+            ? Array(pinnedForums.filter { adapter(for: $0.siteURL) != nil }.prefix(DigestLimits.trendingForums))
+            : []
         if options.includesWatched {
             for topic in Self.watchCheckOrder(watchedTopics) {
                 guard !Task.isCancelled, prefetch.requestCount < cap - listForums.count else { break }

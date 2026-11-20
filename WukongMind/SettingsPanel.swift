@@ -34,8 +34,8 @@ struct SettingsRootView: View {
                 row(
                     .sites,
                     value: String(
-                        localized: "\(app.forums.count) forums",
-                        comment: "Settings root, Sites row: number of saved forums"
+                        localized: "\(app.forums.count) sites",
+                        comment: "Settings root, Sites row: number of saved sites"
                     )
                 )
                 row(.browser, value: app.settings.searchEngine.displayName)

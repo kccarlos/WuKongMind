@@ -86,7 +86,7 @@ private struct HomeList: View {
             if tiles.isEmpty {
                 suggestedCard
             } else {
-                if !app.forums.isEmpty { TodayModule(app: app, podcast: podcast, onOpen: actions.openDigestLink) }
+                if app.forums.contains(where: \.hasReader) { TodayModule(app: app, podcast: podcast, onOpen: actions.openDigestLink) }
                 sitesSection(tiles)
             }
             recentSection
@@ -297,8 +297,8 @@ private struct HomeList: View {
         }
         Divider()
         Button(role: .destructive) { confirmRemoval(site) } label: {
-            // A forum asks what happens to its saved data first.
-            if site.isForum {
+            // A directory site asks what happens to its saved data first.
+            if site.forum != nil {
                 Label("Remove…", systemImage: "trash")
             } else {
                 Label("Remove", systemImage: "trash")
@@ -308,7 +308,7 @@ private struct HomeList: View {
 
     private func isCurrent(_ site: HomeSite) -> Bool {
         guard browser.currentURL != nil else { return false }
-        if let forum = site.forum { return app.isCurrent(forum) }
+        if let forum = site.forum, forum.hasReader { return app.isCurrent(forum) }
         return HomeSites.originOf(browser.currentURL) == site.siteURL
     }
 
@@ -316,8 +316,12 @@ private struct HomeList: View {
         DCHaptics.tap()
         if let forum = site.forum {
             site.isPinned ? app.unpin(forum) : app.pin(forum)
+        } else if !site.isPinned {
+            // One kind of pin: pinning a visited site adds it to the synced directory as `.web`.
+            app.pin(Forum(siteURL: site.siteURL, kind: .web, name: site.name))
+            siteVisits.setPinned(false, siteURL: site.siteURL)
         } else {
-            siteVisits.setPinned(!site.isPinned, siteURL: site.siteURL)
+            siteVisits.setPinned(false, siteURL: site.siteURL)
         }
     }
 
@@ -349,14 +353,14 @@ private struct HomeList: View {
 
     // MARK: No sites yet
 
-    /// Three suggested sites, no badge and no explanatory text.
+    /// Three suggested ordinary sites, no badge and no explanatory text.
     @ViewBuilder
     private var suggestedCard: some View {
-        let suggestions = Array(app.suggestedForumsToOffer.prefix(3))
+        let suggestions = Array(AppModel.onboardingSuggestions().prefix(3))
         if !suggestions.isEmpty {
             Section {
                 ForEach(suggestions) { suggested in
-                    Button { app.openForum(suggested) } label: {
+                    Button { app.openSuggestedSite(suggested) } label: {
                         HStack(spacing: DCTheme.spacingM) {
                             ForumIcon(suggested: suggested, size: 40)
                             VStack(alignment: .leading, spacing: 2) {
