@@ -61,6 +61,31 @@ final class OnboardingTests: XCTestCase {
         }
     }
 
+    func testProviderGuideHasNoBannedPricingOrPurchaseWords() {
+        let bannedWords = ["buy", "credit", "credits", "price", "prices", "pricing", "purchase", "low-cost", "subscription", "free", "bill", "billed", "$"]
+        for provider in AIProvider.allCases {
+            let guide = ProviderGuide.guide(for: provider)
+            let texts = [guide.blurb, guide.linkTitle, guide.note].compactMap { $0 }
+            for text in texts {
+                let lowered = text.lowercased()
+                for banned in bannedWords {
+                    if banned == "$" {
+                        XCTAssertFalse(lowered.contains("$"), "\(provider) contains banned symbol '$' in: \(text)")
+                    } else {
+                        let pattern = #"\b"# + NSRegularExpression.escapedPattern(for: banned) + #"\b"#
+                        XCTAssertNil(
+                            lowered.range(of: pattern, options: .regularExpression),
+                            "\(provider) contains banned word '\(banned)' in: \(text)"
+                        )
+                    }
+                }
+            }
+            if provider.requiresAPIKey {
+                XCTAssertTrue(guide.linkTitle.hasPrefix("Get a key"), "\(provider) linkTitle must start with 'Get a key', got: \(guide.linkTitle)")
+            }
+        }
+    }
+
     func testSettingsRootVoiceTodaySummary() {
         XCTAssertEqual(SettingsRootSummary.voiceToday(seconds: 45, dailyLimitMinutes: 30), "Voice today 1 of 30 min")
         XCTAssertEqual(SettingsVoicePage.minutes(45), "1 min")
@@ -209,6 +234,25 @@ final class OnboardingReplayTests: XCTestCase {
         let app = AppModel(store: store)
         app.settings.hasCompletedOnboarding = true
         return app
+    }
+
+    func testOpenProviderGuideLinkOpensTabAndDismissesModals() throws {
+        let app = try model()
+        app.settings.hasCompletedOnboarding = false
+        app.router.onboardingReplay = .showing
+        app.requestedSettingsPage = .provider
+        app.needsProviderSetup = .browserAgent
+
+        let url = ProviderGuide.guide(for: .openRouter).link
+        let initialCount = app.tabs.tabs.count
+        app.openProviderGuideLink(url)
+
+        XCTAssertTrue(app.settings.hasCompletedOnboarding)
+        XCTAssertEqual(app.router.onboardingReplay, .none)
+        XCTAssertNil(app.requestedSettingsPage)
+        XCTAssertNil(app.needsProviderSetup)
+        XCTAssertEqual(app.tabs.tabs.count, initialCount + 1)
+        XCTAssertEqual(app.browser.currentURL, url)
     }
 
     func testFromASettingsSheetTheSheetGoesFirst() async throws {

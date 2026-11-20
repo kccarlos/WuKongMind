@@ -5109,18 +5109,18 @@
         }
       }
     },
-    "Built in and private. Runs on this device or on Apple’s Private Cloud Compute; nothing goes anywhere else. No key, no bill." : {
+    "Built in and private. Runs on this device or on Apple’s Private Cloud Compute; nothing goes anywhere else. No key needed." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "内置且私密。在此设备或 Apple 私密云计算上运行，数据不会发送到其他地方。无需密钥，也无需付费。"
+            "value" : "内置且私密。在此设备或 Apple 私密云计算上运行，数据不会发送到其他地方。无需密钥。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "內建且私密。在這部裝置或 Apple 私密雲端運算上執行，資料不會傳送到其他地方。不需要金鑰，也不用付費。"
+            "value" : "內建且私密。在這部裝置或 Apple 私密雲端運算上執行，資料不會傳送到其他地方。不需要金鑰。"
           }
         }
       }
@@ -7279,18 +7279,18 @@
         }
       }
     },
-    "DeepSeek’s low-cost chat and reasoning models." : {
+    "DeepSeek’s chat and reasoning models." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "DeepSeek 的低成本对话与推理模型。"
+            "value" : "DeepSeek 的对话与推理模型。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "DeepSeek 的低成本對話與推理模型。"
+            "value" : "DeepSeek 的對話與推理模型。"
           }
         }
       }
@@ -9568,34 +9568,34 @@
         }
       }
     },
-    "Gemini models from Google, with a free tier." : {
+    "Gemini models from Google." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Google 的 Gemini 模型，提供免费额度。"
+            "value" : "Google 的 Gemini 模型。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Google 的 Gemini 模型，提供免費額度。"
+            "value" : "Google 的 Gemini 模型。"
           }
         }
       }
     },
-    "Gemini models through your Google Cloud project, billed to it." : {
+    "Gemini models through your Google Cloud project." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "通过你的 Google Cloud 项目使用 Gemini 模型，费用计入该项目。"
+            "value" : "通过你的 Google Cloud 项目使用 Gemini 模型。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "透過你的 Google Cloud 專案使用 Gemini 模型，費用計入該專案。"
+            "value" : "透過你的 Google Cloud 專案使用 Gemini 模型。"
           }
         }
       }
@@ -14382,18 +14382,18 @@
         }
       }
     },
-    "Open models hosted by NVIDIA, with free credits to start." : {
+    "Open models hosted by NVIDIA." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "由 NVIDIA 托管的开放模型，起步有免费额度。"
+            "value" : "由 NVIDIA 托管的开放模型。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "由 NVIDIA 代管的開放模型，一開始有免費額度。"
+            "value" : "由 NVIDIA 代管的開放模型。"
           }
         }
       }
@@ -18173,18 +18173,18 @@
         }
       }
     },
-    "Runs on your own computer. No key and no usage bill." : {
+    "Runs on your own computer. No key needed." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在你自己的电脑上运行。无需密钥，也没有用量账单。"
+            "value" : "在你自己的电脑上运行。无需密钥。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在你自己的電腦上執行。無需金鑰，也沒有用量帳單。"
+            "value" : "在你自己的電腦上執行。無需金鑰。"
           }
         }
       }
@@ -25333,18 +25333,18 @@
         }
       }
     },
-    "Very fast open models, with a free tier." : {
+    "Very fast open models." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "速度极快的开放模型，提供免费额度。"
+            "value" : "速度极快的开放模型。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "速度極快的開放模型，提供免費方案。"
+            "value" : "速度極快的開放模型。"
           }
         }
       }
