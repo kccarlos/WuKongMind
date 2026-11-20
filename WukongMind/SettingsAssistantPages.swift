@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 // Settings › Agent, Audit log, Sites, Following, and Browser.
 
@@ -624,9 +625,45 @@ struct AuditTaskPage: View {
     }
 }
 
-/// Settings › Agent › Records › Workspace: the folder's size, opening the Files app at it.
+/// Opens the system document picker at a workspace folder using public UIKit API.
+struct WorkspaceFilesPicker: UIViewControllerRepresentable {
+    let directoryURL: URL
+    var onDismiss: () -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onDismiss: onDismiss)
+    }
+
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.item, .folder])
+        picker.directoryURL = directoryURL
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
+
+    final class Coordinator: NSObject, UIDocumentPickerDelegate {
+        let onDismiss: () -> Void
+
+        init(onDismiss: @escaping () -> Void) {
+            self.onDismiss = onDismiss
+        }
+
+        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+            onDismiss()
+        }
+
+        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+            onDismiss()
+        }
+    }
+}
+
+/// Settings › Agent › Records › Workspace: the folder's size, opening the Files picker at it.
 struct SettingsWorkspaceRow: View {
     @State private var size: Int64 = 0
+    @State private var showingPicker = false
     @State private var openFailed = false
 
     private var folder: URL? {
@@ -635,13 +672,11 @@ struct SettingsWorkspaceRow: View {
 
     var body: some View {
         Button {
-            guard let folder, let url = URL(string: "shareddocuments://" + folder.path) else {
+            guard folder != nil else {
                 openFailed = true
                 return
             }
-            UIApplication.shared.open(url) { opened in
-                if !opened { openFailed = true }
-            }
+            showingPicker = true
         } label: {
             SettingsIconRow {
                 SettingsIcon(symbol: "folder", tint: DCTheme.ink)
@@ -656,6 +691,13 @@ struct SettingsWorkspaceRow: View {
         }
         .accessibilityIdentifier("settingsRow-workspace")
         .task { size = Self.folderSize(folder) }
+        .sheet(isPresented: $showingPicker) {
+            if let folder {
+                WorkspaceFilesPicker(directoryURL: folder) {
+                    showingPicker = false
+                }
+            }
+        }
         if openFailed {
             Text("In the Files app: On My iPhone › WukongMind", comment: "Settings › Agent › Workspace footer when the Files app can't be opened")
                 .font(.footnote)

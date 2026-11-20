@@ -120,7 +120,6 @@ private struct InspectorTitle: View {
 struct SiteInspectorView: View {
     @ObservedObject var app: AppModel
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.openURL) private var openURL
     @State private var host = ""
     @State private var pageURL = ""
     @State private var state: SiteToolState?
@@ -129,6 +128,7 @@ struct SiteInspectorView: View {
     @State private var selectedSlot: SiteToolSlot = .readTopic
     @State private var openTask: AuditTask?
     @State private var forgetting = false
+    @State private var showingNotesPicker = false
 
     private var notesURL: URL { app.agentWorkspace.root.appendingPathComponent("sites/\(host)/notes.md") }
 
@@ -338,7 +338,7 @@ struct SiteInspectorView: View {
         Section {
             let modified = (try? FileManager.default.attributesOfItem(atPath: notesURL.path)[.modificationDate]) as? Date
             Button {
-                if let url = URL(string: "shareddocuments://" + notesURL.path) { openURL(url) }
+                showingNotesPicker = true
             } label: {
                 HStack {
                     Image(systemName: "doc")
@@ -354,6 +354,11 @@ struct SiteInspectorView: View {
             .foregroundStyle(DCTheme.ink)
             .disabled(modified == nil)
             .accessibilityIdentifier("siteInspectorNotes")
+            .sheet(isPresented: $showingNotesPicker) {
+                WorkspaceFilesPicker(directoryURL: notesURL.deletingLastPathComponent()) {
+                    showingNotesPicker = false
+                }
+            }
         } header: {
             Text("Site notes", comment: "Site inspector section title")
         }

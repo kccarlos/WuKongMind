@@ -40,8 +40,7 @@ enum IncomingLink {
     static let host = "open"
 
     /// `wukongmind://open?url=<enc>&action=<a>&title=<enc>&id=<uuid>`.
-    /// `id` lets the app skip the matching SharedInbox entry, since the share
-    /// extension both enqueues a request and opens this URL.
+    /// `id` identifies the request and deduplicates against any matching `SharedInbox` entry.
     static func url(for request: IncomingLinkRequest) -> URL {
         var components = URLComponents()
         components.scheme = scheme
