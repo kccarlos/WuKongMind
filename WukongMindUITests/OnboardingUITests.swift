@@ -195,7 +195,7 @@ final class OnboardingUITests: DCUITestCase {
         let server = FixtureWordPressServer()
         try server.start()
         defer { server.stop() }
-        let app = launch(["-dc-reset", "-dc-no-provider"])
+        let app = launch(["-dc-reset", "-dc-no-provider", "-dc-apple-intelligence", "on-device"])
 
         XCTAssertTrue(any(app, "onboarding").waitForExistence(timeout: 20), "The walkthrough did not appear.")
         let later = app.buttons["onboardingSkipStep"]
@@ -220,16 +220,14 @@ final class OnboardingUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(panel, timeout: 20, in: app), "Step 3 did not show.")
 
         let setupCard = any(app, "providerSetupCard")
-        if !setupCard.waitForExistence(timeout: 5) {
-            let suggestion = app.buttons["suggestion-tryReadable"]
-            if suggestion.waitForExistence(timeout: 5) {
-                suggestion.tap()
-            }
-        }
         XCTAssertTrue(waitOrDump(setupCard, timeout: 10, in: app), "Provider setup card did not appear without a key.")
         XCTAssertTrue(
             setupCard.staticTexts.matching(NSPredicate(format: "label CONTAINS 'API key'")).firstMatch.exists,
             "Setup card should state plainly that the Agent needs an API key."
+        )
+        XCTAssertTrue(
+            setupCard.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Apple Intelligence only runs Summaries'")).firstMatch.exists,
+            "Setup card should explain that Apple Intelligence only runs Summaries."
         )
         capture("no-key-setup-card")
 

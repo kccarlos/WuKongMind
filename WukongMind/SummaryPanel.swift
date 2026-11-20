@@ -187,6 +187,7 @@ private final class DrawerAppRelay {
     private var cancellables = Set<AnyCancellable>()
     private var factsCancellable: AnyCancellable?
     private var lastSettings: AppSettings?
+    private var lastAppleIntelligenceStatus: AppleIntelligenceStatus?
     private var cachedSettingsDerived: SettingsDerived?
     private var hasCachedSiteState = false
     private var lastSiteStateHost: String?
@@ -195,22 +196,17 @@ private final class DrawerAppRelay {
     private var dirty = false
 
     private func settingsDerived(for app: AppModel) -> SettingsDerived {
-        if let cached = cachedSettingsDerived, lastSettings == app.settings { return cached }
+        let aiStatus = app.appleIntelligenceStatus
+        if let cached = cachedSettingsDerived, lastSettings == app.settings, lastAppleIntelligenceStatus == aiStatus { return cached }
         let settings = app.settings
         lastSettings = settings
+        lastAppleIntelligenceStatus = aiStatus
         let sel = app.selection(for: .browserAgent)
         let ready = DrawerInputs.browserAgentReadiness(app)
-        let assistantModel = settings.effectiveModel(for: .assistant)
-        let needsAI = ready != .ready && (assistantModel.provider.isAppleIntelligence || settings.favoriteModels.contains { $0.provider.isAppleIntelligence })
-        let aiStatus = needsAI ? app.appleIntelligenceStatus : DrawerInputs.unusedAI
-        let defaultRole: ModelRole? = if ready == .ready {
-            nil
-        } else {
-            settings.readiness(of: assistantModel, appleIntelligence: aiStatus) != .ready ? .browserAgent : nil
-        }
-        let requestedRole: ModelRole? = ready == .ready ? nil : .browserAgent
+        let defaultRole: ModelRole? = ready == .ready ? nil : .browserAgent
+        let requestedRole: ModelRole? = defaultRole
         let requestedSetup = requestedRole.map { ProviderSetupModel(app: app, role: $0, appleIntelligence: aiStatus) }
-        let defaultSetup = defaultRole != nil ? requestedSetup : nil
+        let defaultSetup = requestedSetup
         let derived = SettingsDerived(
             sel: sel,
             isBrowserAgentReady: ready == .ready,
