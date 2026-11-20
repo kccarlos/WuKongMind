@@ -212,7 +212,7 @@ struct SettingsHelpPage: View {
                 ForEach(AIProvider.allCases) { provider in
                     let guide = ProviderGuide.guide(for: provider)
                     Button {
-                        openURL(guide.link)
+                        app.openProviderGuideLink(guide.link)
                     } label: {
                         HStack(spacing: DCTheme.spacingM) {
                             ProviderBadge(provider: provider, size: 29)

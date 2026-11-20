@@ -539,7 +539,9 @@ struct ProviderSetupForm: View {
                 HStack {
                     fieldLabel("API key")
                     Spacer()
-                    Link(destination: guide.link) {
+                    Button {
+                        app.openProviderGuideLink(guide.link)
+                    } label: {
                         SwiftUI.Label("Get a key", systemImage: "arrow.up.right.square")
                             .font(.footnote.weight(.semibold))
                     }
@@ -563,7 +565,9 @@ struct ProviderSetupForm: View {
                 HStack {
                     fieldLabel("Server address")
                     Spacer()
-                    Link(destination: guide.link) {
+                    Button {
+                        app.openProviderGuideLink(guide.link)
+                    } label: {
                         SwiftUI.Label(guide.linkTitle, systemImage: "arrow.down.circle")
                             .font(.footnote.weight(.semibold))
                     }

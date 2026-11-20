@@ -7295,18 +7295,18 @@
         }
       }
     },
-    "DeepSeek’s low-cost chat and reasoning models." : {
+    "DeepSeek’s chat and reasoning models." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "DeepSeek 的低成本对话与推理模型。"
+            "value" : "DeepSeek 的对话与推理模型。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "DeepSeek 的低成本對話與推理模型。"
+            "value" : "DeepSeek 的對話與推理模型。"
           }
         }
       }
@@ -14398,18 +14398,18 @@
         }
       }
     },
-    "Open models hosted by NVIDIA, with free credits to start." : {
+    "Open models hosted by NVIDIA." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "由 NVIDIA 托管的开放模型，起步有免费额度。"
+            "value" : "由 NVIDIA 托管的开放模型。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "由 NVIDIA 代管的開放模型，一開始有免費額度。"
+            "value" : "由 NVIDIA 代管的開放模型。"
           }
         }
       }

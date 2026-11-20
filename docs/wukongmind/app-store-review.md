@@ -331,11 +331,12 @@ The owner's principles (2026-11-19) apply to every task: speed first (a task tha
 - **Files:** `appstore/`, `mobile-site/` (or another host), `fastlane/Fastfile`, `.github/workflows/release.yml`, a new `docs/APP_STORE.md` based on Forumind's.
 - **Check:** the metadata limit check passes in CI; URLs load; the age rating and privacy answers are read back from App Store Connect after saving (Forumind lost one that way).
 
-### Task 9: provider key links
+### Task 9: provider key links (done 2026-11-19)
 
 - **What:** review the wording around the key links in onboarding and Settings: "Get a key" only, no prices, no "buy credits". Open them in the app's own browser tab or show the address as text, for every install, so no button leads straight to a purchase page.
+- **Done:** removed "low-cost" (DeepSeek) and "with free credits to start" (NVIDIA) from `ProviderGuide` and `Localizable.xcstrings`; replaced external `Link`/`openURL` calls in `SettingsProviderForm.swift`, `SettingsProviderPage.swift`, and `SettingsDataHelpPages.swift` with `AppModel.openProviderGuideLink(_:)` so every provider link opens in a new browser tab inside the app and dismisses onboarding/Settings. Added `testProviderGuideHasNoBannedPricingOrPurchaseWords`, `testOpenProviderGuideLinkOpensTabAndDismissesModals`, and `testProviderKeyLinkOpensInAppBrowserTab`.
 - **Why:** 3.1.1(a) outside the United States.
-- **Files:** `WukongMind/AppModel+Onboarding.swift` (121-193), `WukongMind/SettingsProviderForm.swift`.
+- **Files:** `WukongMind/AppModel+Onboarding.swift`, `WukongMind/SettingsProviderForm.swift`, `WukongMind/SettingsProviderPage.swift`, `WukongMind/SettingsDataHelpPages.swift`, `WukongMind/Localizable.xcstrings`.
 - **Check:** a test over `ProviderGuide` strings for banned words; a UI check of where the link opens.
 
 ### Task 10: one vocabulary, a browser's (words and entry points)

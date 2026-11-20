@@ -175,7 +175,7 @@ struct ProviderGuide: Equatable {
             )
         case .deepSeek:
             ProviderGuide(
-                blurb: String(localized: "DeepSeek’s low-cost chat and reasoning models."),
+                blurb: String(localized: "DeepSeek’s chat and reasoning models."),
                 link: URL(string: "https://platform.deepseek.com/api_keys")!,
                 linkTitle: String(localized: "Get a key at platform.deepseek.com")
             )
@@ -189,10 +189,32 @@ struct ProviderGuide: Equatable {
             )
         case .nvidia:
             ProviderGuide(
-                blurb: String(localized: "Open models hosted by NVIDIA, with free credits to start."),
+                blurb: String(localized: "Open models hosted by NVIDIA."),
                 link: URL(string: "https://build.nvidia.com/settings/api-keys")!,
                 linkTitle: String(localized: "Get a key at build.nvidia.com")
             )
+        }
+    }
+}
+
+extension AppModel {
+    /// Opens a provider's key or info page in the app's own browser tab so no
+    /// onboarding or Settings button jumps straight to an external store page.
+    func openProviderGuideLink(_ url: URL) {
+        if !settings.hasCompletedOnboarding {
+            completeOnboarding()
+        }
+        router.onboardingReplay = .none
+        router.item = nil
+        needsProviderSetup = nil
+        requestedSettingsPage = nil
+        requestedScriptID = nil
+        router.isTabOverviewPresented = false
+        if router.drawerPhase == .shown {
+            router.closeDrawer()
+        }
+        if tabs.openTab(url: url, inFront: true) == nil {
+            browser.load(url)
         }
     }
 }
