@@ -74,6 +74,7 @@ private struct HomeList: View {
     private var tiles: [HomeSite] { HomeSites.tiles(forums: app.forums, visits: siteVisits.shownVisits) }
 
     var body: some View {
+        let _ = PerfProbe.hit("HomeList.body")
         let tiles = tiles
         List {
             header
@@ -86,7 +87,7 @@ private struct HomeList: View {
             if tiles.isEmpty {
                 suggestedCard
             } else {
-                if !app.forums.isEmpty { TodayModule(app: app, podcast: podcast, onOpen: actions.openDigestLink) }
+                if app.forums.contains(where: \.hasReader) { TodayModule(app: app, podcast: podcast, onOpen: actions.openDigestLink) }
                 sitesSection(tiles)
             }
             recentSection
@@ -161,6 +162,9 @@ private struct HomeList: View {
                 .submitLabel(.go)
                 .focused($addressFocused)
                 .onSubmit(submitAddress)
+                .onChange(of: addressText) { _, _ in
+                    PerfProbe.mark("address.keystroke")
+                }
                 .foregroundStyle(DCTheme.ink)
                 .accessibilityIdentifier("homeAddress")
                 if !addressText.isEmpty {
@@ -183,7 +187,10 @@ private struct HomeList: View {
             .listRowInsets(EdgeInsets(top: DCTheme.spacingXS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
 
             if addressFocused {
-                ForEach(HomeSites.matches(tiles, for: addressText)) { site in
+                let matches = PerfProbe.time("HomeSites.matches") {
+                    HomeSites.matches(tiles, for: addressText)
+                }
+                ForEach(matches) { site in
                     Button { open(site) } label: {
                         HStack(spacing: DCTheme.spacingM) {
                             ForumIcon(siteURL: site.siteURL, name: site.name, iconURL: site.iconURL, size: 30)
@@ -204,14 +211,14 @@ private struct HomeList: View {
     }
 
     private func submitAddress() {
-        let text = addressText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
-        if browser.open(address: text) {
-            finishAddress()
-        } else if let url = app.webSearchURL(query: text) {
-            browser.load(url)
-            finishAddress()
-        }
+        let context = AddressInput.Context(
+            currentSiteURL: browser.homeSiteURL,
+            forumSearchURL: nil,
+            webSearchURL: { app.webSearchURL(query: $0) }
+        )
+        guard let action = AddressInput.actions(for: addressText, context: context).first else { return }
+        browser.load(action.url)
+        finishAddress()
     }
 
     private func finishAddress() {
@@ -297,8 +304,8 @@ private struct HomeList: View {
         }
         Divider()
         Button(role: .destructive) { confirmRemoval(site) } label: {
-            // A forum asks what happens to its saved data first.
-            if site.isForum {
+            // A directory site asks what happens to its saved data first.
+            if site.forum != nil {
                 Label("Remove…", systemImage: "trash")
             } else {
                 Label("Remove", systemImage: "trash")
@@ -308,7 +315,7 @@ private struct HomeList: View {
 
     private func isCurrent(_ site: HomeSite) -> Bool {
         guard browser.currentURL != nil else { return false }
-        if let forum = site.forum { return app.isCurrent(forum) }
+        if let forum = site.forum, forum.hasReader { return app.isCurrent(forum) }
         return HomeSites.originOf(browser.currentURL) == site.siteURL
     }
 
@@ -316,8 +323,12 @@ private struct HomeList: View {
         DCHaptics.tap()
         if let forum = site.forum {
             site.isPinned ? app.unpin(forum) : app.pin(forum)
+        } else if !site.isPinned {
+            // One kind of pin: pinning a visited site adds it to the synced directory as `.web`.
+            app.pin(Forum(siteURL: site.siteURL, kind: .web, name: site.name))
+            siteVisits.setPinned(false, siteURL: site.siteURL)
         } else {
-            siteVisits.setPinned(!site.isPinned, siteURL: site.siteURL)
+            siteVisits.setPinned(false, siteURL: site.siteURL)
         }
     }
 
@@ -349,14 +360,14 @@ private struct HomeList: View {
 
     // MARK: No sites yet
 
-    /// Three suggested sites, no badge and no explanatory text.
+    /// Three suggested ordinary sites, no badge and no explanatory text.
     @ViewBuilder
     private var suggestedCard: some View {
-        let suggestions = Array(app.suggestedForumsToOffer.prefix(3))
+        let suggestions = Array(AppModel.onboardingSuggestions().prefix(3))
         if !suggestions.isEmpty {
             Section {
                 ForEach(suggestions) { suggested in
-                    Button { app.openForum(suggested) } label: {
+                    Button { app.openSuggestedSite(suggested) } label: {
                         HStack(spacing: DCTheme.spacingM) {
                             ForumIcon(suggested: suggested, size: 40)
                             VStack(alignment: .leading, spacing: 2) {

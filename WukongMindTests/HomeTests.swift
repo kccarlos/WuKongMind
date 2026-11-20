@@ -274,6 +274,22 @@ final class HomeTests: XCTestCase {
         XCTAssertEqual(tiles.filter(\.isForum).map(\.host), ["c.example", "b.example", "a.example"], "only forums carry the badge")
     }
 
+    func testPinningOrdinaryAndRecognizedSitesBothAppearOnHome() {
+        let app = makeApp()
+        let ordinary = Forum(siteURL: "https://en.wikipedia.org", kind: .web, name: "Wikipedia")
+        let recognized = Forum(siteURL: "https://meta.discourse.org", kind: .discourse, name: "Discourse Meta")
+        app.pin(ordinary)
+        app.pin(recognized)
+
+        let tiles = HomeSites.tiles(forums: app.forums, visits: [])
+        XCTAssertEqual(tiles.map(\.siteURL), ["https://en.wikipedia.org", "https://meta.discourse.org"])
+        XCTAssertTrue(tiles.allSatisfy(\.isPinned))
+        XCTAssertFalse(tiles[0].isForum, "a pinned site with no reader does not show the forum badge")
+        XCTAssertTrue(tiles[1].isForum, "a recognized site keeps its reader")
+        XCTAssertNil(app.adapter(for: ordinary.siteURL))
+        XCTAssertNotNil(app.adapter(for: recognized.siteURL))
+    }
+
     func testSitesBreakTiesByNewestVisitAndCountAnOldForumVisitOnce() {
         let tiles = HomeSites.tiles(
             forums: [forum("old-forum.example", visited: 100)],

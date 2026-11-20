@@ -208,8 +208,8 @@ final class MultiForumTests: XCTestCase {
         XCTAssertEqual(DiscourseAdapter().siteURLCandidates(fromAddress: "hello world"), [])
         XCTAssertEqual(DiscourseAdapter().siteURLCandidates(fromAddress: "hello"), [])
         XCTAssertEqual(DiscourseAdapter().siteURLCandidates(fromAddress: "http://example.com"), [])
-        XCTAssertEqual(AppModel.suggestedForums.count, 5)
-        XCTAssertTrue(AppModel.suggestedForums.allSatisfy { ForumSite.normalizeSiteURL($0.siteURL) == $0.siteURL })
+        XCTAssertFalse(AppModel.suggestedSites.isEmpty)
+        XCTAssertTrue(AppModel.suggestedSites.allSatisfy { ForumSite.normalizeSiteURL($0.siteURL) == $0.siteURL })
     }
 
     @MainActor
@@ -240,16 +240,15 @@ final class MultiForumTests: XCTestCase {
         XCTAssertEqual(subfolder.name, "Folder Forum")
         XCTAssertEqual(app.recentForums.map(\.siteURL), [folder])
 
-        do {
-            _ = try await app.addForum(fromAddress: "news.example.org")
-            XCTFail("An unsupported site was added")
-        } catch let error as ForumDirectoryError {
-            XCTAssertEqual(error, .notSupported("news.example.org"))
-            XCTAssertEqual(
-                error.errorDescription,
-                "news.example.org doesn’t look like a supported site. WukongMind works with \(SiteRecognizers.platformNames())."
-            )
-        }
+        let ordinary = try await app.addForum(fromAddress: "news.example.org", pin: true)
+        XCTAssertEqual(ordinary.siteURL, "https://news.example.org")
+        XCTAssertEqual(ordinary.kind, .web)
+        XCTAssertEqual(ordinary.name, "news.example.org")
+        XCTAssertTrue(ordinary.isPinned)
+        XCTAssertFalse(ordinary.hasReader)
+        XCTAssertNil(app.adapter(for: ordinary.siteURL))
+        app.removeForum(ordinary, deleteData: false)
+
         do {
             _ = try await app.addForum(fromAddress: "not an address")
             XCTFail("An invalid address was accepted")

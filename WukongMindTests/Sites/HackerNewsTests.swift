@@ -84,8 +84,6 @@ final class HackerNewsTests: XCTestCase {
         XCTAssertNil(a.capabilities.topicFilters)
         XCTAssertNotNil(a.capabilities.postLookup)
         XCTAssertNotNil(a.capabilities.activeTopics)
-        XCTAssertTrue(a.suggestedForums.general.isEmpty)
-        XCTAssertTrue(a.suggestedForums.chinese.isEmpty)
     }
     func testRealTreePreservesEveryParentInModelTextAndAnchors() async throws {
         let fixture = HackerNewsFixture()

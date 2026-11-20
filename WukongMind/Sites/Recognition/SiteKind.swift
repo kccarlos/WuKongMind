@@ -22,5 +22,9 @@ struct SiteKind: Hashable, Codable, Sendable, CustomStringConvertible {
     /// no adapter has this kind, so no job runs on it.
     static let unknown = SiteKind("unknown")
 
+    /// A general web site with no built-in reader: stored and synced as a pinned
+    /// or visited favourite, and opened directly in the browser.
+    static let web = SiteKind("web")
+
     var description: String { id }
 }

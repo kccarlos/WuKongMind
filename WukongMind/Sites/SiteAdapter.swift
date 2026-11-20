@@ -18,10 +18,8 @@ protocol SiteAdapter: Sendable {
     /// What the material is in the summary, chunk and chat prompts (§11).
     var discussion: DiscussionProfile { get }
 
-    // Add forum / directory
-    /// Well-known public forums offered before the user adds any.
-    var suggestedForums: SuggestedForums { get }
-    /// Candidate site URLs for an address typed in Add forum.
+    // Add site / directory
+    /// Candidate site URLs for an address typed in Add site.
     func siteURLCandidates(fromAddress address: String) -> [String]
     /// Name and icon; throws when the site is not this platform (validation for Add forum).
     func siteInfo(siteURL: String, net: SiteNetwork) async throws -> ForumSiteInfo
