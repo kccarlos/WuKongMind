@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Settings › Forums: reorder and unpin pinned forums, pin or remove the
-/// others, add a forum by address.
+/// Settings › Sites › Pinned sites: reorder and unpin pinned sites, pin or remove
+/// other visited sites, and add any site by address.
 struct SettingsForumsPage: View {
     @ObservedObject var app: AppModel
     @State private var removing: Forum?
@@ -16,7 +16,7 @@ struct SettingsForumsPage: View {
         List {
             Section {
                 if app.pinnedForums.isEmpty {
-                    Text("Pin forums to keep them on Home.")
+                    Text("Pin sites to keep them on Home.", comment: "Settings › Sites › Pinned sites empty state")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 } else {
@@ -44,7 +44,7 @@ struct SettingsForumsPage: View {
                 }
             } footer: {
                 if !app.pinnedForums.isEmpty {
-                    Text("Pinned forums are on Home, in this order.")
+                    Text("Pinned sites appear on Home in this order.", comment: "Settings › Sites › Pinned sites footer")
                 }
             }
 
@@ -59,36 +59,9 @@ struct SettingsForumsPage: View {
                             }
                     }
                 } header: {
-                    Text("Other forums you visited")
+                    Text("Other sites you visited", comment: "Settings › Sites › Pinned sites section header for unpinned sites")
                 } footer: {
-                    Text("Swipe left to remove a forum. You can keep or delete its saved summaries and chats.")
-                }
-            }
-
-            if !app.suggestedForumsToOffer.isEmpty {
-                Section("Suggested") {
-                    ForEach(app.suggestedForumsToOffer) { suggested in
-                        HStack(spacing: DCTheme.spacingM) {
-                            OnboardingForumIcon(siteURL: suggested.siteURL, name: suggested.name, size: 32)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(suggested.name).lineLimit(2)
-                                Text(suggested.description)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(2)
-                            }
-                            .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
-                            Spacer(minLength: DCTheme.spacingS)
-                            Button {
-                                DCHaptics.tap()
-                                withAnimation { app.pinSuggested(suggested) }
-                            } label: {
-                                PinPill()
-                            }
-                            .buttonStyle(.borderless)
-                            .accessibilityLabel("Pin \(suggested.name)")
-                        }
-                    }
+                    Text("Swipe left to remove a site. You can keep or delete its saved data.", comment: "Settings › Sites › Pinned sites section footer for unpinned sites")
                 }
             }
 
@@ -96,7 +69,7 @@ struct SettingsForumsPage: View {
         }
         .listStyle(.insetGrouped)
         .confirmationDialog(
-            removing.map { String(localized: "Remove \($0.displayName)?", comment: "Confirmation title; the argument is a forum name") } ?? "",
+            removing.map { String(localized: "Remove \($0.displayName)?", comment: "Confirmation title; the argument is a site name") } ?? "",
             isPresented: Binding(get: { removing != nil }, set: { if !$0 { removing = nil } }),
             titleVisibility: .visible,
             presenting: removing
@@ -111,10 +84,10 @@ struct SettingsForumsPage: View {
         } message: { forum in
             let count = app.savedItemCount(forSiteURL: forum.siteURL)
             if count > 0 {
-                Text("Also delete saved summaries/chats for this forum? It has \(count) saved items.",
-                     comment: "Remove forum confirmation; the count is the forum's saved summaries and chats")
+                Text("Also delete saved data for this site? It has \(count) saved items.",
+                     comment: "Remove site confirmation; the count is the site's saved summaries and conversations")
             } else {
-                Text("Also delete saved summaries/chats for this forum?")
+                Text("Also delete saved data for this site?", comment: "Remove site confirmation when no saved items exist")
             }
         }
     }
@@ -167,7 +140,7 @@ struct SettingsForumsPage: View {
     private var addSection: some View {
         Section {
             HStack(spacing: DCTheme.spacingS) {
-                TextField("forum.example.com", text: $address)
+                TextField("example.com" as String, text: $address)
                     .keyboardType(.URL)
                     .textContentType(.URL)
                     .autocorrectionDisabled()
@@ -198,9 +171,9 @@ struct SettingsForumsPage: View {
                     .foregroundStyle(DCTheme.success)
             }
         } header: {
-            Text("Add a forum")
+            Text("Add a site", comment: "Settings › Sites › Pinned sites section header for adding any site")
         } footer: {
-            Text("\(SiteRecognizers.platformNames()) sites, including subfolder installs like example.com/forum. You can also paste a link to one of their pages.")
+            Text("Enter any web address or paste a link to a page.", comment: "Settings › Sites › Pinned sites footer for adding any site")
         }
     }
 

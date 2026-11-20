@@ -537,7 +537,19 @@ extension DCUITestCase {
         }
 
         let statusLine = any(app, "agentStatusLine")
+        let consentAllow = app.buttons["aiConsentAllow"].firstMatch
+        let approveScript = app.buttons["scriptImportAddTurnOn"].firstMatch
         let finished = wait(timeout: 120) {
+            if consentAllow.exists && consentAllow.isHittable {
+                consentAllow.tap()
+                _ = waitForGone(consentAllow, timeout: 5)
+                return false
+            }
+            if approveScript.exists && approveScript.isHittable {
+                approveScript.tap()
+                _ = waitForGone(approveScript, timeout: 5)
+                return false
+            }
             guard statusLine.exists else { return false }
             let label = statusLine.label
             return label.contains("Done") || label.contains("Turn failed") || label.contains("Stopped")

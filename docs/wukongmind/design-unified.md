@@ -84,7 +84,7 @@ It follows roadmap v2, "Just ask" ([next-phase.md](next-phase.md), which v2 repl
    - Continue reading;
    - Following.
    (The Today daily digest module was removed on 2026-11-19 in task 12 / WUKO-182.)
-   Forums are tiles like any site, with a grey speech-bubble badge. Suggested forums move into the Add site sheet.
+   Any address can be pinned to Home; a pinned site with no built-in reader is stored as `SiteKind.web` — a favourite and nothing more (one kind of pin, synced like any other site record). Sites with a built-in reader keep their reader silently and show the grey speech-bubble badge on Home's grid. There is no "Suggested" forums list in Settings.
 4. **Settings grouped by object.** The root has five groups:
    - **Assistant**: Models, Agent, Scripts & tools.
    - **Sites & browsing**: Sites, Browser (which gains a search engine setting).
@@ -343,7 +343,7 @@ HomeView (List, .insetGrouped, listSectionSpacing(.compact))
   - **What it holds.** History holds all conversations and their results (roadmap section 4). Summaries, forum answers and topic chats saved before this design stay in History as they are.
   - **Recent.** Home's **Recent** is not a separate list: it is the newest History items, with a link to all of History. `HistoryView`'s segments become All, Conversations, Following (decided). Until M3, Conversations lists today's saved summaries and forum answers, each as a conversation of one result.
   - **Conversations.** They live in memory today (`BrowserAgentSession`). They join History once they are saved, which comes with M3's workspace (`tasks/`). Until then, Recent also shows this launch's current conversation, and the summaries in it are saved as today.
-- **The empty state** (no sites yet) is the address field plus a card: three suggested sites, no explanatory text and no forum badge. This replaces the forum-centred empty state and the suggestions section.
+- **The empty state** (no sites yet) is the address field plus a card: three suggested ordinary web pages (no forums, no explanatory text and no forum badge). This replaces the forum-centred empty state and the suggested-forums list.
 
 ### 4. Settings
 
@@ -356,7 +356,7 @@ SettingsRootView (Form .grouped)
 │    Agent             ring           gold tile, on-gold ring (the one non-ink tile)
 │    Scripts & tools   curlybraces    ink tile, value: N / Off      (M2's row moves here)
 ├─ Section "Sites & browsing"
-│    Sites             globe          value: "N forums"
+│    Sites             globe          value: "N sites"
 │    Browser           safari.fill    value: the search engine, e.g. "Google"
 ├─ Section "Voice & digest"
 │    Voice             waveform       value: On / Off               (the top-of-root Voice row goes)
@@ -372,7 +372,7 @@ SettingsRootView (Form .grouped)
 | **Models** (`SettingsPage.provider`, retitled; case name unchanged) | Section "Default models", with two roles: **Agent** (`ModelRole.browserAgent` today, tool-calling models only) and **Summaries** (`ModelRole.assistant`; Apple Intelligence stays available here, because it can't call tools), then a dashed **Scripts** row (M4 `GM_ai`, "Same as Summaries"). Section "Summaries": Context per batch, Instructions › (both from today's Summaries page). Section "Answer language": `ReadingLanguagePicker` (moved from the root). Section "Providers & keys": the existing provider list and forms. **Until One loop**, the old Research loop behind "Search this forum…" still needs a model. `ModelRole.agent` stays in code, has no row, and follows the Agent model; with no Agent model, it falls back to the Summaries model. The role is removed in One loop |
 | **Agent** (`.agent`, now the Agent only) | Header line: the model name with a Change link to Models. Section "Runs": Step limit, Result size (from today's "Browser agent" section). Section "Forum search": Search steps, Topics to read, Read size (today's research sections). Until One loop they limit the old Research loop. In One loop they become the limits of the forum tools and the rules text, and the owner decides which survive. Section "Safety": Confirm before writes. Requirements section 7 lists it, it isn't built yet, and the tools it guards (`http_request`, `cookies_get`) arrive in M3, so it lands then. Section "Records": Audit log ›, Workspace › (M3). Section "Developer": the **Developer mode** switch (M3, default off; roadmap section 8). When it is off, none of its entries show |
 | **Scripts & tools** (`.scripts`) | M2's `ScriptManagerView`, unchanged. Learn on ask adds a "Tools" section |
-| **Sites** (a new page) | Section "Forums": Forums › (the existing page), Following › (the existing Watched topics page). Section "Reading pace": the rate-limit switch (cleanup task 1) and the existing pace picker. Section "Ads & trackers": `ContentBlockingSettingsSections` (moved from Browser). There are no separate Research or Summaries & chat pages |
+| **Sites** (a new page) | Section "Saved": Pinned sites › (any address can be pinned to Home; a pinned site with no built-in reader is a `.web` favourite and nothing more; no Suggested forums list), Following › (the existing Watched topics page). Section "Reading pace": the rate-limit switch (cleanup task 1) and the existing pace picker. Section "Ads & trackers": `ContentBlockingSettingsSections` (moved from Browser). There are no separate Research or Summaries & chat pages |
 | **Browser** (`.browser`) | **Search engine** (new, owner point 7): a `Picker` with Google, DuckDuckGo, Bing and Ecosia, default Google. It is used by the address field on Home, in the bar and in onboarding step 2, wherever text isn't an address. Today's search runs only inside the current forum (`searchPageURL`). Then Browser bar position and Open at launch |
 | **Voice**, **Daily digest & podcast**, **iCloud Sync**, **Data & privacy** | Unchanged pages |
 | **Help & about** (`.help`) | The existing page, which already links Licences (`.acknowledgements`), plus a row to Share from Safari or Chrome (`.sharing`, today on the root) |
@@ -385,7 +385,7 @@ Today onboarding is a full-screen cover on both devices (`RootPresentation.isFul
 OnboardingFlow
 ├─ 1 OnboardingModelPage     // the Logo mark (replaces BrandMark) with "WukongMind" beside it, "An agent for any web page"; OnboardingProviderPage's list for the Agent role
 │                            // (tool-calling models only), key field; footnote "Keys stay in the Keychain"; Continue / Later
-├─ 2 OnboardingSitePage      // AddressField + suggested sites (from ForumDirectory, no forum badge; subtitles say what the site is about) ; Open
+├─ 2 OnboardingSitePage      // AddressField + short mixed list of ordinary public web pages (no forums, no forum badge; subtitles say what the site is about); Open
 └─ 3 OnboardingTryPage       // the chosen page behind a medium drawer: the real AssistantPanel with two suggestions
                              // ("Make this page easier to read", "Hide everything but the article"); after a run or Skip:
                              // a card with the cheer mascot, "You're set" and Done, and rows "iCloud sync: On" and "Daily digest: in Settings"

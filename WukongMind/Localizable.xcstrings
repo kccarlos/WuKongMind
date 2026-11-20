@@ -1480,6 +1480,53 @@
         }
       }
     },
+    "%lld sites" : {
+      "comment" : "Settings root, Sites row: number of saved sites",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld site"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld sites"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 个网站"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "%lld 個網站"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "%lld sources" : {
       "comment" : "History: how many sources a saved answer lists",
       "localizations" : {
@@ -2628,6 +2675,7 @@
       }
     },
     "Add a site" : {
+      "comment" : "Settings › Sites › Pinned sites section header for adding any site",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -3382,6 +3430,70 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "允許…"
+          }
+        }
+      }
+    },
+    "Also delete saved data for this site?" : {
+      "comment" : "Remove site confirmation when no saved items exist",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "也要删除此网站已保存的数据吗？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "也要刪除此網站已儲存的資料嗎？"
+          }
+        }
+      }
+    },
+    "Also delete saved data for this site? It has %lld saved items." : {
+      "comment" : "Remove site confirmation; the count is the site's saved summaries and conversations",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Also delete saved data for this site? It has %lld saved item."
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Also delete saved data for this site? It has %lld saved items."
+                }
+              }
+            }
+          }
+        },
+        "zh-Hans" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "也要删除此网站已保存的数据吗？共有 %lld 项已保存内容。"
+                }
+              }
+            }
+          }
+        },
+        "zh-Hant" : {
+          "variations" : {
+            "plural" : {
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "也要刪除此網站已儲存的資料嗎？共有 %lld 項已儲存內容。"
+                }
+              }
+            }
           }
         }
       }
@@ -6447,6 +6559,23 @@
         }
       }
     },
+    "Couldn’t reach that site. Check the address and your connection." : {
+      "comment" : "Add site error fallback",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法访问该网站，请检查地址和网络连接。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無法連線到該網站，請檢查網址與網路連線。"
+          }
+        }
+      }
+    },
     "Couldn’t reach the model: %@" : {
       "comment" : "Grey status line in This page and Script detail when a script's AI model call fails with a service error",
       "localizations" : {
@@ -7123,6 +7252,23 @@
         }
       }
     },
+    "Documentation for web technologies." : {
+      "comment" : "Description of a suggested starter site",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Web 技术开发文档。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Web 技術開發文件。"
+          }
+        }
+      }
+    },
     "Don't allow" : {
       "comment" : "Confirmation card button that stops the Agent from going ahead",
       "localizations" : {
@@ -7265,6 +7411,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "拖移以重新排序。取消釘選的論壇會留在「最近」中。"
+          }
+        }
+      }
+    },
+    "Drag to reorder. Unpinned sites stay under Recent." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拖动可调整顺序。取消置顶的网站会留在“最近”中。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拖曳可調整順序。取消釘選的網站會留在「最近」中。"
           }
         }
       }
@@ -7572,6 +7734,23 @@
         }
       }
     },
+    "Enter a web address such as example.com." : {
+      "comment" : "Add site error; keep the example address as is",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入网址，例如 example.com。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請輸入網址，例如 example.com。"
+          }
+        }
+      }
+    },
     "Enter a web address such as meta.discourse.org or a full https:// link." : {
       "localizations" : {
         "zh-Hans" : {
@@ -7616,6 +7795,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "輸入網址"
+          }
+        }
+      }
+    },
+    "Enter any web address or paste a link to a page." : {
+      "comment" : "Settings › Sites › Pinned sites footer for adding any site",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入任意网址，或粘贴某个网页的链接。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入任意網址，或貼上某個網頁的連結。"
           }
         }
       }
@@ -8527,6 +8723,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "基礎模型"
+          }
+        }
+      }
+    },
+    "Free eBooks and classic literature." : {
+      "comment" : "Description of a suggested starter site",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "免费电子书与经典文学作品。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "免費電子書與經典文學作品。"
+          }
+        }
+      }
+    },
+    "Free encyclopedia you can read and summarize." : {
+      "comment" : "Description of a suggested starter site",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可阅读和生成摘要的自由百科全书。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可閱讀與產生摘要的自由百科全書。"
           }
         }
       }
@@ -11659,6 +11889,22 @@
         }
       }
     },
+    "No pinned sites" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有已置顶的网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "沒有已釘選的網站"
+          }
+        }
+      }
+    },
     "No posts are on screen" : {
       "localizations" : {
         "zh-Hans" : {
@@ -13256,6 +13502,23 @@
         }
       }
     },
+    "Other sites you visited" : {
+      "comment" : "Settings › Sites › Pinned sites section header for unpinned sites",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你访问过的其他网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你造訪過的其他網站"
+          }
+        }
+      }
+    },
     "Over 512 KB — stays on this device and isn’t synced to iCloud." : {
       "comment" : "Footer in Script detail when a script exceeds the 512 KB iCloud sync limit",
       "localizations" : {
@@ -13695,6 +13958,23 @@
         }
       }
     },
+    "Pin sites to keep them on Home." : {
+      "comment" : "Settings › Sites › Pinned sites empty state",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "置顶网站以便在主页快速访问。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "釘選網站以便在首頁快速存取。"
+          }
+        }
+      }
+    },
     "Pin to Home" : {
       "localizations" : {
         "zh-Hans" : {
@@ -13743,6 +14023,39 @@
         }
       }
     },
+    "Pinned Sites" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已置顶的网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已釘選的網站"
+          }
+        }
+      }
+    },
+    "Pinned and visited sites" : {
+      "comment" : "Settings › Sites › Pinned sites row subtitle",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已置顶和访问过的网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已釘選與造訪過的網站"
+          }
+        }
+      }
+    },
     "Pinned forums are on Home, in this order." : {
       "localizations" : {
         "zh-Hans" : {
@@ -13755,6 +14068,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "釘選的論壇會依此順序顯示在「首頁」中。"
+          }
+        }
+      }
+    },
+    "Pinned sites" : {
+      "comment" : "Settings page: pinned and visited sites",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已置顶的网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已釘選的網站"
+          }
+        }
+      }
+    },
+    "Pinned sites appear on Home in this order." : {
+      "comment" : "Settings › Sites › Pinned sites footer",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已置顶的网站会按此顺序显示在主页上。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已釘選的網站會依此順序顯示在首頁上。"
           }
         }
       }
@@ -15271,7 +15618,7 @@
       }
     },
     "Remove %@?" : {
-      "comment" : "Confirmation title; the argument is a forum name\nConfirmation title; the placeholder is the forum name",
+      "comment" : "Confirmation title; the argument is a site name\nConfirmation title; the placeholder is the forum name",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -16393,6 +16740,7 @@
       }
     },
     "Saved" : {
+      "comment" : "Settings › Sites section header for pinned sites and followed discussions",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -18146,7 +18494,7 @@
       }
     },
     "Sites" : {
-      "comment" : "Settings page: saved forums, followed topics, reading pace and ad blocking",
+      "comment" : "Settings page: pinned sites, followed topics, reading pace and ad blocking",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -19386,6 +19734,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "向左滑動可移除論壇。可選擇保留或刪除它已儲存的摘要和聊天。"
+          }
+        }
+      }
+    },
+    "Swipe left to remove a site. You can keep or delete its saved data." : {
+      "comment" : "Settings › Sites › Pinned sites section footer for unpinned sites",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向左轻扫可移除网站，并选择保留或删除已保存的数据。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向左滑動可移除網站，並選擇保留或刪除已儲存的資料。"
           }
         }
       }
@@ -23430,6 +23795,23 @@
         }
       }
     },
+    "Wikipedia (Chinese)" : {
+      "comment" : "Starter site name for Chinese Wikipedia",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "维基百科"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "維基百科"
+          }
+        }
+      }
+    },
     "With the assistant beside the page, the bar is always at the top: Top and Bottom apply to the single-column layout." : {
       "comment" : "Settings › Browser footer on iPad: the bar position setting has no effect in the side-by-side layout",
       "localizations" : {
@@ -23611,6 +23993,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "工作區"
+          }
+        }
+      }
+    },
+    "World news, stories, and radio." : {
+      "comment" : "Description of a suggested starter site",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "国际新闻、专题报道与广播。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "國際新聞、專題報導與廣播。"
           }
         }
       }
@@ -23912,6 +24311,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你還沒有追蹤任何話題。"
+          }
+        }
+      }
+    },
+    "You’re offline. Check your connection and try again." : {
+      "comment" : "Add site error when the device has no internet connection",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前处于离线状态，请检查网络连接后重试。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目前處於離線狀態，請檢查網路連線後重試。"
           }
         }
       }

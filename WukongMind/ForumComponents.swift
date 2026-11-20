@@ -38,7 +38,7 @@ struct ForumIcon: View {
         self.init(siteURL: forum.siteURL, name: forum.displayName, iconURL: forum.iconURL, size: size)
     }
 
-    init(suggested: SuggestedForum, size: CGFloat = DCTheme.forumTileIcon) {
+    init(suggested: SuggestedSite, size: CGFloat = DCTheme.forumTileIcon) {
         self.init(siteURL: suggested.siteURL, name: suggested.name, iconURL: nil, size: size)
     }
 
@@ -257,7 +257,7 @@ struct AddForumSheet: View {
                         Image(systemName: "globe")
                             .foregroundStyle(.secondary)
                             .accessibilityHidden(true)
-                        TextField("meta.discourse.org" as String, text: $address)  // An address example: not translated
+                        TextField("example.com" as String, text: $address)  // An address example: not translated
                             .textContentType(.URL)
                             .keyboardType(.URL)
                             .autocorrectionDisabled()
@@ -322,19 +322,6 @@ struct AddForumSheet: View {
         }
     }
 
-    /// Opens `address` as an ordinary site and, when asked, pins it on Home.
-    private func openAsPlainSite(_ address: String, pin: Bool) -> Bool {
-        guard let url = ForumBrowserModel.resolveAddress(address, currentSiteURL: nil),
-              let origin = HomeSites.originOf(url)
-        else {
-            return false
-        }
-        app.siteVisits.noteVisit(siteURL: origin, name: HomeSites.displayName(forOrigin: origin), isForum: false)
-        if pin { app.siteVisits.setPinned(true, siteURL: origin) }
-        app.browser.load(url)
-        return true
-    }
-
     private func add() {
         guard !trimmed.isEmpty, !isAdding else { return }
         isAdding = true
@@ -350,16 +337,11 @@ struct AddForumSheet: View {
                 onAdded(forum)
             } catch is CancellationError {
                 isAdding = false
-            } catch ForumDirectoryError.notSupported where openAsPlainSite(address, pin: pin) {
-                // Not a forum of a supported platform: any site is a site.
-                DCHaptics.success()
-                isAdding = false
-                dismiss()
             } catch {
                 DCHaptics.warning()
                 isAdding = false
                 errorMessage = (error as? LocalizedError)?.errorDescription
-                    ?? String(localized: "Couldn’t reach that forum. Check the address and your connection.")
+                    ?? String(localized: "Couldn’t reach that site. Check the address and your connection.", comment: "Add site error fallback")
             }
         }
     }
@@ -367,7 +349,7 @@ struct AddForumSheet: View {
 
 // MARK: - Pinned editor
 
-/// Reorder or unpin pinned forums (the accessible alternative to dragging tiles).
+/// Reorder or unpin pinned sites (the accessible alternative to dragging tiles).
 struct PinnedForumsEditor: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var app: AppModel
@@ -385,11 +367,11 @@ struct PinnedForumsEditor: View {
                         forums.forEach(app.unpin)
                     }
                 } footer: {
-                    Text("Drag to reorder. Unpinned forums stay under Recent.")
+                    Text("Drag to reorder. Unpinned sites stay under Recent.")
                 }
             }
             .environment(\.editMode, .constant(.active))
-            .navigationTitle("Pinned Forums")
+            .navigationTitle("Pinned Sites")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -399,7 +381,7 @@ struct PinnedForumsEditor: View {
             }
             .overlay {
                 if app.pinnedForums.isEmpty {
-                    ContentUnavailableView("No pinned forums", systemImage: "pin.slash")
+                    ContentUnavailableView("No pinned sites", systemImage: "pin.slash")
                 }
             }
         }

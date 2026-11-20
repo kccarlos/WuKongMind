@@ -275,7 +275,7 @@ struct OnboardingSitePage: View {
     let onSubmit: () -> Void
     @FocusState private var focused: Bool
 
-    static var suggestions: [SuggestedForum] { Array(AppModel.onboardingSuggestions().prefix(4)) }
+    static var suggestions: [SuggestedSite] { Array(AppModel.onboardingSuggestions().prefix(4)) }
 
     var body: some View {
         OnboardingPage(spacing: DCTheme.spacingXL) {
@@ -354,7 +354,7 @@ struct OnboardingSitePage: View {
         }
     }
 
-    private func siteRow(_ site: SuggestedForum) -> some View {
+    private func siteRow(_ site: SuggestedSite) -> some View {
         let isOn = selectedSiteURL == site.siteURL
         return Button {
             DCHaptics.selection()

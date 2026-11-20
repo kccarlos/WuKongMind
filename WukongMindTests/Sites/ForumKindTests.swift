@@ -151,14 +151,23 @@ final class ForumKindTests: XCTestCase {
         XCTAssertEqual(app.adapter(for: forum.siteURL)?.kind, FakeSiteAdapter.kind)
         XCTAssertEqual(app.addForumPhase, .recognized(kind: FakeSiteAdapter.kind, siteURL: forum.siteURL))
 
-        // An address no adapter accepts is invalid and adds nothing.
+        // An ordinary web address with no matching adapter is saved as `.web` (no reader).
+        let ordinary = try await app.addForum(fromAddress: "news.example.org", pin: true)
+        XCTAssertEqual(ordinary.siteURL, "https://news.example.org")
+        XCTAssertEqual(ordinary.kind, .web)
+        XCTAssertTrue(ordinary.isPinned)
+        XCTAssertNil(app.adapter(for: ordinary.siteURL))
+        XCTAssertEqual(app.addForumPhase, .recognized(kind: .web, siteURL: ordinary.siteURL))
+        XCTAssertEqual(app.forums.count, 2)
+
+        // An invalid address adds nothing.
         do {
-            _ = try await app.addForum(fromAddress: "news.example.org")
-            XCTFail("An address no adapter accepts was added")
+            _ = try await app.addForum(fromAddress: "not an address")
+            XCTFail("An invalid address was added")
         } catch let error as ForumDirectoryError {
             XCTAssertEqual(error, .invalidAddress)
         }
         XCTAssertEqual(app.addForumPhase, .idle)
-        XCTAssertEqual(app.forums.count, 1)
+        XCTAssertEqual(app.forums.count, 2)
     }
 }

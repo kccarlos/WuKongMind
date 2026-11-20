@@ -693,6 +693,9 @@ extension AppModel {
         }
 
         settings.hasCompletedOnboarding = true
+        if !AssistantDebug.has("-dc-ask-terms") {
+            settings.acceptedTermsVersion = TermsOfUse.currentVersion
+        }
         var sampleSettings = settings
         sampleSettings.scriptsModel = nil
         sampleSettings.setModel(ModelSelection(provider: sampleProvider, model: sampleModel), for: .assistant)

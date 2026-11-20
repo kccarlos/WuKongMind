@@ -128,6 +128,10 @@ final class HomeUITests: DCUITestCase {
         let suggested = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'suggestedSite-'"))
         XCTAssertTrue(suggested.firstMatch.waitForExistence(timeout: 5), "No suggested sites.")
         XCTAssertLessThanOrEqual(suggested.count, 3)
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = "home-empty-starter-sites"
+        shot.lifetime = .keepAlways
+        self.add(shot)
         XCTAssertFalse(any(app, "homeShareHowTo").exists, "the share card lives in Settings › Help now")
         XCTAssertFalse(any(app, "homeToday").exists, "no Today module without forums")
         XCTAssertEqual(siteTiles(app).count, 0)

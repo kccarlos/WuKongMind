@@ -7,7 +7,6 @@ struct HackerNewsAdapter: SiteAdapter {
     var agent: AgentSiteProfile { HackerNewsAgent.profile }
     var voice: VoiceSiteProfile { HackerNewsAgent.voice }
     var discussion: DiscussionProfile { HackerNewsAgent.discussion }
-    var suggestedForums: SuggestedForums { SuggestedForums(general: [], chinese: []) }
     var capabilities: SiteCapabilities {
         SiteCapabilities(activeTopics: HackerNewsActiveTopics(), postLookup: HackerNewsPostLookup(), topicFilters: nil,
                          pageBridge: .commentAnchors(

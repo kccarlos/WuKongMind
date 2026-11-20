@@ -93,10 +93,16 @@ extension AppModel {
         Bundle.main.preferredLocalizations.first?.hasPrefix("zh") == true
     }
 
-    /// The walkthrough's site suggestions: with a Chinese app language the
-    /// Chinese-language forums come first.
-    nonisolated static func onboardingSuggestions(chineseFirst: Bool = appLanguageIsChinese) -> [SuggestedForum] {
-        chineseFirst ? SiteRegistry.standard.adapters.flatMap(\.suggestedForums.chinese) + suggestedForums : suggestedForums
+    /// The walkthrough's starter sites: ordinary public web pages (with Chinese
+    /// Wikipedia first when the app language is Chinese).
+    nonisolated static func onboardingSuggestions(chineseFirst: Bool = appLanguageIsChinese) -> [SuggestedSite] {
+        guard chineseFirst else { return suggestedSites }
+        let zhWikipedia = SuggestedSite(
+            name: String(localized: "Wikipedia (Chinese)", comment: "Starter site name for Chinese Wikipedia"),
+            siteURL: "https://zh.wikipedia.org",
+            description: String(localized: "Free encyclopedia you can read and summarize.", comment: "Description of a suggested starter site")
+        )
+        return [zhWikipedia] + suggestedSites.filter { $0.siteURL != "https://en.wikipedia.org" }
     }
 }
 
@@ -242,9 +248,9 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
         case .provider: String(localized: "Models", comment: "Settings page: AI models for Agent and Summaries, answer language, and provider keys")
         case .agent: String(localized: "Agent", comment: "Settings page: Agent step limits, safety, audit log, developer mode and forum search")
         case .scripts: String(localized: "Scripts & tools", comment: "Settings page: per-site userscripts and saved site tools")
-        case .sites: String(localized: "Sites", comment: "Settings page: saved forums, followed topics, reading pace and ad blocking")
+        case .sites: String(localized: "Sites", comment: "Settings page: pinned sites, followed topics, reading pace and ad blocking")
         case .browser: String(localized: "Browser")
-        case .forums: String(localized: "Forums")
+        case .forums: String(localized: "Pinned sites", comment: "Settings page: pinned and visited sites")
         case .watched: String(localized: "Following", comment: "Settings page: followed topics and new-reply checks")
         case .voice: String(localized: "Voice", comment: "Settings page: the live voice conversation with Google Gemini")
         case .sync: String(localized: "iCloud Sync")
@@ -262,7 +268,7 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
         case .scripts: "curlybraces"
         case .sites: "globe"
         case .browser: "safari.fill"
-        case .forums: "bubble.left.and.bubble.right.fill"
+        case .forums: "pin.fill"
         case .watched: "bell.fill"
         case .voice: "waveform"
         case .sync: "icloud.fill"
@@ -295,6 +301,7 @@ enum AppVersion {
     static let websiteURL = URL(string: "https://github.com/kccarlos/WuKongMind")!
     static let supportURL = URL(string: "https://github.com/kccarlos/WuKongMind/issues")!
     static let privacyPolicyURL = URL(string: "https://github.com/kccarlos/WuKongMind/blob/main/PRIVACY.md")!
+    static let termsURL = URL(string: "https://github.com/kccarlos/WuKongMind/blob/main/TERMS.md")!
 }
 
 extension AppModel {
@@ -411,22 +418,32 @@ extension AppModel {
     /// - `-dc-keychain-sync-probe` also skips the walkthrough so the probe alert shows
     func applyOnboardingDebugArguments() {
         let arguments = OnboardingDebug.arguments
+        let asksTerms = arguments.contains("-dc-ask-terms")
         if arguments.contains("-dc-panel-settings") {
             // The route itself is set once the page is up (WukongMindApp).
             settings.hasCompletedOnboarding = true
+            if !asksTerms { settings.acceptedTermsVersion = TermsOfUse.currentVersion }
         }
         if arguments.contains("-dc-reset") || OnboardingDebug.initialStep != nil {
             settings.hasCompletedOnboarding = false
+            settings.acceptedTermsVersion = 0
         }
         // Step 3 runs over the browser, so it needs no walkthrough.
         if OnboardingDebug.initialStep == .tryAgent {
             settings.hasCompletedOnboarding = true
+            if !asksTerms { settings.acceptedTermsVersion = TermsOfUse.currentVersion }
             firstRun = .prompts
         }
         // The keychain probe's alert can't show over the walkthrough cover.
         if arguments.contains("-dc-skip-onboarding") || OnboardingDebug.settingsPage != nil
             || arguments.contains(KeychainSyncProbe.launchArgument) {
             settings.hasCompletedOnboarding = true
+            if !asksTerms && !arguments.contains("-dc-reset") {
+                settings.acceptedTermsVersion = TermsOfUse.currentVersion
+            }
+        }
+        if asksTerms {
+            settings.acceptedTermsVersion = 0
         }
         // UI tests: skip transitions so each tap settles at once (CI speed).
         if arguments.contains("-dc-no-animations") {

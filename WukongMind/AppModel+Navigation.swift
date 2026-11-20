@@ -637,7 +637,7 @@ extension AppModel {
         case .address(let url):
             return await loadVoicePage(url, kind: .address, timeout: timeout)
         case .site(let site):
-            if let forum = site.forum {
+            if let forum = site.forum, forum.hasReader {
                 guard let adapter = sites.adapter(for: forum.kind),
                       let homeURL = adapter.links.homeURL(siteURL: forum.siteURL) else { return .failed("That site can't be opened.") }
                 recordVisit(siteURL: forum.siteURL, kind: forum.kind, name: forum.name, iconURL: forum.iconURL)

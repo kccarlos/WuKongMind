@@ -675,84 +675,80 @@ final class DrawerPerformanceTests: XCTestCase {
         }
     }
 
-    /// Measures Home's first-frame main-thread time across 6 mounts (after 1 warm-up)
-    /// for before/after comparisons when Home changes (store-positioning.md, tasks 11 and 12).
-    func testHomeFirstFrame() {
-        let store = PersistentStore(
-            fileURL: FileManager.default.temporaryDirectory
-                .appendingPathComponent(UUID().uuidString, isDirectory: true)
-                .appendingPathComponent("state.json")
+    /// Measures HomeView's hosted first-frame time (empty and populated) for before/after
+    /// comparison when Home changes (docs/wukongmind/app-store-review.md tasks 11 and 12).
+    func testHomeFirstFramePerformance() {
+        let actions = BrowserActions(
+            showLoginInfo: {},
+            addForum: {},
+            openForum: { _ in },
+            showForumsHome: {}
         )
-        let app = AppModel(store: store)
-        app.suppressesPersistence = true
-        let now = Date()
-        let forums = [
-            Forum(siteURL: "https://meta.discourse.org", kind: .discourse, name: "Discourse Meta", isPinned: true, pinOrder: 0),
-            Forum(siteURL: "https://community.openai.com", kind: .discourse, name: "OpenAI Developer Community", isPinned: true, pinOrder: 1),
-            Forum(siteURL: "https://news.ycombinator.com", kind: .hackerNews, name: "Hacker News", isPinned: true, pinOrder: 2)
-        ]
-        var sessions: [TopicSession] = []
-        for idx in 1...3 {
-            let url = URL(string: "https://meta.discourse.org/t/topic-\(idx)/\(1000 + idx)")!
-            var session = TopicSession(siteURL: forums[0].siteURL, topicID: "\(1000 + idx)", url: url, title: "Sample topic \(idx)")
-            session.openedByUserAt = now.addingTimeInterval(Double(-idx * 300))
-            session.updatedAt = now.addingTimeInterval(Double(-idx * 300))
-            session.totalPosts = 25
-            session.summaryPostCount = 20
-            sessions.append(session)
-        }
-        var watched1 = WatchedTopic(
-            siteURL: forums[0].siteURL,
-            topicID: "2001",
-            url: URL(string: "https://meta.discourse.org/t/watched-1/2001")!,
-            title: "Watched topic 1",
-            knownPostCount: 15
-        )
-        watched1.newReplies = 3
-        var watched2 = WatchedTopic(
-            siteURL: forums[1].siteURL,
-            topicID: "2002",
-            url: URL(string: "https://community.openai.com/t/watched-2/2002")!,
-            title: "Watched topic 2",
-            knownPostCount: 40
-        )
-        watched2.newReplies = 5
-        app.applyDebugSeed(AssistantDebugSeed(
-            forums: forums,
-            sessions: sessions,
-            activities: [],
-            agentRuns: [],
-            watchedTopics: [watched1, watched2],
-            currentTopic: nil,
-            currentForum: nil,
-            pageContext: PageContext(url: nil, site: nil, siteURL: nil, forumName: "", topic: nil, state: .notForum)
-        ))
-
-        let actions = BrowserActions(showLoginInfo: {}, addForum: {}, openForum: { _ in }, showForumsHome: {})
         let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
-        func mountOnce() -> Double {
+
+        func measureHome(name: String, configure: (AppModel) -> Void) {
+            let directory = FileManager.default.temporaryDirectory
+                .appendingPathComponent("home-perf-\(name)-\(UUID().uuidString)", isDirectory: true)
+            let store = PersistentStore(
+                fileURL: directory.appendingPathComponent("state.json"),
+                keys: InMemoryProviderKeyStore()
+            )
+            let app = AppModel(
+                store: store,
+                cloudSync: CloudSyncController(transport: nil, files: nil, defaults: nil, schedulesAutomatically: false),
+                podcastDirectory: directory.appendingPathComponent("Podcasts", isDirectory: true),
+                workspaceDirectory: directory.appendingPathComponent("Workspace", isDirectory: true),
+                spotlightIndex: FakeSpotlightIndex(),
+                topicActivityDonor: FakeTopicActivityDonor()
+            )
+            app.siteVisits.hidesVisits = true
+            configure(app)
+            defer { try? FileManager.default.removeItem(at: directory) }
+
             let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
             window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
             defer {
                 window.isHidden = true
                 window.rootViewController = nil
             }
-            return mainThreadMilliseconds(settle: 0.2) {
-                let host = UIHostingController(rootView: AnyView(
-                    NavigationStack {
-                        HomeView(app: app, actions: actions)
-                    }
-                    .environment(\.colorScheme, .light)
+
+            // Warm-up pass (not recorded) to eliminate one-time SwiftUI/UIKit lazy initialization.
+            do {
+                let warm = UIHostingController(rootView: AnyView(
+                    NavigationStack { HomeView(app: app, actions: actions) }.environment(\.colorScheme, .light)
                 ))
-                window.rootViewController = host
+                window.rootViewController = warm
                 window.makeKeyAndVisible()
-                host.view.layoutIfNeeded()
+                warm.view.layoutIfNeeded()
+                RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+                window.rootViewController = nil
+                RunLoop.current.run(until: Date().addingTimeInterval(0.05))
             }
+
+            var samples: [Double] = []
+            for _ in 0..<6 {
+                var host: UIHostingController<AnyView>!
+                let elapsed = mainThreadMilliseconds(settle: 0.25) {
+                    host = UIHostingController(rootView: AnyView(
+                        NavigationStack { HomeView(app: app, actions: actions) }.environment(\.colorScheme, .light)
+                    ))
+                    window.rootViewController = host
+                    window.makeKeyAndVisible()
+                    host.view.layoutIfNeeded()
+                }
+                samples.append(elapsed)
+                window.rootViewController = nil
+                RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+            }
+            recordSamples(name, "first_frame", samples)
         }
 
-        _ = mountOnce() // warm-up
-        let samples = (0..<6).map { _ in mountOnce() }
-        recordSamples("home", "first_frame", samples)
+        measureHome(name: "home-empty") { _ in }
+        measureHome(name: "home-populated") { app in
+            for i in 1...6 {
+                app.pin(Forum(siteURL: "https://site\(i).example.org", kind: .discourse, name: "Site \(i)"))
+            }
+        }
         attachLines(named: "home-perf.tsv")
     }
 }

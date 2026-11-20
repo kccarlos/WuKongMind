@@ -136,6 +136,8 @@ struct AppSettings: Codable, Equatable {
     var watchAutoRefreshSummaries = true
     /// False on a fresh install until the walkthrough finishes.
     var hasCompletedOnboarding = false
+    /// Highest Terms of Use version accepted on this account (`TermsOfUse.currentVersion`).
+    var acceptedTermsVersion = 0
     /// Built-in browser: block ads (EasyList). Off by default, out of respect
     /// for forum owners who rely on ads.
     var contentBlockingEnabled = false
@@ -206,6 +208,7 @@ struct AppSettings: Codable, Equatable {
         case agentReadLimit
         case watchAutoRefreshSummaries
         case hasCompletedOnboarding
+        case acceptedTermsVersion
         case contentBlockingEnabled
         case blockTrackers
         case adBlockAllowedSites
@@ -303,6 +306,10 @@ struct AppSettings: Codable, Equatable {
             Bool.self,
             forKey: .hasCompletedOnboarding
         ) ?? false
+        acceptedTermsVersion = try container.decodeIfPresent(
+            Int.self,
+            forKey: .acceptedTermsVersion
+        ) ?? 0
         contentBlockingEnabled = try container.decodeIfPresent(
             Bool.self,
             forKey: .contentBlockingEnabled

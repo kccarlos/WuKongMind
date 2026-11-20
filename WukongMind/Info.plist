@@ -41,6 +41,8 @@
 	<string>$(DC_APP_GROUP)</string>
 	<key>DCIdentifierPrefix</key>
 	<string>$(DC_IDENTIFIER_PREFIX)</string>
+	<key>DCReportEmail</key>
+	<string>kccarlos.opensource@gmail.com</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
