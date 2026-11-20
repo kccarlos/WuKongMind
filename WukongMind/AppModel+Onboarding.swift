@@ -298,6 +298,7 @@ enum AppVersion {
     static let websiteURL = URL(string: "https://github.com/kccarlos/WuKongMind")!
     static let supportURL = URL(string: "https://github.com/kccarlos/WuKongMind/issues")!
     static let privacyPolicyURL = URL(string: "https://github.com/kccarlos/WuKongMind/blob/main/PRIVACY.md")!
+    static let termsURL = URL(string: "https://github.com/kccarlos/WuKongMind/blob/main/TERMS.md")!
 }
 
 extension AppModel {
@@ -416,22 +417,32 @@ extension AppModel {
     /// - `-dc-keychain-sync-probe` also skips the walkthrough so the probe alert shows
     func applyOnboardingDebugArguments() {
         let arguments = OnboardingDebug.arguments
+        let asksTerms = arguments.contains("-dc-ask-terms")
         if arguments.contains("-dc-panel-settings") {
             // The route itself is set once the page is up (WukongMindApp).
             settings.hasCompletedOnboarding = true
+            if !asksTerms { settings.acceptedTermsVersion = TermsOfUse.currentVersion }
         }
         if arguments.contains("-dc-reset") || OnboardingDebug.initialStep != nil {
             settings.hasCompletedOnboarding = false
+            settings.acceptedTermsVersion = 0
         }
         // Step 3 runs over the browser, so it needs no walkthrough.
         if OnboardingDebug.initialStep == .tryAgent {
             settings.hasCompletedOnboarding = true
+            if !asksTerms { settings.acceptedTermsVersion = TermsOfUse.currentVersion }
             firstRun = .prompts
         }
         // The keychain probe's alert can't show over the walkthrough cover.
         if arguments.contains("-dc-skip-onboarding") || OnboardingDebug.settingsPage != nil
             || arguments.contains(KeychainSyncProbe.launchArgument) {
             settings.hasCompletedOnboarding = true
+            if !asksTerms && !arguments.contains("-dc-reset") {
+                settings.acceptedTermsVersion = TermsOfUse.currentVersion
+            }
+        }
+        if asksTerms {
+            settings.acceptedTermsVersion = 0
         }
         // UI tests: skip transitions so each tap settles at once (CI speed).
         if arguments.contains("-dc-no-animations") {

@@ -2425,6 +2425,18 @@ private struct SummaryMoreMenu: View {
                 .accessibilityIdentifier("pullPost")
                 .disabled(pullDisabled)
             }
+
+            Section {
+                Button {
+                    if let target = app.aiSummaryReportTarget() {
+                        app.reportAIOutput(target)
+                    }
+                } label: {
+                    Label("Report this summary", systemImage: "flag")
+                }
+                .accessibilityIdentifier("reportSummary")
+                .disabled(exportDisabled)
+            }
         } label: {
             Group {
                 if isPreparingExport {
