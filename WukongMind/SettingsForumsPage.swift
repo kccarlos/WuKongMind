@@ -16,7 +16,7 @@ struct SettingsForumsPage: View {
         List {
             Section {
                 if app.pinnedForums.isEmpty {
-                    Text("Pin forums to keep them on Home and in the daily digest.")
+                    Text("Pin forums to keep them on Home.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 } else {
@@ -44,7 +44,7 @@ struct SettingsForumsPage: View {
                 }
             } footer: {
                 if !app.pinnedForums.isEmpty {
-                    Text("Pinned forums are on Home and in the daily digest, in this order.")
+                    Text("Pinned forums are on Home, in this order.")
                 }
             }
 

@@ -6374,23 +6374,6 @@
         }
       }
     },
-    "Daily digest: in Settings" : {
-      "comment" : "First-run \"You're set\" card: where to turn on the daily digest",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每日摘要：在“设置”中"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每日摘要：在「設定」中"
-          }
-        }
-      }
-    },
     "Data & privacy" : {
       "localizations" : {
         "zh-Hans" : {
@@ -10126,7 +10109,7 @@
       }
     },
     "Listen" : {
-      "comment" : "Walkthrough welcome: listen to the podcast",
+      "comment" : "Read aloud button: listen to a summary or answer",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -13305,18 +13288,18 @@
         }
       }
     },
-    "Pin forums to keep them on Home and in the daily digest." : {
+    "Pin forums to keep them on Home." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "置顶论坛，让它们显示在“主页”和每日摘要中。"
+            "value" : "置顶论坛，让它们显示在“主页”中。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "釘選論壇，讓它們顯示在「首頁」和每日摘要中。"
+            "value" : "釘選論壇，讓它們顯示在「首頁」中。"
           }
         }
       }
@@ -13385,18 +13368,18 @@
         }
       }
     },
-    "Pinned forums are on Home and in the daily digest, in this order." : {
+    "Pinned forums are on Home, in this order." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "置顶的论坛会按此顺序显示在“主页”和每日摘要中。"
+            "value" : "置顶的论坛会按此顺序显示在“主页”中。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "釘選的論壇會依此順序顯示在「首頁」和每日摘要中。"
+            "value" : "釘選的論壇會依此順序顯示在「首頁」中。"
           }
         }
       }

@@ -291,7 +291,6 @@ final class AppModel: ObservableObject {
     let cloudSync: CloudSyncController
 
     private let store: PersistentStore
-    // Also used by the feature slices in other files (AppModel+Digest.swift).
 
     func measureStateStorageStats() async -> StateStorageStats {
         let snapshotSessions = Array(sessions.values)
@@ -3252,7 +3251,7 @@ final class AppModel: ObservableObject {
         )
     }
 
-    /// The same snapshot for work outside the queue (the daily digest).
+    /// The same snapshot for work outside the queue.
     func runSettings(role: ModelRole, topicKey: String, batchLimit: Int? = nil) -> RunSettings {
         let resolved = { (role: ModelRole) -> RunSettings.Model in
             let provider = self.selection(for: role).provider
@@ -3419,15 +3418,6 @@ final class AppModel: ObservableObject {
         sessions[record.topicKey] = session
         save()
         progress.advance(recordID, to: 1)
-    }
-
-    /// Keeps a topic's freshly read pages in its existing session (the
-    /// daily digest); a topic without one gets none.
-    func storeFetchedPages(_ fetch: ForumFetchResult, topicKey: String) {
-        guard var session = sessions[topicKey] else { return }
-        session.apply(fetch, at: Date())
-        sessions[topicKey] = session
-        save()
     }
 
     private func runSummary(recordID: UUID, record: WorkRecord, context: RunSettings) async throws {
