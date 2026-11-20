@@ -74,6 +74,7 @@ private struct HomeList: View {
     private var tiles: [HomeSite] { HomeSites.tiles(forums: app.forums, visits: siteVisits.shownVisits) }
 
     var body: some View {
+        let _ = PerfProbe.hit("HomeList.body")
         let tiles = tiles
         List {
             header
@@ -161,6 +162,9 @@ private struct HomeList: View {
                 .submitLabel(.go)
                 .focused($addressFocused)
                 .onSubmit(submitAddress)
+                .onChange(of: addressText) { _, _ in
+                    PerfProbe.mark("address.keystroke")
+                }
                 .foregroundStyle(DCTheme.ink)
                 .accessibilityIdentifier("homeAddress")
                 if !addressText.isEmpty {
@@ -183,7 +187,10 @@ private struct HomeList: View {
             .listRowInsets(EdgeInsets(top: DCTheme.spacingXS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
 
             if addressFocused {
-                ForEach(HomeSites.matches(tiles, for: addressText)) { site in
+                let matches = PerfProbe.time("HomeSites.matches") {
+                    HomeSites.matches(tiles, for: addressText)
+                }
+                ForEach(matches) { site in
                     Button { open(site) } label: {
                         HStack(spacing: DCTheme.spacingM) {
                             ForumIcon(siteURL: site.siteURL, name: site.name, iconURL: site.iconURL, size: 30)
@@ -204,14 +211,14 @@ private struct HomeList: View {
     }
 
     private func submitAddress() {
-        let text = addressText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !text.isEmpty else { return }
-        if browser.open(address: text) {
-            finishAddress()
-        } else if let url = app.webSearchURL(query: text) {
-            browser.load(url)
-            finishAddress()
-        }
+        let context = AddressInput.Context(
+            currentSiteURL: browser.homeSiteURL,
+            forumSearchURL: nil,
+            webSearchURL: { app.webSearchURL(query: $0) }
+        )
+        guard let action = AddressInput.actions(for: addressText, context: context).first else { return }
+        browser.load(action.url)
+        finishAddress()
     }
 
     private func finishAddress() {
