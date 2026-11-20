@@ -356,9 +356,9 @@ tart stop ci-repro && tart delete ci-repro
 compete with the agents on this Mac. Device tests stay on `scripts/device-check.sh`.
 
 ```sh
-scripts/remote-test.sh -only-testing:WukongMindTests            # unit tests, iPhone 18 Pro
+scripts/remote-test.sh -only-testing:WukongMindTests            # unit tests, free iPhone 18 Pro
 scripts/remote-test.sh --sim ipad -only-testing:WukongMindUITests/OnboardingUITests
-scripts/remote-test.sh build                                    # build only, no simulator, no lock
+scripts/remote-test.sh build                                    # build only, under the build lock
 # Live checks: the key is read from this shell's environment (never from the command line)
 herdr-secret run ANTHROPIC_API_KEY -- scripts/remote-test.sh \
   --secret ANTHROPIC_API_KEY=TEST_RUNNER_ANTHROPIC_API_KEY -only-testing:WukongMindUITests/PhysicalDeviceSmokeTests/testLiveBrowserAgentDarkAndHideSidebar
@@ -367,17 +367,32 @@ herdr-secret run VERTEX_API_KEY -- scripts/remote-test.sh \
 scripts/remote-test.sh --help
 ```
 
-- **What it does:** takes the simulator lock on the mini, rsyncs this worktree to
-  `~/remote-test/<worktree>/`, regenerates the project there, runs `xcodebuild`
-  with `-parallel-testing-enabled NO` and `CODE_SIGNING_ALLOWED=NO` and a
+- **What it does:** removes stale `~/remote-test/<worktree>*` directories not
+  used for 3 days (never one whose lock is held), rsyncs this worktree to
+  `~/remote-test/<worktree>/`, takes the **build lock** to regenerate the
+  project and run `xcodebuild build-for-testing` (or `build`) with a
   per-worktree DerivedData (`~/remote-test/<worktree>.dd`, so reruns are
-  incremental), copies the results back, and shuts down a simulator it booted.
-  Only the iPhone 18 Pro and iPad Air 11-inch (M4) simulators are allowed. Run one
-  remote-test per worktree at a time.
-- **Lock:** `mkdir ~/remote-test/locks/<udid>.lock` on the mini. A waiting caller
-  retries every 20 s and prints the holder; a lock older than 45 minutes is dead
-  and taken over. It is released on exit, failure, Ctrl-C and TERM (only a lock
-  this run took), and a run kept alive by a heartbeat is never taken for dead.
+  incremental), releases the build lock, then takes a **simulator lock** to run
+  `xcodebuild test-without-building` with `-parallel-testing-enabled NO` and
+  `CODE_SIGNING_ALLOWED=NO`, copies the results back, and shuts down a
+  simulator it booted. Run one remote-test per worktree at a time.
+- **Simulators:** two iPhone 18 Pro simulators (`16A99B26-BFFC-49B4-B068-EA0FE058AFA5`
+  and `3AB57DA3-3CDD-4130-97D4-D9EE35C15F8C`) and one iPad Air 11-inch (M4)
+  (`F0750EC3-8319-4183-B43E-BE6E6BE694F3`). `--sim iphone` (the default) takes
+  whichever iPhone is free and waits only if both are held; `--sim <udid>` and
+  `--sim ipad` target a specific simulator. Compiles stay serialized under
+  `build.lock` so two Swift builds never compete for RAM, while tests can run
+  in parallel across the two iPhones.
+- **Locks:** `mkdir ~/remote-test/locks/build.lock` for builds and
+  `mkdir ~/remote-test/locks/<udid>.lock` for simulators on the mini. A waiting
+  caller retries every 20 s and prints the holder; a lock older than 45 minutes
+  is dead and taken over. Each lock is released on exit, failure, Ctrl-C and
+  TERM (only a lock this run took), and a run kept alive by a heartbeat is
+  never taken for dead.
+- **Disk hygiene:** on each run, the script removes any
+  `~/remote-test/<worktree>`, `.dd`, or `.results` directory older than 3 days
+  (by mtime, refreshed on every run) unless its worktree currently holds a lock,
+  logging each removed directory.
 - **Results:** `/Volumes/Ext/dev/build/wukongmind-remote-test/<worktree>-<run>/`
   (or `--out`): `exit-status`, `failing-tests.txt`, `log-tail.txt`, `run.log`,
   `timings.txt` and `test.xcresult` (screenshots and attachments are in it). The
@@ -396,7 +411,10 @@ scripts/remote-test.sh --help
   Studio (`GEMINI_LIVE_KEY`) only if Vertex fails; say which one ran.
 - **Mini setup (one time, done):** Xcode, xcodegen and Homebrew are on the mini;
   the system Ruby 2.6 needed `gem install --user-install xcodeproj` (user-local
-  gem for `scripts/generate_project.rb`). Everything lives under `~/remote-test`.
+  gem for `scripts/generate_project.rb`). The second iPhone 18 Pro simulator
+  (`3AB57DA3-3CDD-4130-97D4-D9EE35C15F8C`) was created once with:
+  `xcrun simctl create "iPhone 18 Pro (2)" com.apple.CoreSimulator.SimDeviceType.iPhone-18-Pro com.apple.CoreSimulator.SimRuntime.iOS-27-2`.
+  Everything lives under `~/remote-test`.
 
 ### Live Gemini Live budget
 
