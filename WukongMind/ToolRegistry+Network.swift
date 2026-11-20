@@ -184,7 +184,8 @@ extension ToolRegistry {
                 name: "cookies_get",
                 description: """
                 Read the browser's cookies (httpOnly included) for a domain and its parent domains. \
-                Always asks the person first.
+                Always asks the person first. Returns names and attributes only unless "Give cookie \
+                values to the model" is turned on in Settings › Agent.
                 """,
                 parameters: [
                     ToolParameterSchema(name: "domain", type: .string, description: "For example 'example.org'.", minLength: 1),
@@ -211,23 +212,26 @@ extension ToolRegistry {
                 )
                 let allowed = try await gate?.ask(tool: "cookies_get", question: question, detail: domain) ?? false
                 guard allowed else { throw AgentHTTPError(message: declinedMessage) }
-                return cookiesOutput(matching)
+                let includeValues = await client.environment.shareCookieValues()
+                return cookiesOutput(matching, includeValues: includeValues)
             }
         )
     }
 
-    static func cookiesOutput(_ cookies: [HTTPCookie]) -> ToolExecutionOutput {
+    static func cookiesOutput(_ cookies: [HTTPCookie], includeValues: Bool = false) -> ToolExecutionOutput {
         let formatter = ISO8601DateFormatter()
         let rows: [[String: Any]] = cookies.prefix(maxCookiesReturned).map { cookie in
             var row: [String: Any] = [
                 "name": cookie.name,
-                "value": cookie.value,
                 "domain": cookie.domain,
                 "path": cookie.path,
                 "http_only": cookie.isHTTPOnly,
                 "secure": cookie.isSecure,
                 "expires": cookie.expiresDate.map(formatter.string(from:)) ?? NSNull()
             ]
+            if includeValues {
+                row["value"] = cookie.value
+            }
             switch cookie.sameSitePolicy {
             case .sameSiteLax?: row["same_site"] = "lax"
             case .sameSiteStrict?: row["same_site"] = "strict"
@@ -239,6 +243,9 @@ extension ToolRegistry {
         var content = String(decoding: data, as: UTF8.self)
         if cookies.count > maxCookiesReturned {
             content += "\n\(cookies.count - maxCookiesReturned) more cookies not shown (limit \(maxCookiesReturned))."
+        }
+        if !includeValues, !cookies.isEmpty {
+            content += "\nCookie values are hidden (Settings › Agent › Give cookie values to the model is off)."
         }
         return ToolExecutionOutput(content: content, summary: "\(min(cookies.count, maxCookiesReturned))")
     }

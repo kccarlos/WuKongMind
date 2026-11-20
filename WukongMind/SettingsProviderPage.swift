@@ -752,9 +752,12 @@ struct ProviderSettingsPage: View {
 
     /// "Get a key in …", the download page, or Apple's page.
     private var guideLink: some View {
-        Link(destination: guide.link) {
+        Button {
+            app.openProviderGuideLink(guide.link)
+        } label: {
             Label(guide.linkTitle, systemImage: provider.isAppleIntelligence ? "info.circle" : guide.isLocal ? "arrow.down.circle" : "key.horizontal")
         }
+        .accessibilityIdentifier("providerGuideLink")
     }
 
     private func scrollToModelsTop(using proxy: ScrollViewProxy) {

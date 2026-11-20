@@ -160,7 +160,6 @@ struct SettingsDataPage: View {
 struct SettingsHelpPage: View {
     @ObservedObject var app: AppModel
     @Environment(\.replayOnboarding) private var replayOnboarding
-    @Environment(\.openURL) private var openURL
 
     var body: some View {
         Form {
@@ -212,7 +211,7 @@ struct SettingsHelpPage: View {
                 ForEach(AIProvider.allCases) { provider in
                     let guide = ProviderGuide.guide(for: provider)
                     Button {
-                        openURL(guide.link)
+                        app.openProviderGuideLink(guide.link)
                     } label: {
                         HStack(spacing: DCTheme.spacingM) {
                             ProviderBadge(provider: provider, size: 29)

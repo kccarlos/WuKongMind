@@ -71,6 +71,7 @@ final class AgentNetworkToolsTests: XCTestCase {
         cookies: [HTTPCookie] = [],
         page: String? = nil,
         confirm: Bool = false,
+        shareCookieValues: Bool = false,
         pacing: Bool = true,
         forumHosts: Set<String> = [],
         clock: ForumPacingClock = InstantPacingClock(),
@@ -83,6 +84,7 @@ final class AgentNetworkToolsTests: XCTestCase {
                 cookies: { cookies },
                 currentPageURL: { page.flatMap(URL.init(string:)) },
                 confirmBeforeWrites: { confirm },
+                shareCookieValues: { shareCookieValues },
                 pacing: { (pacing, .gentle) },
                 isForumHost: { forumHosts.contains($0.host ?? "") },
                 onFetch: { url, _ in fetched.add(url) }
@@ -114,12 +116,13 @@ final class AgentNetworkToolsTests: XCTestCase {
     private func makeRegistry(
         client: AgentHTTPClient,
         gate: AgentConfirmationGate,
-        workspace: AgentWorkspace? = nil
+        workspace: AgentWorkspace? = nil,
+        bridge: AgentPageDriving? = nil
     ) -> ToolRegistry {
         let sandbox = FileManager.default.temporaryDirectory.appendingPathComponent("NetTools-\(UUID().uuidString)", isDirectory: true)
         addTeardownBlock { try? FileManager.default.removeItem(at: sandbox) }
         return ToolRegistry.m3(context: AgentToolContext(
-            bridge: NoPageDriver(),
+            bridge: bridge ?? NoPageDriver(),
             workspace: workspace,
             scriptStore: ScriptStore(directoryURL: sandbox.appendingPathComponent("Scripts", isDirectory: true)),
             network: client,
@@ -310,6 +313,152 @@ final class AgentNetworkToolsTests: XCTestCase {
         let (declined, _) = try await dispatch(registry, gate: gate, tool: "cookies_get", args: #"{"domain":"example.org"}"#, answer: false)
         XCTAssertTrue(declined.isError)
         XCTAssertTrue(declined.output.contains("The user declined this action."))
+    }
+
+    /// Recorded-response loop test: `cookies_get` omits values while the switch is off and includes them when on.
+    func testCookiesGetHidesValuesWhenSwitchOffAndIncludesThemWhenOn() async throws {
+        func makeRecordedClient() -> RecordedModelClient {
+            RecordedModelClient([
+                .success(AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_1",
+                            name: "cookies_get",
+                            arguments: ["domain": .string("forum.example.org")]
+                        )
+                    ],
+                    stopReason: "tool_use"
+                )),
+                .success(AgentModelTurnResponse(text: "Done.", toolCalls: [], stopReason: "end_turn"))
+            ])
+        }
+
+        func toolResultContent(from client: RecordedModelClient) -> String? {
+            guard let secondRequest = client.recordedRequests.dropFirst().first else { return nil }
+            for turn in secondRequest.messages {
+                if case .toolResults(let results) = turn, let first = results.first {
+                    return first.content
+                }
+            }
+            return nil
+        }
+
+        let cookies = [
+            cookie("session_id", "secret-session-token-12345", domain: ".example.org", httpOnly: true, secure: true),
+            cookie("prefs", "dark-mode-value", domain: "forum.example.org")
+        ]
+        let config = ProviderConfiguration(
+            model: "claude-haiku-5-5",
+            baseURL: AIProvider.anthropic.defaultBaseURL,
+            apiKey: "test-key"
+        )
+
+        // Switch OFF (default): names and attributes only; no values reach the model.
+        let gateOff = AgentConfirmationGate()
+        let clientOff = makeClient(cookies: cookies, page: "https://forum.example.org/", shareCookieValues: false)
+        let registryOff = makeRegistry(client: clientOff, gate: gateOff)
+        let modelOff = makeRecordedClient()
+        let loopOff = AgentLoop(modelClient: modelOff, registry: registryOff, maxSteps: 4)
+        let runOffTask = Task {
+            try await loopOff.run(
+                systemPrompt: "sys",
+                initialHistory: [.user("List cookies")],
+                configuration: config,
+                provider: .anthropic
+            )
+        }
+        while gateOff.pending.isEmpty { try await Task.sleep(for: .milliseconds(5)) }
+        gateOff.resolve(gateOff.pending[0].id, allow: true)
+        _ = try await runOffTask.value
+        let offContent = try XCTUnwrap(toolResultContent(from: modelOff))
+        XCTAssertTrue(offContent.contains("\"name\":\"session_id\""))
+        XCTAssertTrue(offContent.contains("\"http_only\":true"))
+        XCTAssertFalse(offContent.contains("\"value\""))
+        XCTAssertFalse(offContent.contains("secret-session-token-12345"))
+        XCTAssertFalse(offContent.contains("dark-mode-value"))
+
+        // Switch ON: values are included.
+        let gateOn = AgentConfirmationGate()
+        let clientOn = makeClient(cookies: cookies, page: "https://forum.example.org/", shareCookieValues: true)
+        let registryOn = makeRegistry(client: clientOn, gate: gateOn)
+        let modelOn = makeRecordedClient()
+        let loopOn = AgentLoop(modelClient: modelOn, registry: registryOn, maxSteps: 4)
+        let runOnTask = Task {
+            try await loopOn.run(
+                systemPrompt: "sys",
+                initialHistory: [.user("List cookies")],
+                configuration: config,
+                provider: .anthropic
+            )
+        }
+        while gateOn.pending.isEmpty { try await Task.sleep(for: .milliseconds(5)) }
+        gateOn.resolve(gateOn.pending[0].id, allow: true)
+        _ = try await runOnTask.value
+        let onContent = try XCTUnwrap(toolResultContent(from: modelOn))
+        XCTAssertTrue(onContent.contains("\"value\":\"secret-session-token-12345\""))
+        XCTAssertTrue(onContent.contains("\"value\":\"dark-mode-value\""))
+    }
+
+    func testRunJSRedactsCookieValuesWhenSwitchOffAndKeepsThemWhenOn() async throws {
+        struct CookieEchoDriver: AgentPageDriving {
+            func currentPageMetadata() async -> AgentPageMetadata {
+                AgentPageMetadata(url: "https://forum.example.org/", title: "Forum")
+            }
+            func readPage(mode: PageReadMode, selector: String?, maxLength: Int?) async throws -> String { "" }
+            func runJS(code: String, environment: AgentExecutionEnvironment, timeout: TimeInterval) async throws -> JSExecutionResult {
+                JSExecutionResult(
+                    valueJSON: #"{"cookies":"theme=sepia; sid=super-secret-token-98765","raw":"super-secret-token-98765","link":"/search?q=swift"}"#,
+                    consoleOutput: ["theme=sepia; sid=super-secret-token-98765"],
+                    error: nil
+                )
+            }
+            func injectCSS(css: String, id: String?) async throws -> CSSInjectionResult {
+                CSSInjectionResult(sheetID: id ?? "s", appliedRootCount: 1)
+            }
+            func waitFor(selector: String?, milliseconds: Int?) async throws -> WaitForResult {
+                WaitForResult(mode: .delay, matched: true, elapsedMs: 0, selector: nil)
+            }
+        }
+
+        let cookies = [
+            cookie("theme", "sepia", domain: "forum.example.org"),
+            cookie("q", "1", domain: "forum.example.org"),
+            cookie("sid", "super-secret-token-98765", domain: ".example.org", httpOnly: true)
+        ]
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("RunJSCookie-\(UUID().uuidString)", isDirectory: true)
+        addTeardownBlock { try? FileManager.default.removeItem(at: root) }
+        let workspace = AgentWorkspace(root: root)
+
+        let gateOff = AgentConfirmationGate()
+        let clientOff = makeClient(cookies: cookies, page: "https://forum.example.org/", shareCookieValues: false)
+        let registryOff = makeRegistry(client: clientOff, gate: gateOff, workspace: workspace, bridge: CookieEchoDriver())
+        let offResult = try await registryOff.dispatch(toolName: "run_js", rawArgumentsJSON: #"{"code":"return document.cookie;"}"#)
+        XCTAssertFalse(offResult.isError)
+        XCTAssertFalse(offResult.modelContent.contains("sepia"))
+        XCTAssertFalse(offResult.modelContent.contains("super-secret-token-98765"))
+        XCTAssertFalse(offResult.resultSummary.contains("super-secret-token-98765"))
+        XCTAssertTrue(offResult.modelContent.contains("theme=[cookie]"))
+        XCTAssertTrue(offResult.modelContent.contains("/search?q=swift"), "short cookie name 'q=1' must not corrupt unrelated query params")
+
+        // `save_to` also redacts cookie values before writing to workspace.
+        let savedResult = try await registryOff.dispatch(
+            toolName: "run_js",
+            rawArgumentsJSON: #"{"code":"return document.cookie;","save_to":"out/cookies.txt"}"#
+        )
+        XCTAssertFalse(savedResult.isError)
+        let savedText = try String(contentsOf: root.appendingPathComponent("out/cookies.txt"), encoding: .utf8)
+        XCTAssertFalse(savedText.contains("sepia"))
+        XCTAssertFalse(savedText.contains("super-secret-token-98765"))
+
+        // Switch ON: cookie values pass through.
+        let gateOn = AgentConfirmationGate()
+        let clientOn = makeClient(cookies: cookies, page: "https://forum.example.org/", shareCookieValues: true)
+        let registryOn = makeRegistry(client: clientOn, gate: gateOn, workspace: workspace, bridge: CookieEchoDriver())
+        let onResult = try await registryOn.dispatch(toolName: "run_js", rawArgumentsJSON: #"{"code":"return document.cookie;"}"#)
+        XCTAssertFalse(onResult.isError)
+        XCTAssertTrue(onResult.modelContent.contains("theme=sepia"))
+        XCTAssertTrue(onResult.modelContent.contains("super-secret-token-98765"))
     }
 
     // MARK: Confirmations

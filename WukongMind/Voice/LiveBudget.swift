@@ -26,22 +26,34 @@ final class LiveBudget {
         let openedAt: Date
     }
 
+    #if DEBUG
     static let environmentKey = "GEMINI_LIVE_BUDGET"
+    #endif
     static let defaultCap = Cap(sessions: 3, seconds: 120)
     static let refusalPrefix = "Live test budget"
 
     /// The process's budget; nil when no cap applies.
-    static let shared: LiveBudget? = configuredCap(environment: ProcessInfo.processInfo.environment).map { LiveBudget(cap: $0) }
+    static let shared: LiveBudget? = {
+        #if DEBUG
+        return configuredCap(environment: ProcessInfo.processInfo.environment).map { LiveBudget(cap: $0) }
+        #else
+        return nil
+        #endif
+    }()
 
     /// The cap for this environment: `GEMINI_LIVE_BUDGET` if set, the default
     /// in a test process, else nil.
     nonisolated static func configuredCap(environment: [String: String]) -> Cap? {
+        #if DEBUG
         if let text = environment[environmentKey]?.trimmingCharacters(in: .whitespaces), !text.isEmpty {
             return parse(text) ?? defaultCap
         }
         let isTest = environment["XCTestConfigurationFilePath"] != nil || environment["XCTestBundlePath"] != nil
             || environment["XCTestSessionIdentifier"] != nil || NSClassFromString("XCTestCase") != nil
         return isTest ? defaultCap : nil
+        #else
+        return nil
+        #endif
     }
 
     /// "3,120" → 3 sessions, 120 s.
@@ -73,8 +85,13 @@ final class LiveBudget {
     /// Charges one session, or refuses when the cap is used up.
     func begin(_ label: String) throws -> Lease {
         guard sessionsUsed < cap.sessions, remainingSeconds() > 0 else {
+            #if DEBUG
+            let hint = " (set \(Self.environmentKey) to raise it)"
+            #else
+            let hint = ""
+            #endif
             let reason = "\(Self.refusalPrefix) used up: \(sessionsUsed) of \(cap.sessions) sessions, "
-                + "\(Self.format(secondsUsed)) of \(Self.format(cap.seconds)) s (set \(Self.environmentKey) to raise it)"
+                + "\(Self.format(secondsUsed)) of \(Self.format(cap.seconds)) s\(hint)"
             print("[LIVE-BUDGET] refused \(label): \(reason)")
             throw LiveClose(code: LiveClose.policyViolation, reason: reason)
         }

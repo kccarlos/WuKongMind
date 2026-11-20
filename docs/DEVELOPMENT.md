@@ -137,6 +137,15 @@ A free Apple ID team can run the app on your own devices, with limits:
   `DC_ENABLE_CLOUDKIT=NO`. API keys still sync through iCloud Keychain, which
   needs no iCloud entitlement.
 
+## One build (no store variant)
+
+WukongMind ships one build everywhere — App Store, TestFlight, and local builds
+run the same code with the same defaults. There is no store compile flag or
+variant, and no feature or default may depend on the build configuration
+(beyond `#if DEBUG` test hooks), the install source, the date, or the region.
+Where more freedom is wanted, expose it as a visible Settings switch with the
+safe side as the default.
+
 ## Build and run
 
 In Xcode, pick the **WukongMind** scheme and a simulator or device.
@@ -757,6 +766,22 @@ It writes the light (opaque), dark and tinted 1024 px icons into
 `docs/brand/wukongmind-icon-1024.png`. Check the light icon has no alpha
 channel with `sips -g hasAlpha`. `docs/brand/wukongmind-mark.svg` uses the
 same coordinates; update it by hand.
+
+## Website
+
+The public site (privacy policy, support, product page; English, 简体中文, 繁體中文) is plain
+HTML and CSS in `site/`, built by one standard-library script. No JavaScript, no
+tracking, no third-party fonts or scripts.
+
+```sh
+python3 scripts/site/build.py --out _site   # build, then check every internal link, anchor, alt text, lang, file size
+python3 -m http.server 8000 -d _site        # preview at http://localhost:8000/ (zh-Hans/ and zh-Hant/ under it)
+```
+
+- The privacy page is generated from `PRIVACY.md` (and a terms page from `TERMS.md` once that file exists): edit those files, never the site. The script only renders the small Markdown subset they use and fails on anything else. The Chinese pages show the English text under a short note, since the policy is English only.
+- Hand-written text is in `site/lang/<code>/` (home, support, one-line partials); the page frame is `site/layout.html`; colours and type come from the design system tokens in `site/styles.css`.
+- `site/config.json` holds each changing value once: `support_email` and `testflight_url`. While one is a `*_TBD` placeholder the part of the page that needs it is not rendered (no TestFlight section, no email line); the build prints a note.
+- `.github/workflows/site.yml` builds on pull requests that touch these files and deploys `_site/` to GitHub Pages on `main`. Needs Settings › Pages › Source: "GitHub Actions" once. Live at https://kccarlos.github.io/WuKongMind/ (links are relative, so a custom domain works too).
 
 ## Platform notes
 

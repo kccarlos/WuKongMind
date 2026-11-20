@@ -61,6 +61,31 @@ final class OnboardingTests: XCTestCase {
         }
     }
 
+    func testProviderGuideHasNoBannedPricingOrPurchaseWords() {
+        let bannedWords = ["buy", "credit", "credits", "price", "prices", "pricing", "purchase", "low-cost", "subscription", "free", "bill", "billed", "$"]
+        for provider in AIProvider.allCases {
+            let guide = ProviderGuide.guide(for: provider)
+            let texts = [guide.blurb, guide.linkTitle, guide.note].compactMap { $0 }
+            for text in texts {
+                let lowered = text.lowercased()
+                for banned in bannedWords {
+                    if banned == "$" {
+                        XCTAssertFalse(lowered.contains("$"), "\(provider) contains banned symbol '$' in: \(text)")
+                    } else {
+                        let pattern = #"\b"# + NSRegularExpression.escapedPattern(for: banned) + #"\b"#
+                        XCTAssertNil(
+                            lowered.range(of: pattern, options: .regularExpression),
+                            "\(provider) contains banned word '\(banned)' in: \(text)"
+                        )
+                    }
+                }
+            }
+            if provider.requiresAPIKey {
+                XCTAssertTrue(guide.linkTitle.hasPrefix("Get a key"), "\(provider) linkTitle must start with 'Get a key', got: \(guide.linkTitle)")
+            }
+        }
+    }
+
     func testSettingsRootVoiceTodaySummary() {
         XCTAssertEqual(SettingsRootSummary.voiceToday(seconds: 45, dailyLimitMinutes: 30), "Voice today 1 of 30 min")
         XCTAssertEqual(SettingsVoicePage.minutes(45), "1 min")
@@ -117,11 +142,16 @@ final class OnboardingTests: XCTestCase {
     func testSearchEngineAndAgentSettingsDefaultsAndPersistence() throws {
         let stock = AppSettings()
         XCTAssertEqual(stock.searchEngine, .google)
-        XCTAssertFalse(stock.agentConfirmBeforeWrites)
+        XCTAssertTrue(stock.agentConfirmBeforeWrites)
+        XCTAssertFalse(stock.agentShareCookieValues)
+        XCTAssertFalse(stock.agentSaveScriptsWithoutAsking)
         XCTAssertFalse(stock.agentDeveloperMode)
         XCTAssertTrue(SyncSettings.deviceLocalKeys.contains("agentDeveloperMode"))
+        XCTAssertTrue(SyncSettings.deviceLocalKeys.contains("didMigrateAgentConfirmBeforeWritesDefault"))
         XCTAssertFalse(SyncSettings.deviceLocalKeys.contains("searchEngine"))
         XCTAssertFalse(SyncSettings.deviceLocalKeys.contains("agentConfirmBeforeWrites"))
+        XCTAssertFalse(SyncSettings.deviceLocalKeys.contains("agentShareCookieValues"))
+        XCTAssertFalse(SyncSettings.deviceLocalKeys.contains("agentSaveScriptsWithoutAsking"))
 
         XCTAssertEqual(
             SearchEngine.google.searchURL(for: "swift concurrency")?.absoluteString,
@@ -141,18 +171,46 @@ final class OnboardingTests: XCTestCase {
         )
         XCTAssertNil(SearchEngine.google.searchURL(for: "   "))
 
-        // Existing saved JSON without the new keys decodes cleanly with stock defaults (no migration).
+        // Existing saved JSON without the new keys decodes cleanly with stock defaults.
         let bare = try JSONDecoder().decode(AppSettings.self, from: Data("{}".utf8))
         XCTAssertEqual(bare, stock)
 
         var edited = AppSettings()
         edited.searchEngine = .duckDuckGo
-        edited.agentConfirmBeforeWrites = true
+        edited.agentConfirmBeforeWrites = false
+        edited.agentShareCookieValues = true
+        edited.agentSaveScriptsWithoutAsking = true
         edited.agentDeveloperMode = true
         let roundTrip = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(edited))
         XCTAssertEqual(roundTrip.searchEngine, .duckDuckGo)
-        XCTAssertTrue(roundTrip.agentConfirmBeforeWrites)
+        XCTAssertFalse(roundTrip.agentConfirmBeforeWrites)
+        XCTAssertTrue(roundTrip.agentShareCookieValues)
+        XCTAssertTrue(roundTrip.agentSaveScriptsWithoutAsking)
         XCTAssertTrue(roundTrip.agentDeveloperMode)
+    }
+
+    func testConfirmBeforeWritesUpgradeMigrationTurnsOnOnceAndPreservesLaterOffChoice() throws {
+        // Pre-upgrade saved settings stored `agentConfirmBeforeWrites: false` without the migration flag.
+        let legacyJSON = #"{"agentConfirmBeforeWrites":false}"#
+        var upgraded = try JSONDecoder().decode(AppSettings.self, from: Data(legacyJSON.utf8))
+        XCTAssertTrue(upgraded.agentConfirmBeforeWrites, "Upgrade turns Confirm before writes on once")
+        XCTAssertTrue(upgraded.didMigrateAgentConfirmBeforeWritesDefault)
+        XCTAssertFalse(upgraded.agentShareCookieValues)
+        XCTAssertFalse(upgraded.agentSaveScriptsWithoutAsking)
+
+        // Once the user turns it off again and saves, subsequent loads keep it off.
+        upgraded.agentConfirmBeforeWrites = false
+        let encoded = try JSONEncoder().encode(upgraded)
+        let afterUserTurnedOff = try JSONDecoder().decode(AppSettings.self, from: encoded)
+        XCTAssertFalse(afterUserTurnedOff.agentConfirmBeforeWrites)
+        XCTAssertTrue(afterUserTurnedOff.didMigrateAgentConfirmBeforeWritesDefault)
+
+        // Syncing a remote `agentConfirmBeforeWrites: false` into an upgraded device keeps it off.
+        let merged = try SyncSchema.applying(
+            settingsUnits: ["agentConfirmBeforeWrites": .bool(false)],
+            to: AppSettings()
+        )
+        XCTAssertFalse(merged.agentConfirmBeforeWrites)
     }
 
     func testVersionText() {
@@ -176,6 +234,25 @@ final class OnboardingReplayTests: XCTestCase {
         let app = AppModel(store: store)
         app.settings.hasCompletedOnboarding = true
         return app
+    }
+
+    func testOpenProviderGuideLinkOpensTabAndDismissesModals() throws {
+        let app = try model()
+        app.settings.hasCompletedOnboarding = false
+        app.router.onboardingReplay = .showing
+        app.requestedSettingsPage = .provider
+        app.needsProviderSetup = .browserAgent
+
+        let url = ProviderGuide.guide(for: .openRouter).link
+        let initialCount = app.tabs.tabs.count
+        app.openProviderGuideLink(url)
+
+        XCTAssertTrue(app.settings.hasCompletedOnboarding)
+        XCTAssertEqual(app.router.onboardingReplay, .none)
+        XCTAssertNil(app.requestedSettingsPage)
+        XCTAssertNil(app.needsProviderSetup)
+        XCTAssertEqual(app.tabs.tabs.count, initialCount + 1)
+        XCTAssertEqual(app.browser.currentURL, url)
     }
 
     func testFromASettingsSheetTheSheetGoesFirst() async throws {
