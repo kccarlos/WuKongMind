@@ -342,6 +342,38 @@ enum UntrustedWebContent {
         return scrubbed
     }
 
+    /// Redacts known cookie values from tool output while "Give cookie values to the model" is off.
+    /// Exact `name=value` pairs are always redacted; values of `CookieScrubber.longValueLength` (8)
+    /// or more characters are redacted anywhere (including JSON-escaped forms).
+    static func redactCookieValues(in text: String, cookies: [KnownCookie]) -> String {
+        guard !text.isEmpty, !cookies.isEmpty else { return text }
+        var scrubbed = text
+        let sortedByValueLength = cookies
+            .filter { !$0.value.isEmpty }
+            .sorted { $0.value.count > $1.value.count }
+        for cookie in sortedByValueLength where !cookie.name.isEmpty {
+            let pair = "\(cookie.name)=\(cookie.value)"
+            if scrubbed.contains(pair) {
+                scrubbed = scrubbed.replacingOccurrences(of: pair, with: "\(cookie.name)=\(CookieScrubber.marker)")
+            }
+        }
+        var seenLong = Set<String>()
+        for cookie in sortedByValueLength where cookie.value.count >= CookieScrubber.longValueLength {
+            guard seenLong.insert(cookie.value).inserted else { continue }
+            if let data = try? JSONEncoder().encode(cookie.value),
+               let encoded = String(data: data, encoding: .utf8) {
+                let escaped = String(encoded.dropFirst().dropLast())
+                if escaped != cookie.value, scrubbed.contains(escaped) {
+                    scrubbed = scrubbed.replacingOccurrences(of: escaped, with: CookieScrubber.marker)
+                }
+            }
+            if scrubbed.contains(cookie.value) {
+                scrubbed = scrubbed.replacingOccurrences(of: cookie.value, with: CookieScrubber.marker)
+            }
+        }
+        return scrubbed
+    }
+
     /// Escapes any literal `<untrusted_web_content` or `</untrusted_web_content>`
     /// tokens inside page text before wrapping so page content cannot break out
     /// of the untrusted delimiter block.
@@ -662,6 +694,9 @@ struct ToolRegistry: Sendable {
     private var orderedNames: [String] = []
     var truncationLimit: Int
     var redactedSecrets: [String]
+    /// Returns cookies whose values must be redacted from tool results while
+    /// "Give cookie values to the model" is off.
+    var cookieRedactionSource: (@Sendable () async -> [KnownCookie])?
     /// Where output over the limit is saved (`results/<task-id>/`). Without a
     /// workspace or a task ID, output is truncated and marked instead.
     var workspace: AgentWorkspace?
@@ -685,11 +720,13 @@ struct ToolRegistry: Sendable {
         tools: [AgentTool] = [],
         truncationLimit: Int = ToolRegistry.defaultTruncationLimit,
         redactedSecrets: [String] = [],
-        workspace: AgentWorkspace? = nil
+        workspace: AgentWorkspace? = nil,
+        cookieRedactionSource: (@Sendable () async -> [KnownCookie])? = nil
     ) {
         self.truncationLimit = max(1, truncationLimit)
         self.redactedSecrets = redactedSecrets
         self.workspace = workspace
+        self.cookieRedactionSource = cookieRedactionSource
         for tool in tools {
             register(tool)
         }
@@ -1028,8 +1065,19 @@ struct ToolRegistry: Sendable {
         touchedURLs: [String] = [],
         step: Int? = nil
     ) async -> ToolDispatchResult {
-        let scrubbedOutput = UntrustedWebContent.redactSecrets(in: rawOutput, secrets: redactedSecrets)
-        let scrubbedSummary = UntrustedWebContent.redactSecrets(in: summary, secrets: redactedSecrets)
+        let cookiesToRedact: [KnownCookie] = if toolName != "cookies_get", let cookieRedactionSource {
+            await cookieRedactionSource()
+        } else {
+            []
+        }
+        let scrubbedOutput = UntrustedWebContent.redactCookieValues(
+            in: UntrustedWebContent.redactSecrets(in: rawOutput, secrets: redactedSecrets),
+            cookies: cookiesToRedact
+        )
+        let scrubbedSummary = UntrustedWebContent.redactCookieValues(
+            in: UntrustedWebContent.redactSecrets(in: summary, secrets: redactedSecrets),
+            cookies: cookiesToRedact
+        )
         var finalOutput = scrubbedOutput
         var wasTruncated = false
         var totalCount = scrubbedOutput.count
@@ -1058,9 +1106,12 @@ struct ToolRegistry: Sendable {
         if finalSavedPath != nil { notes.append(.readSavedFile) }
         if let pageFeedback {
             notes += ToolNote.pageFeedback(pageFeedback)
-            finalOutput = UntrustedWebContent.redactSecrets(
-                in: pageFeedback.decorate(finalOutput),
-                secrets: redactedSecrets
+            finalOutput = UntrustedWebContent.redactCookieValues(
+                in: UntrustedWebContent.redactSecrets(
+                    in: pageFeedback.decorate(finalOutput),
+                    secrets: redactedSecrets
+                ),
+                cookies: cookiesToRedact
             )
         }
         if pageFeedback?.isWarning == true {
@@ -1200,7 +1251,8 @@ extension ToolRegistry {
         workspace: AgentWorkspace? = nil,
         tabsContext: TabsToolContext? = nil,
         secrets: [String] = [],
-        supportsImageInput: Bool = false
+        supportsImageInput: Bool = false,
+        cookieRedactionSource: (@Sendable () async -> [KnownCookie])? = nil
     ) -> AgentTool {
         var definition = AgentToolDefinition(
             name: "run_js",
@@ -1262,7 +1314,7 @@ extension ToolRegistry {
                 let env = AgentExecutionEnvironment(rawValue: envRaw) ?? .defaultEnvironment
                 let timeout = args["timeout"]?.strictDoubleValue ?? AgentBridge.defaultJSTimeout
 
-                let result = (workspace == nil && tabsContext == nil)
+                let result = (workspace == nil && tabsContext == nil && cookieRedactionSource == nil)
                     ? try await bridge.runJS(code: code, environment: env, timeout: timeout)
                     : try await bridge.runAgentJS(code: code, environment: env, timeout: timeout)
                 if let errorMessage = result.error {
@@ -1300,9 +1352,11 @@ extension ToolRegistry {
                 let valueDisplay = result.valueJSON ?? "undefined"
                 if let workspace, let target = args["save_to"]?.stringValue {
                     // A returned string is saved as its text, anything else as JSON.
-                    let text = result.valueJSON
+                    let rawText = result.valueJSON
                         .flatMap { try? JSONSerialization.jsonObject(with: Data($0.utf8), options: .fragmentsAllowed) as? String }
                         ?? valueDisplay
+                    let cookiesToRedact = await cookieRedactionSource?() ?? []
+                    let text = UntrustedWebContent.redactCookieValues(in: rawText, cookies: cookiesToRedact)
                     let saved = try await saveOutput(text, to: target, workspace: workspace, secrets: secrets)
                     var sections = [saved.notice]
                     if !result.consoleOutput.isEmpty {
@@ -1518,7 +1572,8 @@ extension ToolRegistry {
         workspace: AgentWorkspace?,
         tabsContext: TabsToolContext? = nil,
         secrets: [String] = [],
-        supportsImageInput: Bool = false
+        supportsImageInput: Bool = false,
+        cookieRedactionSource: (@Sendable () async -> [KnownCookie])? = nil
     ) -> [AgentTool] {
         [
             makeReadPageTool(bridge: bridge, workspace: workspace, secrets: secrets),
@@ -1527,7 +1582,8 @@ extension ToolRegistry {
                 workspace: workspace,
                 tabsContext: tabsContext,
                 secrets: secrets,
-                supportsImageInput: supportsImageInput
+                supportsImageInput: supportsImageInput,
+                cookieRedactionSource: cookieRedactionSource
             ),
             makeInjectCSSTool(bridge: bridge, supportsImageInput: supportsImageInput),
             makeWaitForTool(bridge: bridge)
@@ -3151,12 +3207,26 @@ extension ToolRegistry {
     static func m3(context: AgentToolContext, surface: ToolSurface = .text) -> ToolRegistry {
         let resolvedPageToolBridge = context.learnedSite?.pageToolBridge
             ?? (context.pageTools?.bridge as? PageToolBridge)
+        let cookieRedactionSource: (@Sendable () async -> [KnownCookie])? = context.network.map { client in
+            {
+                if await client.environment.shareCookieValues() { return [] }
+                let pageHost = await client.environment.currentPageURL()?.host?.lowercased()
+                let allCookies = await client.environment.cookies()
+                let relevant = if let pageHost, !pageHost.isEmpty {
+                    allCookies.filter { AgentCookies.domainMatches(cookieDomain: $0.domain, host: pageHost) }
+                } else {
+                    allCookies
+                }
+                return relevant.map { KnownCookie(name: $0.name, value: $0.value) }
+            }
+        }
         var tools = pageTools(
             bridge: context.bridge,
             workspace: context.workspace,
             tabsContext: context.tabs,
             secrets: context.settings.redactedSecrets,
-            supportsImageInput: context.settings.supportsImageInput
+            supportsImageInput: context.settings.supportsImageInput,
+            cookieRedactionSource: cookieRedactionSource
         )
         tools += scriptTools(
             bridge: context.bridge,
@@ -3184,7 +3254,8 @@ extension ToolRegistry {
             tools: tools.filter { $0.surfaces.contains(surface) },
             truncationLimit: context.settings.truncationLimit,
             redactedSecrets: context.settings.redactedSecrets,
-            workspace: context.workspace
+            workspace: context.workspace,
+            cookieRedactionSource: cookieRedactionSource
         )
         registry.forumPrompt = context.forum.map {
             ForumPromptContext(

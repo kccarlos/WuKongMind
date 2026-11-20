@@ -4567,22 +4567,6 @@
         }
       }
     },
-    "Asks before the Agent sends a network request. Reading cookies, and sending your login to another site, always ask." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "代理发送网络请求前会先询问。读取 Cookie 和向其他网站发送你的登录状态时，一律会询问。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "代理傳送網路請求前會先詢問。讀取 Cookie 和向其他網站傳送你的登入狀態時，一律會詢問。"
-          }
-        }
-      }
-    },
     "Asks one of your forums a question: WukongMind searches and reads its topics and answers with sources." : {
       "localizations" : {
         "zh-Hans" : {
@@ -27506,6 +27490,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "以錯誤結束的任務會被儲存，以供 TestFlight 回饋"
+          }
+        }
+      }
+    },
+    "Confirm before writes asks before the Agent sends a network request. Reading cookies, and sending your login to another site, always ask; cookie values stay hidden unless Give cookie values to the model is on." : {
+      "comment" : "Settings › Agent › Safety footer explaining the safety switches",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“写入前确认”会在代理发送网络请求前先询问。读取 Cookie 和向其他网站发送你的登录状态时，一律会询问；除非开启“向模型提供 Cookie 值”，否则 Cookie 值会被隐藏。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "「寫入前確認」會在代理傳送網路請求前先詢問。讀取 Cookie 和向其他網站傳送你的登入狀態時，一律會詢問；除非開啟「向模型提供 Cookie 值」，否則 Cookie 值會被隱藏。"
+          }
+        }
+      }
+    },
+    "Give cookie values to the model" : {
+      "comment" : "Settings › Agent switch allowing cookie values to be sent to the AI model",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向模型提供 Cookie 值"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "向模型提供 Cookie 值"
+          }
+        }
+      }
+    },
+    "Save scripts without asking" : {
+      "comment" : "Settings › Agent switch allowing the Agent to save scripts without an approval sheet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存脚本前不询问"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "儲存腳本前不詢問"
           }
         }
       }

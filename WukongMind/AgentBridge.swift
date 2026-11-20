@@ -263,6 +263,9 @@ final class AgentBridge: NSObject, AgentPageDriving {
     var isRunningAgentJS: Bool { agentJSCallDepth > 0 }
     /// Answers `wukong.fetch(url)` (the native HTTP client, with its cookie, pacing and site rules).
     var fetchHandler: (@Sendable (String) async throws -> String)?
+    /// Whether `run_js` (`runAgentJS`) may expose `document.cookie` values (`Settings › Agent › Give cookie values to the model`).
+    /// When `nil` or returning `false`, `document.cookie` returns names with `[cookie]` values during `runAgentJS`.
+    var shareCookieValuesProvider: (() -> Bool)?
 
     private let replyMessageHandler = AgentReplyMessageHandler()
     private var nextGeneratedSheetIndex = 0
@@ -662,7 +665,14 @@ final class AgentBridge: NSObject, AgentPageDriving {
                 webView?.configuration.preferences.javaScriptCanOpenWindowsAutomatically = savedCanOpenWindows
             }
         }
-        var result = try await runJS(code: code, environment: environment, timeout: timeout, withHelpers: true)
+        let redactDocumentCookie = !(shareCookieValuesProvider?() ?? false)
+        var result = try await runJS(
+            code: code,
+            environment: environment,
+            timeout: timeout,
+            withHelpers: true,
+            redactDocumentCookie: redactDocumentCookie
+        )
         if !pendingAgentPopupTabs.isEmpty {
             // Yield briefly so WebKit's popup navigation URL commits if `window.open` queued it asynchronously.
             try? await Task.sleep(for: .milliseconds(30))
@@ -676,14 +686,20 @@ final class AgentBridge: NSObject, AgentPageDriving {
         code: String,
         environment: AgentExecutionEnvironment,
         timeout: TimeInterval,
-        withHelpers: Bool
+        withHelpers: Bool,
+        redactDocumentCookie: Bool = false
     ) async throws -> JSExecutionResult {
         let effectiveTimeout = timeout > 0 ? timeout : Self.defaultJSTimeout
         let world = contentWorld(for: environment)
         // The Agent's isolated calls get the workspace helpers and a token valid only until
         // this call returns or times out.
         let token: String? = (withHelpers && environment == .isolated) ? UUID().uuidString : nil
-        let wrapped = Self.wrappedExecutionScript(userBody: code, withHelpers: token != nil)
+        let wrapped = Self.wrappedExecutionScript(
+            userBody: code,
+            withHelpers: token != nil,
+            redactDocumentCookie: redactDocumentCookie,
+            wrapCookiePrototype: environment == .isolated
+        )
         if let token { activeCallTokens.insert(token) }
         defer { if let token { activeCallTokens.remove(token) } }
 
@@ -1157,9 +1173,74 @@ extension AgentBridge {
         })();
         """
 
-    fileprivate static func wrappedExecutionScript(userBody: String, withHelpers: Bool = false) -> String {
-        """
+    fileprivate static func wrappedExecutionScript(
+        userBody: String,
+        withHelpers: Bool = false,
+        redactDocumentCookie: Bool = false,
+        wrapCookiePrototype: Bool = true
+    ) -> String {
+        let cookieGuardSetup: String
+        let cookieGuardTeardown: String
+        if redactDocumentCookie {
+            cookieGuardSetup = """
+            const __wukongRedactCookieString = (raw) => {
+              if (typeof raw !== "string" || !raw) return "";
+              return raw.split(";").map((part) => {
+                const trimmed = part.trim();
+                if (!trimmed) return "";
+                const eq = trimmed.indexOf("=");
+                if (eq === -1) return trimmed;
+                const val = trimmed.slice(eq + 1);
+                return val.length > 0 ? trimmed.slice(0, eq) + "=\(CookieScrubber.marker)" : trimmed;
+              }).filter(Boolean).join("; ");
+            };
+            const __wukongCookieProto = (typeof Document !== "undefined" && Document.prototype) ? Document.prototype : null;
+            const __wukongCookieDesc = __wukongCookieProto ? Object.getOwnPropertyDescriptor(__wukongCookieProto, "cookie") : null;
+            const __wukongWrapProto = \(wrapCookiePrototype ? "true" : "false");
+            const __wukongHadOwnCookie = typeof document !== "undefined" && Object.prototype.hasOwnProperty.call(document, "cookie");
+            const __wukongOwnCookieDesc = __wukongHadOwnCookie ? Object.getOwnPropertyDescriptor(document, "cookie") : null;
+            let __wukongWrappedCookieTarget = null;
+            if (__wukongCookieDesc && typeof __wukongCookieDesc.get === "function") {
+              const __wukongTarget = __wukongWrapProto ? __wukongCookieProto : (typeof document !== "undefined" ? document : null);
+              if (__wukongTarget) {
+                try {
+                  Object.defineProperty(__wukongTarget, "cookie", {
+                    configurable: true,
+                    enumerable: __wukongCookieDesc.enumerable ?? true,
+                    get() {
+                      return __wukongRedactCookieString(__wukongCookieDesc.get.call(this));
+                    },
+                    set(v) {
+                      if (typeof __wukongCookieDesc.set === "function") {
+                        __wukongCookieDesc.set.call(this, v);
+                      }
+                    }
+                  });
+                  __wukongWrappedCookieTarget = __wukongTarget;
+                } catch (_) {}
+              }
+            }
+            """
+            cookieGuardTeardown = """
+              if (__wukongWrappedCookieTarget) {
+                try {
+                  if (__wukongWrapProto && __wukongCookieDesc) {
+                    Object.defineProperty(__wukongCookieProto, "cookie", __wukongCookieDesc);
+                  } else if (__wukongHadOwnCookie && __wukongOwnCookieDesc) {
+                    Object.defineProperty(document, "cookie", __wukongOwnCookieDesc);
+                  } else if (typeof document !== "undefined") {
+                    delete document.cookie;
+                  }
+                } catch (_) {}
+              }
+            """
+        } else {
+            cookieGuardSetup = ""
+            cookieGuardTeardown = ""
+        }
+        return """
         \(withHelpers ? helpersScript : "")
+        \(cookieGuardSetup)
         const __wukongLogs = [];
         const __wukongFormat = (value) => {
           if (typeof value === "string") return value;
@@ -1229,6 +1310,7 @@ extension AgentBridge {
             console: __wukongLogs
           });
         } finally {
+        \(cookieGuardTeardown)
           for (const level of Object.keys(__wukongSavedConsole)) {
             console[level] = __wukongSavedConsole[level];
           }

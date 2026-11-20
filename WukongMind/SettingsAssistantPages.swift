@@ -234,10 +234,21 @@ struct SettingsAgentPage: View {
             Section {
                 Toggle("Confirm before writes", isOn: $app.settings.agentConfirmBeforeWrites)
                     .accessibilityIdentifier("agentConfirmBeforeWrites")
+                Toggle(isOn: $app.settings.agentShareCookieValues) {
+                    Text("Give cookie values to the model", comment: "Settings › Agent switch allowing cookie values to be sent to the AI model")
+                }
+                .accessibilityIdentifier("agentShareCookieValues")
+                Toggle(isOn: $app.settings.agentSaveScriptsWithoutAsking) {
+                    Text("Save scripts without asking", comment: "Settings › Agent switch allowing the Agent to save scripts without an approval sheet")
+                }
+                .accessibilityIdentifier("agentSaveScriptsWithoutAsking")
             } header: {
                 Text("Safety", comment: "Settings › Agent section header for confirmation settings")
             } footer: {
-                Text("Asks before the Agent sends a network request. Reading cookies, and sending your login to another site, always ask.")
+                Text(
+                    "Confirm before writes asks before the Agent sends a network request. Reading cookies, and sending your login to another site, always ask; cookie values stay hidden unless Give cookie values to the model is on.",
+                    comment: "Settings › Agent › Safety footer explaining the safety switches"
+                )
             }
 
             Section {
@@ -360,6 +371,8 @@ struct SettingsAgentPage: View {
             auditStepCount = await Task.detached { log.stepCount }.value
         }
         .onChange(of: app.settings.agentConfirmBeforeWrites) { app.saveSettings() }
+        .onChange(of: app.settings.agentShareCookieValues) { app.saveSettings() }
+        .onChange(of: app.settings.agentSaveScriptsWithoutAsking) { app.saveSettings() }
         .onChange(of: app.settings.agentPageToolsEnabled) { app.saveSettings() }
         .onChange(of: app.settings.agentDeveloperMode) { app.saveSettings() }
         .onChange(of: app.settings.saveFailedTasksForFeedback) { app.saveSettings() }

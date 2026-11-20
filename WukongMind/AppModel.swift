@@ -477,7 +477,10 @@ final class AppModel: ObservableObject {
                     return await tabBrowser.currentURL
                 },
                 confirmBeforeWrites: { [weak appBox] in
-                    await appBox?.value?.settings.agentConfirmBeforeWrites ?? false
+                    await appBox?.value?.settings.agentConfirmBeforeWrites ?? true
+                },
+                shareCookieValues: { [weak appBox] in
+                    await appBox?.value?.settings.agentShareCookieValues ?? false
                 },
                 pacing: { [weak appBox] in
                     guard let app = await appBox?.value else { return (true, .gentle) }
@@ -494,6 +497,9 @@ final class AppModel: ObservableObject {
         tabBrowser.agentBridge.fetchHandler = { [weak httpClient] url in
             guard let httpClient else { throw CancellationError() }
             return try await httpClient.scriptFetch(url)
+        }
+        tabBrowser.agentBridge.shareCookieValuesProvider = { [weak appBox] in
+            appBox?.value?.settings.agentShareCookieValues ?? false
         }
         scriptWebController.gmBridge.httpClient = httpClient
         scriptWebController.gmBridge.auditLog = auditLog
@@ -556,7 +562,7 @@ final class AppModel: ObservableObject {
                             bridge: $0,
                             scriptStore: app.scriptStore,
                             confirmBeforeWrites: { [weak appBox] in
-                                await appBox?.value?.settings.agentConfirmBeforeWrites ?? false
+                                await appBox?.value?.settings.agentConfirmBeforeWrites ?? true
                             }
                         )
                     } : nil,

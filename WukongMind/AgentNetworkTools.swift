@@ -290,6 +290,8 @@ struct AgentNetworkEnvironment: Sendable {
     /// The page the person is looking at.
     var currentPageURL: @Sendable () async -> URL? = { nil }
     var confirmBeforeWrites: @Sendable () async -> Bool = { false }
+    /// Whether `cookies_get` and `run_js` may expose cookie values to the model. Off by default.
+    var shareCookieValues: @Sendable () async -> Bool = { false }
     /// Per-forum request pacing on or off, and its pace.
     var pacing: @Sendable () async -> (enabled: Bool, pace: ForumRequestPace) = { (true, .gentle) }
     /// Pacing applies on forum hosts only.
