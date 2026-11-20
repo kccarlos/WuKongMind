@@ -34,7 +34,7 @@ struct SplitPanelToggle: View {
     private var showsNewRepliesDot: Bool { app.showsNewRepliesDot }
     private var ringState: AgentRingState { app.agentRingState(isAvailable: isAvailable) }
 
-    /// "Hidden, New replies, Ask the forum is searching": what the ring and
+    /// "Hidden, New replies, Ask this site is searching": what the ring and
     /// the dot show.
     private var accessibilityValue: String {
         var parts = [isShown ? String(localized: "Shown") : String(localized: "Hidden")]
