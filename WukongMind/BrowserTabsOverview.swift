@@ -862,7 +862,7 @@ private struct TabOverviewCard: View {
     private var agentWorkingChip: some View {
         let chipShape = RoundedRectangle(cornerRadius: 8, style: .continuous)
         return HStack(spacing: 6) {
-            DCAgentRing(size: 16, lineWidth: 2.5, isTurning: true, isEnabled: true)
+            DCAgentRing(state: .working, size: 16, lineWidth: 2.5)
             Text("Agent working", comment: "VoiceOver segment and badge on a tab card while its Agent is working")
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(DCTheme.goldInk)
