@@ -177,13 +177,11 @@ struct OnboardingTryPanel: View {
         .accessibilityIdentifier("onboardingTryDoneCard")
     }
 
-    /// "iCloud sync: On · Daily digest: in Settings".
+    /// "iCloud sync: On" or "iCloud sync: Off".
     private var setupSummary: String {
         let syncOn = SyncDebug.isEnabled(actual: sync.isEnabled)
-        let syncText = syncOn
+        return syncOn
             ? String(localized: "iCloud sync: On", comment: "First-run \"You're set\" card: iCloud sync is on")
             : String(localized: "iCloud sync: Off", comment: "First-run \"You're set\" card: iCloud sync is off")
-        let digest = String(localized: "Daily digest: in Settings", comment: "First-run \"You're set\" card: where to turn on the daily digest")
-        return "\(syncText) · \(digest)"
     }
 }

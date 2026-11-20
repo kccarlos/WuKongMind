@@ -104,11 +104,7 @@ struct PhoneBrowser<Page: View>: View {
             dynamicTypeSize: dynamicTypeSize
         )
 
-        NavigationStack(path: $app.homePath) {
-            page(dockClearance)
-                .toolbar(.hidden, for: .navigationBar)
-                .modifier(HomeDestinations(app: app, onOpenDigestLink: actions.openDigestLink))
-        }
+        page(dockClearance)
         .background {
             PhoneBarObserverHost(
                 app: app,
@@ -511,7 +507,7 @@ enum BrowserBarFontMetrics {
         isLandscape: Bool,
         dynamicTypeSize: DynamicTypeSize
     ) -> CGFloat {
-        guard !isSplit, position == .bottom, app.homePath.isEmpty, !browser.isEditingAddress else {
+        guard !isSplit, position == .bottom, !browser.isEditingAddress else {
             return 0
         }
         if voice.showsBar || browser.isPageFormInputFocused {
@@ -602,9 +598,7 @@ private struct PhoneOnlyMorphingBarHost: View {
     var body: some View {
         let position = resolvedPosition
         Group {
-            if !app.homePath.isEmpty {
-                EmptyView()
-            } else if browser.isEditingAddress {
+            if browser.isEditingAddress {
                 Group {
                     if position == .top {
                         VStack(spacing: 0) {
@@ -727,7 +721,7 @@ private struct PhoneMorphingBarHost: View {
         let hostAlignment: Alignment = split != nil
             ? .topLeading
             : (position == .top ? .top : .bottom)
-        if !app.homePath.isEmpty || hidesBottomBar {
+        if hidesBottomBar {
             EmptyView()
         } else {
             PhoneMorphingBar(
@@ -1154,7 +1148,7 @@ struct PhoneMorphingBar: View {
     private func collapsedPillInner(fontSize: CGFloat) -> some View {
         HStack(spacing: 6) {
             if isAgentWorking {
-                DCAgentRing(size: 16, lineWidth: 2.5, isTurning: true, isEnabled: true)
+                DCAgentRing(state: .working, size: 16, lineWidth: 2.5)
             } else {
                 Image(systemName: isSecurePage ? "lock.fill" : "globe")
                     .font(.system(size: 12, weight: .semibold))
@@ -1838,11 +1832,12 @@ struct PhoneAIButton: View {
 
     private var browserAgent: BrowserAgentSession { app.browserAgent }
     private var showsNewRepliesDot: Bool { app.showsNewRepliesDot }
+    private var ringState: AgentRingState { app.agentRingState(isAvailable: isAvailable) }
 
     private var accessibilityValueText: Text {
         var parts: [String] = []
-        if browserAgent.isRunning {
-            parts.append(String(localized: "Working", comment: "Accessibility value of the AI button while the browser agent is working"))
+        if let stateWord = ringState.accessibilityValue {
+            parts.append(stateWord)
         }
         if showsNewRepliesDot {
             parts.append(String(localized: "New replies", comment: "Accessibility value of the iPhone AI button while its dot says the topic has new replies"))
@@ -1862,15 +1857,14 @@ struct PhoneAIButton: View {
                     .foregroundStyle(isAvailable ? DCTheme.goldInk : DCTheme.inkFaint)
             } else {
                 DCAgentRing(
+                    state: ringState,
                     size: Self.ringSize,
                     lineWidth: DCTheme.ringWidth,
-                    isTurning: browserAgent.isRunning || app.activeResearch != nil,
-                    isEnabled: isAvailable
+                    panelVisible: app.isAIViewShown
                 )
             }
         }
         .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-        .overlay { ResearchRing(app: app) }
         .overlay(alignment: .topTrailing) {
             let badge = app.toolbarScriptBadgeSummary
             if badge.isVisible {
@@ -1951,6 +1945,7 @@ private struct PhoneAIButtonStyle: PrimitiveButtonStyle {
     let onTouchDown: () -> Void
     let onLongPress: () -> Void
 
+    @Environment(\.isFocused) private var isFocused
     @State private var isPressing = false
     @State private var didTouchDown = false
     @State private var didLongPress = false
@@ -1958,6 +1953,8 @@ private struct PhoneAIButtonStyle: PrimitiveButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         let pressed = isAvailable && isPressing
         configuration.label
+            .hoverEffect(.highlight)
+            .dcFocusRing(isFocused, cornerRadius: DCTheme.controlHeight / 2)
             .opacity(pressed ? 0.65 : 1)
             .scaleEffect(pressed && !reduceMotion ? 0.92 : 1)
             .animation(reduceMotion ? nil : .easeOut(duration: 0.08), value: pressed)
@@ -2055,33 +2052,6 @@ private struct TouchDownWatcher: UIViewRepresentable {
 
         override func canPrevent(_ preventedGestureRecognizer: UIGestureRecognizer) -> Bool { false }
         override func canBePrevented(by preventingGestureRecognizer: UIGestureRecognizer) -> Bool { false }
-    }
-}
-
-/// Ask the forum's or browser agent's progress around the AI button (and the
-/// split layout's panel toggle); a short arc while the progress is not known,
-/// a full ring once the answer is ready and unseen.
-struct ResearchRing: View {
-    @ObservedObject var app: AppModel
-
-    private var browserAgent: BrowserAgentSession { app.browserAgent }
-
-    var body: some View {
-        if browserAgent.isRunning {
-            Color.clear
-                .allowsHitTesting(false)
-                .accessibilityIdentifier("researchRing")
-        } else if app.activeResearch != nil {
-            Color.clear
-                .allowsHitTesting(false)
-                .accessibilityIdentifier("researchRing")
-        } else if app.readyAnswer != nil {
-            Circle()
-                .stroke(DCTheme.gold, lineWidth: DCTheme.ringWidth)
-                .padding(5)
-                .allowsHitTesting(false)
-                .accessibilityIdentifier("answerReadyRing")
-        }
     }
 }
 

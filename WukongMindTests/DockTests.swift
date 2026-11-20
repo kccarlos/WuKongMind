@@ -8,10 +8,9 @@ final class DockTests: XCTestCase {
         drawer: Bool = false,
         voice: Bool = false,
         answer: Bool = false,
-        podcast: Bool = false,
         hint: DrawerHint.Row? = nil
     ) -> BottomLayer {
-        BottomLayer.resolve(drawerOpen: drawer, voiceShowing: voice, answerReady: answer, podcastPlaying: podcast, hint: hint)
+        BottomLayer.resolve(drawerOpen: drawer, voiceShowing: voice, answerReady: answer, hint: hint)
     }
 
     private let newReplies = DrawerHint.Row(action: .checkNew(12), isTip: false)
@@ -22,26 +21,16 @@ final class DockTests: XCTestCase {
 
     func testVoiceReplacesTheBar() {
         XCTAssertEqual(layer(voice: true), .dock)
-        XCTAssertEqual(layer(voice: true, answer: true, podcast: true), .dock)
+        XCTAssertEqual(layer(voice: true, answer: true), .dock)
     }
 
     func testAnOpenDrawerHidesEverythingElse() {
-        XCTAssertEqual(layer(drawer: true, voice: true, answer: true, podcast: true), .drawer)
+        XCTAssertEqual(layer(drawer: true, voice: true, answer: true), .drawer)
     }
 
-    func testPodcastRowOnlyWhilePlayingWithTheDrawerClosed() {
-        XCTAssertEqual(layer(podcast: true), .barWithPodcast)
-        XCTAssertEqual(layer(drawer: true, podcast: true), .drawer)
-    }
-
-    func testAnswerReadyComesBeforeThePodcastRow() {
-        XCTAssertEqual(layer(answer: true, podcast: true), .barWithAnswerReady)
-    }
-
-    /// voice Dock > Answer ready > podcast > hint > bar; the drawer above all.
+    /// voice Dock > Answer ready > hint > bar; the drawer above all.
     func testTheHintRowComesLast() {
         XCTAssertEqual(layer(hint: newReplies), .barWithHint(newReplies))
-        XCTAssertEqual(layer(podcast: true, hint: newReplies), .barWithPodcast)
         XCTAssertEqual(layer(answer: true, hint: newReplies), .barWithAnswerReady)
         XCTAssertEqual(layer(voice: true, hint: newReplies), .dock)
         XCTAssertEqual(layer(drawer: true, hint: newReplies), .drawer)
@@ -50,13 +39,12 @@ final class DockTests: XCTestCase {
     /// The AI button's dot: new replies whose hint row another row outranks.
     func testTheNewRepliesDotOnlyWhenTheHintRowIsOutranked() {
         XCTAssertFalse(layer(hint: newReplies).showsNewRepliesDot(hint: newReplies), "The row says it.")
-        XCTAssertTrue(layer(podcast: true, hint: newReplies).showsNewRepliesDot(hint: newReplies))
         XCTAssertTrue(layer(answer: true, hint: newReplies).showsNewRepliesDot(hint: newReplies))
         XCTAssertFalse(layer(drawer: true, hint: newReplies).showsNewRepliesDot(hint: newReplies), "No bar under the drawer.")
         XCTAssertFalse(layer(voice: true, hint: newReplies).showsNewRepliesDot(hint: newReplies), "No bar under the Dock.")
         let setUp = DrawerHint.Row(action: .setUpAI, isTip: false)
-        XCTAssertFalse(layer(podcast: true, hint: setUp).showsNewRepliesDot(hint: setUp))
-        XCTAssertFalse(layer(podcast: true).showsNewRepliesDot(hint: nil))
+        XCTAssertFalse(layer(answer: true, hint: setUp).showsNewRepliesDot(hint: setUp))
+        XCTAssertFalse(layer(answer: true).showsNewRepliesDot(hint: nil))
     }
 
     /// The cards' chip in the drawer's status row.
@@ -138,43 +126,6 @@ final class DockTests: XCTestCase {
         app.voice.end()
         XCTAssertFalse(app.voice.isActive)
         app.voice.dismiss()
-
-        // 3. `DockText.podcastLine` labels Welcome / Wrap-up and counts only topic chapters (matching NowPlayingView).
-        let defaults = try XCTUnwrap(UserDefaults(suiteName: "dock-podcast-\(UUID().uuidString)"))
-        let audio = FakePodcastAudio()
-        let player = PodcastPlayer(audio: audio, session: FakePodcastSession(), positions: PodcastPositionStore(defaults: defaults))
-        let entries: [PodcastEpisode.Entry] = [
-            .init(chapter: .intro(title: "Welcome"), audioFile: "0.wav", duration: 10, state: .ready),
-            .init(chapter: .init(id: "t1", kind: .topic, title: "First"), audioFile: "1.wav", duration: 30, state: .ready),
-            .init(chapter: .init(id: "t2", kind: .topic, title: "Second"), audioFile: "2.wav", duration: 20, state: .ready),
-            .init(chapter: .outro(title: "See you tomorrow"), audioFile: "3.wav", duration: 10, state: .ready)
-        ]
-        let episode = PodcastEpisode(
-            digestID: UUID(),
-            day: "2026-11-06",
-            title: "Today",
-            language: "en",
-            hosts: PodcastHosts(a: "A", b: "B"),
-            engine: .onDevice,
-            voices: nil,
-            minutesPerChapter: 1,
-            entries: entries
-        )
-        let playlist = PodcastPlaylist(
-            id: episode.digestID.uuidString,
-            title: "Today",
-            items: entries.enumerated().map { idx, entry in
-                .init(id: entry.id, title: entry.chapter.title, url: URL(fileURLWithPath: "/tmp/\(idx).wav"), duration: entry.duration)
-            }
-        )
-        player.load(playlist, autoplay: true)
-        XCTAssertEqual(DockText.podcastLine(player: player, episode: episode), "Today · Welcome · 1:10 left")
-        player.nextChapter()
-        XCTAssertEqual(DockText.podcastLine(player: player, episode: episode), "Today · Topic 1 of 2 · 1:00 left")
-        player.nextChapter()
-        XCTAssertEqual(DockText.podcastLine(player: player, episode: episode), "Today · Topic 2 of 2 · 0:30 left")
-        player.nextChapter()
-        XCTAssertEqual(DockText.podcastLine(player: player, episode: episode), "Today · Wrap-up · 0:10 left")
     }
 }
 

@@ -736,7 +736,7 @@ struct DrawerHeader: View, Equatable {
     private var headerStatusOrPageSeal: some View {
         if let step = model.foldedStep {
             HStack(spacing: 6) {
-                DCAgentRing(size: 14, lineWidth: 2, isTurning: !reduceMotion)
+                DCAgentRing(state: .working, size: 14, lineWidth: 2)
                 Text("Step \(step)", comment: "Folded header status during an Agent run while the keyboard is up; placeholder is step number")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(DCTheme.goldInk)
@@ -3090,7 +3090,6 @@ private struct DrawerStatusRowBody: View, Equatable {
         var isVoiceOnly = false
         var research: WorkRecord?
         var readyAnswer: WorkRecord?
-        var episode: PodcastEpisode?
         var cardsCursor: BrowseCursor?
 
         init() {}
@@ -3106,7 +3105,6 @@ private struct DrawerStatusRowBody: View, Equatable {
             isVoiceOnly = vo
             research = vo ? nil : app.activeResearch
             readyAnswer = vo ? nil : app.readyAnswer
-            episode = (!vo && podcast.isPlayingEpisode) ? podcast.episode : nil
             cardsCursor = showsChip ? app.browseCursor : nil
         }
     }
@@ -3148,10 +3146,6 @@ private struct DrawerStatusRowBody: View, Equatable {
                     text: String(localized: "Answer ready", comment: "AI drawer status row: an Ask the forum answer finished")
                 ) {
                     showAnswer(for: readyAnswer)
-                }
-            } else if let episode = model.episode {
-                DrawerPodcastStatus(player: podcast.player, episode: episode) {
-                    app.router.item = .nowPlaying
                 }
             }
             // The strip over the page is hidden while the AI view is up.
@@ -3246,29 +3240,6 @@ private struct DrawerCardsChip: View {
             withAnimation(DCMotion.respecting(reduceMotion, DCMotion.smooth)) { router.drawerDetent = .medium }
         }
         Task { await jump() }
-    }
-}
-
-private struct DrawerPodcastStatus: View {
-    @ObservedObject var player: PodcastPlayer
-    let episode: PodcastEpisode
-    let action: () -> Void
-
-    var body: some View {
-        if player.isActive {
-            let timeline = PodcastTimeline(durations: episode.entries.map { $0.isReady ? $0.duration : nil })
-            Button(action: action) {
-                DCListenRow(
-                    title: episode.title,
-                    detail: DockText.podcastLine(player: player, episode: episode),
-                    progress: timeline.total > 0 ? timeline.elapsed(player.position) / timeline.total : 0,
-                    isPlaying: true
-                )
-            }
-            .buttonStyle(.plain)
-            .nowPlayingZoomSource()
-            .accessibilityIdentifier("drawerStatusRow")
-        }
     }
 }
 

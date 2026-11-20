@@ -489,8 +489,7 @@ final class ScriptRepairTests: XCTestCase {
         defer {
             forumSession.invalidateAndCancel()
             app.browser.stopLoading()
-            app.pauseDigest()
-            app.podcast.pauseGeneration()
+            app.podcast.cancelReadAloud()
             app.scriptWebController.detach()
             browser.webView.navigationDelegate = nil
             browser.webView.uiDelegate = nil

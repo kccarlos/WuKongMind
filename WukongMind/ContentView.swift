@@ -5,7 +5,6 @@ struct ContentView: View {
     @ObservedObject var app: AppModel
     @ObservedObject private var tabs: BrowserTabs
     @ObservedObject private var router: PresentationRouter
-    @Namespace private var nowPlayingNamespace
     @State private var addressFocusRequest = 0
     /// The last `AppModel.assistantRequest` shown.
     @State private var handledAssistantRequest = 0
@@ -97,17 +96,10 @@ struct ContentView: View {
             active: router.rootHostIsActive,
             onForumAdded: forumAdded
         ))
-        .environment(\.nowPlayingNamespace, nowPlayingNamespace)
     }
 
     private func openPanelRoute(_ route: ExpandedPanelRoute) {
         withAnimation(DCMotion.respecting(reduceMotion)) { app.openPanelRoute(route) }
-    }
-
-    /// A topic or post from the Today page or Home (Home closes).
-    private func openDigestLink(_ url: URL, card: DigestCard) {
-        app.openDigestLink(url, card: card)
-        showBrowser()
     }
 
     private func forumAdded(_ forum: Forum) {
@@ -182,7 +174,6 @@ struct ContentView: View {
                 app.showForumsHome()
                 showBrowser()
             },
-            openDigestLink: openDigestLink,
             openHistory: { openPanelRoute(.history) },
             openSettings: { openPanelRoute(.settings) },
             showShareHowTo: { app.router.item = .shareHowTo }
@@ -262,8 +253,6 @@ struct ContentView: View {
             if app.browseCursor.hasNext { Task { await app.next() } }
         case .previousResult:
             if app.browseCursor.hasPrevious { Task { await app.previous() } }
-        case .playPause:
-            if app.podcast.isPlayingEpisode { app.podcast.player.toggle() }
         }
     }
 }
@@ -376,8 +365,6 @@ struct BrowserActions {
     var openPanel: (ExpandedPanelRoute) -> Void = { _ in }
     var openForum: (Forum) -> Void
     var showForumsHome: () -> Void
-    /// A digest card's topic or post (Home and the Today page close).
-    var openDigestLink: (URL, DigestCard) -> Void = { _, _ in }
     /// Home's top bar.
     var openHistory: () -> Void = {}
     var openSettings: () -> Void = {}

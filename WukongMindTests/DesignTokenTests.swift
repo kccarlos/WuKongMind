@@ -268,8 +268,8 @@ final class DesignTokenTests: XCTestCase {
             DCListRow(title: "Browser Agent", subtitle: "Gold icon tile", value: "On", icon: .agent, showsChevron: true)
             DCListRow(title: "Sites", value: "3", icon: .ink(symbol: "globe"), showsChevron: true)
             HStack {
-                DCAgentRing(size: 22, isTurning: false)
-                DCAgentRing(size: 22, isTurning: true)
+                DCAgentRing(state: .idle, size: 22)
+                DCAgentRing(state: .working, size: 22)
                 DCLogoView(variant: .mark, size: 32, showsWordmark: true)
                 DCMascotView(pose: .wave, size: 20) // clamped to >= 40pt
             }
@@ -297,7 +297,6 @@ final class DesignTokenTests: XCTestCase {
 
         let app = AppModel(
             store: PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
-            backgroundScheduler: FakeTaskScheduler(),
             podcastDirectory: dir.appendingPathComponent("Podcasts", isDirectory: true)
         )
         app.usesDirectForumRequests = true
@@ -372,7 +371,6 @@ final class DesignTokenTests: XCTestCase {
 
         let app = AppModel(
             store: PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
-            backgroundScheduler: FakeTaskScheduler(),
             podcastDirectory: dir.appendingPathComponent("Podcasts", isDirectory: true)
         )
         app.usesDirectForumRequests = true
@@ -441,7 +439,6 @@ final class DesignTokenTests: XCTestCase {
 
         let app = AppModel(
             store: PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
-            backgroundScheduler: FakeTaskScheduler(),
             podcastDirectory: dir.appendingPathComponent("Podcasts", isDirectory: true)
         )
         app.usesDirectForumRequests = true

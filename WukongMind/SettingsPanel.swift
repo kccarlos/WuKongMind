@@ -41,14 +41,8 @@ struct SettingsRootView: View {
                 row(.browser, value: app.settings.searchEngine.displayName)
             }
 
-            Section("Voice & digest") {
+            Section("Voice") {
                 row(.voice, value: app.settings.voiceEnabled ? String(localized: "On") : String(localized: "Off"))
-                row(
-                    .digest,
-                    value: (app.settings.dailyDigestEnabled || app.settings.podcastDailyEnabled)
-                        ? String(localized: "On")
-                        : String(localized: "Off")
-                )
             }
 
             Section("Your data") {
@@ -204,8 +198,6 @@ struct SettingsDestination: View {
             SettingsAgentPage(app: app).toggleStyle(DCSwitchStyle())
         case .watched:
             SettingsWatchedPage(app: app).toggleStyle(DCSwitchStyle())
-        case .digest:
-            SettingsDigestPage(app: app).toggleStyle(DCSwitchStyle())
         case .voice:
             SettingsVoicePage(app: app, voice: app.voice).toggleStyle(DCSwitchStyle())
         case .browser:

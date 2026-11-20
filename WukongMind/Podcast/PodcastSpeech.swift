@@ -358,3 +358,30 @@ final class SilentSpeechEngine: PodcastSpeechEngine {
     }
 }
 #endif
+
+// MARK: - Turns and speakable text
+
+struct PodcastTurn: Codable, Equatable {
+    var speaker: PodcastSpeaker
+    var text: String
+}
+
+enum PodcastSpeechCheck {
+    /// Text made safe to read out: code blocks become a sentence that says
+    /// the text has code, links and Markdown markers are removed.
+    static func speakable(_ text: String) -> String {
+        var result = text
+        let codeNote = String(localized: "(The text includes code; see the topic.)", comment: "Read aloud: said instead of a code block")
+        result = result.replacingOccurrences(of: #"```[\s\S]*?(```|$)"#, with: " \(codeNote) ", options: .regularExpression)
+        result = result.replacingOccurrences(of: #"`[^`\n]*`"#, with: " ", options: .regularExpression)
+        // Markdown links keep their text.
+        result = result.replacingOccurrences(of: #"\[([^\]]*)\]\([^)]*\)"#, with: "$1", options: .regularExpression)
+        result = result.replacingOccurrences(of: #"https?://\S+|\bwww\.\S+"#, with: " ", options: .regularExpression)
+        result = result.replacingOccurrences(of: #"(?m)^\s*#+\s*"#, with: "", options: .regularExpression)
+        result = result.replacingOccurrences(of: #"(?m)^\s*([-*•]|\d+\.)\s+"#, with: "", options: .regularExpression)
+        result = result.replacingOccurrences(of: #"\*\*|__|[<>{}\[\]]"#, with: "", options: .regularExpression)
+        result = result.replacingOccurrences(of: #"[ \t]+"#, with: " ", options: .regularExpression)
+        result = result.replacingOccurrences(of: #"\n{2,}"#, with: "\n", options: .regularExpression)
+        return result.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+}

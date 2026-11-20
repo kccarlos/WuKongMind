@@ -1,38 +1,13 @@
 import Foundation
 
-// MARK: - Podcast settings
-//
-// The podcast's preferences sync with the other settings (hosts, voices,
-// engine, length). Whether it is made every day is per device
-// (`AppSettings.podcastDailyEnabled`; see `SyncSettings.deviceLocalKeys`).
+// MARK: - Read-aloud speech settings
 
-/// The two hosts. Their ids in the script and in the TTS request are the
-/// fixed ASCII "A" and "B"; the names the user sees and hears are separate,
-/// so a renamed (or Chinese) name never reaches `speech_metadata.speaker`.
+/// Speaker slot for TTS synthesis.
 enum PodcastSpeaker: String, Codable, CaseIterable, Identifiable {
-    /// The guide: walks through each topic.
     case a = "A"
-    /// The co-host: asks what a reader would ask, reacts briefly.
     case b = "B"
 
     var id: String { rawValue }
-
-    /// The default name, in the interface language. Short names that read
-    /// and sound the same in English and Chinese speech.
-    var defaultName: String {
-        switch self {
-        case .a: String(localized: "Ava", comment: "Podcast: the default name of the first host (the guide). A short name that is easy to say in this language.")
-        case .b: String(localized: "Leo", comment: "Podcast: the default name of the second host (the curious co-host). A short name that is easy to say in this language.")
-        }
-    }
-
-    /// What the host does, for the script prompt (English, like every prompt).
-    var promptRole: String {
-        switch self {
-        case .a: "the guide, who explains each topic clearly and briefly"
-        case .b: "the curious co-host, who asks what a reader would ask and reacts in a few words"
-        }
-    }
 
     /// The delivery style sent with each turn (`speech_metadata.style`).
     var speechStyle: String {
@@ -43,17 +18,7 @@ enum PodcastSpeaker: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-/// The resolved host names of one episode (kept with it).
-struct PodcastHosts: Codable, Equatable {
-    var a: String
-    var b: String
-
-    func name(_ speaker: PodcastSpeaker) -> String {
-        speaker == .a ? a : b
-    }
-}
-
-/// Which speech engine reads the podcast.
+/// Which speech engine reads text aloud.
 enum PodcastEngineChoice: String, Codable, CaseIterable, Identifiable {
     /// Google's voices when a Gemini or Vertex key is there, otherwise the device's.
     case automatic
@@ -67,71 +32,40 @@ enum PodcastEngineChoice: String, Codable, CaseIterable, Identifiable {
     var label: String {
         switch self {
         case .automatic: String(localized: "Automatic")
-        case .google: String(localized: "Google voices", comment: "Podcast speech engine setting: Gemini text-to-speech")
-        case .onDevice: String(localized: "On-device voices", comment: "Podcast speech engine setting: the iPhone's built-in voices")
+        case .google: String(localized: "Google voices", comment: "Speech engine setting: Gemini text-to-speech")
+        case .onDevice: String(localized: "On-device voices", comment: "Speech engine setting: the iPhone's built-in voices")
         }
     }
 }
 
 struct PodcastSettings: Codable, Equatable {
-    /// Empty: the default name in the interface language (`PodcastSpeaker`),
-    /// resolved when an episode is made, so it never freezes in the language
-    /// that first saved it.
-    var hostA = ""
-    var hostB = ""
-    /// Gemini prebuilt voices (`VoiceCatalog`).
+    /// Gemini prebuilt voice (`VoiceCatalog`) used for read aloud.
     var voiceA = PodcastSettings.defaultVoiceA
-    var voiceB = PodcastSettings.defaultVoiceB
     var engine: PodcastEngineChoice = .automatic
-    /// Spoken minutes per topic chapter.
-    var minutesPerChapter = PodcastSettings.defaultMinutes
 
-    /// Google's own multi-speaker example pair: a firm and an upbeat voice,
-    /// easy to tell apart.
     static let defaultVoiceA = "Kore"
-    static let defaultVoiceB = "Puck"
-    static let defaultMinutes = 1.0
-    static let minuteChoices: [Double] = [0.5, 1, 2, 3]
-    static let minuteRange: ClosedRange<Double> = 0.5...3
 
     init() {}
 
-    var hosts: PodcastHosts {
-        PodcastHosts(a: Self.resolved(hostA, .a), b: Self.resolved(hostB, .b))
-    }
-
-    var voices: PodcastVoices {
-        PodcastVoices(a: voiceA, b: voiceB)
-    }
-
-    private static func resolved(_ name: String, _ speaker: PodcastSpeaker) -> String {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? speaker.defaultName : String(trimmed.prefix(24))
-    }
-
     private enum CodingKeys: String, CodingKey {
-        case hostA, hostB, voiceA, voiceB, engine, minutesPerChapter
+        case voiceA, engine
     }
 
-    // Each field falls back on its own, like `VoiceSettings`.
+    // Each field falls back on its own, like `VoiceSettings`; legacy keys
+    // (`hostA`, `hostB`, `voiceB`, `minutesPerChapter`) are ignored on decode.
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         func value<T: Decodable>(_ key: CodingKeys, _ fallback: T) -> T {
             (try? container.decodeIfPresent(T.self, forKey: key)).flatMap { $0 } ?? fallback
         }
-        hostA = value(.hostA, "")
-        hostB = value(.hostB, "")
         let known = Set(VoiceCatalog.voices.map(\.name))
         let a = value(.voiceA, Self.defaultVoiceA)
-        let b = value(.voiceB, Self.defaultVoiceB)
         voiceA = known.contains(a) ? a : Self.defaultVoiceA
-        voiceB = known.contains(b) ? b : Self.defaultVoiceB
         engine = value(.engine, .automatic)
-        minutesPerChapter = min(Self.minuteRange.upperBound, max(Self.minuteRange.lowerBound, value(.minutesPerChapter, Self.defaultMinutes)))
     }
 }
 
-/// The Gemini voice of each host.
+/// The Gemini voice of each speaker.
 struct PodcastVoices: Codable, Equatable {
     var a: String
     var b: String
@@ -143,7 +77,7 @@ struct PodcastVoices: Codable, Equatable {
 
 // MARK: - Engine selection
 
-/// The engine an episode (or a read-aloud) uses.
+/// The engine a read-aloud uses.
 enum PodcastEngineKind: String, Codable, Equatable {
     /// Gemini TTS through Google AI Studio (the Gemini key).
     case aiStudio
@@ -165,8 +99,6 @@ enum PodcastEngineKind: String, Codable, Equatable {
         self = provider == .vertex ? .vertex : .aiStudio
     }
 
-    /// "Google voices" or "On-device voices": what Now Playing and the Today
-    /// card say about the episode (derived from the engine the episode keeps).
     var label: String {
         switch self {
         case .aiStudio, .vertex: PodcastEngineChoice.google.label

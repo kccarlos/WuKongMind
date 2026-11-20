@@ -32,6 +32,7 @@ struct SplitPanelToggle: View {
     private var browserAgent: BrowserAgentSession { app.browserAgent }
     private var isAvailable: Bool { app.isSplitPanelAvailable }
     private var showsNewRepliesDot: Bool { app.showsNewRepliesDot }
+    private var ringState: AgentRingState { app.agentRingState(isAvailable: isAvailable) }
 
     /// "Hidden, New replies, Ask the forum is searching": what the ring and
     /// the dot show.
@@ -40,12 +41,10 @@ struct SplitPanelToggle: View {
         if showsNewRepliesDot {
             parts.append(String(localized: "New replies", comment: "Accessibility value of the iPhone AI button while its dot says the topic has new replies"))
         }
-        if browserAgent.isRunning {
-            parts.append(String(localized: "Working", comment: "Accessibility value of the AI button while the browser agent is working"))
-        } else if app.activeResearch != nil {
+        if ringState == .working, !browserAgent.isRunning, app.activeResearch != nil {
             parts.append(String(localized: "Ask the forum is searching", comment: "Accessibility value of the AI panel toggle while its ring shows an Ask the forum search running"))
-        } else if app.readyAnswer != nil {
-            parts.append(String(localized: "Answer ready", comment: "AI drawer status row: an Ask the forum answer finished"))
+        } else if let stateWord = ringState.accessibilityValue {
+            parts.append(stateWord)
         }
         if let scriptDesc = app.toolbarScriptAccessibilityDescription {
             parts.append(scriptDesc)
@@ -59,10 +58,10 @@ struct SplitPanelToggle: View {
             action()
         } label: {
             DCAgentRing(
+                state: ringState,
                 size: PhoneAIButton.ringSize,
                 lineWidth: DCTheme.ringWidth,
-                isTurning: browserAgent.isRunning || app.activeResearch != nil,
-                isEnabled: isAvailable
+                panelVisible: isShown
             )
             .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
             .background {
@@ -75,7 +74,6 @@ struct SplitPanelToggle: View {
         }
         .buttonStyle(DCIconButtonStyle())
         .disabled(!isAvailable)
-        .overlay { ResearchRing(app: app) }
         .overlay(alignment: .topTrailing) {
             let badge = app.toolbarScriptBadgeSummary
             if badge.isVisible {

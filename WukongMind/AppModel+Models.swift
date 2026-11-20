@@ -32,7 +32,7 @@ extension ModelRole {
     /// The role's name in Settings and the model picker.
     var title: String {
         switch self {
-        case .assistant: String(localized: "Summaries", comment: "AI model role: the model used for summaries, digests and reply checks")
+        case .assistant: String(localized: "Summaries", comment: "AI model role: the model used for summaries and reply checks")
         case .browserAgent: String(localized: "Agent", comment: "AI model role: the tool-calling model used by the Agent")
         case .scripts: String(localized: "Scripts", comment: "AI model role: the model userscripts ask via GM_ai")
         }
@@ -50,7 +50,7 @@ extension ModelRole {
     /// The model menu's line under the role's name.
     var menuExplanation: String {
         switch self {
-        case .assistant: String(localized: "Used for summaries, digests and reply checks.", comment: "Model menu (Summaries): what this model is used for")
+        case .assistant: String(localized: "Used for summaries and reply checks.", comment: "Model menu (Summaries): what this model is used for")
         case .browserAgent: String(localized: "Inspects pages, runs tools and answers questions.", comment: "Model menu (Agent): what this model is used for")
         case .scripts: String(localized: "Used when a script calls GM_ai on a page.", comment: "Model menu (Scripts): what this model is used for")
         }
@@ -59,7 +59,7 @@ extension ModelRole {
     /// What the role does and which kind of model suits it.
     var hint: String {
         switch self {
-        case .assistant: String(localized: "Thread summaries, daily digests and reply checks. Apple Intelligence or a fast, low-cost model works well.", comment: "Settings › Models: what the Summaries model is used for")
+        case .assistant: String(localized: "Thread summaries and reply checks. Apple Intelligence or a fast, low-cost model works well.", comment: "Settings › Models: what the Summaries model is used for")
         case .browserAgent: String(localized: "Reads the current page, runs JavaScript, injects CSS and calls tools. Choose a model that supports tool calling.", comment: "Settings › Models: what the Agent model is used for")
         case .scripts: String(localized: "Scripts that ask a model while they run use this. They run on every matching page, so a small, fast model works best.", comment: "Settings › Models: what the Scripts model is used for")
         }

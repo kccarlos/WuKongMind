@@ -8,7 +8,7 @@ extension AppModel {
     }
 
     /// The role's model can run without anyone answering a consent page:
-    /// what unattended work (the digest, watched-topic refreshes) needs.
+    /// what unattended work (watched-topic refreshes) needs.
     /// Undecided consent waits until the user starts work or allows it in Settings.
     func canRunUnattended(_ role: ModelRole) -> Bool {
         isProviderReady(for: role) && aiConsentState(for: selection(for: role).provider).permitsRequests
@@ -68,8 +68,6 @@ extension AppModel {
                 tab.agentSession.stop()
             }
         }
-        pauseDigest()
-        podcast.pauseGeneration()
         save()
     }
 

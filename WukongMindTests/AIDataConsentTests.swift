@@ -237,35 +237,22 @@ final class AIDataConsentTests: XCTestCase {
         }
     }
 
-    /// An unfinished podcast episode recorded with a Google TTS engine falls
-    /// back to `.onDevice` when consent is undecided or declined, and
-    /// `GeminiSpeechEngine` refuses requests without consent.
+    /// Read aloud falls back to `.onDevice` when consent is undecided or
+    /// declined, and `GeminiSpeechEngine` refuses requests without consent.
     func testPodcastTTSFallsBackToOnDeviceAndBlocksGoogleWithoutConsent() async throws {
         let app = makeApp()
         select(app, .gemini, model: "gemini-test", key: "tts-key")
 
-        let episode = PodcastEpisode(
-            digestID: UUID(),
-            day: "2026-11-20",
-            title: "Today",
-            language: "en",
-            hosts: app.settings.podcast.hosts,
-            engine: .aiStudio,
-            voices: app.settings.podcast.voices,
-            minutesPerChapter: 2,
-            entries: []
-        )
-
         // Undecided: falls back to on-device.
-        XCTAssertEqual(app.podcast.resolvedEngine(for: episode), .onDevice)
+        XCTAssertEqual(app.podcast.engineSelection(), .engine(.onDevice))
 
         // Declined: falls back to on-device and GeminiSpeechEngine refuses network call.
         app.answerAIConsent(.gemini, allow: false)
-        XCTAssertEqual(app.podcast.resolvedEngine(for: episode), .onDevice)
+        XCTAssertEqual(app.podcast.engineSelection(), .engine(.onDevice))
 
         let tts = GeminiSpeechEngine(
             endpoint: GeminiTTS.Endpoint(provider: .aiStudio, baseURL: AIProvider.gemini.defaultBaseURL, apiKey: "tts-key"),
-            voices: app.settings.podcast.voices,
+            voices: PodcastVoices(a: app.settings.podcast.voiceA, b: app.settings.podcast.voiceA),
             session: ConsentAIRequestStub.session(),
             consentCheck: { try app.settings.requireAIConsent(for: .gemini) }
         )
@@ -276,9 +263,9 @@ final class AIDataConsentTests: XCTestCase {
         } catch AssistantError.aiConsentDeclined(.gemini) {}
         XCTAssertEqual(ConsentAIRequestStub.count, 0, "no TTS HTTP request may leave without consent")
 
-        // Allowed: resumes with the episode's Google engine.
+        // Allowed: selects the Google engine.
         app.answerAIConsent(.gemini, allow: true)
-        XCTAssertEqual(app.podcast.resolvedEngine(for: episode), .aiStudio)
+        XCTAssertEqual(app.podcast.engineSelection(), .engine(.aiStudio))
     }
 
     // MARK: - Local servers and Apple Intelligence

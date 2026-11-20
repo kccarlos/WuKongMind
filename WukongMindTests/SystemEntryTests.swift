@@ -65,31 +65,27 @@ final class SystemEntryTests: XCTestCase {
     func testTheOtherIntentsSendTheirActions() async throws {
         let router = FakeSystemRouter()
         SystemEntry.attach(router)
-        _ = try await OpenTodayIntent().perform()
-        _ = try await PlayPodcastIntent().perform()
         _ = try await StartVoiceChatIntent().perform()
         _ = try await OpenTopicIntent(target: TopicEntity(id: "forum.example.com/t/3", title: "T", forumName: "F")).perform()
-        XCTAssertEqual(router.actions, [.openToday, .playToday, .startVoice, .openTopic(topicKey: "forum.example.com/t/3")])
+        XCTAssertEqual(router.actions, [.startVoice, .openTopic(topicKey: "forum.example.com/t/3")])
     }
 
     func testActionsBeforeTheUIIsUpWaitForIt() async throws {
-        _ = try await OpenTodayIntent().perform()
         _ = try await StartVoiceChatIntent().perform()
-        XCTAssertEqual(SystemEntry.pending, [.openToday, .startVoice])
+        _ = try await OpenTopicIntent(target: TopicEntity(id: "forum.example.com/t/3", title: "T", forumName: "F")).perform()
+        XCTAssertEqual(SystemEntry.pending, [.startVoice, .openTopic(topicKey: "forum.example.com/t/3")])
 
         let router = FakeSystemRouter()
         SystemEntry.attach(router)
-        XCTAssertEqual(router.actions, [.openToday, .startVoice])
+        XCTAssertEqual(router.actions, [.startVoice, .openTopic(topicKey: "forum.example.com/t/3")])
         XCTAssertEqual(SystemEntry.pending, [])
     }
 
     func testIntentsOpenTheApp() {
         XCTAssertTrue(SummarizeLinkIntent.openAppWhenRun)
         XCTAssertTrue(AskForumIntent.openAppWhenRun)
-        XCTAssertTrue(OpenTodayIntent.openAppWhenRun)
-        XCTAssertTrue(PlayPodcastIntent.openAppWhenRun)
         XCTAssertTrue(StartVoiceChatIntent.openAppWhenRun)
-        XCTAssertEqual(WukongMindShortcuts.appShortcuts.count, 5)
+        XCTAssertEqual(WukongMindShortcuts.appShortcuts.count, 3)
     }
 
     // MARK: Forum entity
@@ -201,16 +197,6 @@ final class SystemEntryTests: XCTestCase {
         XCTAssertGreaterThan(app.assistantRequest, 0)
         XCTAssertEqual(app.drafts.goal, PageSuggestion.searchForum.composerText)
         XCTAssertNil(app.needsProviderSetup)
-    }
-
-    func testTodayAndThePodcastWithoutAnEpisodeOpenTheTodayPage() {
-        let app = makeApp(ready: true)
-        app.perform(.openToday)
-        XCTAssertTrue(app.showsTodayPage)
-        app.showsTodayPage = false
-        app.perform(.playToday)
-        XCTAssertTrue(app.showsTodayPage, "no episode: Today")
-        XCTAssertNil(app.podcast.player.playlist)
     }
 
     func testVoiceWithoutAKeyOpensVoiceSettings() {

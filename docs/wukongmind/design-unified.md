@@ -78,16 +78,16 @@ It follows roadmap v2, "Just ask" ([next-phase.md](next-phase.md), which v2 repl
    - **Developer**: a placeholder for the site inspector, which comes with Learn on ask and shows only in developer mode.
    The toolbar badge keeps its M1/M2 meaning (the script count) and opens the panel.
 3. **Home is the browser's start page.** From top to bottom (address entry lives in the browser bar; tapping the bar's field shows Home over the page):
-   - Today, only when the digest or podcast has something;
    - **Sites**: a grid of pinned and frequent sites, with an Add tile;
    - **Recent**: the newest History items, with a History link;
    - Continue reading;
    - Following.
+   (The Today daily digest module was removed on 2026-11-19 in task 12 / WUKO-182.)
    Any address can be pinned to Home; a pinned site with no built-in reader is stored as `SiteKind.web` — a favourite and nothing more (one kind of pin, synced like any other site record). Sites with a built-in reader keep their reader silently and show the grey speech-bubble badge on Home's grid. There is no "Suggested" forums list in Settings.
 4. **Settings grouped by object.** The root has five groups:
    - **Assistant**: Models, Agent, Scripts & tools.
    - **Sites & browsing**: Sites, Browser (which gains a search engine setting).
-   - **Voice & digest**: Voice, Daily digest & podcast.
+   - **Voice**: Voice (Daily digest & podcast was removed on 2026-11-19 in task 12 / WUKO-182).
    - **Your data**: iCloud Sync, Data & privacy.
    - **Help & about**.
    Models has two roles, Agent and Summaries. Every setting appears exactly once (the per-setting table below).
@@ -119,7 +119,7 @@ flowchart TD
   subgraph Browser[Browser · ContentView]
     Bar[Browser bar · address, back/forward, Home, ⋯, forum voice entry]
     Page[Web page · WKWebView]
-    Dock[Bottom layer · Dock: hint, answer ready, podcast, voice]
+    Dock[Bottom layer · Dock: hint, answer ready, voice]
     Home[Home · start page]
   end
 
@@ -128,21 +128,19 @@ flowchart TD
   Bar -->|forum voice entry, unchanged| VoiceSession[Voice session · controls in the Dock]
   Home -->|address field / site tile / continue reading| Page
   Home -->|Recent item| Panel
-  Home -->|Today card| Today[Today · digest & podcast]
   Home -->|History| History[History]
   Home -->|Settings| Settings
   Home -->|Add tile| AddSite[Add site sheet · suggestions]
 
   subgraph Panel[Assistant panel · iPhone drawer / iPad side panel]
     Header[Header · Agent · This page seal · ⋯ with model choice]
-    Conv[One conversation · messages, one row per tool call, replies, summary card, numbered sources, podcast row]
+    Conv[One conversation · messages, one row per tool call, replies, summary card, numbered sources, read aloud row]
     Sugg[Suggestion row · per page, up to 4 on screen]
     Composer[Input box · mic dictates / Send / Stop]
   end
 
   Panel -->|This page seal| ThisPage[This page popover]
   Panel -->|summary card ⤢| Expanded[Expanded summary / post & responses]
-  Panel -->|podcast row| NowPlaying[Now playing]
   Panel -->|⋯ History| History
   Panel -->|⋯ Settings| Settings
   Panel -->|script card · view code| CodeSheet[Script code sheet]
@@ -156,7 +154,6 @@ flowchart TD
     Sites[Sites · forums, following, pace, ads]
     BrowserSet[Browser · search engine, bar, open at launch]
     VoiceSet[Voice]
-    Digest[Daily digest & podcast]
     Sync[iCloud Sync]
     Data[Data & privacy]
     Help[Help & about · share from Safari, licences]

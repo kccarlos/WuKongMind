@@ -160,12 +160,28 @@ extension AppModel {
         router.drawerPhase.isPresented || showsSplitPanel()
     }
 
+    /// Maps the current tab's Agent state to the single `AgentRingState` used by every bar ring.
+    func agentRingState(isAvailable: Bool) -> AgentRingState {
+        AgentRingState.resolve(
+            isAvailable: isAvailable,
+            hasPendingConfirmation: !agentConfirmations.pending.isEmpty,
+            runState: browserAgent.runState,
+            lastRunID: browserAgent.runs.last?.id,
+            seenRunID: browserAgent.seenRunID,
+            hasActiveResearch: activeResearch != nil,
+            hasReadyAnswer: readyAnswer != nil
+        )
+    }
+
     /// The AI view went away (the drawer closed, the panel hid, the window
     /// changed layout): the next time it opens on the topic, not on the
     /// History or Settings it last showed. Not while a dropped drawer is
     /// tried again (still wanted) or while the tab overview temporarily hides the panel.
     func aiViewVisibilityChanged() {
         guard !router.isTabOverviewPresented else { return }
+        if isAIViewShown {
+            browserAgent.markCurrentRunSeen()
+        }
         if !isAIViewShown, !router.wantsDrawer, !voice.isActive {
             voice.dismiss()
         }
@@ -225,6 +241,9 @@ struct AIDrawerCoordinator: ViewModifier {
             .onChange(of: app.rootPresentation?.id) { app.syncDrawer() }
             .onChange(of: tabs.currentTabID) {
                 syncHomeVisibility()
+                if app.isAIViewShown {
+                    app.browserAgent.markCurrentRunSeen()
+                }
             }
             // The browser's and the controllers' changes don't re-render the
             // root, and arrive before the value lands: look once it has.
@@ -250,7 +269,6 @@ struct AIDrawerCoordinator: ViewModifier {
         if app.browser.showsForumsHome { router.closeDrawer() }
         router.splitPanelMode = .auto
         app.aiViewVisibilityChanged()
-        app.homeVisibilityChanged()
         app.syncDrawer()
     }
 }

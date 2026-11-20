@@ -2,67 +2,31 @@ import SwiftUI
 
 // MARK: - Home, the start page (design-unified.md §3)
 //
-// Fixed order: the address field, the Today module (TodayModuleState,
-// HomeState.swift), Sites (pinned first, then most visited; forums are just
-// sites, with the grey badge only here), Recent (the newest History items),
-// Continue reading and Following. With no sites yet: the address field and a
-// card of three suggested sites. Shown over the web view (BrowserContent),
-// which stays loaded under it. Pages pushed over Home (`HomeRoute`) live in
-// `AppModel.homePath`: on iPhone in the bar's NavigationStack
-// (PhoneBrowserBar.swift), on iPad in a stack of Home's own.
+// Fixed order: the address field, Sites (pinned first, then most visited;
+// forums are just sites, with the grey badge only here), Recent (the newest
+// History items), Continue reading and Following. With no sites yet: the
+// address field and a card of three suggested sites. Shown over the web view
+// (BrowserContent), which stays loaded under it.
 
 struct HomeView: View {
     @ObservedObject var app: AppModel
     @ObservedObject var browser: ForumBrowserModel
-    @ObservedObject var podcast: PodcastController
     let actions: BrowserActions
 
     init(app: AppModel, actions: BrowserActions) {
         self.app = app
         browser = app.browser
-        podcast = app.podcast
         self.actions = actions
     }
 
     var body: some View {
-        // The pages pushed over Home go on the bar's stack (PhoneBrowser).
-        HomeList(app: app, browser: browser, podcast: podcast, siteVisits: app.siteVisits, actions: actions)
-    }
-}
-
-/// The pages pushed over Home. On the view at the root of the stack that
-/// holds `app.homePath`, mounted whether Home shows or not.
-struct HomeDestinations: ViewModifier {
-    @ObservedObject var app: AppModel
-    let onOpenDigestLink: (URL, DigestCard) -> Void
-
-    func body(content: Content) -> some View {
-        content.navigationDestination(for: HomeRoute.self) { route in
-            Group {
-                switch route {
-                case .today:
-                    TodayPage(app: app, onOpen: onOpenDigestLink)
-                case .digest(let id):
-                    if let digest = app.digests.first(where: { $0.id == id }) {
-                        DigestHistoryPage(app: app, digest: digest, onOpen: onOpenDigestLink)
-                            .toolbar(.visible, for: .navigationBar)
-                    }
-                case .digestSettings:
-                    SettingsDigestPage(app: app)
-                        .navigationTitle(SettingsPage.digest.title)
-                        .navigationBarTitleDisplayMode(.inline)
-                        .toolbar(.visible, for: .navigationBar)
-                }
-            }
-            .modifier(HomeRouteDockModifier(app: app, route: route))
-        }
+        HomeList(app: app, browser: browser, siteVisits: app.siteVisits, actions: actions)
     }
 }
 
 private struct HomeList: View {
     @ObservedObject var app: AppModel
     @ObservedObject var browser: ForumBrowserModel
-    @ObservedObject var podcast: PodcastController
     @ObservedObject var siteVisits: SiteVisitStore
     let actions: BrowserActions
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -83,7 +47,6 @@ private struct HomeList: View {
             if tiles.isEmpty {
                 suggestedCard
             } else {
-                if app.forums.contains(where: \.hasReader) { TodayModule(app: app, podcast: podcast, onOpen: actions.openDigestLink) }
                 sitesSection(tiles)
             }
             recentSection
@@ -99,7 +62,6 @@ private struct HomeList: View {
         .frame(maxWidth: 760)
         .frame(maxWidth: .infinity)
         .background(DCTheme.pageBackground)
-        .task { podcast.refresh() }
         .accessibilityIdentifier("home")
     }
 
@@ -555,385 +517,6 @@ private struct RecentRow: View {
         .padding(.vertical, 2)
         .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
-    }
-}
-
-// MARK: - Today module
-
-/// The Today module at the top of Home, in one of its 7 states: the big
-/// podcast card, the digest strip, or one row.
-private struct TodayModule: View {
-    @ObservedObject var app: AppModel
-    @ObservedObject var podcast: PodcastController
-    let onOpen: (URL, DigestCard) -> Void
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
-    private func shownCards(for state: TodayModuleState) -> [DigestCard] {
-        switch state {
-        case .digestReady, .digestInProgress:
-            return app.todaysDigest?.cards.filter { $0.state == .done } ?? []
-        default:
-            return []
-        }
-    }
-
-    var body: some View {
-        let state = app.todayModuleState
-        let shown = shownCards(for: state)
-        Section {
-            switch state {
-            case .podcastReady, .podcastInProgress:
-                if let episode = podcast.episode, let digest = app.todaysDigest {
-                    PodcastHomeCard(app: app, podcast: podcast, episode: episode, digest: digest, isMaking: state == .podcastInProgress)
-                        .listRowBackground(Color.clear)
-                        .listRowInsets(EdgeInsets(top: DCTheme.spacingXS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
-                }
-            case .digestReady, .digestInProgress:
-                if let digest = app.todaysDigest {
-                    digestHeader(digest, state: state)
-                } else {
-                    // Preparing (or offline) before there are cards.
-                    progressRow(state: state, digest: nil)
-                }
-            case .digestOff:
-                row(
-                    title: Text("Today", comment: "Home Today module title"),
-                    detail: Text("Make a digest of today’s topics", comment: "Forums home Today row when the daily digest is off"),
-                    action: (Text("Make", comment: "Home Today module: make today's digest"), {
-                        DCHaptics.tap()
-                        app.makeTodaysDigest()
-                    }),
-                    actionID: "homeTodayMake"
-                )
-            case .aiNotSetUp:
-                row(
-                    title: Text("Today", comment: "Home Today module title"),
-                    detail: Text("Set up AI to get a daily digest", comment: "Home Today module when no AI model is ready"),
-                    action: (Text("Set up", comment: "Home Today module: set up an AI model"), {
-                        app.needsProviderSetup = .assistant
-                    }),
-                    actionID: "homeTodaySetUp"
-                )
-            case .nothingNew:
-                row(
-                    title: Text("Today", comment: "Home Today module title"),
-                    detail: Text("Nothing new today", comment: "Daily digest with no topics"),
-                    action: nil,
-                    actionID: nil
-                )
-            }
-        } footer: {
-            if !shown.isEmpty {
-                DigestStrip(app: app, cards: shown, onOpen: onOpen)
-                    .listRowInsets(EdgeInsets(top: DCTheme.spacingS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
-            }
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("homeToday")
-    }
-
-    private func openToday() {
-        DCHaptics.tap()
-        app.showsTodayPage = true
-    }
-
-    /// "Today · 6 topics · made 7:02 AM" (a tap opens the Today page) and
-    /// Listen: the cards read aloud with the podcast's voices (the device's
-    /// by default, free).
-    private func digestHeader(_ digest: DailyDigest, state: TodayModuleState) -> some View {
-        HStack(spacing: DCTheme.spacingM) {
-            Button(action: openToday) {
-                HStack(alignment: dynamicTypeSize.isAccessibilitySize ? .top : .center, spacing: DCTheme.spacingM) {
-                    DigestIcon(size: 30)
-                        .padding(.top, dynamicTypeSize.isAccessibilitySize ? 6 : 0)
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("Today", comment: "Home Today module title")
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-                        statusText(state: state, digest: digest)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                    }
-                    Spacer(minLength: 0)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .combine)
-            .accessibilityHint(Text("Opens today’s digest"))
-            .accessibilityIdentifier("homeTodayOpen")
-            if state == .digestReady {
-                ReadAloudButton(podcast: podcast, id: "today-digest", title: String(localized: "Today"), text: readAloudText(digest))
-                    .font(.subheadline.weight(.semibold))
-                    .buttonStyle(DCButtonStyle(role: .secondary))
-                    .fixedSize()
-            } else if case .digestInProgress(offline: false) = state {
-                ProgressView()
-                    .controlSize(.small)
-                    .padding(.trailing, DCTheme.spacingXS)
-            }
-        }
-        .padding(.vertical, 2)
-    }
-
-    private func progressRow(state: TodayModuleState, digest: DailyDigest?) -> some View {
-        Button(action: openToday) {
-            HStack(alignment: dynamicTypeSize.isAccessibilitySize ? .top : .center, spacing: DCTheme.spacingM) {
-                DigestIcon(size: 30)
-                    .padding(.top, dynamicTypeSize.isAccessibilitySize ? 6 : 0)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("Today", comment: "Home Today module title")
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                    statusText(state: state, digest: digest)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                Spacer(minLength: 0)
-                if case .digestInProgress(offline: false) = state {
-                    ProgressView()
-                        .controlSize(.small)
-                        .padding(.trailing, DCTheme.spacingXS)
-                }
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier("homeTodayOpen")
-    }
-
-    private func statusText(state: TodayModuleState, digest: DailyDigest?) -> Text {
-        if case .digestInProgress(offline: true) = state {
-            return Text("Can’t reach your forums. It continues when you’re back online.", comment: "Home Today module: the digest is paused while offline")
-        }
-        guard let digest else {
-            return Text("Checking your forums…", comment: "Daily digest: reading the forums' topic lists before summarizing")
-        }
-        if !digest.isComplete {
-            return Text("\(digest.finishedCount) of \(digest.cards.count) ready", comment: "Daily digest progress: cards summarized so far, then the number of cards")
-        }
-        let made = (digest.completedAt ?? digest.createdAt).formatted(date: .omitted, time: .shortened)
-        return Text("\(digest.cards.count) topics · made \(made)", comment: "Home Today module: number of digest cards, then when the digest was made")
-    }
-
-    private func readAloudText(_ digest: DailyDigest) -> String {
-        digest.cards
-            .filter { $0.state == .done && !$0.summary.isEmpty }
-            .map { "\($0.title).\n\($0.summary)" }
-            .joined(separator: "\n\n")
-    }
-
-    /// One row: Digest off, AI not set up, Nothing new. The row opens the
-    /// Today page (Earlier, digest settings); the button does its action.
-    private func row(title: Text, detail: Text, action: (Text, () -> Void)?, actionID: String?) -> some View {
-        HStack(spacing: DCTheme.spacingM) {
-            Button(action: openToday) {
-                HStack(spacing: DCTheme.spacingM) {
-                    DigestIcon(size: 30)
-                    VStack(alignment: .leading, spacing: 1) {
-                        title
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.primary)
-                        detail
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                    }
-                    Spacer(minLength: 0)
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .accessibilityElement(children: .combine)
-            .accessibilityHint(Text("Opens today’s digest"))
-            .accessibilityIdentifier("homeTodayOpen")
-            if let action {
-                Button(action: action.1) {
-                    action.0
-                        .font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 14)
-                        .frame(minHeight: 34)
-                        .background(DCTheme.goldWash, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
-                        .frame(minHeight: DCTheme.controlHeight)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.borderless)
-                .foregroundStyle(DCTheme.goldInk)
-                .fixedSize()
-                .accessibilityIdentifier(actionID ?? "")
-            }
-        }
-    }
-}
-
-/// "Listen to today": the big card for a made (or growing) episode. Play
-/// starts as soon as the first chapter is spoken.
-private struct PodcastHomeCard: View {
-    @ObservedObject var app: AppModel
-    @ObservedObject var podcast: PodcastController
-    let episode: PodcastEpisode
-    let digest: DailyDigest
-    let isMaking: Bool
-
-    private var facts: PodcastCardFacts { PodcastCardFacts(episode: episode) }
-    private var isPlaying: Bool { podcast.isPlayingEpisode && podcast.player.isActive }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: DCTheme.spacingM) {
-            HStack(spacing: DCTheme.spacingL) {
-                Button {
-                    DCHaptics.tap()
-                    if podcast.isPlayingEpisode { podcast.player.toggle() } else { podcast.playEpisode() }
-                } label: {
-                    Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                        .font(.title2)
-                        .foregroundStyle(HomeStyle.podcastCard)
-                        .frame(width: 56, height: 56)
-                        .background(.white, in: Circle())
-                }
-                .buttonStyle(.plain)
-                .disabled(!episode.hasAudio)
-                .opacity(episode.hasAudio ? 1 : 0.5)
-                .accessibilityLabel(isPlaying ? Text("Pause") : Text("Play today’s podcast", comment: "Home podcast card: play button"))
-                .accessibilityIdentifier("homePodcastPlay")
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Listen to today", comment: "Today page: the podcast section's title")
-                        .font(.title3.weight(.bold))
-                    subtitle
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.78))
-                        .accessibilityIdentifier("homePodcastFacts")
-                }
-                Spacer(minLength: 0)
-            }
-            if isMaking {
-                ProgressView(value: Double(facts.readyChapters), total: Double(max(facts.chapters, 1)))
-                    .tint(.white)
-                    .accessibilityLabel(Text("Making the podcast", comment: "Home podcast card: progress bar while chapters are being made"))
-            }
-            Divider().overlay(.white.opacity(0.15))
-            HStack {
-                Text(reasons)
-                    .font(.footnote)
-                    .foregroundStyle(.white.opacity(0.78))
-                    .lineLimit(1)
-                Spacer(minLength: DCTheme.spacingS)
-                Button {
-                    DCHaptics.tap()
-                    app.showsTodayPage = true
-                } label: {
-                    Text("Read \(digest.cards.count) topics", comment: "Home podcast card: opens the Today page; the placeholder is the number of topics")
-                        .font(.subheadline.weight(.semibold))
-                        .padding(.horizontal, 14)
-                        .frame(minHeight: 36)
-                        .background(.white.opacity(0.14), in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
-                        .frame(minHeight: DCTheme.controlHeight)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                .fixedSize()
-                .accessibilityIdentifier("homeReadTopics")
-            }
-        }
-        .foregroundStyle(.white)
-        .padding(DCTheme.spacingL)
-        .background(HomeStyle.podcastCard, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("homePodcastCard")
-    }
-
-    /// "6 topics · about 8 min · Google voices"; while it's made, the chapters.
-    private var subtitle: Text {
-        if isMaking {
-            return Text("\(facts.readyChapters) of \(facts.chapters) chapters ready", comment: "Home podcast card while the podcast is being made")
-        }
-        return Text("\(facts.topics) topics · about \(facts.minutes) min · \(episode.engine.label)", comment: "Home podcast card: number of topics, the podcast's length in minutes, then which voices read it (Google or on-device)")
-    }
-
-    private var reasons: String {
-        let watched = digest.cards.filter { if case .newReplies = $0.reason { return true } else { return false } }.count
-        let trending = digest.cards.count - watched
-        return String(localized: "\(watched) watched · \(trending) trending", comment: "Home podcast card: digest cards from watched topics, then trending ones")
-    }
-}
-
-/// Finished digest cards in a horizontal strip: forum, reason, title and a
-/// two-line summary; a tap opens the topic.
-private struct DigestStrip: View {
-    @ObservedObject var app: AppModel
-    let cards: [DigestCard]
-    let onOpen: (URL, DigestCard) -> Void
-    @ScaledMetric(relativeTo: .body) private var cardWidth: CGFloat = 272
-
-    private var resolvedCardWidth: CGFloat {
-        min(cardWidth, 300)
-    }
-
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(alignment: .top, spacing: DCTheme.spacingM) {
-                ForEach(cards) { card in
-                    Button { onOpen(app.url(for: card), card) } label: { cardView(card) }
-                        .buttonStyle(.plain)
-                        .accessibilityIdentifier("homeDigestCard-\(card.topicID)")
-                }
-            }
-            .padding(.trailing, DCTheme.spacingL)
-            .padding(.vertical, 2)
-        }
-        .scrollClipDisabled()
-    }
-
-    private func cardView(_ card: DigestCard) -> some View {
-        let forum = app.forumInfo(siteURL: card.siteURL)
-        return VStack(alignment: .leading, spacing: DCTheme.spacingS) {
-            SettingsIconRow(spacing: DCTheme.spacingS) {
-                ForumIcon(forum: forum, size: 22)
-            } title: {
-                Text(forum.displayName)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .lineLimit(1)
-            } trailing: {
-                reason(card)
-            }
-            Text(card.title)
-                .font(.headline)
-                .foregroundStyle(.primary)
-                .lineLimit(3)
-                .multilineTextAlignment(.leading)
-            Text(card.summary)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
-                .multilineTextAlignment(.leading)
-            Spacer(minLength: 0)
-        }
-        .padding(14)
-        .frame(width: resolvedCardWidth, alignment: .topLeading)
-        .frame(minHeight: 150, alignment: .topLeading)
-        .background(DCTheme.surface, in: RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous)
-                .strokeBorder(DCTheme.border)
-        }
-        .contentShape(RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous))
-        .accessibilityElement(children: .combine)
-        .accessibilityHint("Opens the topic")
-    }
-
-    @ViewBuilder
-    private func reason(_ card: DigestCard) -> some View {
-        switch card.reason {
-        case .newReplies(let count):
-            NewRepliesBadge(text: String(localized: "\(count) new replies", comment: "Digest card: why a watched topic is in the digest"))
-        case .trending:
-            DCPill(text: String(localized: "Trending", comment: "Digest card: the topic is among today's top topics of a pinned forum"),
-                   tint: DCTheme.jade)
-        }
     }
 }
 

@@ -1,154 +1,28 @@
 import AVFoundation
-import SwiftUI
 import XCTest
 @testable import WukongMind
 
-/// The podcast: the script's JSON and its checks, chapters mapped to cards,
-/// the Gemini TTS request and response, engine and system-voice selection,
-/// the player's chapter navigation and remembered position, the daily
-/// switch's defaults, "Ask about this" pausing and resuming, and the cache's
-/// cleanup. No network, no key, no audio hardware.
+/// Read-aloud speech, Gemini TTS, on-device voices, settings, player and cache.
+/// No network or audio hardware is used: TTS goes through `TTSStub`, the
+/// player runs against fakes, and read-aloud uses `FakeSpeechEngine`.
 @MainActor
 final class PodcastTests: XCTestCase {
     private let site = "https://forum.example.com"
 
-    override func setUp() async throws {
+    override func setUp() {
+        super.setUp()
         TTSStub.reset()
     }
 
-    // MARK: Script
+    // MARK: Speakable text and chunking
 
-    func testAChapterAnswerIsParsedFromFencedJSONAndTiedToItsCard() throws {
-        let card = card("7", firstNew: 31, answer: 40)
-        let answer = """
-        Here it is:
-        ```json
-        {"title": "Layer shifts again", "post": 40, "turns": [
-          {"speaker": "A", "text": "Seven new replies on layer shifts since post 31."},
-          {"speaker": "b", "text": "Did anyone find the cause?"},
-          {"speaker": "A", "text": "Yes, post 40 is the accepted answer; the post includes the config change."}
-        ]}
-        ```
-        """
-        let chapter = try PodcastScriptParser.chapter(from: answer, for: card, grounding: grounding(card))
-        XCTAssertEqual(chapter.id, card.topicKey)
-        XCTAssertEqual(chapter.kind, .topic)
-        XCTAssertEqual(chapter.title, "Layer shifts again")
-        XCTAssertEqual(chapter.turns.map(\.speaker), [.a, .b, .a])
-        XCTAssertEqual(chapter.postNumber, 40, "a cited post the card links to")
-        XCTAssertEqual(makeHarness().app.url(for: chapter)?.absoluteString, "\(site)/t/topic-7/7/40")
-
-        // A post the card doesn't link to keeps the default (the first new reply).
-        let other = try PodcastScriptParser.chapter(
-            from: #"{"post": 99, "turns": [{"speaker":"A","text":"Hello."},{"speaker":"B","text":"Hi."}]}"#,
-            for: card, grounding: grounding(card)
-        )
-        XCTAssertEqual(other.postNumber, 31)
-        XCTAssertEqual(other.title, card.title)
-    }
-
-    func testSpokenTextWithCodeURLsCommandsOrTracesIsRejected() {
-        let card = card("8")
-        func reject(_ text: String, _ expected: PodcastScriptError, file: StaticString = #filePath, line: UInt = #line) {
-            let json = #"{"turns": [{"speaker":"A","text":"Fine."},{"speaker":"B","text":"\#(text)"}]}"#
-            XCTAssertThrowsError(try PodcastScriptParser.chapter(from: json, for: card, grounding: grounding(card)), file: file, line: line) {
-                XCTAssertEqual($0 as? PodcastScriptError, expected, text, file: file, line: line)
-            }
-        }
-        reject("See https://example.com/fix for details.", .unspeakable("a web address"))
-        reject("It is on github.com now.", .unspeakable("a web address"))
-        reject("Run ```make flash``` first.", .unspeakable("code"))
-        reject("Set `max_velocity` lower.", .unspeakable("code"))
-        reject("Just run sudo apt-get install klipper.", .unspeakable("a command"))
-        reject("Add the --force flag.", .unspeakable("a command-line flag"))
-        reject("It says TypeError: undefined is not a function.", .unspeakable("a stack trace"))
-        reject("Set stepper_x.rotation_distance: 40 in the file.", .unspeakable("a configuration line"))
-        reject("Edit /etc/klipper/printer.cfg and restart.", .unspeakable("a file path"))
-        reject("**Important** news.", .unspeakable("Markdown"))
-        reject("It takes <laugh> forever.", .unspeakable("markup or code"))
-
-        // Fine as speech: says what the code is for and points to the topic.
-        XCTAssertNoThrow(try PodcastScriptParser.chapter(
-            from: #"{"turns": [{"speaker":"A","text":"The post includes the config change."},{"speaker":"B","text":"So the details are in the topic."}]}"#,
-            for: card, grounding: grounding(card)
-        ))
-    }
-
-    func testTurnsMustAlternateTwoHostsAndNumbersMustBeGrounded() {
-        let card = card("9")
-        let grounding = grounding(card)
-        XCTAssertThrowsError(try PodcastScriptParser.chapter(from: "Sorry, I can't.", for: card, grounding: grounding)) {
-            XCTAssertEqual($0 as? PodcastScriptError, .notJSON)
-        }
-        XCTAssertThrowsError(try PodcastScriptParser.chapter(
-            from: #"{"turns": [{"speaker":"A","text":"One."},{"speaker":"A","text":"Two."}]}"#, for: card, grounding: grounding
-        )) { XCTAssertEqual($0 as? PodcastScriptError, .badTurns("only one host speaks")) }
-        XCTAssertThrowsError(try PodcastScriptParser.chapter(
-            from: #"{"turns": [{"speaker":"Narrator","text":"One."},{"speaker":"A","text":"Two."}]}"#, for: card, grounding: grounding
-        ))
-        // 12 posts is in the card; 300 is not.
-        XCTAssertNoThrow(try PodcastScriptParser.chapter(
-            from: #"{"turns": [{"speaker":"A","text":"The topic has 12 posts."},{"speaker":"B","text":"Busy."}]}"#, for: card, grounding: grounding
-        ))
-        XCTAssertThrowsError(try PodcastScriptParser.chapter(
-            from: #"{"turns": [{"speaker":"A","text":"Speeds went up to 300."},{"speaker":"B","text":"Wow."}]}"#, for: card, grounding: grounding
-        )) { XCTAssertEqual($0 as? PodcastScriptError, .inventedNumber("300")) }
-        // The retry prompt says why.
-        XCTAssertTrue(PodcastPrompt.retry(reason: PodcastScriptError.inventedNumber("300").reason).contains("300"))
-    }
-
-    func testTheEpisodeHasAnIntroOneChapterPerSummarizedCardAndAnOutro() throws {
-        var done = card("1", firstNew: 5)
-        done.state = .done
-        var trending = card("2", answer: 9)
-        trending.reason = .trending
-        trending.state = .done
-        var failed = card("3")
-        failed.state = .failed
-        let pending = DigestCard(siteURL: site, topicID: "4", title: "Waiting", reason: .trending, postCount: 3)
-        let digest = DailyDigest(day: "2026-10-20", cards: [done, failed, trending, pending])
-        let hosts = PodcastHosts(a: "Ava", b: "Leo")
-
-        let chapters = PodcastScript.plan(for: digest, hosts: hosts)
-        XCTAssertEqual(chapters.map(\.kind), [.intro, .topic, .topic, .outro])
-        XCTAssertEqual(chapters.map(\.id), ["intro", done.topicKey, trending.topicKey, "outro"])
-        XCTAssertEqual(chapters[1].postNumber, 5, "a watched topic opens at its first new reply")
-        XCTAssertEqual(chapters[2].postNumber, 9, "a trending topic at its accepted answer")
-        XCTAssertNil(makeHarness().app.url(for: chapters[0]))
-        // The intro and outro are fixed lines (no AI) with the hosts' names.
-        XCTAssertTrue(chapters[0].isScripted && chapters[3].isScripted)
-        XCTAssertFalse(chapters[1].isScripted)
-        XCTAssertTrue(chapters[0].spokenText.contains("Ava") || !isEnglish)
-        XCTAssertTrue(chapters[0].spokenText.contains("Leo") || !isEnglish)
-        XCTAssertEqual(Set(chapters[0].turns.map(\.speaker)), [.a, .b])
-
-        XCTAssertEqual(PodcastScript.plan(for: DailyDigest(day: "2026-10-20", cards: [failed, pending]), hosts: hosts), [])
-
-        // The prompt names the language, the hosts, the citable posts and the
-        // rule against reading code or links; the content carries the card.
-        let prompt = PodcastPrompt.Chapter(card: done, forumName: "Example", index: 1, count: 2, previousTitle: nil, topicText: "OP text")
-        let system = PodcastPrompt.system(hosts: hosts, chapter: prompt, minutes: 1, languageName: "Simplified Chinese", language: "zh-Hans")
-        XCTAssertTrue(system.contains("Simplified Chinese"))
-        XCTAssertTrue(system.contains("about 260 Chinese characters"))
-        XCTAssertTrue(system.contains("Ava") && system.contains("Leo"))
-        XCTAssertTrue(system.contains("one of 5, or null"))
-        XCTAssertTrue(system.contains("Never read out code"))
-        let content = PodcastPrompt.content(for: prompt)
-        XCTAssertTrue(content.contains(done.summary))
-        XCTAssertTrue(content.contains("OP text"))
-        XCTAssertEqual(PodcastPrompt.lengthTarget(minutes: 2, language: "en"), "about 300 words")
-    }
-
-    func testAFallbackChapterAndReadAloudTextHaveNothingUnspeakable() {
-        var card = card("5")
-        card.summary = "Fixed by [this post](https://forum.example.com/t/x/5/3).\n```yaml\nkey: value\n```\n**Done**."
-        let turns = PodcastScript.fallbackTurns(for: card)
-        XCTAssertEqual(turns.map(\.speaker), [.a, .b])
-        for turn in turns {
-            XCTAssertNil(PodcastSpeechCheck.problem(in: turn.text), turn.text)
-        }
-        XCTAssertFalse(turns[1].text.contains("http"))
-        XCTAssertFalse(turns[1].text.contains("key: value"))
+    func testReadAloudTextAndChunkingHaveNothingUnspeakable() {
+        let raw = "Fixed by [this post](https://forum.example.com/t/x/5/3).\n```yaml\nkey: value\n```\n**Done**."
+        let spoken = PodcastSpeechCheck.speakable(raw)
+        XCTAssertFalse(spoken.contains("http"))
+        XCTAssertFalse(spoken.contains("key: value"))
+        XCTAssertTrue(spoken.contains("this post"))
+        XCTAssertTrue(spoken.contains("Done"))
 
         let chunks = PodcastController.readAloudChunks(String(repeating: "A sentence here. ", count: 200), limit: 300)
         XCTAssertGreaterThan(chunks.count, 5)
@@ -157,7 +31,7 @@ final class PodcastTests: XCTestCase {
 
     // MARK: Gemini TTS
 
-    func testTheTTSRequestIsMultiSpeakerWithTheKeyInAHeaderOnBothEndpoints() throws {
+    func testTheTTSRequestUsesHeaderKeyOnBothEndpointsAndSingleVoiceForReadAloud() throws {
         let turns = [PodcastTurn(speaker: .a, text: "Hello."), PodcastTurn(speaker: .b, text: "Hi there.")]
         let voices = PodcastVoices(a: "Kore", b: "Puck")
         let studio = try GeminiTTS.request(
@@ -168,18 +42,6 @@ final class PodcastTests: XCTestCase {
         XCTAssertEqual(studio.httpMethod, "POST")
         XCTAssertEqual(studio.value(forHTTPHeaderField: "x-goog-api-key"), "secret-key")
         XCTAssertFalse(studio.url?.absoluteString.contains("secret-key") ?? true, "the key never goes in the URL")
-
-        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(studio.httpBody)) as? [String: Any])
-        let contents = try XCTUnwrap(body["contents"] as? [[String: Any]])
-        let parts = try XCTUnwrap(contents.first?["parts"] as? [[String: Any]])
-        XCTAssertEqual(parts.map { $0["text"] as? String }, ["Hello.", "Hi there."])
-        XCTAssertEqual(parts.map { ($0["speech_metadata"] as? [String: Any])?["speaker"] as? String }, ["A", "B"])
-        XCTAssertNotNil((parts.first?["speech_metadata"] as? [String: Any])?["style"])
-        let config = try XCTUnwrap(body["generationConfig"] as? [String: Any])
-        XCTAssertEqual(config["responseModalities"] as? [String], ["AUDIO"])
-        let multi = try XCTUnwrap(((config["speechConfig"] as? [String: Any])?["multiSpeakerVoiceConfig"] as? [String: Any])?["speakerVoiceConfigs"] as? [[String: Any]])
-        XCTAssertEqual(multi.map { $0["speaker"] as? String }, ["A", "B"])
-        XCTAssertEqual(multi.map { (($0["voiceConfig"] as? [String: Any])?["prebuiltVoiceConfig"] as? [String: Any])?["voiceName"] as? String }, ["Kore", "Puck"])
 
         let vertex = try GeminiTTS.request(
             turns: turns, voices: voices,
@@ -198,7 +60,6 @@ final class PodcastTests: XCTestCase {
     }
 
     func testTheResponseAudioIsDecodedFromWAVOrL16() throws {
-        // The docs' default: a WAV file (RIFF header), 24 kHz mono 16-bit.
         let pcm = Data((0..<4_800).flatMap { _ in [UInt8(0x10), UInt8(0x00)] })
         let wav = WAVFile.data(PCMAudio(samples: pcm, sampleRate: 24_000))
         let audio = try GeminiTTS.decode(Self.response(parts: [("audio/wav", wav)]))
@@ -207,13 +68,11 @@ final class PodcastTests: XCTestCase {
         XCTAssertEqual(audio.samples, pcm)
         XCTAssertEqual(audio.duration, 0.2, accuracy: 0.0001)
 
-        // Headerless L16 with its rate in the mime type; parts are joined.
         let l16 = try GeminiTTS.decode(Self.response(parts: [("audio/L16;codec=pcm;rate=16000", pcm), ("audio/L16;codec=pcm;rate=16000", pcm)]))
         XCTAssertEqual(l16.sampleRate, 16_000)
         XCTAssertEqual(l16.samples.count, pcm.count * 2)
         XCTAssertEqual(WAVFile.parse(WAVFile.data(l16)), l16, "what is written reads back the same")
 
-        // Blocked, or no audio: an error, not an empty file.
         let blocked = Data(#"{"promptFeedback":{"blockReason":"SAFETY"}}"#.utf8)
         XCTAssertThrowsError(try GeminiTTS.decode(blocked)) { XCTAssertEqual($0 as? PodcastSpeechError, .noAudio("SAFETY")) }
         let empty = Data(#"{"candidates":[{"content":{"parts":[]},"finishReason":"OTHER"}]}"#.utf8)
@@ -236,7 +95,7 @@ final class PodcastTests: XCTestCase {
             sleep: { waits.append($0) }
         )
         let url = temporaryFolder().appendingPathComponent("chapter.wav")
-        let duration = try await engine.synthesize([PodcastTurn(speaker: .a, text: "Hi."), PodcastTurn(speaker: .b, text: "Hello.")], to: url)
+        let duration = try await engine.synthesize([PodcastTurn(speaker: .a, text: "Hi.")], to: url)
         XCTAssertEqual(duration, 0.1, accuracy: 0.0001)
         XCTAssertEqual(TTSStub.requests.count, 3)
         XCTAssertEqual(waits.first, 7, "RetryInfo's delay is honored")
@@ -244,7 +103,6 @@ final class PodcastTests: XCTestCase {
         XCTAssertGreaterThanOrEqual(waits[1], 4, "then exponential backoff")
         XCTAssertEqual(WAVFile.parse(try Data(contentsOf: url))?.sampleRate, 24_000)
 
-        // A refused key is not retried.
         TTSStub.reset()
         TTSStub.responses = [(400, Data(#"{"error":{"message":"API key not valid."}}"#.utf8))]
         waits = []
@@ -260,7 +118,7 @@ final class PodcastTests: XCTestCase {
 
     // MARK: Engine selection
 
-    func testAnEpisodeNamesTheVoicesItWasMadeWith() {
+    func testEngineKindLabels() {
         XCTAssertEqual(PodcastEngineKind.aiStudio.label, PodcastEngineChoice.google.label)
         XCTAssertEqual(PodcastEngineKind.vertex.label, PodcastEngineChoice.google.label)
         XCTAssertEqual(PodcastEngineKind.onDevice.label, PodcastEngineChoice.onDevice.label)
@@ -268,10 +126,8 @@ final class PodcastTests: XCTestCase {
     }
 
     func testGoogleVoicesNeedAKeyOtherwiseTheDeviceSpeaks() {
-        // No key: Automatic uses the device's voices; explicit Google voices need a key.
         XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: []), .engine(.onDevice))
         XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: []), .needsKey)
-        // With a key: Automatic and Google pick the preferred Google provider; On-device stays on device.
         XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [.aiStudio]), .engine(.aiStudio))
         XCTAssertEqual(PodcastEngineSelector.select(choice: .google, providers: [.aiStudio]), .engine(.aiStudio))
         XCTAssertEqual(PodcastEngineSelector.select(choice: .automatic, providers: [.vertex, .aiStudio]), .engine(.vertex))
@@ -283,29 +139,16 @@ final class PodcastTests: XCTestCase {
         let harness = makeHarness()
         let app = harness.app
         connect(app)
-        let digest = completeDigest(cards: 1)
-        app.digests = [digest]
-        let engine = FakeSpeechEngine()
         var chosenKinds: [PodcastEngineKind] = []
         app.podcast.makeEngine = { kind, _, _ in
             chosenKinds.append(kind)
-            return engine
+            return FakeSpeechEngine()
         }
-        harness.ai.answers = [#"{"turns":[{"speaker":"A","text":"Hi."},{"speaker":"B","text":"Hello."}]}"#]
 
         app.settings.podcast.engine = .google
-        app.settings.podcastDailyEnabled = true
-
-        // Unattended daily run neither speaks with device voices nor raises a modal alert.
-        app.podcast.digestCompleted(digest.id)
-        try await Task.sleep(for: .milliseconds(60))
-        XCTAssertNil(app.podcast.episode)
-        XCTAssertTrue(chosenKinds.isEmpty)
-        XCTAssertNil(app.presentedError)
-
-        // Interactive Make Podcast tells the user a Google key is needed and offers AI models setup.
-        app.podcast.make()
-        XCTAssertNil(app.podcast.episode)
+        app.podcast.readAloud(id: "summary-google", title: "Topic", text: "A short summary to speak.")
+        XCTAssertNil(app.podcast.readAloudID)
+        XCTAssertNil(app.podcast.player.playlist)
         XCTAssertTrue(chosenKinds.isEmpty)
         XCTAssertEqual(app.presentedError, PodcastController.missingGoogleKeyMessage)
         XCTAssertEqual(app.presentedErrorAction, .openAIModels)
@@ -314,29 +157,6 @@ final class PodcastTests: XCTestCase {
         app.performErrorAction(action, after: .zero)
         try await waitUntil { app.requestedSettingsPage == .provider }
         XCTAssertNil(app.presentedError)
-        app.requestedSettingsPage = nil
-
-        // Interactive Read aloud also refuses device fallback and offers AI models setup.
-        app.podcast.readAloud(id: "summary-google", title: "Topic", text: "A short summary to speak.")
-        XCTAssertNil(app.podcast.readAloudID)
-        XCTAssertNil(app.podcast.player.playlist)
-        XCTAssertTrue(chosenKinds.isEmpty)
-        XCTAssertEqual(app.presentedError, PodcastController.missingGoogleKeyMessage)
-        XCTAssertEqual(app.presentedErrorAction, .openAIModels)
-        app.dismissPresentedError()
-
-        // If an on-device episode already exists and the user switches to Google voices without a key,
-        // Remake keeps the existing episode instead of deleting it and prompts for the key.
-        app.settings.podcast.engine = .onDevice
-        app.podcast.make()
-        try await waitUntil { app.podcast.episode?.isComplete == true }
-        chosenKinds.removeAll()
-        app.settings.podcast.engine = .google
-        app.podcast.remake()
-        XCTAssertNotNil(app.podcast.episode, "Remake without a Google key must not delete the existing episode.")
-        XCTAssertTrue(chosenKinds.isEmpty)
-        XCTAssertEqual(app.presentedError, PodcastController.missingGoogleKeyMessage)
-        XCTAssertEqual(app.presentedErrorAction, .openAIModels)
     }
 
     func testTwoDistinctSystemVoicesAreChosenForTheAppLanguage() {
@@ -350,42 +170,44 @@ final class PodcastTests: XCTestCase {
             SystemVoiceCandidate(identifier: "zh.tingting", language: "zh-CN", quality: 2, gender: .female),
             SystemVoiceCandidate(identifier: "zh.meijia", language: "zh-TW", quality: 1, gender: .female)
         ]
-        // Best quality, no novelty voice, host B of the other gender.
         XCTAssertEqual(PodcastSystemVoices.pick(appLanguage: "en", from: voices, region: "US"), .init(a: "en.ava.premium", b: "en.evan.premium"))
-        // Chinese scripts don't mix with English; Traditional prefers Taiwan.
         XCTAssertEqual(PodcastSystemVoices.pick(appLanguage: "zh-Hans", from: voices, region: "CN"), .init(a: "zh.tingting", b: "zh.meijia"))
         let onlyOne = [SystemVoiceCandidate(identifier: "zh.meijia", language: "zh-TW", quality: 1)]
         let pick = PodcastSystemVoices.pick(appLanguage: "zh-Hant", from: onlyOne, region: "TW")
         XCTAssertEqual(pick?.a, "zh.meijia")
-        XCTAssertTrue(pick?.sameVoice ?? false, "one voice: host B uses it with a raised pitch")
+        XCTAssertTrue(pick?.sameVoice ?? false)
         XCTAssertNil(PodcastSystemVoices.pick(appLanguage: "en", from: [voices[6]], region: "US"))
     }
 
-    // MARK: Settings
+    // MARK: Settings & legacy compatibility
 
-    func testTheDailyPodcastIsOffByDefaultAndItsSwitchStaysOnTheDevice() throws {
+    func testPodcastSettingsDefaultsAndLegacyDigestKeysDecodeCleanly() throws {
         let settings = AppSettings()
-        XCTAssertFalse(settings.podcastDailyEnabled)
         XCTAssertEqual(settings.podcast.engine, .automatic)
-        XCTAssertEqual(settings.podcast.minutesPerChapter, 1)
         XCTAssertEqual(settings.podcast.voiceA, "Kore")
-        XCTAssertEqual(settings.podcast.voiceB, "Puck")
-        XCTAssertNotEqual(settings.podcast.voiceA, settings.podcast.voiceB)
-        XCTAssertTrue(settings.podcast.hostA.isEmpty, "the default name follows the interface language")
-        XCTAssertEqual(settings.podcast.hosts, PodcastHosts(a: PodcastSpeaker.a.defaultName, b: PodcastSpeaker.b.defaultName))
 
-        XCTAssertTrue(SyncSettings.deviceLocalKeys.contains("podcastDailyEnabled"))
-        XCTAssertFalse(SyncSettings.deviceLocalKeys.contains("podcast"))
-
-        // Older snapshots decode with the defaults; bad values fall back one by one.
-        let old = try JSONDecoder().decode(AppSettings.self, from: Data("{}".utf8))
-        XCTAssertFalse(old.podcastDailyEnabled)
-        XCTAssertEqual(old.podcast, PodcastSettings())
-        let odd = try JSONDecoder().decode(AppSettings.self, from: Data(#"{"podcast": {"hostA": "  Mei ", "voiceA": "Nobody", "minutesPerChapter": 40, "engine": "future"}}"#.utf8))
-        XCTAssertEqual(odd.podcast.hosts.a, "Mei")
-        XCTAssertEqual(odd.podcast.voiceA, "Kore")
-        XCTAssertEqual(odd.podcast.minutesPerChapter, 3)
-        XCTAssertEqual(odd.podcast.engine, .automatic)
+        // Legacy snapshots containing removed daily digest & two-host podcast keys decode cleanly.
+        let legacyJSON = #"""
+        {
+            "dailyDigestEnabled": true,
+            "dailyDigestNotifies": true,
+            "dailyDigestIncludesWatched": false,
+            "dailyDigestIncludesTrending": false,
+            "dailyDigestMaxCards": 12,
+            "podcastDailyEnabled": true,
+            "podcast": {
+                "hostA": "Mei",
+                "hostB": "Leo",
+                "voiceA": "Nobody",
+                "voiceB": "Puck",
+                "minutesPerChapter": 40,
+                "engine": "future"
+            }
+        }
+        """#
+        let decoded = try JSONDecoder().decode(AppSettings.self, from: Data(legacyJSON.utf8))
+        XCTAssertEqual(decoded.podcast.voiceA, "Kore")
+        XCTAssertEqual(decoded.podcast.engine, .automatic)
     }
 
     // MARK: Player
@@ -397,7 +219,7 @@ final class PodcastTests: XCTestCase {
         XCTAssertEqual(timeline.skip(15, from: P(chapter: 0, time: 2)), P(chapter: 1, time: 7))
         XCTAssertEqual(timeline.skip(-15, from: P(chapter: 1, time: 7)), P(chapter: 0, time: 2))
         XCTAssertEqual(timeline.skip(-15, from: P(chapter: 0, time: 5)), P(chapter: 0, time: 0))
-        XCTAssertEqual(timeline.skip(15, from: P(chapter: 2, time: 10)), P(chapter: 2, time: 19.5), "chapter 4 isn't made yet")
+        XCTAssertEqual(timeline.skip(15, from: P(chapter: 2, time: 10)), P(chapter: 2, time: 19.5))
         XCTAssertEqual(timeline.previousChapter(from: P(chapter: 2, time: 8)), P(chapter: 2, time: 0))
         XCTAssertEqual(timeline.previousChapter(from: P(chapter: 2, time: 1)), P(chapter: 1, time: 0))
         XCTAssertEqual(timeline.nextChapter(from: P(chapter: 2, time: 1)), P(chapter: 3, time: 0))
@@ -426,14 +248,12 @@ final class PodcastTests: XCTestCase {
         XCTAssertEqual(audio.currentTime, 9)
 
         player.previousChapter()
-        XCTAssertEqual(player.chapterIndex, 1, "past 3 s: back to the chapter's start")
+        XCTAssertEqual(player.chapterIndex, 1)
         player.previousChapter()
         XCTAssertEqual(player.chapterIndex, 0)
         player.nextChapter()
         XCTAssertEqual(player.chapterIndex, 1)
 
-        // The end of chapter 2: chapter 3 isn't made yet, so it waits, then
-        // plays as soon as it is.
         audio.finish()
         XCTAssertEqual(player.state, .waiting)
         XCTAssertEqual(player.chapterIndex, 2)
@@ -444,7 +264,6 @@ final class PodcastTests: XCTestCase {
         XCTAssertEqual(player.state, .playing)
         XCTAssertEqual(audio.loaded.last?.lastPathComponent, "2.wav")
 
-        // Paused at 12 s; a new player (a relaunch) starts there.
         audio.currentTime = 12
         player.pause()
         XCTAssertEqual(player.state, .paused)
@@ -453,7 +272,6 @@ final class PodcastTests: XCTestCase {
         XCTAssertEqual(relaunched.position, .init(chapter: 2, time: 12))
         XCTAssertEqual(relaunched.state, .paused)
 
-        // The last chapter ends: paused at the end; Play starts over.
         player.play()
         audio.finish()
         XCTAssertEqual(player.state, .paused)
@@ -475,243 +293,14 @@ final class PodcastTests: XCTestCase {
 
         player.interruptionBegan()
         player.interruptionEnded(shouldResume: false)
-        XCTAssertEqual(player.state, .paused, "iOS didn't offer to resume")
+        XCTAssertEqual(player.state, .paused)
 
         player.play()
         player.outputDeviceLost()
         XCTAssertEqual(player.state, .paused)
     }
 
-    // MARK: Ask about this
-
-    func testAskAboutThisPausesOpensTheTopicStartsVoiceAndResumesInPlace() async throws {
-        let harness = makeHarness()
-        let audio = FakePodcastAudio()
-        let session = FakePodcastSession()
-        let player = PodcastPlayer(audio: audio, session: session, positions: PodcastPositionStore(defaults: UserDefaults(suiteName: UUID().uuidString)!))
-        player.routeSettleStep = .milliseconds(10)
-        let controller = PodcastController(app: harness.app, store: PodcastStore(directory: temporaryFolder()), player: player)
-        let voice = FakeVoiceStarter()
-        controller.voice = voice
-        controller.askPresentationDelay = .zero
-
-        player.load(Self.playlist(durations: [10, 30]), autoplay: true)
-        player.nextChapter()
-        audio.currentTime = 12.5
-        var chapter = PodcastChapter(card: card("7", firstNew: 31))
-        chapter.turns = [PodcastTurn(speaker: .a, text: "Hi.")]
-        var opened: [URL] = []
-
-        controller.ask(about: chapter) { opened.append($0) }
-        XCTAssertTrue(player.isSuspendedForVoice)
-        XCTAssertEqual(player.state, .paused)
-        XCTAssertEqual(player.position, .init(chapter: 1, time: 12.5))
-        XCTAssertEqual(opened.map(\.absoluteString), ["\(site)/t/topic-7/7/31"], "opened at the cited post")
-        try await waitUntil { voice.starts == 1 }
-        // A remote Play while the voice session runs is refused.
-        voice.isActive = true
-        XCTAssertTrue(player.blocksRemotePlay())
-        player.play()
-        XCTAssertEqual(player.state, .paused)
-
-        // The session ends while AirPods are still on hands-free: the
-        // player waits for the route, then reloads the chapter and plays
-        // from the same place.
-        session.handsFree = true
-        voice.isActive = false
-        voice.finish()
-        try await Task.sleep(for: .milliseconds(50))
-        XCTAssertEqual(player.state, .paused, "still on HFP")
-        session.handsFree = false
-        try await waitUntil { player.state == .playing }
-        XCTAssertFalse(player.isSuspendedForVoice)
-        XCTAssertEqual(player.position.chapter, 1)
-        XCTAssertEqual(audio.currentTime, 12.5)
-        XCTAssertEqual(audio.loaded.last?.lastPathComponent, "1.wav")
-        XCTAssertGreaterThanOrEqual(session.activations, 2, "back to .playback after the voice session")
-
-        // A failed start resumes too; a paused podcast stays paused.
-        player.pause()
-        controller.ask(about: chapter) { _ in }
-        voice.finish()
-        try await Task.sleep(for: .milliseconds(50))
-        XCTAssertFalse(player.isSuspendedForVoice)
-        XCTAssertEqual(player.state, .paused)
-    }
-
-    func testTheVoiceControllerReportsAFailedStart() {
-        let harness = makeHarness()
-        var finished = 0
-        harness.app.voice.onFinished = { finished += 1 }
-        harness.app.voice.start()
-        XCTAssertEqual(finished, 1)
-        XCTAssertNil(harness.app.voice.onFinished, "called once")
-    }
-
-    // MARK: Making, storage
-
-    func testAnEpisodeIsScriptedAndSpokenChapterByChapterIntoTheCache() async throws {
-        let harness = makeHarness()
-        let app = harness.app
-        connect(app)
-        let digest = completeDigest(cards: 2)
-        app.digests = [digest]
-        let engine = FakeSpeechEngine()
-        app.podcast.makeEngine = { _, _, _ in engine }
-        harness.ai.answers = [
-            "not json",
-            #"{"title":"First","turns":[{"speaker":"A","text":"The first topic has 12 posts."},{"speaker":"B","text":"Interesting."}]}"#,
-            #"{"title":"Second","turns":[{"speaker":"A","text":"See https://x.com/a"},{"speaker":"B","text":"No."}]}"#,
-            #"{"title":"Second","turns":[{"speaker":"A","text":"Still https://x.com/a"},{"speaker":"B","text":"No."}]}"#
-        ]
-
-        app.podcast.make()
-        try await waitUntil { app.podcast.episode?.isComplete == true && !app.podcast.activity.isRunning }
-        let episode = try XCTUnwrap(app.podcast.episode)
-        XCTAssertEqual(episode.entries.map(\.state), [.ready, .ready, .ready, .ready])
-        XCTAssertEqual(episode.engine, .onDevice, "no Google key: the device's voices")
-        XCTAssertEqual(episode.entries[1].chapter.title, "First", "a rejected answer is asked for again")
-        XCTAssertEqual(episode.entries[2].chapter.turns, PodcastScript.fallbackTurns(for: digest.cards[1]), "rejected twice: the card's own lines")
-        XCTAssertEqual(harness.ai.calls.count, 4)
-        XCTAssertTrue(harness.ai.calls[1].messages.last?.content.contains("rejected") ?? false)
-        XCTAssertEqual(engine.spoken.count, 4, "intro, two topics, outro")
-        for entry in episode.entries {
-            let file = try XCTUnwrap(entry.audioFile)
-            XCTAssertTrue(FileManager.default.fileExists(atPath: app.podcast.store.audioURL(file, digestID: digest.id).path))
-        }
-        // Saved: a relaunch finds it.
-        XCTAssertEqual(app.podcast.store.load(digestID: digest.id)?.readyCount, 4)
-    }
-
-    func testTheScriptIsWrittenInTheReadingLanguage() async throws {
-        let harness = makeHarness()
-        let app = harness.app
-        connect(app)
-        app.digests = [completeDigest(cards: 1)]
-        var languages: [String] = []
-        app.podcast.makeEngine = { _, _, language in
-            languages.append(language)
-            return FakeSpeechEngine()
-        }
-        harness.ai.answers = [#"{"turns":[{"speaker":"A","text":"Hi."},{"speaker":"B","text":"Hello."}]}"#]
-
-        app.settings.readingLanguage = "ja"
-        app.podcast.make()
-        try await waitUntil { app.podcast.episode?.isComplete == true && !app.podcast.activity.isRunning }
-        XCTAssertEqual(app.podcast.episode?.language, "ja")
-        XCTAssertEqual(languages.first, "ja", "the device's voices speak it")
-        XCTAssertTrue(harness.ai.calls.contains { $0.system.contains("Write the dialogue in Japanese") })
-
-        // The default: the app's language.
-        app.settings.readingLanguage = ""
-        app.podcast.remake()
-        try await waitUntil { app.podcast.episode?.isComplete == true && !app.podcast.activity.isRunning }
-        XCTAssertEqual(app.podcast.episode?.language, AppLanguage.current)
-    }
-
-    /// Make / Play tapped again while the episode is being made plays it
-    /// and leaves the run alone: the chapter in progress is not made again.
-    func testRepeatedMakeWhileMakingNeitherRestartsNorRepeatsAChapter() async throws {
-        let harness = makeHarness()
-        let app = harness.app
-        connect(app)
-        let digest = completeDigest(cards: 1)
-        app.digests = [digest]
-        let engine = GatedSpeechEngine()
-        app.podcast.makeEngine = { _, _, _ in engine }
-        harness.ai.answers = [#"{"turns":[{"speaker":"A","text":"Hi."},{"speaker":"B","text":"Hello."}]}"#]
-
-        app.podcast.make(play: true)
-        try await waitUntil { engine.waiting }
-        app.podcast.make(play: true)
-        app.podcast.make(play: true)
-        app.podcast.make()
-        XCTAssertEqual(app.podcast.player.playlist?.id, digest.id.uuidString)
-        engine.gated = false
-        engine.release()
-        try await waitUntil { app.podcast.episode?.isComplete == true && !app.podcast.activity.isRunning }
-        XCTAssertEqual(engine.attempts, 3, "intro, the topic, outro: each made once")
-        XCTAssertEqual(harness.ai.calls.count, 1, "the topic was scripted once")
-    }
-
-    func testPlayTodaysPodcastPlaysAnEpisodeThatExists() async throws {
-        let harness = makeHarness()
-        let app = harness.app
-        connect(app)
-        let digest = completeDigest(cards: 1)
-        app.digests = [digest]
-        app.podcast.makeEngine = { _, _, _ in FakeSpeechEngine() }
-        harness.ai.answers = [#"{"turns":[{"speaker":"A","text":"Hi."},{"speaker":"B","text":"Hello."}]}"#]
-        app.podcast.make()
-        try await waitUntil { app.podcast.episode?.isComplete == true && !app.podcast.activity.isRunning }
-
-        app.perform(.playToday)
-        XCTAssertEqual(app.podcast.player.playlist?.id, digest.id.uuidString)
-        XCTAssertFalse(app.showsTodayPage)
-    }
-
-    func testTheDailyPodcastIsMadeOnlyWhenTurnedOn() async throws {
-        let harness = makeHarness()
-        let app = harness.app
-        connect(app)
-        var key = app.settings.configuration(for: .gemini)
-        key.apiKey = "gemini-key"
-        app.setConfiguration(key, for: .gemini)
-        let digest = completeDigest(cards: 1)
-        app.digests = [digest]
-        let engine = FakeSpeechEngine()
-        var kinds: [PodcastEngineKind] = []
-        app.podcast.makeEngine = { kind, _, _ in kinds.append(kind); return engine }
-        harness.ai.answers = [#"{"turns":[{"speaker":"A","text":"Hi."},{"speaker":"B","text":"Hello."}]}"#]
-
-        app.podcast.digestCompleted(digest.id)
-        app.podcast.resumeIfNeeded()
-        try await Task.sleep(for: .milliseconds(100))
-        XCTAssertNil(app.podcast.episode, "off by default")
-        XCTAssertTrue(harness.ai.calls.isEmpty)
-
-        app.settings.podcastDailyEnabled = true
-        app.podcast.digestCompleted(digest.id)
-        try await waitUntil { app.podcast.episode?.isComplete == true }
-        XCTAssertEqual(kinds, [.aiStudio])
-        XCTAssertEqual(engine.spoken.count, 3)
-    }
-
-    func testTheDailyPodcastStartsRightAfterTheDigestFinishesOnOpen() async throws {
-        let harness = makeHarness()
-        let app = harness.app
-        connect(app)
-        app.settings.podcastDailyEnabled = true
-        // Today's card reuses an earlier digest's summary of the same posts:
-        // the digest finishes with no AI call and no forum request.
-        var earlier = completeDigest(cards: 1)
-        earlier.day = "2026-10-01"
-        var waiting = card("101")
-        waiting.summary = ""
-        waiting.state = .pending
-        let today = DailyDigest(day: DailyDigest.dayKey(for: Date()), cards: [waiting])
-        app.digests = [today, earlier]
-        let engine = FakeSpeechEngine()
-        app.podcast.makeEngine = { _, _, _ in engine }
-        harness.ai.answers = [#"{"turns":[{"speaker":"A","text":"Hi."},{"speaker":"B","text":"Hello."}]}"#]
-
-        app.makeTodaysDigest()
-        try await waitUntil { app.podcast.episode?.isComplete == true }
-        XCTAssertEqual(app.todaysDigest?.isComplete, true)
-        XCTAssertEqual(app.podcast.episode?.digestID, today.id)
-        XCTAssertEqual(engine.spoken.count, 3)
-    }
-
-    func testTopicTitlesAreSaidWithoutCodeLinksOrBrackets() {
-        var card = card("6")
-        card.title = "[Solved] `max_velocity` error after https://example.com/update"
-        let intro = PodcastScript.introTurns(hosts: PodcastHosts(a: "Ava", b: "Leo"), firstTitle: PodcastScript.spokenTitle(card.title), date: Date())
-        for turn in intro + PodcastScript.fallbackTurns(for: card) {
-            XCTAssertNil(PodcastSpeechCheck.problem(in: turn.text), turn.text)
-        }
-        let content = PodcastPrompt.content(for: .init(card: card, forumName: "Example", index: 1, count: 1, previousTitle: nil, topicText: ""))
-        XCTAssertTrue(content.contains("Topic: Solved error after"), content)
-    }
+    // MARK: Read aloud
 
     func testAFailedReadAloudLeavesNothingLoadedSoTheNextTapTriesAgain() async throws {
         let harness = makeHarness()
@@ -739,19 +328,16 @@ final class PodcastTests: XCTestCase {
             return FakeSpeechEngine()
         }
 
-        // Explicit reading language (Simplified Chinese while UI is English).
         app.settings.readingLanguage = "zh-Hans"
         app.podcast.readAloud(id: "zh-setting", title: "测试标题", text: "这是一个关于论坛帖子的中文总结。")
         app.podcast.cancelReadAloud()
         app.podcast.player.unload(forgettingPosition: true)
 
-        // Explicit regional reading language ("pt-BR") is preserved even when NaturalLanguage detects base "pt" or nil.
         app.settings.readingLanguage = "pt-BR"
         app.podcast.readAloud(id: "pt-setting", title: "Resumo", text: "Este é um resumo completo sobre o tópico do fórum.")
         app.podcast.cancelReadAloud()
         app.podcast.player.unload(forgettingPosition: true)
 
-        // Default reading language ("") still detects unambiguous Chinese text instead of passing English UI locale.
         app.settings.readingLanguage = ""
         app.podcast.readAloud(id: "zh-detected", title: "中文总结", text: "这是一个关于论坛帖子的中文总结，详细说明了固件升级后的解决方法。")
         app.podcast.cancelReadAloud()
@@ -770,165 +356,21 @@ final class PodcastTests: XCTestCase {
         app.podcast.readAloud(id: "summary-err", title: "Topic", text: "A short summary to speak aloud.")
         try await waitUntil { app.podcast.player.playlist == nil }
         XCTAssertNotNil(app.presentedError, "Failed Read aloud must present an error alert instead of failing silently")
-        XCTAssertNil(app.podcast.episodeError, "Read aloud failure must not leak into Today's Now Playing episode error")
     }
 
-    func testEpisodesGoWithTheirDigestAndAfterSevenDays() throws {
+    func testReconcilePrunesLegacyEpisodeFoldersAndKeepsFreshReadAloudAudio() throws {
         let folder = temporaryFolder()
         let store = PodcastStore(directory: folder)
-        let kept = UUID(), orphan = UUID(), old = UUID()
-        for id in [kept, orphan, old] {
-            store.save(PodcastEpisode(digestID: id, day: "2026-10-20", createdAt: id == old ? Date().addingTimeInterval(-8 * 86_400) : Date(),
-                                      title: "T", language: "en", hosts: PodcastHosts(a: "A", b: "B"), engine: .onDevice,
-                                      minutesPerChapter: 1, entries: []))
-        }
-        let deleted = store.reconcile(keeping: [kept, old])
-        XCTAssertEqual(Set(deleted), [orphan, old])
-        XCTAssertNotNil(store.load(digestID: kept))
-        XCTAssertNil(store.load(digestID: orphan))
+        let legacyDir = folder.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try FileManager.default.createDirectory(at: legacyDir, withIntermediateDirectories: true)
+        try Data("old".utf8).write(to: legacyDir.appendingPathComponent("episode.json"))
+        try FileManager.default.createDirectory(at: store.readAloudDirectory, withIntermediateDirectories: true)
+        let freshFile = store.readAloudDirectory.appendingPathComponent("fresh.wav")
+        try Data("audio".utf8).write(to: freshFile)
 
-        // A chapter whose file iOS purged is spoken again.
-        var episode = try XCTUnwrap(store.load(digestID: kept))
-        episode.entries = [PodcastEpisode.Entry(chapter: .intro(title: "Hi"), audioFile: "chapter-1.wav", duration: 3, state: .ready)]
-        store.save(episode)
-        XCTAssertEqual(store.load(digestID: kept)?.entries.first?.state, .pending)
-    }
-
-    func testDeletingADigestOrAllDigestsDeletesTheirPodcasts() async throws {
-        let harness = makeHarness()
-        let app = harness.app
-        connect(app)
-        let today = completeDigest(cards: 1)
-        var earlier = completeDigest(cards: 1)
-        earlier.day = "2026-10-01"
-        app.digests = [today, earlier]
-        app.podcast.makeEngine = { _, _, _ in FakeSpeechEngine() }
-        harness.ai.answers = [#"{"turns":[{"speaker":"A","text":"Hi."},{"speaker":"B","text":"Hello."}]}"#]
-        app.podcast.make()
-        try await waitUntil { app.podcast.episode?.isComplete == true }
-        // An earlier digest's episode, made on its day.
-        let store = app.podcast.store
-        store.save(PodcastEpisode(digestID: earlier.id, day: earlier.day, title: "T", language: "en", hosts: PodcastHosts(a: "A", b: "B"),
-                                  engine: .onDevice, minutesPerChapter: 1, entries: []))
-        app.podcast.playEpisode()
-        XCTAssertEqual(app.podcast.player.playlist?.id, today.id.uuidString)
-
-        app.deleteDigest(id: earlier.id)
-        XCTAssertNil(store.load(digestID: earlier.id))
-        XCTAssertNotNil(store.load(digestID: today.id))
-
-        // Made again: a new digest id, so the old episode goes and stops playing.
-        app.deleteAllDigests()
-        XCTAssertNil(store.load(digestID: today.id))
-        XCTAssertNil(app.podcast.episode)
-        XCTAssertNil(app.podcast.player.playlist)
-        XCTAssertFalse(FileManager.default.fileExists(atPath: store.folder(for: today.id).path))
-    }
-
-    // MARK: Helpers
-
-    private var isEnglish: Bool { AppLanguage.current == "en" }
-
-    private func card(_ id: String, firstNew: Int? = nil, answer: Int? = nil) -> DigestCard {
-        var card = DigestCard(
-            siteURL: site, topicID: id, title: "Topic \(id)", slug: "topic-\(id)",
-            reason: firstNew.map { _ in .newReplies(7) } ?? .trending, postCount: 12,
-            firstNewPost: firstNew, acceptedAnswerPost: answer
-        )
-        card.summary = "People discuss topic \(id); the original poster found a workaround."
-        card.state = .done
-        return card
-    }
-
-    private func grounding(_ card: DigestCard) -> String {
-        PodcastPrompt.content(for: .init(card: card, forumName: "Example", index: 1, count: 1, previousTitle: nil, topicText: ""))
-    }
-
-    private func completeDigest(cards: Int) -> DailyDigest {
-        var digest = DailyDigest(day: DailyDigest.dayKey(for: Date()), cards: (1...cards).map { card("\($0 + 100)") })
-        digest.completedAt = Date()
-        return digest
-    }
-
-    func testSwitchingUnfinishedPodcastToGoogleChecksKeyBeforePlayingAndUpdatesEngine() async throws {
-        let folder = temporaryFolder()
-        let store = PersistentStore(fileURL: folder.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
-        var seeded = AppSnapshot()
-        seeded.ensureForum(site)
-        try? store.save(seeded)
-        let ai = PodcastAIStub()
-        ai.answers = [#"{"title":"Topic 1","turns":[{"speaker":"A","text":"One."},{"speaker":"B","text":"Two."}]}"#]
-        let fakeAudio = FakePodcastAudio()
-        let fakePlayer = PodcastPlayer(audio: fakeAudio, session: FakePodcastSession(), nowPlaying: SystemPodcastNowPlaying())
-        let podcastDir = folder.appendingPathComponent("Podcasts", isDirectory: true)
-        let app = AppModel(
-            store: store,
-            aiService: ai,
-            backgroundScheduler: FakeTaskScheduler(),
-            podcastDirectory: podcastDir
-        )
-        let fakePodcast = PodcastController(app: app, store: PodcastStore(directory: podcastDir), player: fakePlayer)
-        var engineKindsRequested: [PodcastEngineKind] = []
-        let gatedSpeech = GatedSpeechEngine()
-        fakePodcast.makeEngine = { kind, _, _ in
-            engineKindsRequested.append(kind)
-            return gatedSpeech
-        }
-
-        connect(app)
-        app.digests = [completeDigest(cards: 1)]
-
-        app.settings.podcast.engine = .onDevice
-        fakePodcast.make(play: false)
-        try await waitUntil { gatedSpeech.attempts == 1 && gatedSpeech.waiting }
-        gatedSpeech.release()
-        try await waitUntil { fakePodcast.episode?.entries.first?.state == .ready && gatedSpeech.attempts == 2 && gatedSpeech.waiting }
-        fakePodcast.pauseGeneration()
-        gatedSpeech.gated = false
-        gatedSpeech.release()
-        XCTAssertEqual(fakePodcast.episode?.isComplete, false)
-
-        // Subcase A: User switches setting to Google voices WITHOUT adding a Google key, then taps Play/Make (`make(play: true)`):
-        app.settings.podcast.engine = .google
-        fakePodcast.make(play: true)
-        let playedWhileMissingKey = fakeAudio.isPlaying
-        let missingKeyErrorPresented = app.presentedError != nil
-        fakePlayer.unload()
-
-        // Subcase B: User now adds a Gemini API key, then taps Make Podcast (`make(play: false)`):
-        var geminiConfig = app.settings.configuration(for: .gemini)
-        geminiConfig.apiKey = "gemini-key"
-        app.setConfiguration(geminiConfig, for: .gemini)
-        engineKindsRequested.removeAll()
-        fakePodcast.make(play: false)
-        try await waitUntil { fakePodcast.episode?.isComplete == true }
-
-        XCTAssertFalse(
-            playedWhileMissingKey && missingKeyErrorPresented,
-            "make(play: true) must not start playing partial on-device audio when Google engine fails key check"
-        )
-        XCTAssertEqual(
-            engineKindsRequested.last,
-            .aiStudio,
-            "Switching from .onDevice to .google on an unfinished episode must synthesize remaining chapters with .aiStudio"
-        )
-        XCTAssertEqual(fakePodcast.episode?.engine, .aiStudio)
-    }
-
-    func testTodayPageObservesPodcastControllerForMenuActions() throws {
-        let harness = makeHarness()
-        let app = harness.app
-        let page = TodayPage(app: app, onOpen: { _, _ in })
-        let observedObjects = Mirror(reflecting: page).children.compactMap { child -> String? in
-            let typeName = String(describing: type(of: child.value))
-            guard typeName.contains("ObservedObject") else { return nil }
-            return "\(child.label ?? ""): \(typeName)"
-        }
-        let observesPodcast = observedObjects.contains { $0.contains("PodcastController") }
-        XCTAssertTrue(
-            observesPodcast,
-            "TodayPage must observe PodcastController via @ObservedObject so toolbar menu and section react to episode completion"
-        )
+        store.reconcile()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: legacyDir.path))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: freshFile.path))
     }
 
     func testSystemPodcastAudioSessionRestoresPlaybackAfterVoiceEnds() throws {
@@ -940,8 +382,6 @@ final class PodcastTests: XCTestCase {
         }
         let podcastSession = SystemPodcastAudioSession()
 
-        // 1. While VoiceAudioEngine holds an active session lease, read-aloud /
-        //    podcast playback leaves .playAndRecord / .voiceChat untouched.
         try shared.setCategory(.playAndRecord, mode: .voiceChat, options: [.allowBluetoothHFP, .allowBluetoothA2DP, .defaultToSpeaker])
         lease.acquire()
         XCTAssertTrue(VoiceAudioEngine.hasActiveSession)
@@ -951,9 +391,6 @@ final class PodcastTests: XCTestCase {
         podcastSession.deactivate()
         XCTAssertEqual(shared.category, .playAndRecord)
 
-        // 2. When VoiceAudioEngine.stop() releases its lease (leaving category/mode
-        //    on the shared AVAudioSession), later playback switches back to
-        //    .playback / .spokenAudio instead of staying in .voiceChat / HFP.
         lease.release()
         XCTAssertFalse(VoiceAudioEngine.hasActiveSession)
         try? shared.setActive(false, options: .notifyOthersOnDeactivation)
@@ -964,9 +401,11 @@ final class PodcastTests: XCTestCase {
         podcastSession.deactivate()
     }
 
+    // MARK: Helpers
+
     private static func playlist(durations: [TimeInterval?]) -> PodcastPlaylist {
-        PodcastPlaylist(id: "episode", title: "Today", items: durations.enumerated().map { index, duration in
-            PodcastPlaylist.Item(id: "\(index)", title: "Chapter \(index)", url: duration.map { _ in URL(fileURLWithPath: "/tmp/\(index).wav") }, duration: duration)
+        PodcastPlaylist(id: "read-aloud:test", title: "Summary", items: durations.enumerated().map { index, duration in
+            PodcastPlaylist.Item(id: "\(index)", title: "Chunk \(index)", url: duration.map { _ in URL(fileURLWithPath: "/tmp/\(index).wav") }, duration: duration)
         })
     }
 
@@ -991,20 +430,18 @@ final class PodcastTests: XCTestCase {
         let folder = temporaryFolder()
         let store = PersistentStore(fileURL: folder.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
         let ai = PodcastAIStub()
-        // Links resolve their adapter from the forum record a real session has.
         var seeded = AppSnapshot()
         seeded.ensureForum(site)
         try? store.save(seeded)
         let app = AppModel(
             store: store,
             aiService: ai,
-            backgroundScheduler: FakeTaskScheduler(),
             podcastDirectory: folder.appendingPathComponent("Podcasts", isDirectory: true)
         )
         app.usesDirectForumRequests = true
         app.browser.onPageContextChanged = nil
         addTeardownBlock { @MainActor in
-            app.podcast.pauseGeneration()
+            app.podcast.cancelReadAloud()
             app.podcast.player.unload()
         }
         return Harness(app: app, ai: ai)
@@ -1033,7 +470,6 @@ final class PodcastTests: XCTestCase {
 
 // MARK: - Fakes
 
-/// Answers `complete` from a list (the last one repeats) and records calls.
 final class PodcastAIStub: AIService, @unchecked Sendable {
     struct Call {
         var system: String
@@ -1073,7 +509,6 @@ final class FakeSpeechEngine: PodcastSpeechEngine {
     }
 }
 
-/// Holds each chapter (while `gated`) until `release()`.
 @MainActor
 final class GatedSpeechEngine: PodcastSpeechEngine {
     private(set) var attempts = 0
@@ -1124,7 +559,6 @@ final class FakePodcastAudio: PodcastAudioPlayback {
     func pause() { isPlaying = false }
     func stop() { isPlaying = false }
 
-    /// The loaded file played to its end.
     func finish() {
         isPlaying = false
         onFinish?()
@@ -1141,22 +575,6 @@ final class FakePodcastSession: PodcastAudioSessioning {
     var routeIsHandsFree: Bool { handsFree }
 }
 
-@MainActor
-final class FakeVoiceStarter: PodcastVoiceStarting {
-    var isActive = false
-    var onFinished: (() -> Void)?
-    private(set) var starts = 0
-
-    func start() { starts += 1 }
-
-    func finish() {
-        let callback = onFinished
-        onFinished = nil
-        callback?()
-    }
-}
-
-/// Google's TTS endpoint in a box: answers with queued responses.
 final class TTSStub: URLProtocol {
     nonisolated(unsafe) static var responses: [(Int, Data)] = []
     nonisolated(unsafe) static var requests: [URLRequest] = []
