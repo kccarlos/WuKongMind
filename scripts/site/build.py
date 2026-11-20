@@ -43,6 +43,9 @@ def is_tbd(value):
 
 # --- Markdown (the small subset PRIVACY.md and TERMS.md use; anything else fails the build) ---
 
+UNSUPPORTED = re.compile(r"(\||```|\d+\.|\* |<(?!https?://))")
+
+
 def inline(text, blob):
     codes = []
 
@@ -60,6 +63,7 @@ def inline(text, blob):
         return '<a href="%s">%s</a>' % (html.escape(href, quote=True), m.group(1))
 
     text = re.sub(r"\[([^\]]+)\]\(([^)\s]+)\)", link, text)
+    text = re.sub(r"&lt;(https?://[^\s&]+)&gt;", r'<a href="\1">\1</a>', text)
     text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
     text = re.sub(r"(?<![*\w])\*([^*\n]+)\*(?![*\w])", r"<em>\1</em>", text)
     return re.sub("\x00(\\d+)\x00", lambda m: "<code>%s</code>" % codes[int(m.group(1))], text)
@@ -105,11 +109,13 @@ def markdown(src, blob):
             if any("[!" in q for q in quote):
                 fail("alert blockquote")
             out.append("<blockquote><p>%s</p></blockquote>" % inline(" ".join(quote), blob))
-        elif re.match(r"(\||```|\d+\.|\* |<)", line):
+        elif UNSUPPORTED.match(line):
             fail("unsupported construct")
         else:
             para = []
             while i < len(lines) and lines[i].strip() and not re.match(r"(#|\s*- |>)", lines[i]):
+                if UNSUPPORTED.match(lines[i]):
+                    raise SystemExit("markdown: unsupported construct: %r" % lines[i])
                 para.append(lines[i].strip())
                 i += 1
             out.append("<p>%s</p>" % inline(" ".join(para), blob))
@@ -146,7 +152,7 @@ def sub(template, values, where):
 
 
 def directory(lang, page):
-    return os.path.join("" if lang == "en" else lang, "" if page == "home" else page)
+    return "/".join(x for x in ("" if lang == "en" else lang, "" if page == "home" else page) if x)
 
 
 def href(from_dir, to_dir, fragment=""):
@@ -279,6 +285,8 @@ def check(out):
     for path, p in parsed.items():
         for url in p.links:
             if re.match(r"(https?:|mailto:)", url):
+                if "//" in re.sub(r"^https?://", "", url):
+                    problems.append("%s: malformed URL (double slash) %s" % (os.path.relpath(path, out), url))
                 external += 1
                 continue
             internal += 1
