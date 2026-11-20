@@ -736,7 +736,7 @@ struct DrawerHeader: View, Equatable {
     private var headerStatusOrPageSeal: some View {
         if let step = model.foldedStep {
             HStack(spacing: 6) {
-                DCAgentRing(size: 14, lineWidth: 2, isTurning: !reduceMotion)
+                DCAgentRing(state: .working, size: 14, lineWidth: 2)
                 Text("Step \(step)", comment: "Folded header status during an Agent run while the keyboard is up; placeholder is step number")
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(DCTheme.goldInk)

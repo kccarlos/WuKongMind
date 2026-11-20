@@ -430,10 +430,14 @@ struct DCActionButtonStyle: ButtonStyle {
 
 /// Toolbar / inline icon button with a guaranteed 44×44pt hit target and no bounce.
 struct DCIconButtonStyle: ButtonStyle {
+    @Environment(\.isFocused) private var isFocused
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .frame(minWidth: DCTheme.controlHeight, minHeight: DCTheme.controlHeight)
             .contentShape(Rectangle())
+            .hoverEffect(.highlight)
+            .dcFocusRing(isFocused, cornerRadius: DCTheme.radiusMd)
             .opacity(configuration.isPressed ? 0.65 : 1)
     }
 }
@@ -901,45 +905,219 @@ struct DCListRow<Leading: View, Trailing: View>: View {
     }
 }
 
-/// The signature gold band: an open circle with a `gold` stroke and nothing inside.
-/// Turns continuously (~1.1s linear revolution) only while the Agent is working, and
-/// stands still when Reduce Motion is enabled.
+/// The six states of the Agent ring (`docs/wukongmind/design-motion.md` §2).
+/// Every state has a distinct still picture and accessibility word so meaning is
+/// never carried by motion or colour alone.
+enum AgentRingState: Equatable, Hashable, CaseIterable, Sendable {
+    case idle
+    case working
+    case needsYou
+    case done
+    case failed
+    case unavailable
+
+    /// The motion a ring should run for a given state, panel visibility and Reduce Motion setting.
+    enum Motion: Equatable, Sendable {
+        case still
+        case turning
+        case closeGap
+    }
+
+    /// One pure mapping from app and session state to the ring state.
+    static func resolve(
+        isAvailable: Bool,
+        hasPendingConfirmation: Bool,
+        runState: BrowserAgentRunState,
+        lastRunID: UUID?,
+        seenRunID: UUID?,
+        hasActiveResearch: Bool = false,
+        hasReadyAnswer: Bool = false
+    ) -> AgentRingState {
+        guard isAvailable else { return .unavailable }
+        if hasPendingConfirmation { return .needsYou }
+        if runState.isRunning || hasActiveResearch { return .working }
+        if let lastRunID, lastRunID != seenRunID {
+            switch runState {
+            case .completed:
+                return .done
+            case .failed, .stepLimitReached:
+                return .failed
+            case .idle, .running, .stopped:
+                break
+            }
+        }
+        if hasReadyAnswer { return .done }
+        return .idle
+    }
+
+    /// Picks the motion for `DCAgentRing`. With Reduce Motion, every state is still;
+    /// while the panel is visible on the same surface, the bar ring stands still so
+    /// only the panel's ToolRow turns.
+    static func motion(for state: AgentRingState, panelVisible: Bool, reduceMotion: Bool) -> Motion {
+        guard !reduceMotion else { return .still }
+        switch state {
+        case .working:
+            return panelVisible ? .still : .turning
+        case .done:
+            return panelVisible ? .still : .closeGap
+        case .idle, .needsYou, .failed, .unavailable:
+            return .still
+        }
+    }
+
+    /// Word spoken by VoiceOver as the button's accessibility value (nil for `idle` and `unavailable`).
+    var accessibilityValue: String? {
+        switch self {
+        case .idle, .unavailable:
+            nil
+        case .working:
+            String(localized: "Working", comment: "Accessibility value of the AI button while the browser agent is working")
+        case .needsYou:
+            String(localized: "Needs your answer", comment: "Accessibility value of the AI button while the browser agent is waiting for confirmation")
+        case .done:
+            String(localized: "Answer ready", comment: "AI drawer status row: an Ask the forum answer finished")
+        case .failed:
+            String(localized: "Stopped with a problem", comment: "Accessibility value of the AI button when a browser agent run stopped with an error or step limit")
+        }
+    }
+}
+
+/// The signature gold band (`docs/wukongmind/design-motion.md` §2).
+/// Renders all six `AgentRingState` pictures from one component:
+/// - `idle`: open gold ring
+/// - `working`: gold arc on a hairline track (turns at ~1.1 s unless Reduce Motion or panel visible)
+/// - `needsYou`: gold ring with a question mark inside
+/// - `done`: closed gold ring with a check (one-shot 250 ms gap close unless Reduce Motion)
+/// - `failed`: warning ring with an exclamation mark inside
+/// - `unavailable`: `inkFaint` ring
 struct DCAgentRing: View {
+    var state: AgentRingState = .idle
     var size: CGFloat = 22
     var lineWidth: CGFloat = DCTheme.ringWidth
-    var isTurning = false
-    var isEnabled = true
+    var panelVisible = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var doneTrim: CGFloat = 1
+    @State private var showsDoneCheck = true
+    @State private var doneRevealTask: Task<Void, Never>?
 
     static let turnPeriod: TimeInterval = 1.1
+    static let doneCloseDuration: TimeInterval = 0.25
+    static let workingArcFraction: CGFloat = 0.74
+
+    private var activeMotion: AgentRingState.Motion {
+        AgentRingState.motion(for: state, panelVisible: panelVisible, reduceMotion: reduceMotion)
+    }
 
     var body: some View {
-        let strokeColor = isEnabled ? DCTheme.gold : DCTheme.inkFaint
-        Group {
-            if isTurning && !reduceMotion {
+        ringContent
+            .frame(width: size, height: size)
+            .accessibilityHidden(true)
+            .onChange(of: state) { oldState, newState in
+                doneRevealTask?.cancel()
+                doneRevealTask = nil
+                guard newState == .done else {
+                    doneTrim = 1
+                    showsDoneCheck = true
+                    return
+                }
+                if oldState == .working && activeMotion == .closeGap {
+                    doneTrim = Self.workingArcFraction
+                    showsDoneCheck = false
+                    withAnimation(.easeOut(duration: Self.doneCloseDuration)) {
+                        doneTrim = 1
+                    }
+                    doneRevealTask = Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(250))
+                        guard !Task.isCancelled else { return }
+                        withAnimation(.easeOut(duration: 0.12)) {
+                            showsDoneCheck = true
+                        }
+                    }
+                } else {
+                    doneTrim = 1
+                    showsDoneCheck = true
+                }
+            }
+            .onDisappear {
+                doneRevealTask?.cancel()
+                doneRevealTask = nil
+            }
+    }
+
+    @ViewBuilder
+    private var ringContent: some View {
+        switch state {
+        case .idle:
+            Circle()
+                .strokeBorder(DCTheme.gold, lineWidth: lineWidth)
+        case .unavailable:
+            Circle()
+                .strokeBorder(DCTheme.inkFaint, lineWidth: lineWidth)
+        case .working:
+            if activeMotion == .turning {
                 TimelineView(.animation) { context in
                     let phase = context.date.timeIntervalSinceReferenceDate
                         .truncatingRemainder(dividingBy: Self.turnPeriod) / Self.turnPeriod
-                    ZStack {
-                        Circle()
-                            .strokeBorder(DCTheme.hairline, lineWidth: lineWidth)
-                        Circle()
-                            .inset(by: lineWidth / 2)
-                            .trim(from: 0, to: 0.74)
-                            .stroke(
-                                strokeColor,
-                                style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
-                            )
-                            .rotationEffect(.degrees(phase * 360 - 90))
-                    }
+                    workingArc(rotationDegrees: phase * 360 - 90)
                 }
             } else {
+                workingArc(rotationDegrees: -90)
+            }
+        case .needsYou:
+            ZStack {
                 Circle()
-                    .strokeBorder(strokeColor, lineWidth: lineWidth)
+                    .strokeBorder(DCTheme.gold, lineWidth: lineWidth)
+                Image(systemName: "questionmark")
+                    .font(.system(size: max(8, size * 0.44), weight: .bold))
+                    .foregroundStyle(DCTheme.goldInk)
+            }
+        case .done:
+            ZStack {
+                if doneTrim < 0.999 {
+                    Circle()
+                        .strokeBorder(DCTheme.hairline, lineWidth: lineWidth)
+                    Circle()
+                        .inset(by: lineWidth / 2)
+                        .trim(from: 0, to: doneTrim)
+                        .stroke(
+                            DCTheme.gold,
+                            style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                        )
+                        .rotationEffect(.degrees(-90))
+                } else {
+                    Circle()
+                        .strokeBorder(DCTheme.gold, lineWidth: lineWidth)
+                }
+                if showsDoneCheck {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: max(8, size * 0.44), weight: .bold))
+                        .foregroundStyle(DCTheme.goldInk)
+                }
+            }
+        case .failed:
+            ZStack {
+                Circle()
+                    .strokeBorder(DCTheme.warning, lineWidth: lineWidth)
+                Image(systemName: "exclamationmark")
+                    .font(.system(size: max(8, size * 0.44), weight: .bold))
+                    .foregroundStyle(DCTheme.warning)
             }
         }
-        .frame(width: size, height: size)
-        .accessibilityHidden(true)
+    }
+
+    private func workingArc(rotationDegrees: Double) -> some View {
+        ZStack {
+            Circle()
+                .strokeBorder(DCTheme.hairline, lineWidth: lineWidth)
+            Circle()
+                .inset(by: lineWidth / 2)
+                .trim(from: 0, to: Self.workingArcFraction)
+                .stroke(
+                    DCTheme.gold,
+                    style: StrokeStyle(lineWidth: lineWidth, lineCap: .round)
+                )
+                .rotationEffect(.degrees(rotationDegrees))
+        }
     }
 }
 

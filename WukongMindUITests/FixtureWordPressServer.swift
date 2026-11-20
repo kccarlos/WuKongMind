@@ -43,6 +43,8 @@ final class FixtureWordPressServer: @unchecked Sendable {
     /// When set, a summary streams this long answer a chunk at a time, so a
     /// performance test has a real stream to measure under.
     var streamedSummary: (chunks: [String], interval: TimeInterval)?
+    /// Optional override for tool-calling `/api/chat` turns (`body["tools"] != nil`).
+    var toolChatHandler: (([[String: Any]]) -> [String: Any])?
 
     private let queue = DispatchQueue(label: "fixture-wordpress")
     private let lock = NSLock()
@@ -261,6 +263,9 @@ final class FixtureWordPressServer: @unchecked Sendable {
         let body = (try? JSONSerialization.jsonObject(with: request.body)) as? [String: Any]
         let messages = body?["messages"] as? [[String: Any]] ?? []
         if body?["tools"] != nil {
+            if let toolChatHandler {
+                return json(toolChatHandler(messages))
+            }
             if messages.contains(where: { ($0["role"] as? String) == "tool" }) {
                 return json(["message": ["role": "assistant", "content": "Summarized above."], "done": true, "done_reason": "stop"])
             }

@@ -12105,6 +12105,23 @@
         }
       }
     },
+    "Needs your answer" : {
+      "comment" : "Accessibility value of the AI button while the browser agent is waiting for confirmation",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要你确认"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "需要你確認"
+          }
+        }
+      }
+    },
     "Network" : {
       "comment" : "Developer mode sheet title\nThis page developer row",
       "localizations" : {
@@ -20311,6 +20328,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "不再執行於"
+          }
+        }
+      }
+    },
+    "Stopped with a problem" : {
+      "comment" : "Accessibility value of the AI button when a browser agent run stopped with an error or step limit",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "因问题已停止"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "因問題已停止"
           }
         }
       }

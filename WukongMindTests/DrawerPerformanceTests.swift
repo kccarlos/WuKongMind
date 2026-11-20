@@ -36,6 +36,8 @@ final class DrawerPerformanceTests: XCTestCase {
         var runs = 0
         /// Posts in the thread shape the first tool row of every run carries; 0 for none.
         var shapePosts = 0
+        /// Active run in progress with a running ToolRow (turning ring) and folded header while typing.
+        var hasRunningRun = false
     }
 
     static let siteURL = "https://meta.discourse.org"
@@ -188,6 +190,23 @@ final class DrawerPerformanceTests: XCTestCase {
         if fixture.runs > 0 {
             app.browserAgent.restoreConversation(Self.conversation(runs: fixture.runs, shapePosts: fixture.shapePosts))
         }
+        if fixture.hasRunningRun {
+            app.selectModel(ModelSelection(provider: .ollama, model: "llama3.1"), for: .role(.browserAgent))
+            let client = RecordedModelClient([
+                .success(AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [AgentModelToolCall(id: "running_1", name: "wait_for", arguments: ["ms": .int(60_000)])],
+                    usage: AgentTokenUsage(inputTokens: 1_000, outputTokens: 40)
+                )),
+                .success(AgentModelTurnResponse(text: "Done.", usage: AgentTokenUsage(inputTokens: 1_000, outputTokens: 20)))
+            ])
+            app.browserAgent.configureDebugModelClient(client)
+            app.browserAgent.send("Check this thread")
+            let deadline = Date().addingTimeInterval(3)
+            while !(app.browserAgent.isRunning && app.browserAgent.toolCalls.contains(where: \.isRunning)), Date() < deadline {
+                RunLoop.current.run(until: Date().addingTimeInterval(0.02))
+            }
+        }
         return app
     }
 
@@ -280,6 +299,14 @@ final class DrawerPerformanceTests: XCTestCase {
         let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
         window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
         defer {
+            if fixture.hasRunningRun {
+                app.browserAgent.stop()
+                NotificationCenter.default.post(
+                    name: UIResponder.keyboardWillHideNotification,
+                    object: nil,
+                    userInfo: [UIResponder.keyboardIsLocalUserInfoKey: true]
+                )
+            }
             window.isHidden = true
             window.rootViewController = nil
         }
@@ -307,6 +334,17 @@ final class DrawerPerformanceTests: XCTestCase {
         let editor = Self.descendants(of: host.view, as: UITextView.self).first
         let field = Self.descendants(of: host.view, as: UITextField.self).first
         XCTAssertTrue(editor != nil || field != nil, "The composer's text input was not found")
+        if fixture.hasRunningRun {
+            XCTAssertTrue(app.browserAgent.isRunning, "Running fixture did not start a run")
+            XCTAssertTrue(app.browserAgent.toolCalls.contains(where: \.isRunning), "Running fixture has no running tool row")
+            _ = editor?.becomeFirstResponder() ?? field?.becomeFirstResponder()
+            NotificationCenter.default.post(
+                name: UIResponder.keyboardWillShowNotification,
+                object: nil,
+                userInfo: [UIResponder.keyboardIsLocalUserInfoKey: true]
+            )
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        }
         var keystrokes: [Double] = []
         PerfProbe.reset()
         let typed = 12
@@ -479,6 +517,7 @@ final class DrawerPerformanceTests: XCTestCase {
     func testDrawerOnLongThreads() {
         let fixtures = [
             Fixture(name: "baseline"),
+            Fixture(name: "running", hasRunningRun: true),
             Fixture(name: "source-100", sourcePosts: 100),
             Fixture(name: "source-500", sourcePosts: 500),
             Fixture(name: "source-2000", sourcePosts: 2_000),
