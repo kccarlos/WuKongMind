@@ -292,19 +292,57 @@ enum PerfTimeline {
     }
 }
 
-/// `-dc-perf-probe`: the last closed `PerfTimeline` window as the `perfTimeline` accessibility element.
+/// `-dc-perf-probe`: the last closed `PerfTimeline` window as the `perfTimeline` accessibility element,
+/// plus cumulative address-bar counts (`perfAddressProbeState`).
 struct PerfTimelineState: View {
     @ObservedObject private var store = PerfTimeline.store
+    @State private var addressState = ""
+    private let ticks = Timer.publish(every: 0.5, on: .main, in: .common).autoconnect()
+
+    private static func currentAddressState() -> String {
+        let main = PerfProbe.mainThreadReport
+        let probe = PerfProbe.snapshot
+        var fields = [
+            "passes=\(main.passes)",
+            "busy_ms=\(Int(main.busySeconds * 1_000))"
+        ]
+        for (index, threshold) in PerfProbe.MainThreadReport.thresholds.enumerated() {
+            fields.append("over\(Int(threshold * 1_000))=\(main.over[index])")
+        }
+        for name in ["HomeList.body", "AddressEditBar.body"] {
+            fields.append("n:\(name)=\(probe.counts[name] ?? 0)")
+        }
+        for name in ["HomeSites.matches", "AddressInput.actions"] {
+            fields.append("n:\(name)=\(probe.counts[name] ?? 0)")
+            fields.append("us:\(name)=\(Int((probe.seconds[name] ?? 0) * 1_000_000))")
+        }
+        return fields.joined(separator: " ")
+    }
 
     var body: some View {
-        Text(verbatim: "t")
-            .font(.system(size: 2))
-            .frame(width: 4, height: 4)
-            .opacity(0.02)
-            .allowsHitTesting(false)
-            .accessibilityLabel(Text(verbatim: store.text.isEmpty ? "n=0" : store.text))
-            .accessibilityIdentifier("perfTimeline")
-            .onAppear { PerfTimeline.install() }
+        ZStack {
+            Text(verbatim: "t")
+                .font(.system(size: 2))
+                .frame(width: 4, height: 4)
+                .opacity(0.02)
+                .allowsHitTesting(false)
+                .accessibilityLabel(Text(verbatim: store.text.isEmpty ? "n=0" : store.text))
+                .accessibilityIdentifier("perfTimeline")
+                .onAppear { PerfTimeline.install() }
+
+            Text(verbatim: addressState)
+                .font(.system(size: 2))
+                .frame(width: 4, height: 4)
+                .opacity(0.02)
+                .allowsHitTesting(false)
+                .accessibilityLabel(Text(verbatim: addressState))
+                .accessibilityIdentifier("perfAddressProbeState")
+                .onAppear {
+                    PerfProbe.startMainThreadMonitor()
+                    addressState = Self.currentAddressState()
+                }
+                .onReceive(ticks) { _ in addressState = Self.currentAddressState() }
+        }
     }
 }
 #endif
