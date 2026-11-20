@@ -39,6 +39,8 @@ final class OnboardingUITests: DCUITestCase {
         XCTAssertTrue(reveal(any(app, "onboardingProvider-other"), in: app), "Other provider is not offered.")
         XCTAssertTrue(reveal(any(app, "onboardingProvider-openrouter"), in: app), "OpenRouter is not offered.")
         XCTAssertTrue(reveal(any(app, "onboardingProvider-openai"), in: app), "OpenAI is not offered.")
+        XCTAssertTrue(reveal(any(app, "onboardingAgentNotice"), in: app), "First-run notice about Agent acting on signed-in pages is missing.")
+        capture("onboarding-step1-agent-notice")
         XCTAssertTrue(waitForHittable(app.buttons["onboardingContinue"]))
         let later = app.buttons["onboardingSkipStep"]
         XCTAssertTrue(waitForHittable(later))

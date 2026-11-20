@@ -478,7 +478,8 @@ final class ScriptStoreCoreTests: XCTestCase {
             bridge: driver,
             scriptStore: store,
             currentUserPrompt: { "Always hide replies on example.com" },
-            truncationLimit: 600
+            truncationLimit: 600,
+            saveScriptsWithoutAsking: true
         )
 
         // 1. script_save saves to disk, records user prompt, and applies immediately to matching page
@@ -659,7 +660,8 @@ final class ScriptStoreCoreTests: XCTestCase {
                     scriptStore: store,
                     currentUserPrompt: { sessionRef?.lastUserPrompt },
                     truncationLimit: limit,
-                    redactedSecrets: secrets
+                    redactedSecrets: secrets,
+                    saveScriptsWithoutAsking: true
                 )
             }
         )
@@ -1192,7 +1194,7 @@ extension ScriptStoreCoreTests {
     @MainActor
     func testScriptToolsAcceptValidateAndReturnGrantsAndHosts() async throws {
         let store = ScriptStore(directoryURL: tempDirectory)
-        let registry = ToolRegistry.m2(bridge: StubDriver(), scriptStore: store)
+        let registry = ToolRegistry.m2(bridge: StubDriver(), scriptStore: store, saveScriptsWithoutAsking: true)
 
         let saved = try await registry.dispatch(
             toolName: "script_save",

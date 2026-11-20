@@ -200,27 +200,76 @@ final class CapabilityToolsTests: XCTestCase {
         XCTAssertTrue(h.app.isWatched(topicKey: "other.example.org/t/77"))
     }
 
-    func testNotifyRequestsPermissionAndReturnsErrorWhenDenied() async throws {
+    func testNotifyDoesNotRequestPermissionAndRespectsConfirmBeforeWrites() async throws {
         let box = NotificationProbe()
         let h = makeHarness(gatedAI: false, notifier: WatchNotifier(backend: box.backend))
         let registry = makeRegistry(h.app)
 
+        // With authorization .notDetermined, notify must NOT raise the system permission prompt.
         box.status = .notDetermined; box.grantResult = true
+        let undetermined = try await registry.dispatch(toolName: "notify", arguments: ["title": .string("Done"), "body": .string("Crawl finished.")])
+        XCTAssertTrue(undetermined.isError, "notify must fail when notification permission was not already granted in Settings")
+        XCTAssertEqual(box.promptCount, 0, "notify must never request notification permission on its own")
+        XCTAssertEqual(box.requests.count, 0)
+
+        // When already authorized (and confirmBeforeWrites is false), notify sends immediately.
+        box.status = .authorized
         let ok = try await registry.dispatch(toolName: "notify", arguments: ["title": .string("Done"), "body": .string("Crawl finished.")])
         XCTAssertFalse(ok.isError, ok.output)
         XCTAssertEqual(ok.resultSummary, "Done")
-        XCTAssertEqual(box.promptCount, 1); XCTAssertEqual(box.requests.count, 1)
+        XCTAssertEqual(box.promptCount, 0); XCTAssertEqual(box.requests.count, 1)
         XCTAssertEqual(box.requests.first?.content.title, "Done"); XCTAssertEqual(box.requests.first?.content.body, "Crawl finished.")
 
         box.status = .denied
         let denied = try await registry.dispatch(toolName: "notify", arguments: ["title": .string("Done"), "body": .string("Again")])
         XCTAssertTrue(denied.isError)
-        XCTAssertEqual(box.promptCount, 1); XCTAssertEqual(box.requests.count, 1)
+        XCTAssertEqual(box.promptCount, 0); XCTAssertEqual(box.requests.count, 1)
 
-        box.status = .notDetermined; box.grantResult = false
-        let declined = try await registry.dispatch(toolName: "notify", arguments: ["title": .string("Done"), "body": .string("Declined")])
+        // With confirmBeforeWrites on, notify asks the confirmation gate first and fails closed without one.
+        box.status = .authorized
+        let noGateRegistry = ToolRegistry.m3(context: AgentToolContext(
+            bridge: FixturePageDriver(page: .init(url: site, title: "Stub")),
+            workspace: h.app.agentWorkspace,
+            scriptStore: h.app.scriptStore,
+            settings: AgentToolSettings(confirmBeforeWrites: true),
+            confirmations: nil,
+            capabilities: h.app.capabilityToolContext
+        ))
+        let failClosed = try await noGateRegistry.dispatch(toolName: "notify", arguments: ["title": .string("Blocked"), "body": .string("No gate")])
+        XCTAssertTrue(failClosed.isError)
+        XCTAssertEqual(box.requests.count, 1)
+
+        let gate = AgentConfirmationGate()
+        let gatedRegistry = ToolRegistry.m3(context: AgentToolContext(
+            bridge: FixturePageDriver(page: .init(url: site, title: "Stub")),
+            workspace: h.app.agentWorkspace,
+            scriptStore: h.app.scriptStore,
+            settings: AgentToolSettings(confirmBeforeWrites: true),
+            confirmations: gate,
+            capabilities: h.app.capabilityToolContext
+        ))
+
+        let denyTask = Task {
+            try await gatedRegistry.dispatch(toolName: "notify", arguments: ["title": .string("Alert"), "body": .string("Should not send")])
+        }
+        try await waitUntil { !gate.pending.isEmpty }
+        XCTAssertEqual(gate.pending.first?.tool, "notify")
+        XCTAssertEqual(gate.pending.first?.detail, "Should not send")
+        gate.resolve(try XCTUnwrap(gate.pending.first?.id), allow: false)
+        let declined = try await denyTask.value
         XCTAssertTrue(declined.isError)
-        XCTAssertEqual(box.promptCount, 2)
+        XCTAssertTrue(declined.output.contains(ToolRegistry.declinedMessage))
+        XCTAssertEqual(box.requests.count, 1)
+
+        let allowTask = Task {
+            try await gatedRegistry.dispatch(toolName: "notify", arguments: ["title": .string("Approved"), "body": .string("Ready now")])
+        }
+        try await waitUntil { !gate.pending.isEmpty }
+        gate.resolve(try XCTUnwrap(gate.pending.first?.id), allow: true)
+        let allowed = try await allowTask.value
+        XCTAssertFalse(allowed.isError, allowed.output)
+        XCTAssertEqual(box.requests.count, 2)
+        XCTAssertEqual(box.requests.last?.content.title, "Approved")
     }
 
     func testCapabilityLabelsAndCardsRenderUnderToolRow() async throws {
