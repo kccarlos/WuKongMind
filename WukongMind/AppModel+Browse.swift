@@ -380,6 +380,11 @@ extension AppModel {
             config.model = "claude-haiku-5-5"
             settings.setConfiguration(config, for: .anthropic)
             settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .assistant)
+            // Demo mode uses the local offline `BrowserAgentDemoClient` (never contacts
+            // Anthropic), so pre-allow consent unless a test explicitly checks the gate.
+            if !AssistantDebug.has("-dc-ask-ai-consent") {
+                settings.aiConsent[AIProvider.anthropic.rawValue] = .allowed(Date())
+            }
             if demoMode == "no-model" {
                 settings.setModel(ModelSelection(provider: .anthropic, model: ""), for: .browserAgent)
             } else if demoMode == "run-limit" {
