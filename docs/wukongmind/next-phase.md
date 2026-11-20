@@ -4,6 +4,8 @@
 
 **Precedence.** This document replaces the previous `docs/wukongmind/next-phase.md` wholesale and requires revising the unified interface design. Where it conflicts with any other document ([requirements.md](requirements.md), [README.md](README.md), [design-m1.md](design-m1.md), [design-m2.md](design-m2.md), [m0-module-map.md](m0-module-map.md) or `design-unified.md`), this document wins. Read sections 1 and 2 first.
 
+> **App Store decision note (2026-11-19).** The owner's decisions in [requirements.md §12](requirements.md#12-app-store-decisions-2026-11-19) and [app-store-review.md](app-store-review.md) supersede any earlier "self-use / not on the App Store / No App Store compliance" assumptions in this document (including the `PRIVACY.md` / `TERMS.md` / `SECURITY.md` default in section 11). WukongMind ships one build everywhere as an AI-assisted browser ([store-positioning.md](store-positioning.md)).
+
 The end state of 悟空 is: on any web page there is only one input box, the user asks whenever they need something, and behind it there is only one Agent loop; Forumind's summary, search, podcast and voice all become tools of this Agent, and when it meets a site it doesn't recognize, it learns on the spot.
 
 ## 1. What changed from the previous documents
