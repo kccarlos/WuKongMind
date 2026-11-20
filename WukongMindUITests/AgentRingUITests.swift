@@ -19,9 +19,13 @@ final class AgentRingUITests: DCUITestCase {
         super.tearDown()
     }
 
-    private func sendPrompt(_ prompt: String, in app: XCUIApplication) {
+    private func openAssistantAndSend(_ prompt: String, in app: XCUIApplication) {
         let input = app.textFields["agentPromptInput"]
-        XCTAssertTrue(waitOrDump(input, timeout: 15, in: app), "Composer input did not appear")
+        for _ in 0..<4 where !input.exists {
+            showAssistant(in: app)
+            _ = input.waitForExistence(timeout: 8)
+        }
+        XCTAssertTrue(waitOrDump(input, timeout: 10, in: app), "Composer input did not appear")
         input.tap()
         input.typeText(prompt)
         let send = app.buttons["agentSendButton"]
@@ -65,8 +69,7 @@ final class AgentRingUITests: DCUITestCase {
         let aiButton = app.buttons["aiButton"]
         XCTAssertTrue(waitOrDump(aiButton, timeout: 20, in: app), "aiButton did not appear")
 
-        showAssistant(in: app)
-        sendPrompt("Wait and report back", in: app)
+        openAssistantAndSend("Wait and report back", in: app)
         dismissDrawer(in: app)
 
         // While wait_for is running with the drawer closed, aiButton reads "Working".
@@ -120,8 +123,7 @@ final class AgentRingUITests: DCUITestCase {
         let aiButton = app.buttons["aiButton"]
         XCTAssertTrue(waitOrDump(aiButton, timeout: 20, in: app), "aiButton did not appear")
 
-        showAssistant(in: app)
-        sendPrompt("Post a request", in: app)
+        openAssistantAndSend("Post a request", in: app)
         dismissDrawer(in: app)
 
         // When the POST request pauses for confirmation, aiButton reads "Needs your answer".
