@@ -163,11 +163,16 @@ struct SiteToolState: Codable, Equatable, Sendable {
     var slots: [SiteToolSlot: SiteSlotState] = [:]
     var threadMatch: [String] = [], listMatch: [String] = []
     var log: [SiteLogEntry] = []
+    /// Set once the user approves a learned reading tool for this host through the review sheet.
+    var readerApproved: Bool? = nil
 
-    init(host: String, slots: [SiteToolSlot: SiteSlotState] = [:], threadMatch: [String] = [], listMatch: [String] = [], log: [SiteLogEntry] = []) {
+    var isReaderApproved: Bool { readerApproved == true }
+
+    init(host: String, slots: [SiteToolSlot: SiteSlotState] = [:], threadMatch: [String] = [], listMatch: [String] = [], log: [SiteLogEntry] = [], readerApproved: Bool? = nil) {
         self.host = Self.normalizedHost(host) ?? host.lowercased()
         self.slots = slots; self.threadMatch = threadMatch; self.listMatch = listMatch
         self.log = Array(log.prefix(Self.maxLogEntries))
+        self.readerApproved = readerApproved
     }
 
     func slot(_ slot: SiteToolSlot) -> SiteSlotState { slots[slot] ?? SiteSlotState() }

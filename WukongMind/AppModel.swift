@@ -530,10 +530,28 @@ final class AppModel: ObservableObject {
                         truncationLimit: limit,
                         redactedSecrets: secrets,
                         supportsImageInput: app.settings.browserAgentModel?.supportsImageInput ?? false,
-                        confirmBeforeWrites: app.settings.agentConfirmBeforeWrites
+                        confirmBeforeWrites: app.settings.agentConfirmBeforeWrites,
+                        saveScriptsWithoutAsking: app.settings.agentSaveScriptsWithoutAsking
                     ),
                     network: httpClient,
                     confirmations: confirmations,
+                    scriptApprover: { [weak appBox, weak sessionBox] review in
+                        guard let app = await appBox?.value else { return .declined }
+                        let tool = review.isUpdate ? "script_update" : "script_save"
+                        do {
+                            let decision = try await app.scriptImporter.requestAgentApproval(review: review)
+                            let answer: String = switch decision {
+                            case .approved(turnOn: true): "allowed"
+                            case .approved(turnOn: false): "allowed (off)"
+                            case .declined: "declined"
+                            }
+                            await sessionBox?.value?.recordConfirmation(tool: tool, question: review.candidate.name, answer: answer)
+                            return decision
+                        } catch is CancellationError {
+                            await sessionBox?.value?.recordConfirmation(tool: tool, question: review.candidate.name, answer: "stopped")
+                            throw CancellationError()
+                        }
+                    },
                     forum: forum,
                     learnedSite: forum == nil ? app.makeLearnedSiteContext(for: tabBrowser, pageToolBridge: pageToolBridge) : nil,
                     capabilities: tabBrowser.map { app.capabilityToolContext(for: $0, learnedSummaries: learnedSummaries) },

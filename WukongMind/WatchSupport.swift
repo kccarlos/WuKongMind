@@ -54,11 +54,7 @@ final class WatchNotifier: NSObject, UNUserNotificationCenterDelegate, @unchecke
     func requestAuthorization() async -> Bool { (try? await backend.requestAuthorization()) ?? false }
 
     func notify(title: String, body: String) async throws {
-        switch await backend.authorizationStatus() {
-        case .notDetermined: guard await requestAuthorization() else { throw NotifyError.permissionDenied }
-        case .authorized, .provisional, .ephemeral: break
-        default: throw NotifyError.permissionDenied
-        }
+        guard await isAuthorized() else { throw NotifyError.permissionDenied }
         let content = UNMutableNotificationContent()
         content.title = title; content.body = body; content.sound = .default
         try await backend.add(UNNotificationRequest(identifier: "agent-\(UUID().uuidString)", content: content, trigger: nil))

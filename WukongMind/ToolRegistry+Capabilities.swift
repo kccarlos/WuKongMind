@@ -76,7 +76,11 @@ extension ToolRegistry {
             makeSummarizeTopicTool(capabilities: capabilities, workspace: context.workspace, surface: surface),
             makeReadAloudTool(capabilities: capabilities, workspace: context.workspace, surface: surface),
             makeWatchTopicTool(capabilities: capabilities),
-            makeNotifyTool(capabilities: capabilities)
+            makeNotifyTool(
+                capabilities: capabilities,
+                confirmations: context.confirmations,
+                confirmBeforeWrites: context.settings.confirmBeforeWrites
+            )
         ]
     }
 
@@ -277,11 +281,15 @@ extension ToolRegistry {
         )
     }
 
-    private static func makeNotifyTool(capabilities: CapabilityToolContext) -> AgentTool {
+    private static func makeNotifyTool(
+        capabilities: CapabilityToolContext,
+        confirmations: AgentConfirmationGate?,
+        confirmBeforeWrites: Bool
+    ) -> AgentTool {
         AgentTool(
             definition: AgentToolDefinition(
                 name: "notify",
-                description: "Send an immediate local notification with 'title' and 'body'. Requests permission if not asked yet.",
+                description: "Send an immediate local notification with 'title' and 'body'. Requires notifications to be enabled in Settings.",
                 parameters: [
                     ToolParameterSchema(name: "title", type: .string, description: "Short notification title.", minLength: 1),
                     ToolParameterSchema(name: "body", type: .string, description: "Notification body message.", minLength: 1)
@@ -297,6 +305,14 @@ extension ToolRegistry {
             execute: { args in
                 let title = args["title"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
                 let body = args["body"]?.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                if confirmBeforeWrites {
+                    let question = String(
+                        localized: "Send notification “\(title)”?",
+                        comment: "Confirmation card: the Agent wants to send a local notification. The placeholder is the notification title"
+                    )
+                    let allowed = try await confirmations?.ask(tool: "notify", question: question, detail: body) ?? false
+                    guard allowed else { throw CapabilityToolError(ToolRegistry.declinedMessage) }
+                }
                 try await capabilities.notify(title, body)
                 return ToolExecutionOutput(content: "Sent notification: \(title)", summary: title)
             }
