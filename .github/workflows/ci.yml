@@ -52,7 +52,7 @@ jobs:
       - name: Lint property lists
         run: scripts/ci/lint-plists.sh
       - name: ShellCheck CI scripts
-        run: shellcheck scripts/ci/*.sh scripts/adblock/*.sh
+        run: shellcheck scripts/audit-release-binary.sh scripts/ci/*.sh scripts/adblock/*.sh
       - name: Fastfile syntax
         run: ruby -c fastlane/Fastfile
       - name: Ad-blocking converter tests
@@ -239,6 +239,16 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             | "${formatter[@]}"
+
+      - name: Audit Release binary
+        run: |
+          app="DerivedData/Build/Products/Release-iphoneos/WukongMind.app"
+          bundles=("$app")
+          shopt -s nullglob
+          for ext in "$app"/PlugIns/*.appex; do
+            bundles+=("$ext")
+          done
+          scripts/audit-release-binary.sh "${bundles[@]}"
 
   # The one check to require: its name stays the same whatever the tier and
   # shards. Skipped jobs pass (docs-only, PR tier); failed or cancelled fail.

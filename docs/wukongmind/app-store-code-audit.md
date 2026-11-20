@@ -117,16 +117,16 @@ Findings 1, 2, 3, 5 and 6 belong to tasks 1 and 4 of [app-store-review.md](app-s
 ### Audit task B: one default for every install
 
 - **Why:** finding 4. Under the one-build decision nothing may depend on where the app was installed from, and a check of the receipt is exactly what a reviewer reads as "behaves differently in review".
-- **Scope:** `saveFailedTasksForFeedback` becomes a plain `Bool`, off by default, with the same visible switch; delete `BuildChannel`; keep an existing stored choice. Update docs/wukongmind/feedback.md (testers turn the switch on once).
+- **Scope:** `saveFailedTasksForFeedback` becomes a plain `Bool`, off by default, with the same visible switch; delete `BuildChannel`; keep an existing stored choice. Update docs/wukongmind/feedback.md (testers turn the switch on once). Note from Audit task C: `scripts/audit-release-binary.sh` already checks `BuildChannel` symbols and the `appStoreReceiptURL` selector, gated on `enum BuildChannel` being absent from `WukongMind/`; once `BuildChannel` is deleted, remove that `grep` guard so the check fails unconditionally.
 - **Size:** S.
 - **Done when:** no `appStoreReceiptURL`, `sandboxReceipt` or `mobileprovision` in the sources; a unit test for the default and for a stored choice; the binary check lists no `BuildChannel` symbol.
 
-### Audit task C: check the Release binary in CI
+### Audit task C: check the Release binary in CI (done, WUKO-171)
 
 - **Why:** findings 14 and 15 are safe only while they stay out of Release. Today that rests on `#if DEBUG` being placed right every time.
-- **Scope:** run `scripts/audit-release-binary.sh` on the app the `release-build` job already builds (`.github/workflows/ci.yml:213`); add the `BuildChannel` check from task B. Document it in docs/CI.md. The selector and symbol checks need the binary's local symbols, which that job's product has and an archived, stripped app does not; the script refuses a stripped binary rather than pass it.
+- **Scope:** run `scripts/audit-release-binary.sh` on the app (and any `.appex`) the `release-build` job already builds (`.github/workflows/ci.yml`), add `scripts/audit-release-binary.sh` to the `lint` job's `shellcheck` step, and document it in docs/CI.md. The `BuildChannel` / `appStoreReceiptURL` check is wired in behind a source guard (`! grep -rq "enum BuildChannel" WukongMind`) so it passes before task B lands without a false failure and enforces removal as soon as task B deletes `BuildChannel`.
 - **Size:** S.
-- **Done when:** the CI job fails on a branch that moves the swizzle out of `#if DEBUG` (shown once in the pull request), and passes on main.
+- **Done when:** the CI job fails on a branch that moves the swizzle out of `#if DEBUG` (shown on a scratch branch in run `44682622970`, step `Audit Release binary` failed in 43s with exit code 1, finding 4 runtime imports and 6 DEBUG-only symbols), and passes otherwise (run `44682586554`, step `Audit Release binary` passed in 50s on `xcode-27`; 14s on Mac mini).
 
 ### Audit task D: open the Files folder with public API (Done)
 
