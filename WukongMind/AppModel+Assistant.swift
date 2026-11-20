@@ -727,6 +727,12 @@ extension AppModel {
             configuration.apiKey = AssistantDebug.has("-dc-no-agent-key") || AssistantDebug.has("-dc-no-provider") ? "" : "sample-key"
             sampleSettings.setConfiguration(configuration, for: sampleAgent.provider)
         }
+        // The sample has agreed to send content unless a test checks the consent page.
+        if !AssistantDebug.has("-dc-ask-ai-consent") {
+            for provider in AIProvider.allCases where provider.requiresDataConsent {
+                sampleSettings.aiConsent[provider.rawValue] = .allowed(now)
+            }
+        }
         if sampleAgent != ModelSelection(provider: sampleProvider, model: sampleModel) {
             sampleSettings.favoriteModels = [ModelSelection(provider: sampleProvider, model: sampleModel), sampleAgent]
                 .compactMap(FavoriteModel.init(selection:))

@@ -21,9 +21,6 @@ struct SplitPanelToggle: View {
     @ObservedObject private var browser: ForumBrowserModel
     let isShown: Bool
     let action: () -> Void
-    @State private var completedBrowserAgentBounce = 0
-    @State private var observedAgentID: ObjectIdentifier?
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     init(app: AppModel, isShown: Bool, action: @escaping () -> Void) {
         self.app = app
@@ -35,13 +32,6 @@ struct SplitPanelToggle: View {
     private var browserAgent: BrowserAgentSession { app.browserAgent }
     private var isAvailable: Bool { app.isSplitPanelAvailable }
     private var showsNewRepliesDot: Bool { app.showsNewRepliesDot }
-
-    private var finishedBounceValue: String? {
-        if reduceMotion { return nil }
-        if let id = app.readyAnswer?.id { return id.uuidString }
-        if completedBrowserAgentBounce > 0 { return "agent-\(completedBrowserAgentBounce)" }
-        return nil
-    }
 
     /// "Hidden, New replies, Ask the forum is searching": what the ring and
     /// the dot show.
@@ -92,15 +82,6 @@ struct SplitPanelToggle: View {
                 ScriptCountBadge(summary: badge)
             } else if showsNewRepliesDot {
                 NewRepliesDot()
-            }
-        }
-        .onAppear { observedAgentID = ObjectIdentifier(browserAgent) }
-        .onChange(of: ObjectIdentifier(browserAgent)) { _, newID in observedAgentID = newID }
-        .onChange(of: browserAgent.isRunning) { wasRunning, isRunning in
-            let currentID = ObjectIdentifier(browserAgent)
-            defer { observedAgentID = currentID }
-            if observedAgentID == currentID, wasRunning, !isRunning, !isShown, browserAgent.runs.last != nil {
-                completedBrowserAgentBounce &+= 1
             }
         }
         .accessibilityLabel(isShown ? Text("Hide AI panel") : Text("Show AI panel"))

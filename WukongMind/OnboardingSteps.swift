@@ -151,10 +151,17 @@ struct OnboardingModelPage: View {
                 RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous).strokeBorder(DCTheme.hairline)
             }
             VStack(alignment: .leading, spacing: DCTheme.spacingS) {
-                Label {
-                    Text("Keys stay in the Keychain", comment: "First-run step 1 footnote")
-                } icon: {
-                    Image(systemName: "key.fill")
+                HStack(spacing: DCTheme.spacingM) {
+                    Label {
+                        Text("Keys stay in the Keychain", comment: "First-run step 1 footnote")
+                    } icon: {
+                        Image(systemName: "key.fill")
+                    }
+                    Spacer(minLength: 0)
+                    Link(destination: AppVersion.privacyPolicyURL) {
+                        Text("Privacy Policy", comment: "First-run step 1: link to WukongMind's privacy policy")
+                    }
+                    .accessibilityIdentifier("onboardingPrivacyPolicy")
                 }
                 Label {
                     Text(

@@ -1235,6 +1235,7 @@ final class VoiceSessionTests: XCTestCase {
             topicActivityDonor: FakeTopicActivityDonor()
         )
         app.usesDirectForumRequests = true
+        app.allowAllAIProviders()
         app.settings.assistantModel = ModelSelection(provider: .ollama, model: "summary-model")
         var ollama = app.settings.configuration(for: .ollama); ollama.model = "summary-model"
         app.setConfiguration(ollama, for: .ollama)

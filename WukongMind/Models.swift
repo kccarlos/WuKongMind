@@ -129,9 +129,8 @@ struct AppSettings: Codable, Equatable {
     /// Developer mode, the one switch (`Settings › Agent › Developer`): raw requests, tokens per step,
     /// tool code names and durations, and task export. Off by default; per device.
     var agentDeveloperMode = false
-    /// Settings › Agent › Developer › "Save failed tasks for feedback": nil follows the build (on in
-    /// TestFlight builds, off elsewhere). Per device.
-    var saveFailedTasksForFeedback: Bool?
+    /// Settings › Agent › Developer › "Save failed tasks for feedback". Off by default; per device.
+    var saveFailedTasksForFeedback = false
     var agentMaxTopicReads = AgentLimits.defaultMaxTopicReads
     var agentReadLimit = AgentLimits.defaultReadLimit
     var watchAutoRefreshSummaries = true
@@ -170,6 +169,10 @@ struct AppSettings: Codable, Equatable {
     /// Live voice (WukongMind/Voice). Off until turned on on this device.
     var voiceEnabled = false
     var voice = VoiceSettings()
+    /// Per-provider AI data consent (App Review 5.1.2(i)). Synced one unit per provider.
+    var aiConsent: [String: AIConsentDecision] = [:]
+    /// Per-endpoint live voice microphone consent. Kept on this device.
+    var voiceConsent: [String: Date] = [:]
     /// The daily podcast (WukongMind/Podcast): made right after the digest
     /// finishes on open. Off by default (it spends AI and TTS credits); the
     /// switch is per device.
@@ -231,6 +234,8 @@ struct AppSettings: Codable, Equatable {
         case dailyDigestMaxCards
         case voiceEnabled
         case voice
+        case aiConsent
+        case voiceConsent
         case podcastDailyEnabled
         case podcast
         case readingLanguage
@@ -300,7 +305,7 @@ struct AppSettings: Codable, Equatable {
         agentSaveScriptsWithoutAsking = try container.decodeIfPresent(Bool.self, forKey: .agentSaveScriptsWithoutAsking) ?? stock.agentSaveScriptsWithoutAsking
         agentPageToolsEnabled = try container.decodeIfPresent(Bool.self, forKey: .agentPageToolsEnabled) ?? stock.agentPageToolsEnabled
         agentDeveloperMode = try container.decodeIfPresent(Bool.self, forKey: .agentDeveloperMode) ?? stock.agentDeveloperMode
-        saveFailedTasksForFeedback = try container.decodeIfPresent(Bool.self, forKey: .saveFailedTasksForFeedback)
+        saveFailedTasksForFeedback = try container.decodeIfPresent(Bool.self, forKey: .saveFailedTasksForFeedback) ?? stock.saveFailedTasksForFeedback
         agentMaxTopicReads = AgentLimits.clampTopicReads(
             try container.decodeIfPresent(Int.self, forKey: .agentMaxTopicReads)
                 ?? AgentLimits.defaultMaxTopicReads
@@ -338,6 +343,8 @@ struct AppSettings: Codable, Equatable {
         )
         voiceEnabled = try container.decodeIfPresent(Bool.self, forKey: .voiceEnabled) ?? false
         voice = try container.decodeIfPresent(VoiceSettings.self, forKey: .voice) ?? VoiceSettings()
+        aiConsent = try container.decodeIfPresent([String: AIConsentDecision].self, forKey: .aiConsent) ?? [:]
+        voiceConsent = try container.decodeIfPresent([String: Date].self, forKey: .voiceConsent) ?? [:]
         podcastDailyEnabled = try container.decodeIfPresent(Bool.self, forKey: .podcastDailyEnabled) ?? false
         podcast = try container.decodeIfPresent(PodcastSettings.self, forKey: .podcast) ?? PodcastSettings()
         readingLanguage = try container.decodeIfPresent(String.self, forKey: .readingLanguage) ?? ""
@@ -346,11 +353,6 @@ struct AppSettings: Codable, Equatable {
         if try decoder.container(keyedBy: LegacyKeys.self).decodeIfPresent(Bool.self, forKey: .developerMode) == true {
             agentDeveloperMode = true
         }
-    }
-
-    /// Whether a task that ends in an error saves its export for feedback.
-    func savesFailedTasksForFeedback(isTestFlight: Bool = BuildChannel.isTestFlight) -> Bool {
-        saveFailedTasksForFeedback ?? isTestFlight
     }
 
     func configuration(for provider: AIProvider) -> ProviderConfiguration {
@@ -1234,6 +1236,8 @@ enum AssistantError: LocalizedError {
     case http(Int, String)
     case emptyResponse
     case cancelled
+    case aiConsentRequired(AIProvider)
+    case aiConsentDeclined(AIProvider)
 
     var errorDescription: String? {
         switch self {
@@ -1251,6 +1255,10 @@ enum AssistantError: LocalizedError {
             String(localized: "The AI provider returned an empty response.")
         case .cancelled:
             String(localized: "The operation was cancelled.")
+        case .aiConsentRequired(let provider):
+            String(localized: "Allow sending web page content to \(provider.displayName) first.", comment: "Error when AI data consent has not been granted yet; the placeholder is an AI provider's name")
+        case .aiConsentDeclined(let provider):
+            String(localized: "Sending web page content to \(provider.displayName) isn’t allowed. Change this in Settings › Data & privacy.", comment: "Error when AI data consent was declined or withdrawn; the placeholder is an AI provider's name")
         }
     }
 }

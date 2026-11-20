@@ -513,6 +513,7 @@ final class DailyDigestTests: XCTestCase {
             backgroundScheduler: scheduler
         )
         app.usesDirectForumRequests = true
+        app.allowAllAIProviders()
         app.browser.onPageContextChanged = nil
         addTeardownBlock { @MainActor in
             app.pauseDigest()

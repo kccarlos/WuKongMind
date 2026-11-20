@@ -267,7 +267,7 @@ private final class StubHTTP: URLProtocol, @unchecked Sendable {
     static let service: AIService = {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.protocolClasses = [StubHTTP.self]
-        return AIService(session: URLSession(configuration: configuration))
+        return AIService.allowingAll(session: URLSession(configuration: configuration))
     }()
 
     static func reset(_ queued: [String]) { lock.withLock { bodies = queued } }

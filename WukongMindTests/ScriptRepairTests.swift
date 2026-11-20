@@ -484,6 +484,7 @@ final class ScriptRepairTests: XCTestCase {
             backgroundGrace: NoOpBackgroundGrace()
         )
         app.usesDirectForumRequests = true
+        app.allowAllAIProviders()
         app.browser.ignoresNavigationFailures = true
         defer {
             forumSession.invalidateAndCancel()

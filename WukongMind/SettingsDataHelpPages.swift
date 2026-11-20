@@ -7,6 +7,7 @@ import SwiftUI
 struct SettingsDataPage: View {
     @ObservedObject var app: AppModel
     @State private var clearingSiteURL: String?
+    @State private var allowingConsentProvider: AIProvider?
     @State private var confirmingClearAll = false
     @State private var confirmingReset = false
     @State private var status: String?
@@ -17,6 +18,8 @@ struct SettingsDataPage: View {
 
     var body: some View {
         Form {
+            AIDataFlowSection(app: app, allowing: $allowingConsentProvider)
+
             Section {
                 Toggle(isOn: $app.settings.spotlightEnabled) {
                     VStack(alignment: .leading, spacing: 2) {
@@ -101,6 +104,14 @@ struct SettingsDataPage: View {
             }
         }
         .formStyle(.grouped)
+        .fullScreenCover(item: $allowingConsentProvider) { provider in
+            AIDataConsentPage(
+                provider: provider,
+                onAllow: { app.answerAIConsent(provider, allow: true); allowingConsentProvider = nil },
+                onDecline: { app.answerAIConsent(provider, allow: false); allowingConsentProvider = nil },
+                onCancel: { allowingConsentProvider = nil }
+            )
+        }
         .confirmationDialog(
             clearingSiteURL.map { String(localized: "Clear saved data for \(name(for: $0))?", comment: "Confirmation title; the argument is a forum name") }
                 ?? String(localized: "Clear saved data for this forum?"),
@@ -243,6 +254,10 @@ struct SettingsHelpPage: View {
                     SettingsRowLabel(page: .acknowledgements)
                 }
                 .accessibilityIdentifier("settingsRow-acknowledgements")
+                Link(destination: AppVersion.privacyPolicyURL) {
+                    Label("Privacy Policy", systemImage: "hand.raised")
+                }
+                .accessibilityIdentifier("settingsAboutPrivacyPolicy")
                 Link(destination: AppVersion.websiteURL) {
                     Label("Website", systemImage: "globe")
                 }

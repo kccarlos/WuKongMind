@@ -307,6 +307,8 @@ final class AppModel: ObservableObject {
             StateStorageStats.measure(sessions: snapshotSessions, stateFileURL: fileURL)
         }.value
     }
+    /// Requests waiting for an answer on the AI data consent page (`AIDataConsent.swift`).
+    let aiConsent = AIConsentGate()
     let forumService: ForumService
     /// Every platform this build reads; tests inject their own.
     let sites: SiteRegistry
@@ -592,11 +594,15 @@ final class AppModel: ObservableObject {
             taskRecords: taskRecordStore
         )
         sessionBox.value = agentSession
+        agentSession.authorizeProvider = { [weak appBox] provider, baseURL in
+            guard let app = appBox?.value else { throw AssistantError.aiConsentRequired(provider) }
+            try await app.authorizeSending(to: provider, baseURL: baseURL, mayAsk: true)
+        }
         agentSession.onAnswer = { [weak appBox] answer in
             _ = appBox?.value?.saveAgentAnswer(answer)
         }
         agentSession.onRunEndedWithError = { [weak appBox] taskID, _ in
-            guard let app = appBox?.value, app.settings.savesFailedTasksForFeedback() else { return }
+            guard let app = appBox?.value, app.settings.saveFailedTasksForFeedback else { return }
             Task { await app.saveFeedbackReport(taskID: taskID, announces: false) }
         }
         agentSession.onRunFinished = { [weak appBox, weak tabBrowser] in
@@ -1060,12 +1066,24 @@ final class AppModel: ObservableObject {
             self.browser.homeSiteURL = nil
         }
         applyStateDebugScript()
-        if VoiceDebug.isFake { settings.voiceEnabled = true }
+        if VoiceDebug.isFake {
+            settings.voiceEnabled = true
+            if AssistantDebug.has("-dc-ask-voice-consent") {
+                settings.voiceConsent = [:]
+            } else {
+                settings.voiceConsent[VoiceProvider.aiStudio.rawValue] = Date()
+            }
+        }
         #endif
         // Launch: what grew while the app ran last (and data from before
         // sessions were pruned at all) goes before anything reads it.
         pruneSessions()
         self.cloudSync.attach(self)
+        // The consent backstop before every third-party AI request.
+        aiService.consentCheck = { [weak self] provider, configuration in
+            guard let self else { throw AssistantError.aiConsentRequired(provider) }
+            try self.settings.requireAIConsent(for: provider, baseURL: configuration.baseURL)
+        }
         if !Self.loadsOnlySamplePage {
             self.scriptStore.retryUnresolvedSyncedLibraries()
         }
@@ -2542,7 +2560,7 @@ final class AppModel: ObservableObject {
             }
         }
         // Without a connected provider the refresh would only fail (and alert).
-        if reason != .background, settings.watchAutoRefreshSummaries, isProviderReady(for: .assistant) {
+        if reason != .background, settings.watchAutoRefreshSummaries, canRunUnattended(.assistant) {
             for (watched, _) in arrivals
             where isWatched(topicKey: watched.topicKey) && sessions[watched.topicKey]?.hasSummary == true {
                 enqueueSummary(
@@ -2903,6 +2921,8 @@ final class AppModel: ObservableObject {
         var fresh = AppSettings()
         fresh.hasCompletedOnboarding = settings.hasCompletedOnboarding
         fresh.syncAPIKeys = settings.syncAPIKeys
+        fresh.aiConsent = settings.aiConsent
+        fresh.voiceConsent = settings.voiceConsent
         settings = fresh
         discoveredModels = [:]
         providerChecks = [:]
@@ -3402,6 +3422,16 @@ final class AppModel: ObservableObject {
         do {
             if record.type != .pull {
                 try context.requireReadyProvider()
+                try await authorizeSending(
+                    to: context.provider,
+                    baseURL: context.configuration.baseURL,
+                    mayAsk: record.origin == .user,
+                    whileAsking: {
+                        mutateRecord(recordID) {
+                            $0.statusText = String(localized: "Waiting for permission to use \(context.provider.displayName)…", comment: "Status while the AI data consent page is waiting for an answer; the placeholder is an AI provider's name")
+                        }
+                    }
+                )
             }
             switch record.type {
             case .summary:
@@ -3452,7 +3482,7 @@ final class AppModel: ObservableObject {
                 $0.completedAt = Date()
             }
             // Work the app started by itself shows its failure in Activity.
-            if record.origin == .user { presentError(error.localizedDescription) }
+            if record.origin == .user, !error.isAIConsentError { presentError(error.localizedDescription) }
         }
         if isCurrentLaunch(recordID, token: token) {
             streams.remove(recordID)

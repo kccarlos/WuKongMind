@@ -140,6 +140,7 @@ final class GMAiAgentScriptTests: XCTestCase {
             backgroundGrace: NoOpBackgroundGrace()
         )
         app.usesDirectForumRequests = true
+        app.allowAllAIProviders()
         app.browser.ignoresNavigationFailures = true
         app.settings.agentSaveScriptsWithoutAsking = true
         defer {

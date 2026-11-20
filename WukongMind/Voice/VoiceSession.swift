@@ -79,6 +79,7 @@ final class VoiceSession: ObservableObject {
         /// Voice is off on this device (Settings).
         case disabled
         case noKey
+        case consentRequired
         case noVertexProject
         case microphone
         /// The audio engine couldn't start; its reason, for the user.
@@ -95,6 +96,8 @@ final class VoiceSession: ObservableObject {
                 String(localized: "Turn on voice in Settings first.", comment: "Voice session error: voice is off on this device")
             case .noKey:
                 String(localized: "Add a Google Gemini or Vertex AI key in Settings › AI models to use voice.", comment: "Voice session error. Settings › AI models names the app's own Settings pages.")
+            case .consentRequired:
+                String(localized: "Allow sending microphone audio to Google before starting live voice.", comment: "Voice session error: live voice consent has not been granted yet")
             case .noVertexProject:
                 String(localized: "Voice on Vertex AI needs your Google Cloud project. Add it in the voice settings.", comment: "Voice session error: Vertex AI needs a project ID")
             case .microphone:
