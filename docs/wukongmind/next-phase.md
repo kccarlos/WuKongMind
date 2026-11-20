@@ -141,7 +141,7 @@ Suggestion rules:
 **What persists**
 
 - `This page`: scripts and tools saved for this site, with switches.
-- Start page: frequent sites, recent items, `Today` daily digest.
+- Start page: frequent sites, recent items. (The `Today` daily digest was removed on 2026-11-19 in task 12 / WUKO-182.)
 - Notifications when followed threads get new replies.
 - History: all conversations and results.
 
@@ -213,12 +213,13 @@ From today's code to the end state, most pieces are kept and wired differently; 
 | Script storage | `ScriptStore` | Unchanged; later also stores scripts that register tools | M2 |
 | Three site adapters | `Sites/Discourse`, `WordPress`, `HackerNews` | Code unchanged. Read thread, search, list latest and search comments are wrapped as Agent tools | One loop |
 | Summary engine, including cache and summarizing new replies only | `SummaryPanel`, summary parts of `AppModel` | Processing logic unchanged, wrapped as a tool; the summary card renders the tool result | One loop |
-| Podcast and speech synthesis | `Podcast/` | Unchanged, wrapped as a tool | One loop |
+| Podcast and speech synthesis | `Podcast/` | Read aloud (`read_aloud`) kept and wrapped as a tool; two-host daily digest podcast deleted (2026-11-19, task 12 / WUKO-182) | One loop / Task 12 |
 | Followed threads | `WatchSupport` | Unchanged, plus a tool entry point | One loop |
 | Old Research loop | `AgentEngine` (`AgentPlanner`, `AgentActionParser`, `AgentPrompt`), `AgentPanel`, `AgentToolName` | Deleted. Rules become prompt instructions; the source citation display component stays | One loop |
 | Topic chat engine | `sendChat`-related code in `AppModel` | Deleted; replaced by the Agent plus thread-reading tools | One loop |
 | Voice session | `Voice/` | Audio and transport unchanged. `VoiceToolBridge` currently calls voice's own set of tools (search, open thread, turn page, filter posts); those tool implementations merge into `ToolRegistry` | One loop |
-| Daily digest, follow notifications | `DailyDigest`, `WatchSupport` | Unchanged; continue using the adapters directly in the background | Unchanged |
+| Daily digest | `DailyDigest`, `DigestViews`, `AppModel+Digest` | Deleted (2026-11-19, task 12 / WUKO-182); Forumind keeps it | Task 12 |
+| Follow notifications | `WatchSupport` | Unchanged; continues using the adapters directly in the background | Unchanged |
 | Four modes of the assistant panel and their views | `AssistantMode`, `SummaryPanel`, `AskBox`, `AIDrawer` | Merged into one conversation view plus a suggestion row. Both containers — drawer and sidebar — stay | One panel |
 | Model roles | `ModelRole` | Reduced from three to two: Agent, and the model used for summaries | One loop |
 | Apple Intelligence | `AppleIntelligence*` | Does not support tool calling and cannot be the Agent model. Kept for summaries | One loop |

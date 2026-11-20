@@ -235,7 +235,6 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
     case forums
     case watched
     case voice
-    case digest
     case sync
     case data
     case help
@@ -254,7 +253,6 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
         case .forums: String(localized: "Pinned sites", comment: "Settings page: pinned and visited sites")
         case .watched: String(localized: "Following", comment: "Settings page: followed topics and new-reply checks")
         case .voice: String(localized: "Voice", comment: "Settings page: the live voice conversation with Google Gemini")
-        case .digest: String(localized: "Daily digest & podcast", comment: "Settings page: the Today page's daily digest of watched and trending topics")
         case .sync: String(localized: "iCloud Sync")
         case .data: String(localized: "Data & privacy")
         case .help: String(localized: "Help & about")
@@ -273,7 +271,6 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
         case .forums: "pin.fill"
         case .watched: "bell.fill"
         case .voice: "waveform"
-        case .digest: "sun.max.fill"
         case .sync: "icloud.fill"
         case .data: "hand.raised.fill"
         case .help: "questionmark"
@@ -347,14 +344,13 @@ extension AppModel {
         return all.filter { !$0.isEmpty && seen.insert($0).inserted }
     }
 
-    /// Whether Clear All Saved Data has any saved items, digests, sessions, or activity to clear.
+    /// Whether Clear All Saved Data has any saved items, sessions, or activity to clear.
     var hasAnySavedData: Bool {
-        !siteURLsWithSavedData.isEmpty || !digests.isEmpty || !activities.isEmpty || !sessions.isEmpty
+        !siteURLsWithSavedData.isEmpty || !activities.isEmpty || !sessions.isEmpty
     }
 
     /// Deletes a forum's saved summaries, chats, activity, agent runs,
-    /// watched topics and digest cards; active work is cancelled first. The
-    /// forum stays.
+    /// and watched topics; active work is cancelled first. The forum stays.
     ///
     /// Drafts are kept on purpose (they are unsent text, not saved data),
     /// except a follow-up draft for an agent run that was deleted.
@@ -374,7 +370,6 @@ extension AppModel {
         for session in sessions.values where session.siteURL == siteURL {
             deleteSession(topicKey: session.topicKey)
         }
-        removeDigestCards(siteURL: siteURL)
     }
 
     func clearAllSavedData() {
@@ -385,7 +380,7 @@ extension AppModel {
         for siteURL in allSites {
             clearSavedData(forSiteURL: siteURL)
         }
-        deleteAllDigests()
+        podcast.deleteAll()
         tabs.resetToSingleHomeTab()
         tabStateStore.removeAll()
         save()

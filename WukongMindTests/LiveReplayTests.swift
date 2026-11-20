@@ -158,7 +158,6 @@ final class LiveReplayTests: XCTestCase {
                 store: PersistentStore(fileURL: folder.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
                 aiService: StateAIStub(),
                 browser: ForumBrowserModel(startsUnloaded: true),
-                backgroundScheduler: FakeTaskScheduler(),
                 podcastDirectory: folder.appendingPathComponent("Podcasts", isDirectory: true),
                 podcastPlayer: player,
                 workspaceDirectory: folder.appendingPathComponent("Workspace", isDirectory: true)
@@ -218,7 +217,7 @@ final class LiveReplayTests: XCTestCase {
         func teardown() {
             session?.stop()
             app?.podcast.cancelReadAloud()
-            app?.podcast.pauseGeneration()
+            app?.podcast.cancelReadAloud()
             app?.podcast.player.unload()
             session = nil
             navigator = nil
@@ -521,7 +520,6 @@ enum LiveReplaySupport {
             forumService: ForumService(session: urlSession, pacer: ForumRequestPacer(clock: InstantPacingClock())),
             aiService: ai,
             browser: ForumBrowserModel(startsUnloaded: true),
-            backgroundScheduler: FakeTaskScheduler(),
             podcastDirectory: folder.appendingPathComponent("Podcasts", isDirectory: true),
             podcastPlayer: PodcastPlayer.makeForTesting(),
             workspaceDirectory: folder.appendingPathComponent("Workspace", isDirectory: true)
@@ -532,7 +530,7 @@ enum LiveReplaySupport {
         test.addTeardownBlock { @MainActor [weak app] in
             PostLevelURLStub.handler = nil
             app?.podcast.cancelReadAloud()
-            app?.podcast.pauseGeneration()
+            app?.podcast.cancelReadAloud()
             app?.podcast.player.unload()
             urlSession.invalidateAndCancel()
             try? FileManager.default.removeItem(at: folder)

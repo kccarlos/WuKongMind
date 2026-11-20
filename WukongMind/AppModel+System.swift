@@ -26,15 +26,6 @@ extension AppModel: SystemEntryRouting {
             handle(IncomingLinkRequest(url: url, action: .summary), autoRun: acceptsSystemWork)
         case .ask(let siteURL, let question):
             ask(question, siteURL: siteURL)
-        case .openToday:
-            showsTodayPage = true
-        case .playToday:
-            podcast.refresh()
-            if podcast.episode?.entries.contains(where: \.isReady) == true {
-                podcast.playEpisode()
-            } else {
-                showsTodayPage = true
-            }
         case .startVoice:
             startVoiceFromSystem()
         case .openTopic(let topicKey):

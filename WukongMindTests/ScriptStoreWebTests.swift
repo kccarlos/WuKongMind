@@ -1195,8 +1195,7 @@ final class ScriptStoreWebTests: XCTestCase {
         defer {
             if let instance = activeApp {
                 instance.browser.stopLoading()
-                instance.pauseDigest()
-                instance.podcast.pauseGeneration()
+                instance.podcast.cancelReadAloud()
                 instance.scriptWebController.detach()
             }
             activeApp = nil
@@ -1205,8 +1204,7 @@ final class ScriptStoreWebTests: XCTestCase {
         let makeIsolatedApp: () -> AppModel = {
             if let previous = activeApp {
                 previous.browser.stopLoading()
-                previous.pauseDigest()
-                previous.podcast.pauseGeneration()
+                previous.podcast.cancelReadAloud()
                 previous.scriptWebController.detach()
                 activeApp = nil
             }

@@ -29,8 +29,7 @@ final class HackerNewsJobTests: XCTestCase {
         addTeardownBlock { @MainActor in
             for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
             app.browser.stopLoading()
-            app.pauseDigest()
-            app.podcast.pauseGeneration()
+            app.podcast.cancelReadAloud()
             app.podcast.player.unload()
         }
         return (app, ai, fixture)
@@ -113,24 +112,6 @@ final class HackerNewsJobTests: XCTestCase {
         XCTAssertFalse(read.isError, read.output)
         XCTAssertTrue(read.output.contains("| #101"), read.output)
         XCTAssertTrue(read.output.contains("[Reply to #"), read.output)
-    }
-
-    func testDigestAndPodcastModelInputsKeepParents() async throws {
-        let ai = HNPipelineAI()
-        let (app, _, _) = try harness(watched: true, aiService: ai)
-        app.settings.hasCompletedOnboarding = true
-        app.settings.dailyDigestIncludesTrending = false
-        app.makeTodaysDigest()
-        try await wait { app.todaysDigest?.isComplete == true && app.digestActivity == .idle }
-        XCTAssertEqual(app.todaysDigest?.cards.count, 1)
-        XCTAssertTrue(ai.summaries.joined().contains("[Reply to #2; item 15]"))
-        app.settings.podcast.engine = .onDevice
-        app.podcast.makeEngine = { _, _, _ in FakeSpeechEngine() }
-        app.podcast.make(play: false)
-        try await wait { app.podcast.episode?.isComplete == true && !app.podcast.activity.isRunning }
-        XCTAssertFalse(ai.prompts.isEmpty)
-        XCTAssertTrue(ai.prompts.joined().contains("[Reply to #2; item 15]"))
-        app.podcast.player.unload()
     }
 
     func testJobAndPollSubmissionsCanBeRead() async throws {

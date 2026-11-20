@@ -86,9 +86,6 @@ struct SampleContent {
     var summaryRunningStatus: String
     var summaryStream: String
 
-    // Daily digest (`-dc-digest-sample`): the tips, rate-limit and long-threads cards.
-    var digestBlurbs: [String]
-
     // The pages drawn behind the sample (`topicPageHTML`).
     var tipsPage: Page
     var streamingPage: Page
@@ -264,11 +261,6 @@ extension SampleContent {
         ## What people are saying
         - **Trust levels** cause the most confusion
         """,
-        digestBlurbs: [
-            "Since you last looked, five new replies ask how long trust level 1 takes. A staff reply says a day or two of normal reading is usually enough.",
-            "Retrying right after a 429 makes it worse. The accepted answer backs off from the Retry-After header, and two people confirm it stops the errors.",
-            "Most replies keep a short running summary and send only the last few turns in full. Two people share how often they refresh it."
-        ],
         tipsPage: Page(category: "Community", tags: ["faq", "trust-levels"], length: 30, posts: [
             PagePost(user: "forum_team", badge: "Staff", time: "Sep 2023", body: [
                 "Welcome! Here are answers to the questions new members ask most often.",
@@ -407,11 +399,6 @@ extension SampleContent {
         ## 大家怎么说
         - **信任等级**最让人困惑
         """,
-        digestBlurbs: [
-            "自你上次查看以来，有五条新回复在问多久能升到信任等级 1。管理人员回复说，正常浏览一两天通常就够了。",
-            "收到 429 后立刻重试只会更糟。采纳的答案按 Retry-After 响应头退避，已有两人确认错误不再出现。",
-            "多数回复建议保留一份简短的滚动摘要，只完整发送最近几轮。有两人分享了他们多久更新一次。"
-        ],
         tipsPage: Page(category: "社区", tags: ["常见问题", "信任等级"], length: 30, posts: [
             PagePost(user: "forum_team", badge: "管理人员", time: "2023 年 9 月", body: [
                 "欢迎！这里整理了新成员最常问的问题。",
@@ -550,11 +537,6 @@ extension SampleContent {
         ## 大家怎麼說
         - **信任等級**最讓人困惑
         """,
-        digestBlurbs: [
-            "自你上次查看以來，有五則新回覆在問多久能升到信任等級 1。管理人員回覆說，正常瀏覽一兩天通常就夠了。",
-            "收到 429 後立刻重試只會更糟。採納的答案按 Retry-After 回應標頭退避，已有兩人確認錯誤不再出現。",
-            "多數回覆建議保留一份簡短的滾動摘要，只完整傳送最近幾輪。有兩人分享了他們多久更新一次。"
-        ],
         tipsPage: Page(category: "社群", tags: ["常見問題", "信任等級"], length: 30, posts: [
             PagePost(user: "forum_team", badge: "管理人員", time: "2023 年 9 月", body: [
                 "歡迎！這裡整理了新成員最常問的問題。",

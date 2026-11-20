@@ -104,11 +104,7 @@ struct PhoneBrowser<Page: View>: View {
             dynamicTypeSize: dynamicTypeSize
         )
 
-        NavigationStack(path: $app.homePath) {
-            page(dockClearance)
-                .toolbar(.hidden, for: .navigationBar)
-                .modifier(HomeDestinations(app: app, onOpenDigestLink: actions.openDigestLink))
-        }
+        page(dockClearance)
         .background {
             PhoneBarObserverHost(
                 app: app,
@@ -530,7 +526,7 @@ enum BrowserBarFontMetrics {
         isLandscape: Bool,
         dynamicTypeSize: DynamicTypeSize
     ) -> CGFloat {
-        guard !isSplit, position == .bottom, app.homePath.isEmpty, !browser.isEditingAddress else {
+        guard !isSplit, position == .bottom, !browser.isEditingAddress else {
             return 0
         }
         if voice.showsBar || browser.isPageFormInputFocused {
@@ -621,9 +617,7 @@ private struct PhoneOnlyMorphingBarHost: View {
     var body: some View {
         let position = resolvedPosition
         Group {
-            if !app.homePath.isEmpty {
-                EmptyView()
-            } else if browser.isEditingAddress {
+            if browser.isEditingAddress {
                 Group {
                     if position == .top {
                         VStack(spacing: 0) {
@@ -746,7 +740,7 @@ private struct PhoneMorphingBarHost: View {
         let hostAlignment: Alignment = split != nil
             ? .topLeading
             : (position == .top ? .top : .bottom)
-        if !app.homePath.isEmpty || hidesBottomBar {
+        if hidesBottomBar {
             EmptyView()
         } else {
             PhoneMorphingBar(

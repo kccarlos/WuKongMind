@@ -8,9 +8,8 @@ import CoreSpotlight
 import SwiftUI
 import UserNotifications
 
-/// Registers the watched-topic background refresh and the daily digest's
-/// background prefetch, and receives notification taps; all must be wired
-/// before launch finishes. In CloudKit builds it
+/// Registers the watched-topic background refresh and receives notification
+/// taps; both must be wired before launch finishes. In CloudKit builds it
 /// also registers for the silent pushes that announce iCloud changes.
 final class AppDelegate: UIResponder, UIApplicationDelegate {
     /// Called for each remote (CloudKit) notification. The sync engine sets
@@ -38,7 +37,6 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
     ) -> Bool {
         DCTheme.applyAppearance()
         WatchBackgroundRefresh.register()
-        DigestBackgroundPrefetch.register()
         guard !AppModel.isRunningTests else { return true }
         UNUserNotificationCenter.current().delegate = WatchNotifier.shared
         #if CLOUDKIT_ENABLED
@@ -98,7 +96,7 @@ struct WukongMindApp: App {
         .commands {
             if !AppModel.isRunningTests {
                 // Hardware keyboard: menu bar and the ⌘-hold overlay on iPad.
-                WorkspaceCommands(playPause: holder.model.playPauseShortcut)
+                WorkspaceCommands()
             }
         }
     }

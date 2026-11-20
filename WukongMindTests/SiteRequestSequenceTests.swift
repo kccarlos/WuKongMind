@@ -229,39 +229,6 @@ final class SiteRequestSequenceTests: XCTestCase {
         XCTAssertEqual(SequenceStub.requests, Expected.watchCheck)
     }
 
-    // MARK: Digest prefetch
-
-    private func pinned() -> AppSnapshot {
-        AppSnapshot(forums: [Forum(siteURL: site, kind: .discourse, name: "Sequence Forum", isPinned: true, pinOrder: 0)])
-    }
-
-    /// `/top.json?period=daily` answers: the planned cards' topic JSON follows.
-    func testDigestPrefetchWithATopList() async throws {
-        let harness = makeHarness(forum: SequenceForum(top: (200, SequenceForum.list([7, 8]))), snapshot: pinned())
-        let prefetch = await harness.app.prefetchDigestInputs(background: true)
-        XCTAssertEqual(prefetch.trending[site]?.map(\.id), [7, 8])
-        XCTAssertEqual(SequenceStub.requests, Expected.digestTop)
-    }
-
-    /// `/top.json` unavailable: `/latest.json` is asked next.
-    func testDigestPrefetchFallsBackToLatestWhenTopFails() async throws {
-        let harness = makeHarness(
-            forum: SequenceForum(top: (404, "missing"), latest: (200, SequenceForum.list([7, 8]))),
-            snapshot: pinned()
-        )
-        let prefetch = await harness.app.prefetchDigestInputs(background: true)
-        XCTAssertEqual(prefetch.trending[site]?.map(\.id), [7, 8])
-        XCTAssertEqual(SequenceStub.requests, Expected.digestLatestAfterFailure)
-    }
-
-    /// `/top.json` empty on a quiet day: `/latest.json` is asked next too.
-    func testDigestPrefetchFallsBackToLatestWhenTopIsEmpty() async throws {
-        let harness = makeHarness(forum: SequenceForum(latest: (200, SequenceForum.list([7]))), snapshot: pinned())
-        let prefetch = await harness.app.prefetchDigestInputs(background: true)
-        XCTAssertEqual(prefetch.trending[site]?.map(\.id), [7])
-        XCTAssertEqual(SequenceStub.requests, Expected.digestLatestAfterEmpty)
-    }
-
     // MARK: Navigation
 
     /// Voice and navigation `focus(.op)`: the topic's overview (for the

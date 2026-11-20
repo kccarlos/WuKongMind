@@ -534,7 +534,6 @@ or DEBUG-only symbol, or uses the private selectors of the DEBUG test helpers
 | `-dc-summary-running`, `-dc-chat-streaming`, `-dc-agent-running` | Work in progress. |
 | `-dc-chat-typing` | With `-dc-chat-streaming`: typing dots, no text yet. |
 | `-dc-stale-summary` | The `openai` sample topic's summary is behind the topic (stale notice). |
-| `-dc-digest-sample` | Today's daily digest with two finished cards (a watched topic and a solved trending one) and one waiting (`-dc-digest-sample done`: all three finished); nothing is generated or saved. Use with `-dc-forums-home`. |
 | `-dc-scroll-sources` | Ask the forum: scrolls to the answer's sources. |
 | `-dc-focus-chat` | Raises the keyboard in the chat composer. |
 | `-dc-script <action>-after:<seconds>` | Changes state mid-use: `switch-provider` (the current mode's model), `delete-key` (of the current mode's provider), `remove-forum`, `unpin-forum`, `clear-all`, `reset-settings`. |
@@ -589,7 +588,7 @@ runs are labeled as Apple Intelligence runs and it is the selected provider.
 | `-dc-scroll-bottom`, `-dc-focus` | Walkthrough: scroll to the bottom / focus the key field. |
 | `-dc-skip-onboarding` | Marks the walkthrough done. |
 | `-dc-no-animations` | Turns animations off. `DCUITestCase.launch` adds it to every UI test (a suite whose subject is an animation overrides `disablesAnimations`). |
-| `-dc-show-settings <page>` | Presents Settings: `root`, or a page: `provider` (AI models), `sync`, `forums`, `summaries`, `agent`, `watched`, `digest`, `browser`, `data`, `help`, `sharing`, `about`, `acknowledgements`. |
+| `-dc-show-settings <page>` | Presents Settings: `root`, or a page: `provider` (AI models), `sync`, `forums`, `summaries`, `agent`, `watched`, `browser`, `data`, `help`, `sharing`, `about`, `acknowledgements`. |
 | `-dc-panel-settings [page]` | Opens Settings (a sheet) once the page is up, on that sub-page if given. |
 
 ### Sync

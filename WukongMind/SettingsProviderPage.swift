@@ -87,7 +87,7 @@ struct SettingsProviderPage: View {
             } header: {
                 Text("Answer language", comment: "Settings › Models section header for the reading/answer language picker")
             } footer: {
-                Text("Summaries, digests and answers are written in this language.")
+                Text("Summaries and answers are written in this language.")
             }
 
             FavoriteModelsSection(app: app, choosing: $choosing)

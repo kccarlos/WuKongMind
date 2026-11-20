@@ -73,33 +73,6 @@ struct AskForumIntent: AppIntent {
     }
 }
 
-struct OpenTodayIntent: AppIntent {
-    static let title: LocalizedStringResource = "Open Today’s Digest"
-    static let description = IntentDescription("Opens the Today page with today’s digest.", categoryName: "Read")
-    static let openAppWhenRun = true
-
-    @MainActor
-    func perform() async throws -> some IntentResult {
-        SystemEntry.send(.openToday)
-        return .result()
-    }
-}
-
-struct PlayPodcastIntent: AppIntent {
-    static let title: LocalizedStringResource = "Play Today’s Podcast"
-    static let description = IntentDescription(
-        "Plays today’s podcast. If there is no episode yet, opens the Today page.",
-        categoryName: "Listen"
-    )
-    static let openAppWhenRun = true
-
-    @MainActor
-    func perform() async throws -> some IntentResult {
-        SystemEntry.send(.playToday)
-        return .result()
-    }
-}
-
 struct StartVoiceChatIntent: AppIntent {
     static let title: LocalizedStringResource = "Start a Voice Chat"
     static let description = IntentDescription(
@@ -268,24 +241,6 @@ struct WukongMindShortcuts: AppShortcutsProvider {
             ],
             shortTitle: "Ask a Site",
             systemImageName: "text.bubble"
-        )
-        AppShortcut(
-            intent: OpenTodayIntent(),
-            phrases: [
-                "Open today's digest in \(.applicationName)",
-                "Show my \(.applicationName) digest"
-            ],
-            shortTitle: "Today’s Digest",
-            systemImageName: "sun.max"
-        )
-        AppShortcut(
-            intent: PlayPodcastIntent(),
-            phrases: [
-                "Play today's podcast in \(.applicationName)",
-                "Play my \(.applicationName) podcast"
-            ],
-            shortTitle: "Play Podcast",
-            systemImageName: "play.circle"
         )
         AppShortcut(
             intent: StartVoiceChatIntent(),

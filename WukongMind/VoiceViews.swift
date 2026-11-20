@@ -46,12 +46,11 @@ struct VoiceBarButton: View {
 /// end, and the Health row behind a tap. The material comes from `DockLayer`.
 struct VoiceDock: View {
     @ObservedObject var voice: VoiceController
-    @ObservedObject var player: PodcastPlayer
 
     var body: some View {
         Group {
             if let session = voice.session {
-                VoiceSessionBar(voice: voice, session: session, player: player)
+                VoiceSessionBar(voice: voice, session: session)
             } else if let failure = voice.startFailure {
                 VoiceBarFrame {
                     HStack(spacing: DCTheme.spacingS) {
@@ -76,7 +75,6 @@ struct VoiceDock: View {
 struct VoiceSessionBar: View {
     @ObservedObject var voice: VoiceController
     @ObservedObject var session: VoiceSession
-    @ObservedObject var player: PodcastPlayer
     @State private var showsHealth = false
     @State private var draft = ""
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -94,13 +92,6 @@ struct VoiceSessionBar: View {
                         .accessibilityIdentifier("voiceTranscript")
                 }
                 header
-                if player.isSuspendedForVoice, !session.state.isOver {
-                    Label(DockText.podcastPaused(at: player.timeline.elapsed(player.position)), systemImage: "headphones")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, DCTheme.spacingM)
-                        .accessibilityIdentifier("dockPodcastPaused")
-                }
                 if let engine = voice.audioEngine {
                     VoiceEngineStatus(engine: engine, showsHealth: showsHealth)
                 }
