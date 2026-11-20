@@ -40,16 +40,33 @@ final class FixtureSpaForumServer: @unchecked Sendable {
         parameters.requiredLocalEndpoint = .hostPort(host: "127.0.0.1", port: .any)
         let listener = try NWListener(using: parameters)
         let ready = DispatchSemaphore(value: 0)
-        listener.stateUpdateHandler = { state in
-            if case .ready = state { ready.signal() }
-            if case .failed = state { ready.signal() }
+        var didBecomeReady = false
+        var didSignal = false
+        listener.stateUpdateHandler = { [weak self] state in
+            guard let self else { return }
+            let shouldSignal: Bool = self.lock.withLock {
+                guard !didSignal else { return false }
+                switch state {
+                case .ready:
+                    didBecomeReady = true
+                    didSignal = true
+                    return true
+                case .failed, .cancelled:
+                    didSignal = true
+                    return true
+                default:
+                    return false
+                }
+            }
+            if shouldSignal { ready.signal() }
         }
         listener.newConnectionHandler = { [weak self] connection in
             self?.handle(connection)
         }
         listener.start(queue: queue)
-        _ = ready.wait(timeout: .now() + 5)
-        guard let port = listener.port?.rawValue else {
+        let waitResult = ready.wait(timeout: .now() + 5)
+        let isReady = lock.withLock { didBecomeReady }
+        guard waitResult == .success, isReady, let port = listener.port?.rawValue, port != 0 else {
             listener.cancel()
             throw URLError(.cannotConnectToHost)
         }
@@ -125,6 +142,11 @@ final class FixtureSpaForumServer: @unchecked Sendable {
                 "Content-Length: \(page.count)", "Connection: close", "", ""
             ].joined(separator: "\r\n")
             return Data(head.utf8) + page
+        }
+
+        guard path == "/threads/101" || path == "/threads/102" || path == "/" else {
+            let headers = "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n"
+            return Data(headers.utf8)
         }
 
         let initialThreadID = path.hasSuffix("/102") ? 102 : 101
@@ -449,20 +471,26 @@ extension DCUITestCase {
     /// Waits for the fixture's "Load #N" stamp with N greater than `loadsBefore` and returns it.
     /// The app may legitimately hit the server more than once per launch or reload (tab restore,
     /// WebKit retry), so waiting for exactly `loadsBefore + 1` would race a second load.
+    /// Uses an atomic predicate match so reloading the DOM cannot trigger a TOCTOU
+    /// "No matches found" error while reading element labels.
     func waitForLoadStamp(in webView: XCUIElement, after loadsBefore: Int, timeout: TimeInterval) -> String? {
-        let stamps = webView.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Load #"))
-        var found: String?
-        _ = wait(timeout: timeout) {
-            for index in 0..<stamps.count {
-                let label = stamps.element(boundBy: index).label
-                if let n = Int(label.dropFirst("Load #".count)), n > loadsBefore {
-                    found = label
-                    return true
-                }
-            }
-            return false
+        let predicate: NSPredicate
+        if loadsBefore > 0 {
+            let previous = (1...loadsBefore).map { "Load #\($0)" }
+            predicate = NSPredicate(format: "label BEGINSWITH %@ AND NOT (label IN %@)", "Load #", previous)
+        } else {
+            predicate = NSPredicate(format: "label BEGINSWITH %@", "Load #")
         }
-        return found
+        let matching = webView.staticTexts.matching(predicate)
+        let first = matching.firstMatch
+        guard first.waitForExistence(timeout: timeout) else { return nil }
+        for element in matching.allElementsBoundByIndex where element.exists {
+            let label = element.label
+            if let n = Int(label.dropFirst("Load #".count)), n > loadsBefore {
+                return label
+            }
+        }
+        return nil
     }
 
     /// Runs the full M2 acceptance scenario against `FixtureSpaForumServer`:
@@ -507,7 +535,10 @@ extension DCUITestCase {
         let app = makeConfiguredApp(resetBox: true)
         let webView = app.webViews.firstMatch
         XCTAssertTrue(webView.waitForExistence(timeout: 20), "Browser web view did not appear.")
-        XCTAssertTrue(webView.staticTexts["Load #1"].waitForExistence(timeout: 15), "Fixture thread #101 did not load.")
+        XCTAssertNotNil(
+            waitForLoadStamp(in: webView, after: 0, timeout: 20),
+            "Fixture thread #101 did not load (htmlLoads=\(server.totalHTMLLoads), /threads/101=\(server.requestCount(forPath: "/threads/101")))."
+        )
         XCTAssertTrue(webView.staticTexts[FixtureSpaForumServer.thread101OP].waitForExistence(timeout: 10))
         XCTAssertTrue(webView.staticTexts[FixtureSpaForumServer.thread101Reply1].waitForExistence(timeout: 10))
         XCTAssertTrue(webView.staticTexts[FixtureSpaForumServer.thread101Reply2].exists)
@@ -529,16 +560,23 @@ extension DCUITestCase {
 
         let sendButton = app.buttons["agentSendButton"].firstMatch
         XCTAssertTrue(sendButton.waitForExistence(timeout: 5), "Agent send button is missing.")
-        XCTAssertTrue(sendButton.isEnabled, "Agent send button should be enabled after typing prompt.")
+        XCTAssertTrue(wait(timeout: 5) { sendButton.isEnabled }, "Agent send button should be enabled after typing prompt.")
         if sendButton.isHittable {
             sendButton.tap()
         } else {
             sendButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
         }
 
-        let statusLine = any(app, "agentStatusLine")
         let consentAllow = app.buttons["aiConsentAllow"].firstMatch
         let approveScript = app.buttons["scriptImportAddTurnOn"].firstMatch
+        let stopButton = app.buttons["agentStopButton"].firstMatch
+        let scriptCard = any(app, "agentScriptCard")
+        let assistantReply = any(app, "agentAssistantReply")
+        let errorCard = any(app, "agentErrorCard")
+        let stoppedNotice = any(app, "agentRunStoppedNotice")
+        let stepLimitCard = any(app, "agentStepLimitCard")
+
+        var failureReason: String?
         let finished = wait(timeout: 120) {
             if consentAllow.exists && consentAllow.isHittable {
                 consentAllow.tap()
@@ -550,21 +588,34 @@ extension DCUITestCase {
                 _ = waitForGone(approveScript, timeout: 5)
                 return false
             }
-            guard statusLine.exists else { return false }
-            let label = statusLine.label
-            return label.contains("Done") || label.contains("Turn failed") || label.contains("Stopped")
+            if errorCard.exists {
+                let msg = any(app, "agentErrorMessage")
+                failureReason = "error card: \(msg.exists ? msg.label : "unknown")"
+                return true
+            }
+            if stoppedNotice.exists {
+                failureReason = "stopped"
+                return true
+            }
+            if stepLimitCard.exists {
+                failureReason = "step limit reached"
+                return true
+            }
+            // Wait for the run to settle on its persistent conversation UI (stop button gone
+            // and reply or saved script card present), never on the ephemeral `agentStatusLine`
+            // which auto-dismisses after a few seconds and does not exist for error/stop states.
+            return !stopButton.exists && (assistantReply.exists || scriptCard.exists)
         }
-        if !finished || !statusLine.label.contains("Done") {
+        if !finished || failureReason != nil {
             if let prefix = screenshotPrefix {
                 captureIfRequested("\(prefix)-failure")
             }
             attachTree(app, named: "M2 browser agent failure tree")
-            XCTFail("Browser agent did not complete cleanly (status: \(statusLine.exists ? statusLine.label : "missing")).")
+            XCTFail("Browser agent did not complete cleanly (\(failureReason ?? "timed out")).")
             app.terminate()
             return
         }
 
-        let scriptCard = any(app, "agentScriptCard")
         XCTAssertTrue(
             waitOrDump(scriptCard, timeout: 10, in: app),
             "Saved userscript card must appear in the agent conversation."
@@ -599,7 +650,7 @@ extension DCUITestCase {
 
         if let prefix = screenshotPrefix {
             attachText(
-                (["Status: \(statusLine.label)"] + rowLabels).joined(separator: "\n"),
+                (["Status: Completed"] + rowLabels).joined(separator: "\n"),
                 named: "\(prefix)-tool-calls"
             )
             RunLoop.current.run(until: Date().addingTimeInterval(0.8))
@@ -610,7 +661,10 @@ extension DCUITestCase {
         let loadsBeforeReload = server.totalHTMLLoads
         let thread101BeforeReload = server.requestCount(forPath: "/threads/101")
         reloadCurrentPage(in: app)
-        XCTAssertTrue(webView.staticTexts["Load #\(loadsBeforeReload + 1)"].waitForExistence(timeout: 15), "Page did not reload from server.")
+        XCTAssertNotNil(
+            waitForLoadStamp(in: webView, after: loadsBeforeReload, timeout: 15),
+            "Page did not reload from server (loadsBefore=\(loadsBeforeReload), now=\(server.totalHTMLLoads))."
+        )
         XCTAssertGreaterThanOrEqual(server.requestCount(forPath: "/threads/101"), thread101BeforeReload + 1)
         XCTAssertTrue(
             webView.staticTexts[FixtureSpaForumServer.thread101OP].waitForExistence(timeout: 10),
@@ -657,9 +711,14 @@ extension DCUITestCase {
         if usesDrawerLayout(reopenedApp) {
             let aiButton = reopenedApp.buttons["aiButton"]
             if waitForBarItem(aiButton, timeout: 10) {
-                let value = (aiButton.value as? String) ?? ""
+                var value = ""
+                let reported = wait(timeout: 10) {
+                    guard aiButton.exists else { return false }
+                    value = (aiButton.value as? String) ?? ""
+                    return value.contains("1 script on this page") || value.contains("1 scripts on this page")
+                }
                 XCTAssertTrue(
-                    value.contains("1 script on this page") || value.contains("1 scripts on this page"),
+                    reported,
                     "Expected toolbar badge value to report 1 active script after reopen, got '\(value)'."
                 )
             }
@@ -744,9 +803,9 @@ extension DCUITestCase {
 
         let loadsBeforeDisableReload = server.totalHTMLLoads
         reloadCurrentPage(in: reopenedApp)
-        XCTAssertTrue(
-            reopenedWebView.staticTexts["Load #\(loadsBeforeDisableReload + 1)"].waitForExistence(timeout: 15),
-            "Page did not reload after disabling the script."
+        XCTAssertNotNil(
+            waitForLoadStamp(in: reopenedWebView, after: loadsBeforeDisableReload, timeout: 15),
+            "Page did not reload after disabling the script (loadsBefore=\(loadsBeforeDisableReload), now=\(server.totalHTMLLoads))."
         )
         XCTAssertTrue(
             reopenedWebView.staticTexts[FixtureSpaForumServer.thread102OP].waitForExistence(timeout: 10),
