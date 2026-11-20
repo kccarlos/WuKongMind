@@ -28,14 +28,12 @@ final class HomeTests: XCTestCase {
     private func decide(
         _ setting: LaunchDestination,
         external: Bool = false,
-        today: Bool = true,
         lastShown: String? = nil,
         now: String = "2026-10-23T08:00:00Z"
     ) -> LaunchDecision {
         LaunchRule.decide(
             setting: setting,
             openedExternally: external,
-            todayHasSomething: today,
             lastHomeAutoShownDay: lastShown,
             now: date(now),
             calendar: calendar
@@ -48,18 +46,13 @@ final class HomeTests: XCTestCase {
         }
     }
 
-    func testAutomaticShowsHomeOnTheDaysFirstLaunchWhenTodayHasSomething() {
-        XCTAssertEqual(decide(.automatic, today: true, lastShown: nil), .home(marksDay: true))
-        XCTAssertEqual(decide(.automatic, today: true, lastShown: "2026-10-22"), .home(marksDay: true))
+    func testAutomaticShowsHomeOnTheDaysFirstLaunch() {
+        XCTAssertEqual(decide(.automatic, lastShown: nil), .home(marksDay: true))
+        XCTAssertEqual(decide(.automatic, lastShown: "2026-10-22"), .home(marksDay: true))
     }
 
     func testAutomaticGoesToTheLastForumOnceHomeWasShownToday() {
-        XCTAssertEqual(decide(.automatic, today: true, lastShown: "2026-10-23"), .lastForum)
-    }
-
-    func testAutomaticGoesToTheLastForumWhenTodayHasNothing() {
-        XCTAssertEqual(decide(.automatic, today: false, lastShown: nil), .lastForum)
-        XCTAssertEqual(decide(.automatic, today: false, lastShown: "2026-10-22"), .lastForum)
+        XCTAssertEqual(decide(.automatic, lastShown: "2026-10-23"), .lastForum)
     }
 
     func testTheCalendarDayBoundary() {
@@ -69,8 +62,8 @@ final class HomeTests: XCTestCase {
     }
 
     func testHomeAndLastForumForceTheDestination() {
-        XCTAssertEqual(decide(.home, today: false, lastShown: "2026-10-23"), .home(marksDay: false))
-        XCTAssertEqual(decide(.lastForum, today: true, lastShown: nil), .lastForum)
+        XCTAssertEqual(decide(.home, lastShown: "2026-10-23"), .home(marksDay: false))
+        XCTAssertEqual(decide(.lastForum, lastShown: nil), .lastForum)
     }
 
     func testLaunchDestinationDecodesAndSyncs() throws {
@@ -97,99 +90,6 @@ final class HomeTests: XCTestCase {
         XCTAssertEqual(app.launchPhase, .settled)
         app.noteExternalEntry()
         XCTAssertEqual(app.launchPhase, .settled, "after the rule, requests just navigate")
-    }
-
-    // MARK: Today module
-
-    private func card(_ id: String, _ state: DigestCard.State, reason: DigestReason = .trending) -> DigestCard {
-        var card = DigestCard(siteURL: site, topicID: id, title: "Topic \(id)", slug: nil, reason: reason, postCount: 10)
-        card.state = state
-        if state == .done { card.summary = "Summary \(id)" }
-        return card
-    }
-
-    private func digest(_ cards: [DigestCard]) -> DailyDigest {
-        DailyDigest(day: DailyDigest.dayKey(for: Date()), cards: cards)
-    }
-
-    private func episode(for digest: DailyDigest, states: [PodcastEpisode.Entry.State], durations: [TimeInterval?] = []) -> PodcastEpisode {
-        let kinds: [PodcastChapter.Kind] = states.indices.map { $0 == 0 ? .intro : $0 == states.count - 1 ? .outro : .topic }
-        let entries = states.indices.map { index in
-            PodcastEpisode.Entry(
-                chapter: PodcastChapter(id: "c\(index)", kind: kinds[index], title: "C\(index)"),
-                audioFile: states[index] == .ready ? "c\(index).m4a" : nil,
-                duration: durations.indices.contains(index) ? durations[index] : (states[index] == .ready ? 60 : nil),
-                state: states[index]
-            )
-        }
-        return PodcastEpisode(digestID: digest.id, day: digest.day, title: "T", language: "en",
-                              hosts: PodcastHosts(a: "A", b: "B"), engine: .onDevice, minutesPerChapter: 1, entries: entries)
-    }
-
-    private func state(
-        _ digest: DailyDigest?,
-        activity: DigestActivity = .idle,
-        ready: Bool = true,
-        episode: PodcastEpisode? = nil,
-        podcast: PodcastActivity = .idle
-    ) -> TodayModuleState {
-        TodayModuleState.resolve(digest: digest, digestActivity: activity, providerReady: ready,
-                                 episode: episode, podcastActivity: podcast)
-    }
-
-    func testTheSevenStates() {
-        let done = digest([card("1", .done), card("2", .done)])
-        XCTAssertEqual(state(done, episode: episode(for: done, states: [.ready, .ready, .ready, .ready])), .podcastReady)
-        XCTAssertEqual(state(done, episode: episode(for: done, states: [.ready, .working, .pending, .pending]),
-                             podcast: .speaking("c1")), .podcastInProgress)
-        XCTAssertEqual(state(done), .digestReady)
-        XCTAssertEqual(state(digest([card("1", .done), card("2", .working)]), activity: .summarizing("2")),
-                       .digestInProgress(offline: false))
-        XCTAssertEqual(state(nil, ready: true), .digestOff)
-        XCTAssertEqual(state(nil, ready: false), .aiNotSetUp)
-        XCTAssertEqual(state(digest([])), .nothingNew)
-    }
-
-    func testOnlyThePodcastGetsTheBigCardAndOnlyMadeOrMakingCountsForTheLaunch() {
-        let all: [TodayModuleState] = [.podcastReady, .podcastInProgress, .digestReady, .digestInProgress(offline: false),
-                                       .digestInProgress(offline: true), .digestOff, .aiNotSetUp, .nothingNew]
-        XCTAssertEqual(all.filter(\.usesBigCard), [.podcastReady, .podcastInProgress])
-        XCTAssertEqual(all.filter(\.hasSomething), [.podcastReady, .podcastInProgress, .digestReady,
-                                                    .digestInProgress(offline: false), .digestInProgress(offline: true)])
-    }
-
-    func testTheEdgesBetweenStates() {
-        // Preparing (no cards yet) and offline count as in progress.
-        XCTAssertEqual(state(nil, activity: .preparing), .digestInProgress(offline: false))
-        XCTAssertEqual(state(nil, activity: .unreachable), .digestInProgress(offline: true))
-        XCTAssertEqual(state(digest([card("1", .pending)]), activity: .unreachable), .digestInProgress(offline: true))
-        // Relaunched mid-digest (no run yet, cards waiting): still in progress.
-        XCTAssertEqual(state(digest([card("1", .done), card("2", .pending)])), .digestInProgress(offline: false))
-        // Cards waiting with no model to make them: set up.
-        XCTAssertEqual(state(digest([card("1", .pending)]), ready: false), .aiNotSetUp)
-        // A made digest still shows without a model.
-        XCTAssertEqual(state(digest([card("1", .done)]), ready: false), .digestReady)
-        // An episode of another digest (yesterday's) doesn't count.
-        let today = digest([card("1", .done)])
-        let other = digest([card("1", .done)])
-        XCTAssertEqual(state(today, episode: episode(for: other, states: [.ready, .ready, .ready])), .digestReady)
-        // A finished episode with a failed chapter is still ready.
-        XCTAssertEqual(state(today, episode: episode(for: today, states: [.ready, .failed, .ready])), .podcastReady)
-        // The episode wins over an incomplete digest.
-        let partial = digest([card("1", .done), card("2", .pending)])
-        XCTAssertEqual(state(partial, episode: episode(for: partial, states: [.ready, .pending, .pending])), .podcastInProgress)
-    }
-
-    func testThePodcastLengthIsTheRealAudioIncludingIntroAndOutro() {
-        let made = digest([card("1", .done), card("2", .done)])
-        let facts = PodcastCardFacts(episode: episode(for: made, states: [.ready, .ready, .ready, .ready],
-                                                      durations: [20, 200, 220, 40]))
-        XCTAssertEqual(facts.topics, 2)
-        XCTAssertEqual(facts.seconds, 480)
-        XCTAssertEqual(facts.minutes, 8)
-        let growing = PodcastCardFacts(episode: episode(for: made, states: [.ready, .working, .pending, .pending]))
-        XCTAssertEqual(growing.readyChapters, 1)
-        XCTAssertEqual(growing.chapters, 4)
     }
 
     // MARK: Sections
@@ -354,29 +254,6 @@ final class HomeTests: XCTestCase {
         XCTAssertEqual(HomeRecent.firstWords("a\nb"), "a")
     }
 
-    // MARK: The Today page over Home
-
-    func testTheTodayPageIsPushedOverHomeAndLeavesWithIt() {
-        let app = makeApp()
-        app.showsTodayPage = true
-        XCTAssertTrue(app.browser.showsForumsHome)
-        XCTAssertEqual(app.homePath, [.today])
-        app.showsTodayPage = true
-        XCTAssertEqual(app.homePath, [.today], "a second request doesn't push twice")
-        app.homePath.append(.digestSettings)
-        XCTAssertTrue(app.showsTodayPage)
-        app.showsTodayPage = false
-        XCTAssertEqual(app.homePath, [])
-        XCTAssertTrue(app.browser.showsForumsHome, "back to Home")
-
-        // Opening a card's topic leaves Home and the pushed pages.
-        app.showsTodayPage = true
-        let digestCard = card("9", .done)
-        app.openDigestLink(app.url(for: digestCard), card: digestCard)
-        XCTAssertFalse(app.showsTodayPage)
-        XCTAssertEqual(app.homePath, [])
-    }
-
     private static func closedLoopbackURL(path: String = "/latest") throws -> URL {
         let fd = socket(AF_INET, SOCK_STREAM, 0)
         XCTAssertGreaterThanOrEqual(fd, 0)
@@ -470,13 +347,12 @@ final class HomeTests: XCTestCase {
         }
         XCTAssertEqual(app.pageContext.state, .topic)
 
-        app.showsTodayPage = true
+        app.browser.showForumsHome()
         XCTAssertTrue(app.browser.showsForumsHome)
-        XCTAssertTrue(app.showsTodayPage)
 
         app.jumpToCitation(2)
         let jumpDeadline = ContinuousClock.now + .seconds(30)
-        while (app.browser.pendingJump != nil || app.browser.showsForumsHome || app.showsTodayPage),
+        while (app.browser.pendingJump != nil || app.browser.showsForumsHome),
               ContinuousClock.now < jumpDeadline {
             try await Task.sleep(for: .milliseconds(50))
         }
@@ -484,7 +360,6 @@ final class HomeTests: XCTestCase {
             app.browser.showsForumsHome,
             "Tapping a citation while Home covered an already-loaded topic scrolled the hidden webView without dismissing Home."
         )
-        XCTAssertFalse(app.showsTodayPage)
 
         app.browser.showForumsHome()
         XCTAssertTrue(app.browser.showsForumsHome)

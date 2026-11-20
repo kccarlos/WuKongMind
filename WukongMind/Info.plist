@@ -5,7 +5,6 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>$(DC_IDENTIFIER_PREFIX).watchRefresh</string>
-		<string>$(DC_IDENTIFIER_PREFIX).digestPrefetch</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
@@ -78,7 +77,6 @@
 	<array>
 		<string>audio</string>
 		<string>fetch</string>
-		<string>processing</string>
 		<string>remote-notification</string>
 	</array>
 	<key>UILaunchScreen</key>

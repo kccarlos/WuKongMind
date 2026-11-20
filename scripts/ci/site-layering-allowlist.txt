@@ -6,7 +6,7 @@
 # Permanent, by decision (dev/docs/SITE_ADAPTERS_PLAN.md §8.4):
 #   SampleContent.swift, the DEBUG/UI-test seeds in AppModel.swift and
 #   AppModel+Assistant.swift, ShareSheetView.swift's badge (until the
-#   WordPress step), PodcastScript.swift's speech regex, and
+#   WordPress step), and
 #   ForumSite.topicKey (the `/t/` in the key format is generic).
 WukongMind/AppModel+Assistant.swift|context = PageContext(url: URL(string: "https://forum.example.org/t/welcome-to-our-community/1234"), state: .maybe)
 WukongMind/AppModel+Assistant.swift|let kind = SiteKind.discourse
@@ -16,7 +16,6 @@ WukongMind/AppModel.swift|string: "https://meta.discourse.org/t/ui-test-delete/9
 WukongMind/AppModel.swift|string: "https://meta.discourse.org/t/ui-test-keep/999998"
 WukongMind/AppModel.swift|string: "https://meta.discourse.org/t/ui-test-topic/999999"
 WukongMind/ForumSite.swift|return "\(site.host)\(site.basePath)/t/\(id)"
-WukongMind/Podcast/PodcastScript.swift|(#"/t/[\w-]*/?\d"#, "a forum link"),
 # Added in S2 (Forum.kind):
 #   - the pre-kind decode default is owner decision 1 (remove once every device ran P0);
 #   - the DEBUG sample seeds name the Discourse kind once per seed function (`let kind`),

@@ -46,16 +46,13 @@ final class CapabilityGatingTests: XCTestCase {
         }
     }
 
-    func testTopLandingAndDigestTopPostsFallBackWithoutFilters() {
-        let app = makeApp()
+    func testTopLandingFallsBackWithoutFilters() {
         let links = FakeLinks()
         let plan = BrowseNavigation.plan(
             adapter: FakeSiteAdapter(), siteURL: fakeSite, topicID: "42", slug: nil, landing: .top,
             facts: nil
         )
         XCTAssertEqual(plan?.url, links.topicURL(siteURL: fakeSite, topicID: "42", slug: nil))
-        let card = DigestCard(siteURL: fakeSite, topicID: "42", title: "T", reason: .trending, postCount: 99)
-        XCTAssertNil(app.topPostsURL(for: card))
     }
 
     // MARK: postLookup

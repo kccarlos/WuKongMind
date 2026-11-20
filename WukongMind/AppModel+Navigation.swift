@@ -299,8 +299,7 @@ extension AppModel {
             let outcome = await browser.scrollToPost(number, anchor: postAnchor(number, topicKey: ref.topicKey))
             if outcome == .shown {
                 browser.hideForumsHome()
-                homeVisibilityChanged()
-            }
+                    }
             browser.highlightAfterLoad([number], topicID: ref.topicID)
             if outcome == .shown {
                 return .shown
@@ -314,7 +313,6 @@ extension AppModel {
             browser.highlightAfterLoad([number], topicID: ref.topicID, anchor: anchor)
         }
         browser.load(url)
-        homeVisibilityChanged()
         return .missing
     }
 
@@ -545,15 +543,13 @@ extension AppModel {
         let outcome = await browser.scrollToPost(number)
         if outcome == .shown {
             browser.hideForumsHome()
-            homeVisibilityChanged()
-        } else if let current = browser.currentURL,
+            } else if let current = browser.currentURL,
            let post = adapter(for: item.siteURL)?.links.postURL(topicURL: current, number: number, anchor: postAnchor(number, topicKey: item.topicKey)),
            var components = URLComponents(url: post, resolvingAgainstBaseURL: false) {
             components.query = URLComponents(url: current, resolvingAgainstBaseURL: false)?.query
             if let url = components.url {
                 browser.load(url)
-                homeVisibilityChanged()
-            }
+                    }
         }
         let facts = topicOverviews[ref.topicKey]?.facts
         let post = await postText(number, in: ref, facts: facts)
@@ -571,8 +567,7 @@ extension AppModel {
     func back() -> BrowseResult {
         if browser.isForumsHomeRequested, browser.currentURL != nil {
             browser.hideForumsHome()
-            homeVisibilityChanged()
-            return BrowseResult(status: .moved, shown: historyMoveDescription(verb: "Went back", url: browser.currentURL, title: browser.pageTitle))
+                return BrowseResult(status: .moved, shown: historyMoveDescription(verb: "Went back", url: browser.currentURL, title: browser.pageTitle))
         }
         guard browser.canGoBack else { return BrowseResult(status: .endOfList, shown: "There is nothing to go back to.") }
         let item = browser.webView.backForwardList.backItem
@@ -667,7 +662,6 @@ extension AppModel {
         guard let outcome = try? await browser.agentLoad(url, wait: true, timeout: timeout) else {
             return .failed("The load was cancelled.")
         }
-        homeVisibilityChanged()
         if let failure = outcome.failure {
             let cleanFailure = failure.replacingOccurrences(of: #"https?://\S+"#, with: fallbackHost, options: .regularExpression)
             let verb = kind == .search ? "Couldn't search the web (\(fallbackHost))" : "Couldn't open \(fallbackHost)"
@@ -854,28 +848,6 @@ extension AppModel {
             siteURL: item.siteURL, topicID: item.topicID, slug: item.slug, postNumber: item.postNumber,
             anchor: item.postNumber.flatMap { postAnchor($0, topicKey: item.topicKey) }
         )
-    }
-
-    /// The card's topic, at a post when given; the forum's address when the
-    /// topic has no link.
-    func url(for card: DigestCard, atPost number: Int? = nil) -> URL {
-        topicURL(siteURL: card.siteURL, topicID: card.topicID, slug: card.slug, postNumber: number)
-            ?? topicURL(siteURL: card.siteURL, topicID: card.topicID, slug: card.slug)
-            ?? URL(string: card.siteURL) ?? URL(string: "about:blank")!
-    }
-
-    /// The card's filtered view of the top posts, for long topics whose most
-    /// liked reply isn't known; nil when the site has no such view.
-    func topPostsURL(for card: DigestCard) -> URL? {
-        guard card.topPost == nil, card.postCount >= DigestLimits.topPostsFilterMinimum else { return nil }
-        return adapter(for: card.siteURL)?.capabilities.topicFilters?
-            .url(topic: TopicRef(siteURL: card.siteURL, topicID: card.topicID), slug: card.slug, filter: .top)
-    }
-
-    /// The chapter's topic at the cited post (or its top).
-    func url(for chapter: PodcastChapter) -> URL? {
-        guard let siteURL = chapter.siteURL, let topicID = chapter.topicID else { return nil }
-        return topicURL(siteURL: siteURL, topicID: topicID, slug: chapter.slug, postNumber: chapter.postNumber)
     }
 
     /// The slug of a topic URL on `siteURL`'s forum, as its adapter reads it.

@@ -1738,8 +1738,7 @@ final class StateTransitionTests: XCTestCase {
         addTeardownBlock { @MainActor in
             for record in app.activities where !record.status.isTerminal { app.cancel(record: record) }
             app.browser.stopLoading()
-            app.pauseDigest()
-            app.podcast.pauseGeneration()
+            app.podcast.cancelReadAloud()
             ai.gated = false
             ai.releaseAll()
             session.invalidateAndCancel()
@@ -1942,27 +1941,7 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(app.savedItemCount(forSiteURL: site), 0)
         XCTAssertFalse(app.siteURLsWithSavedData.contains(site))
 
-        // 3. Having a Daily Digest keeps saved data clearable via Clear All Saved Data even when no per-forum rows remain.
         app.clearAllSavedData()
-        XCTAssertFalse(app.hasAnySavedData)
-        var card = DigestCard(
-            siteURL: site,
-            topicID: "77",
-            title: "Trending 77",
-            slug: "trending-77",
-            reason: .trending,
-            postCount: 10
-        )
-        card.summary = "Digest summary"
-        card.state = .done
-        var digest = DailyDigest(day: DailyDigest.dayKey(for: Date()), cards: [card])
-        digest.completedAt = Date()
-        app.digests = [digest]
-        XCTAssertTrue(app.siteURLsWithSavedData.isEmpty)
-        XCTAssertTrue(app.hasAnySavedData)
-
-        app.clearAllSavedData()
-        XCTAssertNil(app.todaysDigest)
         XCTAssertFalse(app.hasAnySavedData)
     }
 
@@ -2052,7 +2031,7 @@ final class StateTransitionTests: XCTestCase {
         let actions = BrowserActions(
             showLoginInfo: {}, addForum: {}, translatePosts: {},
             openAssistant: {}, openPanel: { _ in }, openForum: { _ in }, showForumsHome: {},
-            openDigestLink: { _, _ in }, openHistory: {}, openSettings: {}, showShareHowTo: {}
+            openHistory: {}, openSettings: {}, showShareHowTo: {}
         )
         let host = UIHostingController(
             rootView: WorkspaceView(
@@ -2125,93 +2104,6 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertNil(app.router.item, "Opening a watched topic from Settings › Watched topics must dismiss Settings")
         XCTAssertEqual(app.watchedTopics.first?.newReplies, 0)
         defer { app.browser.webView.stopLoading() }
-
-        // 2. When Make a digest every day is OFF, Make the podcast every day is disabled and off in UI.
-        app.settings.dailyDigestEnabled = false
-        app.settings.podcastDailyEnabled = true
-        let host = UIHostingController(rootView: Form { SettingsPodcastSections(app: app, podcast: app.podcast) })
-        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
-        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 600))
-        window.frame = CGRect(x: 0, y: 0, width: 393, height: 600)
-        window.rootViewController = host
-        window.makeKeyAndVisible()
-        defer {
-            window.isHidden = true
-            window.rootViewController = nil
-        }
-        host.view.layoutIfNeeded()
-        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
-        host.view.layoutIfNeeded()
-
-        let toggle = findSwitch(in: host.view)
-        XCTAssertNotNil(toggle)
-        XCTAssertEqual(toggle?.isEnabled, false, "Make the podcast every day must be disabled when Make a digest every day is off")
-        XCTAssertEqual(toggle?.isOn, false, "Make the podcast every day must appear off when Make a digest every day is off")
-    }
-
-    func testNowPlayingSheetPresentsMissingGoogleKeyAlert() async throws {
-        let h = makeHarness()
-        let app = h.app
-        h.ai.gated = false
-        app.settings.hasCompletedOnboarding = true
-        app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .role(.assistant))
-        let gatedSpeech = GatedSpeechEngine()
-        app.podcast.makeEngine = { _, _, _ in gatedSpeech }
-
-        var card1 = DigestCard(siteURL: site, topicID: "1", title: "Topic 1", reason: .trending, postCount: 4)
-        card1.state = .done
-        card1.summary = "Topic 1 has 4 posts."
-        app.digests = [DailyDigest(day: DailyDigest.dayKey(for: Date()), completedAt: Date(), cards: [card1])]
-
-        app.settings.podcast.engine = .onDevice
-        app.podcast.make(play: false)
-        try await waitUntil { gatedSpeech.attempts == 1 && gatedSpeech.waiting }
-        app.podcast.pauseGeneration()
-        gatedSpeech.gated = false
-        gatedSpeech.release()
-        XCTAssertEqual(app.podcast.episode?.isComplete, false)
-
-        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
-        let rootHost = UIHostingController(rootView: Color.clear.modifier(RouterHost(app: app, active: true)))
-        let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
-        window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
-        window.rootViewController = rootHost
-        window.makeKeyAndVisible()
-        defer {
-            window.isHidden = true
-            window.rootViewController = nil
-        }
-        rootHost.view.layoutIfNeeded()
-        app.router.item = .nowPlaying
-        for _ in 0..<25 {
-            try await Task.sleep(for: .milliseconds(30))
-            rootHost.view.layoutIfNeeded()
-        }
-        let nowPlayingSheetVC = try XCTUnwrap(rootHost.presentedViewController, "NowPlaying sheet is presented")
-
-        app.settings.podcast.engine = .google
-        app.podcast.make(play: false)
-        for _ in 0..<25 {
-            try await Task.sleep(for: .milliseconds(30))
-            rootHost.view.layoutIfNeeded()
-            nowPlayingSheetVC.view.layoutIfNeeded()
-        }
-        let alertVisibleOverSheet = (nowPlayingSheetVC is UIAlertController) || (nowPlayingSheetVC.presentedViewController is UIAlertController)
-        app.dismissRootAlert()
-        for _ in 0..<30 where nowPlayingSheetVC.presentedViewController != nil {
-            try await Task.sleep(for: .milliseconds(30))
-            rootHost.view.layoutIfNeeded()
-        }
-        app.router.item = nil
-        for _ in 0..<30 where rootHost.presentedViewController != nil {
-            try await Task.sleep(for: .milliseconds(30))
-            rootHost.view.layoutIfNeeded()
-        }
-
-        XCTAssertTrue(
-            alertVisibleOverSheet,
-            "Missing Google API key alert attached to RouterHost behind presented NowPlayingView sheet was dropped by UIKit"
-        )
     }
 
     private func findScrollView(in view: UIView, minContentHeight: CGFloat) -> UIScrollView? {

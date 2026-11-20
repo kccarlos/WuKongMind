@@ -237,9 +237,8 @@ final class SiteJobTests: XCTestCase {
         XCTAssertEqual(options.before, ISO8601DateFormatter().date(from: "2026-10-31T00:00:00Z"))
     }
 
-    /// Items, digest cards and podcast chapters of another platform build that
-    /// platform's URLs (a post is `#pN`, a topic has no slug).
-    func testLinksOfAnItemACardAndAChapterComeFromTheirSitesAdapter() {
+    /// Items of another platform build that platform's URLs (a post is `#pN`, a topic has no slug).
+    func testLinksOfAnItemComeFromItsSitesAdapter() {
         let app = makeHarness(forums: [Forum(siteURL: fakeSite, kind: FakeSiteAdapter.kind, name: "Fake")]).app
         let item = BrowseItem(kind: .post, siteURL: fakeSite, topicID: "42", slug: "ignored", postNumber: 2, title: "T")
         XCTAssertEqual(app.url(for: item)?.absoluteString, "\(fakeSite)/topic/42#p2")
@@ -247,19 +246,9 @@ final class SiteJobTests: XCTestCase {
         topicItem.postNumber = nil
         XCTAssertEqual(app.url(for: topicItem)?.absoluteString, "\(fakeSite)/topic/42")
 
-        let card = DigestCard(siteURL: fakeSite, topicID: "42", title: "T", reason: .trending, postCount: 99)
-        XCTAssertEqual(app.url(for: card).absoluteString, "\(fakeSite)/topic/42")
-        XCTAssertEqual(app.url(for: card, atPost: 3).absoluteString, "\(fakeSite)/topic/42#p3")
-        XCTAssertNil(app.topPostsURL(for: card), "The fake has no filtered views")
-
-        var chapter = PodcastChapter(card: card)
-        chapter.postNumber = 4
-        XCTAssertEqual(app.url(for: chapter)?.absoluteString, "\(fakeSite)/topic/42#p4")
-
-        // No adapter: no link, and a card falls back to the forum's address.
+        // No adapter: no link.
         let ghost = makeHarness(forums: [Forum(siteURL: ghostSite, kind: SiteKind("ghost"), name: "Ghost")]).app
         XCTAssertNil(ghost.url(for: BrowseItem(kind: .post, siteURL: ghostSite, topicID: "1", postNumber: 1, title: "")))
-        XCTAssertEqual(ghost.url(for: DigestCard(siteURL: ghostSite, topicID: "1", title: "", reason: .trending, postCount: 1)).absoluteString, ghostSite)
     }
 
     func testAgentSourcesParseThroughTheGivenAdapter() {

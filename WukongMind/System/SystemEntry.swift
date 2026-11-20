@@ -17,9 +17,6 @@ enum SystemEntryAction: Equatable {
     case summarize(URL)
     /// Ask a Forum: start Ask the forum on that forum.
     case ask(siteURL: String, question: String)
-    case openToday
-    /// Play today's episode if there is one, else open Today.
-    case playToday
     /// Start voice, or open Settings › Voice.
     case startVoice
     /// A topic from Spotlight, a Siri suggestion or Open Topic.

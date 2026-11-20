@@ -45,8 +45,6 @@ enum RootPresentation: Identifiable, Equatable {
     case addForum
     /// "Share from Safari or Chrome" (Home card).
     case shareHowTo
-    /// The Today podcast's player (NowPlaying.swift).
-    case nowPlaying
     /// M4 userscript import & update review sheet (`ScriptImportViews.swift`).
     case scriptImport
     #if DEBUG
@@ -68,7 +66,6 @@ enum RootPresentation: Identifiable, Equatable {
         case .exportOptions: "exportOptions"
         case .addForum: "addForum"
         case .shareHowTo: "shareHowTo"
-        case .nowPlaying: "nowPlaying"
         case .scriptImport: "scriptImport"
         #if DEBUG
         case .debugSettings(let page): "debugSettings-\(page?.rawValue ?? "root")"
@@ -569,9 +566,6 @@ struct RouterHost: ViewModifier {
             ShareHowToSheet(onDone: { router.item = nil })
         case .addForum:
             AddForumSheet(app: app, onAdded: onForumAdded)
-        case .nowPlaying:
-            NowPlayingView(app: app, podcast: podcast)
-                .nowPlayingZoomDestination()
         case .scriptImport:
             ScriptImportSheet(app: app)
         #if DEBUG

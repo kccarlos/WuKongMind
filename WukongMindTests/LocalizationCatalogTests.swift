@@ -217,7 +217,7 @@ final class LocalizationCatalogTests: XCTestCase {
                 }
             }
         }
-        XCTAssertEqual(phrases, 10)
+        XCTAssertEqual(phrases, 6)
     }
 
     func testSiriPhrasesResolveInChineseFromTheBundle() throws {

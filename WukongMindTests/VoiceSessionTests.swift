@@ -1265,8 +1265,7 @@ final class VoiceSessionTests: XCTestCase {
             app.browser.stopLoading()
             app.browser.detachCallbacks()
             app.browser.existingWebView?.removeFromSuperview()
-            app.pauseDigest()
-            app.podcast.pauseGeneration()
+            app.podcast.cancelReadAloud()
             app.podcast.cancelReadAloud()
             window.isHidden = true
             window.rootViewController = nil

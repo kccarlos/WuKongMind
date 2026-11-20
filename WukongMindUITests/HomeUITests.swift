@@ -50,10 +50,17 @@ final class HomeUITests: DCUITestCase {
         (wasPinned ? unpin : pin).tap()
         XCTAssertTrue(waitForGone(wasPinned ? unpin : pin, timeout: 5))
 
-        // Pinned sites go first, the rest by visits: the tile moved.
+        // Pinned sites go first, the rest by visits: the tile moved (or fell
+        // past the 11-tile cap when unpinned alongside accumulated visits).
         let moved = any(app, identifier)
         XCTAssertTrue(
-            wait(timeout: 5) { moved.exists && moved.frame != before },
+            wait(timeout: 5) {
+                if wasPinned {
+                    return siteTiles(app).firstMatch.identifier != identifier
+                        && (!moved.exists || moved.frame != before)
+                }
+                return moved.exists && moved.frame != before
+            },
             "Tapping \(wasPinned ? "Unpin" : "Pin") did not move the tile."
         )
     }
@@ -75,23 +82,19 @@ final class HomeUITests: DCUITestCase {
         XCTAssertTrue(waitForGone(app.navigationBars["Add Site"], timeout: 5))
     }
 
-    /// Address field, Today, Sites, Recent, Continue reading: top to bottom
-    /// (the sample: a digest being made, saved topics, three forums and
-    /// summaries).
+    /// Address field, Sites, Recent, Continue reading: top to bottom (no Today module).
     func testHomeSectionsComeInTheFixedOrder() throws {
-        let app = launch(["-dc-sample", "-dc-forums-home", "-dc-digest-sample"],
+        let app = launch(["-dc-sample", "-dc-forums-home"],
                          orientation: isPhone ? .portrait : .landscapeLeft)
         openHome(in: app)
 
         let address = app.textFields["homeAddress"]
-        let today = any(app, "homeToday")
         let tile = siteTiles(app).firstMatch
         let continueRow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'continueReading-'")).firstMatch
         XCTAssertTrue(address.waitForExistence(timeout: 10), "No address field.")
-        XCTAssertTrue(waitOrDump(today, timeout: 10, in: app), "No Today module.")
+        XCTAssertFalse(any(app, "homeToday").exists, "Today module must not appear on Home.")
         XCTAssertTrue(tile.waitForExistence(timeout: 5), "No site tiles.")
-        XCTAssertLessThan(address.frame.minY, today.frame.minY)
-        XCTAssertLessThan(today.frame.minY, tile.frame.minY)
+        XCTAssertLessThan(address.frame.minY, tile.frame.minY)
         XCTAssertTrue(app.buttons["homeHistory"].exists)
         XCTAssertTrue(app.buttons["homeSettings"].exists)
 
@@ -102,24 +105,6 @@ final class HomeUITests: DCUITestCase {
         XCTAssertTrue(reveal(continueRow, in: app), "No Continue reading.")
         XCTAssertLessThan(recent.frame.minY, continueRow.frame.minY)
         XCTAssertLessThanOrEqual(app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'continueReading-'")).count, 3)
-    }
-
-    /// The Today page is pushed over Home and Back returns to it.
-    func testTodayPageIsPushedAndGoesBack() throws {
-        let app = launch(["-dc-sample", "-dc-forums-home", "-dc-digest-sample"],
-                         orientation: isPhone ? .portrait : .landscapeLeft)
-        let home = openHome(in: app)
-        let open = app.buttons["homeTodayOpen"]
-        XCTAssertTrue(waitForHittable(open))
-        open.tap()
-
-        let page = any(app, "todayPage")
-        XCTAssertTrue(page.waitForExistence(timeout: 10), "The Today page was not pushed.")
-        XCTAssertTrue(app.navigationBars["Today"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.buttons["todayMenu"].exists)
-        app.navigationBars["Today"].buttons.element(boundBy: 0).tap()
-        XCTAssertTrue(waitForGone(page, timeout: 5))
-        XCTAssertTrue(home.waitForExistence(timeout: 5))
     }
 
     /// A site tile opens the site (Home goes).
@@ -185,15 +170,12 @@ final class HomeUITests: DCUITestCase {
         let hintHeight = hintText.frame.height
         app.terminate()
 
-        // 2. DockPodcastRow ("Today · Welcome · … left") wraps onto two lines at AX5,
-        // and Home header buttons maintain non-overlapping >= 44×44 pt hit targets.
+        // 2. Home header buttons maintain non-overlapping >= 44×44 pt hit targets at AX5.
         app = launch(
             [
                 "-UIPreferredContentSizeCategoryName", ax5,
                 "-dc-sample",
                 "-dc-forums-home",
-                "-dc-digest-sample",
-                "-dc-podcast-fake",
                 "-dc-force-width", "375"
             ],
             orientation: .portrait
@@ -206,60 +188,10 @@ final class HomeUITests: DCUITestCase {
         XCTAssertGreaterThanOrEqual(settingsBtn.frame.width, 44)
         XCTAssertLessThanOrEqual(historyBtn.frame.maxX, settingsBtn.frame.minX + 1)
 
-        let openToday = app.buttons["homeTodayOpen"]
-        XCTAssertTrue(reveal(openToday, in: app, swipes: 3))
-        openToday.tap()
-        XCTAssertTrue(any(app, "todayPage").waitForExistence(timeout: 10))
-
-        let play = app.buttons["podcastPlay"]
-        XCTAssertTrue(reveal(play, in: app, swipes: 4))
-        play.tap()
-        XCTAssertTrue(app.buttons["podcastNowPlayingRow"].waitForExistence(timeout: 10))
-
-        app.navigationBars.buttons.element(boundBy: 0).tap()
-        XCTAssertTrue(any(app, "home").waitForExistence(timeout: 10))
-        let dockPodcast = app.buttons["dockPodcastOpen"]
-        XCTAssertTrue(waitForHittable(dockPodcast, timeout: 10), "Dock podcast row did not appear on Home.")
-        _ = wait(timeout: 2) { dockPodcast.frame.height > 80 }
-        let podcastHeight = dockPodcast.frame.height
-
         XCTAssertGreaterThan(
             hintHeight,
             80,
             "At AX5 Dynamic Type, DockHintRow stayed single-line (height \(hintHeight) pt) instead of wrapping to two lines."
         )
-        XCTAssertGreaterThan(
-            podcastHeight,
-            80,
-            "At AX5 Dynamic Type, DockPodcastRow stayed single-line (height \(podcastHeight) pt) instead of wrapping to two lines."
-        )
-    }
-
-    func testHomeDigestStripAndAccessibilityLayout() throws {
-        var app = launch(["-dc-sample", "-dc-forums-home", "-dc-digest-sample"], orientation: .portrait)
-        openHome(in: app)
-        let card = app.buttons["homeDigestCard-241807"]
-        XCTAssertTrue(card.waitForExistence(timeout: 10))
-        capture("base_phone_home-digest")
-        let baseCardMinX = card.frame.minX
-        let baseHeaderMinX = any(app, "homeHeader").frame.minX
-        app.terminate()
-
-        let ax5 = UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue
-        app = launch(["-UIPreferredContentSizeCategoryName", ax5, "-dc-sample", "-dc-forums-home", "-dc-digest-sample"], orientation: .portrait)
-        openHome(in: app)
-        let axHeader = any(app, "homeHeader")
-        let axCard = app.buttons["homeDigestCard-241807"]
-        XCTAssertTrue(axCard.waitForExistence(timeout: 10))
-        capture("ax5_phone_home-digest")
-        let axCardWidth = axCard.frame.width
-        let headerHeight = axHeader.frame.height
-
-        // Home is centered and inset further on iPad. Its header has a 4 pt
-        // inset from the cards; compare within the list, not to the screen edge.
-        XCTAssertEqual(baseCardMinX, baseHeaderMinX - 4, accuracy: 1, "DigestStrip first card should align with the Today section leading margin instead of double-indenting.")
-        XCTAssertEqual(axCard.frame.minX, axHeader.frame.minX - 4, accuracy: 1, "DigestStrip should keep its leading alignment at AX5.")
-        XCTAssertLessThan(headerHeight, 175, "Date header wrapped across multiple lines at AX5 (height \(headerHeight)).")
-        XCTAssertLessThanOrEqual(axCardWidth, 310, "Digest card overflowed screen width at AX5 (width \(axCardWidth)).")
     }
 }

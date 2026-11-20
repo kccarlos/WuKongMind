@@ -142,13 +142,8 @@ enum SyncSettings {
         "saveFailedTasksForFeedback",
         "hasCompletedOnboarding",
         "syncAPIKeys",
-        // The daily digest spends AI credits and schedules a background
-        // task on the device where it was turned on.
-        "dailyDigestEnabled",
-        "dailyDigestNotifies",
-        // Voice and the daily podcast spend credits on this device.
+        // Voice spends credits on this device.
         "voiceEnabled",
-        "podcastDailyEnabled",
         // Spotlight and Siri suggestions live on this device: its own index
         // and its own donated activities.
         "spotlightEnabled",

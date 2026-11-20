@@ -206,13 +206,6 @@ final class AppModel: ObservableObject {
     @Published private(set) var assistantRequest = 0
     /// A hand-off needed this role's model, which is not ready yet.
     @Published var needsProviderSetup: ModelRole?
-    /// Recent daily digests, newest first (AppModel+Digest.swift; device-local).
-    @Published var digests: [DailyDigest] = []
-    /// What making today's digest is doing (preparing, a card, an error).
-    @Published var digestActivity: DigestActivity = .idle
-    /// Pages pushed over Home (the Today page, an earlier digest, digest
-    /// settings); emptied when Home hides (AppModel+Browse.swift).
-    @Published var homePath: [HomeRoute] = []
     /// Where this launch is in the launch rule (HomeState.swift); not
     /// published, nothing draws it.
     var launchPhase: LaunchPhase = .waiting
@@ -312,16 +305,6 @@ final class AppModel: ObservableObject {
     let sites: SiteRegistry
     let aiService: AIService
     let notifier: WatchNotifier
-    /// The daily digest's files and background task (AppModel+Digest.swift).
-    let digestStore: DigestStore
-    let backgroundScheduler: BackgroundTaskScheduling
-    var digestPrefetch: DigestPrefetch?
-    var digestNotifiedDay: String?
-    var digestTask: Task<Void, Never>?
-    /// The run `digestTask` belongs to; a paused (cancelled) run that is
-    /// still unwinding never writes over a newer one.
-    var digestRunID: UUID?
-    private var openTodayObserver: NSObjectProtocol?
     private var localeChangeCancellable: AnyCancellable?
     private let limiter = TaskLimiter(limit: 2)
     /// The task of each job launched (waiting for a worker or running). The
@@ -374,18 +357,14 @@ final class AppModel: ObservableObject {
     /// Starts voice sessions for the UI (Voice/VoiceController.swift).
     private(set) lazy var voice = VoiceController(app: self)
     private let injectedPodcastPlayer: PodcastPlayer?
-    /// The podcast: episodes, the player, read-aloud (Podcast/PodcastController.swift).
+    /// Read-aloud player and synthesis (Podcast/PodcastController.swift).
     private(set) lazy var podcast: PodcastController = {
-        let controller = PodcastController(
+        PodcastController(
             app: self,
             store: PodcastStore(directory: podcastDirectory),
             player: injectedPodcastPlayer
         )
-        controller.voice = voice
-        return controller
     }()
-    /// Whether Space plays or pauses the podcast (WorkspaceLayout.swift).
-    private(set) lazy var playPauseShortcut = PlayPauseShortcut(podcast: podcast)
     /// Per-site userscript store and automatic WKWebView injector (`ScriptStore.swift`).
     let scriptStore: ScriptStore
     /// Userscript importer and daily foreground update checker (`ScriptImport.swift`).
@@ -683,7 +662,6 @@ final class AppModel: ObservableObject {
         websiteDataStore: WKWebsiteDataStore? = nil,
         notifier: WatchNotifier = .shared,
         cloudSync: CloudSyncController? = nil,
-        backgroundScheduler: BackgroundTaskScheduling = BGTaskScheduler.shared,
         podcastDirectory: URL? = nil,
         podcastPlayer: PodcastPlayer? = nil,
         workspaceDirectory: URL? = nil,
@@ -714,8 +692,6 @@ final class AppModel: ObservableObject {
         self.topicActivityDonor = topicActivityDonor ?? Self.makeTopicActivityDonor(store: store)
         self.podcastDirectory = podcastDirectory ?? PodcastStore.defaultDirectory
         self.injectedPodcastPlayer = podcastPlayer
-        self.backgroundScheduler = backgroundScheduler
-        digestStore = DigestStore(directory: store.directoryURL)
         self.keyStore = store.keys
         self.cloudSync = cloudSync ?? CloudSyncController.makeDefault(for: store)
         self.forumService = forumService
@@ -982,26 +958,13 @@ final class AppModel: ObservableObject {
             // On disk before the system suspends the app again.
             await self?.flushPendingSaves()
         }
-        loadDigests()
-        // Podcast audio of deleted or week-old digests goes.
+        // Prune old read-aloud audio and any legacy podcast folders.
         podcast.reconcile()
-        openTodayObserver = NotificationCenter.default.addObserver(
-            forName: WatchNotifier.openTodayNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            Task { @MainActor [weak self] in self?.openTodayFromNotification() }
-        }
         localeChangeCancellable = NotificationCenter.default.publisher(for: NSLocale.currentLocaleDidChangeNotification)
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
                 self?.refreshAppleIntelligenceStatus()
             }
-        DigestBackgroundPrefetch.perform = { [weak self] in
-            await self?.performBackgroundDigestPrefetch()
-            await self?.flushPendingSaves()
-        }
-        if settings.dailyDigestEnabled { scheduleDigestPrefetch() }
         Task { [weak self] in
             guard let notifier = self?.notifier else { return }
             let authorized = await notifier.isAuthorized()
@@ -1026,8 +989,6 @@ final class AppModel: ObservableObject {
         applyBarMorphDebugArguments()
         seedScriptsSampleIfNeeded()
         seedM4ImportPreviewIfNeeded()
-        // Sample only: never over the real digests or with a real key.
-        if AssistantDebug.isActive, AssistantDebug.has("-dc-digest-sample") { seedDigestSample() }
         // `-dc-no-forums`: the sample as a new user sees Home (never saved).
         if AssistantDebug.isActive, AssistantDebug.has("-dc-no-forums") {
             directory = ForumDirectory(forums: [])
@@ -1613,7 +1574,7 @@ final class AppModel: ObservableObject {
         }
         select(topic: newTab.browser.showsForumsHome ? nil : context.topic)
         pageUpdates.send(context)
-        homeVisibilityChanged()
+        // Clean up any legacy references
         objectWillChange.send()
         if prefetchesTopicFacts || barShowsTopicFacts, let topic = context.topic, context.state == .topic,
            topicOverviews[topic.topicKey] == nil {
@@ -2170,7 +2131,6 @@ final class AppModel: ObservableObject {
             activities.removeAll { $0.siteURL == siteURL }
             agentRuns.removeAll { $0.siteURL == siteURL }
             watchedTopics.removeAll { $0.siteURL == siteURL }
-            removeDigestCards(siteURL: siteURL)
         }
         if pageContext.siteURL == siteURL { suppressedAutoAddSiteURL = siteURL }
         var directory = self.directory
@@ -2567,11 +2527,8 @@ final class AppModel: ObservableObject {
                 Task { [weak self] in await self?.checkWatchedTopics(reason: .foreground) }
             }
             Task { [weak self] in await self?.refreshNotificationAuthorization() }
-            openTodayFromNotification()
-            resumeDigestIfNeeded()
-            podcast.resumeIfNeeded()
             workEnteredForeground()
-            // After the inbox and the digest have started: where the launch lands.
+            // After the inbox has started: where the launch lands.
             applyLaunchRuleIfNeeded()
             if !Self.loadsOnlySamplePage, !Self.isRunningTests {
                 Task { [weak self] in
@@ -2589,15 +2546,10 @@ final class AppModel: ObservableObject {
             watchTimer?.cancel()
             watchTimer = nil
             if !watchedTopics.isEmpty { WatchBackgroundRefresh.schedule() }
-            // Summaries are made in the foreground only; the run continues
-            // from the same card next time.
-            pauseDigest()
-            // Likewise the podcast's chapters; playback goes on.
-            podcast.pauseGeneration()
+            podcast.player.savePosition()
             // Summaries, chats and Ask the forum finish if they can in the
             // time the system gives, else pause until the app is back.
             workEnteredBackground()
-            if settings.dailyDigestEnabled { scheduleDigestPrefetch() }
         @unknown default:
             break
         }
@@ -2841,7 +2793,6 @@ final class AppModel: ObservableObject {
         for tab in tabs.tabs {
             tab.browser.linkSettings = currentLinkSettings
         }
-        digestSettingsDidChange(from: old)
         systemSettingsDidChange(from: old)
         let hadVoiceKey = !old.configuration(for: .gemini).apiKey.isEmpty || !old.configuration(for: .vertexAI).apiKey.isEmpty
         let hasVoiceKey = !settings.configuration(for: .gemini).apiKey.isEmpty || !settings.configuration(for: .vertexAI).apiKey.isEmpty

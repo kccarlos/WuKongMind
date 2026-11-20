@@ -463,8 +463,7 @@ final class BrowserTabsTests: XCTestCase {
             tab.scriptWebController.detach()
             tab.browser.existingWebView?.removeFromSuperview()
         }
-        targetApp.pauseDigest()
-        targetApp.podcast.pauseGeneration()
+        targetApp.podcast.cancelReadAloud()
     }
 
     private func mountTabsWebHost(for targetApp: AppModel) {
@@ -1255,18 +1254,6 @@ final class BrowserTabsTests: XCTestCase {
             tab2.browser.pageTitle == "Tall Tab 2" && !tab2.browser.isLoading
         }
 
-        var doneCard = DigestCard(
-            siteURL: "https://forum.example.com",
-            topicID: "42",
-            title: "Morning briefing",
-            slug: nil,
-            reason: .trending,
-            postCount: 8
-        )
-        doneCard.state = .done
-        doneCard.summary = "Ready summary."
-        app.digests = [DailyDigest(day: app.todayKey, cards: [doneCard])]
-        app.saveDigests()
         app.settings.hasCompletedOnboarding = true
         app.settings.launchDestination = .automatic
 
