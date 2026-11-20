@@ -564,6 +564,7 @@ extension DCUITestCase {
             var args = [
                 "-dc-skip-onboarding",
                 "-dc-no-animations",
+                "-dc-state-debug",
                 "-dc-browser-agent-scripts-box", boxID,
                 "-dc-open", server.thread101URL,
                 "-AppleInterfaceStyle", "Light"
@@ -583,12 +584,17 @@ extension DCUITestCase {
         XCTAssertTrue(webView.waitForExistence(timeout: 20), "Browser web view did not appear.")
         let initialStamp = waitForLoadStamp(in: webView, after: 0, timeout: 20)
         if initialStamp == nil {
+            let digestEl = any(app, "appStateDigest")
+            let digest = digestEl.exists ? digestEl.label : "none"
+            let sampleTexts = webView.staticTexts.allElementsBoundByIndex
+                .prefix(5)
+                .compactMap { $0.exists ? $0.label : nil }
+                .joined(separator: " | ")
             attachTree(app, named: "Initial load failure tree")
+            XCTFail("Fixture thread #101 did not load (htmlLoads=\(server.totalHTMLLoads), /threads/101=\(server.requestCount(forPath: "/threads/101")), digest=\(digest), webViews=\(app.webViews.count), texts=[\(sampleTexts)]).")
+            app.terminate()
+            return
         }
-        XCTAssertNotNil(
-            initialStamp,
-            "Fixture thread #101 did not load (htmlLoads=\(server.totalHTMLLoads), /threads/101=\(server.requestCount(forPath: "/threads/101")))."
-        )
         XCTAssertTrue(webView.staticTexts[FixtureSpaForumServer.thread101OP].waitForExistence(timeout: 10))
         XCTAssertTrue(webView.staticTexts[FixtureSpaForumServer.thread101Reply1].waitForExistence(timeout: 10))
         XCTAssertTrue(webView.staticTexts[FixtureSpaForumServer.thread101Reply2].exists)
@@ -600,6 +606,15 @@ extension DCUITestCase {
 
         // 2. Open the browser agent and say: "from now on, show only the original poster on this site".
         showAssistant(in: app)
+        if usesDrawerLayout(app), !drawerState(in: app).exists {
+            // Under simulator CPU load a single coordinate tap on aiButton can exceed the
+            // 0.45 s voice long-press threshold in PhoneAIButtonStyle; tap once more if still closed.
+            let aiButton = app.buttons["aiButton"]
+            if waitForBarItem(aiButton, timeout: 5) {
+                tapBarItem(aiButton)
+                _ = drawerState(in: app).waitForExistence(timeout: 10)
+            }
+        }
         XCTAssertTrue(waitOrDump(any(app, "agentPanel"), timeout: 15, in: app), "Browser agent panel did not open.")
         XCTAssertTrue(any(app, "pageCapabilitiesSeal").waitForExistence(timeout: 10), "This page seal is missing in Agent panel.")
 
