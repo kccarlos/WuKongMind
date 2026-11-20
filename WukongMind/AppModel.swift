@@ -2920,6 +2920,7 @@ final class AppModel: ObservableObject {
     func resetSettings() {
         var fresh = AppSettings()
         fresh.hasCompletedOnboarding = settings.hasCompletedOnboarding
+        fresh.acceptedTermsVersion = settings.acceptedTermsVersion
         fresh.syncAPIKeys = settings.syncAPIKeys
         fresh.aiConsent = settings.aiConsent
         fresh.voiceConsent = settings.voiceConsent

@@ -233,6 +233,7 @@ final class OnboardingReplayTests: XCTestCase {
         let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
         let app = AppModel(store: store)
         app.settings.hasCompletedOnboarding = true
+        app.settings.acceptedTermsVersion = TermsOfUse.currentVersion
         return app
     }
 
@@ -312,6 +313,8 @@ final class FirstRunTests: XCTestCase {
         XCTAssertNil(app.firstRun)
         XCTAssertEqual(app.rootPresentation, .onboarding, "a fresh install starts with step 1")
         app.completeOnboarding()
+        XCTAssertEqual(app.rootPresentation, .termsGate, "Terms come right after onboarding")
+        app.acceptTerms()
         app.firstRun = .prompts
         XCTAssertNil(app.rootPresentation, "the cover is gone; step 3 is not a presentation")
         XCTAssertEqual(app.firstRun, .prompts)

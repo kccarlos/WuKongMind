@@ -837,6 +837,7 @@ final class StateTransitionTests: XCTestCase {
         let app = harness.app
         select(app, .openAI, model: "gpt-test", key: "key-1")
         app.settings.hasCompletedOnboarding = true
+        app.settings.acceptedTermsVersion = TermsOfUse.currentVersion
         app.flushPendingSaves()
         XCTAssertEqual(harness.keys.value(for: .openAI), "key-1")
         for id in ["1", "2", "3"] { XCTAssertTrue(app.enqueueSummary(for: topic(id))) }
@@ -868,6 +869,7 @@ final class StateTransitionTests: XCTestCase {
         let app = harness.app
         select(app, .ollama, model: "model-a")
         app.settings.hasCompletedOnboarding = true
+        app.settings.acceptedTermsVersion = TermsOfUse.currentVersion
         harness.deliver(topicPage(topic("1")))
         app.assistantMode = .browserAgent
         app.panelRoute = .history
@@ -969,6 +971,7 @@ final class StateTransitionTests: XCTestCase {
         let harness = makeHarness()
         let app = harness.app
         app.settings.hasCompletedOnboarding = true
+        app.settings.acceptedTermsVersion = TermsOfUse.currentVersion
         select(app, .ollama, model: "model-a")
         app.panelRoute = .history
 
@@ -1450,6 +1453,7 @@ final class StateTransitionTests: XCTestCase {
         let harness = makeHarness()
         let app = harness.app
         app.settings.hasCompletedOnboarding = true
+        app.settings.acceptedTermsVersion = TermsOfUse.currentVersion
         app.selectModel(ModelSelection(provider: .ollama, model: "cheap"), for: .role(.assistant))
         app.selectModel(ModelSelection(provider: .deepSeek, model: "deepseek-v4-flash"), for: .role(.browserAgent))
         app.recordVisit(siteURL: site, kind: .discourse, name: "Example", iconURL: nil)
@@ -2046,6 +2050,7 @@ final class StateTransitionTests: XCTestCase {
         let harness = makeHarness()
         let app = harness.app
         app.settings.hasCompletedOnboarding = true
+        app.settings.acceptedTermsVersion = TermsOfUse.currentVersion
         app.browser.load(URL(string: "about:blank")!)
         harness.deliver(topicPage(topic("70")))
 
@@ -2127,6 +2132,7 @@ final class StateTransitionTests: XCTestCase {
         let harness = makeHarness(snapshot: AppSnapshot(watchedTopics: [watched]))
         let app = harness.app
         app.settings.hasCompletedOnboarding = true
+        app.settings.acceptedTermsVersion = TermsOfUse.currentVersion
 
         // 1. Manual watch check publishes `isCheckingWatches` while in flight, and opening a watched topic dismisses Settings.
         StateForumStub.postCounts = ["88": 5]
@@ -2172,6 +2178,7 @@ final class StateTransitionTests: XCTestCase {
         let app = h.app
         h.ai.gated = false
         app.settings.hasCompletedOnboarding = true
+        app.settings.acceptedTermsVersion = TermsOfUse.currentVersion
         app.selectModel(ModelSelection(provider: .ollama, model: "llama-local"), for: .role(.assistant))
         let gatedSpeech = GatedSpeechEngine()
         app.podcast.makeEngine = { _, _, _ in gatedSpeech }
