@@ -1011,6 +1011,7 @@ final class PodcastTests: XCTestCase {
     }
 
     private func connect(_ app: AppModel) {
+        app.allowAllAIProviders()
         var configuration = app.settings.configuration(for: .openAI)
         configuration.apiKey = "key"
         app.setConfiguration(configuration, for: .openAI)

@@ -229,12 +229,12 @@ extension AppModel {
     /// no new posts reuse their summary); otherwise it continues it.
     func makeTodaysDigest(replacing: Bool = false) {
         if let today = todaysDigest, !replacing {
-            if !today.isComplete, digestTask == nil, isProviderReady(for: .assistant) {
+            if !today.isComplete, digestTask == nil, canRunUnattended(.assistant) {
                 startDigestRun { model, runID in await model.runDigest(id: today.id, runID: runID) }
             }
             return
         }
-        guard isProviderReady(for: .assistant) else { return }
+        guard canRunUnattended(.assistant) else { return }
         if digestTask != nil { pauseDigest() }
         digestActivity = .preparing
         startDigestRun { model, runID in
@@ -245,13 +245,13 @@ extension AppModel {
 
     /// The Today page and the app coming to the foreground: continues
     /// today's unfinished digest, or makes it when the daily switch is on.
-    /// Nothing starts without a ready assistant model.
+    /// Nothing starts without a ready, consented assistant model.
     func resumeDigestIfNeeded() {
         #if DEBUG
         // The sample's placeholder key must never reach a provider.
         if AssistantDebug.isActive { return }
         #endif
-        guard digestTask == nil, settings.hasCompletedOnboarding, isProviderReady(for: .assistant) else { return }
+        guard digestTask == nil, settings.hasCompletedOnboarding, canRunUnattended(.assistant) else { return }
         if let today = todaysDigest {
             guard !today.isComplete else { return }
             makeTodaysDigest()

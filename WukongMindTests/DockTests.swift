@@ -105,6 +105,7 @@ final class DockTests: XCTestCase {
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
         let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
         let app = AppModel(store: store)
+        app.allowAllAIProviders()
         app.browser.onPageContextChanged = nil
         addTeardownBlock { @MainActor in app.browser.webView.stopLoading() }
         app.browser.load(URL(string: "https://forum.example/t/topic/1")!)
@@ -191,6 +192,7 @@ final class AIViewIntentTests: XCTestCase {
         let forums = runs.isEmpty ? [] : [Forum(siteURL: site, kind: .discourse, name: "Example")]
         try store.save(AppSnapshot(activities: records, agentRuns: runs, forums: forums))
         let app = AppModel(store: store)
+        app.allowAllAIProviders()
         app.browser.onPageContextChanged = nil
         addTeardownBlock { @MainActor in app.browser.webView.stopLoading() }
         return app
@@ -303,6 +305,7 @@ final class PanelRouteTests: XCTestCase {
         addTeardownBlock { try? FileManager.default.removeItem(at: directory) }
         let store = PersistentStore(fileURL: directory.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore())
         let app = AppModel(store: store)
+        app.allowAllAIProviders()
         app.browser.onPageContextChanged = nil
         addTeardownBlock { @MainActor in app.browser.webView.stopLoading() }
         return app

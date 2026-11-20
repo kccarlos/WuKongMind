@@ -1224,6 +1224,7 @@ final class ScriptStoreWebTests: XCTestCase {
                 topicActivityDonor: FakeTopicActivityDonor(),
                 backgroundGrace: NoOpBackgroundGrace()
             )
+            instance.allowAllAIProviders()
             instance.usesDirectForumRequests = true
             instance.browser.stopLoading()
             instance.browser.onPageContextChanged = nil
