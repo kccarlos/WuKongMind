@@ -8,6 +8,8 @@
 > - **Section 9 (Milestones and acceptance):** milestone order, versions and "Forumind's existing features and tests keep passing" are superseded by [next-phase.md §6](next-phase.md#6-where-every-existing-piece-goes), [§7](next-phase.md#7-milestones) and [§9](next-phase.md#9-handling-old-code).
 > - **Section 11 (Open questions):** *"Whether the Discourse-specific features stay long term"* (superseded by [next-phase.md §6](next-phase.md#6-where-every-existing-piece-goes), [§9](next-phase.md#9-handling-old-code) and [§11](next-phase.md#11-open-questions)).
 
+> - **Section 1, Section 2 ("No App Store compliance"), and Section 8 ("no confirmation prompts by default"):** superseded by the 2026-11-19 App Store decisions in [Section 12](#12-app-store-decisions-2026-11-19). WukongMind ships one build to the App Store, TestFlight, and source builds with safe defaults as visible Settings switches.
+
 WukongMind (Chinese name 悟空, "Wukong") is an iOS/iPadOS app with its own browser. An AI agent reads and changes any web page by running JavaScript, and can save its changes as scripts that run automatically per site, like Tampermonkey.
 
 ## 1. Background and goals

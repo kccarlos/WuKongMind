@@ -254,6 +254,7 @@ final class SystemEntryTests: XCTestCase {
             topicActivityDonor: donor ?? FakeTopicActivityDonor()
         )
         app.usesDirectForumRequests = true
+        app.allowAllAIProviders()
         app.settings.hasCompletedOnboarding = true
         if ready {
             app.selectModel(ModelSelection(provider: .ollama, model: "llama3.2"), for: .role(.assistant))

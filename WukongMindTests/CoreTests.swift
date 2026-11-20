@@ -1251,7 +1251,7 @@ final class CoreTests: XCTestCase {
             """
             return Self.response(request, status: 200, body: body)
         }
-        let service = AIService(session: session)
+        let service = AIService.allowingAll(session: session)
         let answer = try await service.answer(
             source: "forum",
             summary: "summary",
@@ -1287,7 +1287,7 @@ final class CoreTests: XCTestCase {
                 body: "data: {\"choices\":[{\"delta\":{\"content\":\"Summary\"}}]}\n\ndata: [DONE]\n"
             )
         }
-        let service = AIService(session: session)
+        let service = AIService.allowingAll(session: session)
 
         let summary = try await service.generateSummary(
             content: "forum source",
@@ -1735,7 +1735,7 @@ final class CoreTests: XCTestCase {
             ].joined(separator: "\n")
             return Self.response(request, status: 200, body: events)
         }
-        let text = try await AIService(session: session).complete(
+        let text = try await AIService.allowingAll(session: session).complete(
             system: "Be brief.",
             messages: [ChatMessage(role: .user, content: "Hi")],
             configuration: configuration,

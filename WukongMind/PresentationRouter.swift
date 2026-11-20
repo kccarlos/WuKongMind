@@ -47,6 +47,10 @@ enum RootPresentation: Identifiable, Equatable {
     case shareHowTo
     /// M4 userscript import & update review sheet (`ScriptImportViews.swift`).
     case scriptImport
+    /// Before the first request that sends web page content to a third-party AI provider (`AIDataConsent.swift`).
+    case aiConsent(AIProvider)
+    /// Before the first live voice session sending microphone audio to Google (`AIDataConsent.swift`).
+    case voiceConsent(VoiceProvider)
     #if DEBUG
     /// `-dc-show-settings <page>`: Settings as a cover (screenshots).
     case debugSettings(SettingsPage?)
@@ -67,6 +71,8 @@ enum RootPresentation: Identifiable, Equatable {
         case .addForum: "addForum"
         case .shareHowTo: "shareHowTo"
         case .scriptImport: "scriptImport"
+        case .aiConsent(let provider): "aiConsent-\(provider.rawValue)"
+        case .voiceConsent(let provider): "voiceConsent-\(provider.rawValue)"
         #if DEBUG
         case .debugSettings(let page): "debugSettings-\(page?.rawValue ?? "root")"
         #endif
@@ -78,6 +84,7 @@ enum RootPresentation: Identifiable, Equatable {
         switch self {
         // iPhone: a cover. iPad: a form sheet over the browser.
         case .onboarding: UIDevice.current.userInterfaceIdiom == .phone
+        case .aiConsent, .voiceConsent: true
         #if DEBUG
         case .debugSettings: true
         #endif
@@ -374,6 +381,8 @@ extension AppModel {
         if !settings.hasCompletedOnboarding || router.onboardingReplay == .showing { return .onboarding }
         // The sheet the replay was asked from is leaving: nothing else comes.
         if router.onboardingReplay == .waitingForSheet { return nil }
+        if let provider = aiConsent.asking { return .aiConsent(provider) }
+        if let provider = voice.consentProvider { return .voiceConsent(provider) }
         if let item = router.item { return item }
         if scriptImporter.activeSessionID != nil && !scriptImporter.presentsInSettings {
             return .scriptImport
@@ -394,6 +403,10 @@ extension AppModel {
             if scriptImporter.presentsInSettings { scriptImporter.dismissImport() }
         case .scriptImport:
             scriptImporter.dismissImport()
+        case .aiConsent(let provider):
+            aiConsent.resolve(provider)
+        case .voiceConsent:
+            voice.declineConsent()
         case .providerSetup:
             router.item = nil
             needsProviderSetup = nil
@@ -473,6 +486,8 @@ struct RouterHost: ViewModifier {
     @ObservedObject var app: AppModel
     @ObservedObject var router: PresentationRouter
     @ObservedObject var podcast: PodcastController
+    @ObservedObject var aiConsent: AIConsentGate
+    @ObservedObject var voice: VoiceController
     let active: Bool
     /// A forum was added from the Add forum sheet.
     var onForumAdded: (Forum) -> Void = { _ in }
@@ -485,6 +500,8 @@ struct RouterHost: ViewModifier {
         self.app = app
         router = app.router
         podcast = app.podcast
+        aiConsent = app.aiConsent
+        voice = app.voice
         self.active = active
         self.onForumAdded = onForumAdded
     }
@@ -568,6 +585,18 @@ struct RouterHost: ViewModifier {
             AddForumSheet(app: app, onAdded: onForumAdded)
         case .scriptImport:
             ScriptImportSheet(app: app)
+        case .aiConsent(let provider):
+            AIDataConsentPage(
+                provider: provider,
+                onAllow: { app.answerAIConsent(provider, allow: true) },
+                onDecline: { app.answerAIConsent(provider, allow: false) }
+            )
+        case .voiceConsent(let provider):
+            VoiceConsentPage(
+                provider: provider,
+                onAllow: { voice.agree(provider) },
+                onDecline: { voice.declineConsent() }
+            )
         #if DEBUG
         case .debugSettings(let page):
             NavigationStack {

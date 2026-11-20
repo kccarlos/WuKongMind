@@ -1801,20 +1801,11 @@ struct PhoneAIButton: View {
     @ObservedObject var podcast: PodcastController
     let isAvailable: Bool
     let onOpen: () -> Void
-    @State private var completedBrowserAgentBounce = 0
-    @State private var observedAgentID: ObjectIdentifier?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var browserAgent: BrowserAgentSession { app.browserAgent }
     private var showsNewRepliesDot: Bool { app.showsNewRepliesDot }
-
-    private var finishedBounceValue: String? {
-        if reduceMotion { return nil }
-        if let id = app.readyAnswer?.id { return id.uuidString }
-        if completedBrowserAgentBounce > 0 { return "agent-\(completedBrowserAgentBounce)" }
-        return nil
-    }
 
     private var accessibilityValueText: Text {
         var parts: [String] = []
@@ -1898,15 +1889,6 @@ struct PhoneAIButton: View {
                     }
             } else {
                 buttonControl
-            }
-        }
-        .onAppear { observedAgentID = ObjectIdentifier(browserAgent) }
-        .onChange(of: ObjectIdentifier(browserAgent)) { _, newID in observedAgentID = newID }
-        .onChange(of: browserAgent.isRunning) { wasRunning, isRunning in
-            let currentID = ObjectIdentifier(browserAgent)
-            defer { observedAgentID = currentID }
-            if observedAgentID == currentID, wasRunning, !isRunning, !app.isAIViewShown, browserAgent.runs.last != nil {
-                completedBrowserAgentBounce &+= 1
             }
         }
         .accessibilityLabel(Text("Agent", comment: "Browser bar button that opens the Agent panel"))

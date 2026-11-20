@@ -159,18 +159,3 @@ struct FeedbackReportStore: Sendable {
         }
     }
 }
-
-// MARK: - Build channel
-
-enum BuildChannel {
-    /// A TestFlight install: a sandbox receipt and no embedded provisioning profile (Xcode and
-    /// ad-hoc builds carry one), never in the simulator.
-    static let isTestFlight: Bool = {
-        #if targetEnvironment(simulator)
-        return false
-        #else
-        return Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
-            && Bundle.main.path(forResource: "embedded", ofType: "mobileprovision") == nil
-        #endif
-    }()
-}

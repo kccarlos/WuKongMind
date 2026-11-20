@@ -114,16 +114,13 @@ for bundle in "$@"; do
   c="$(grep -c -E "$DEBUG_SYMBOLS" <<<"$symbols" || true)"
   echo "-- DEBUG-only symbols among $(grep -c . <<<"$symbols" | tr -d ' ') (expect 0): $c"; [[ "$c" == 0 ]] || fail=1
 
-  # BuildChannel (Audit task B): once enum BuildChannel is deleted from sources,
-  # fail if BuildChannel symbols or appStoreReceiptURL remain in Release.
-  # TODO(audit-task-B): remove the grep guard once BuildChannel is deleted so this fails unconditionally.
+  # BuildChannel (Audit task B): fail if BuildChannel symbols or appStoreReceiptURL
+  # appear in Release.
   bc_syms="$(grep -c -F BuildChannel <<<"$symbols" || true)"
   receipt_sel="$(grep -c -x -F appStoreReceiptURL <<<"$sent" || true)"
-  if ! grep -rq "enum BuildChannel" "$ROOT/WukongMind"; then
-    echo "-- BuildChannel removal (Audit task B; expect 0 each)"
-    printf '   %-48s %s\n' "BuildChannel symbols" "$bc_syms"; [[ "$bc_syms" == 0 ]] || fail=1
-    printf '   %-48s %s\n' "appStoreReceiptURL selector" "$receipt_sel"; [[ "$receipt_sel" == 0 ]] || fail=1
-  fi
+  echo "-- BuildChannel removal (Audit task B; expect 0 each)"
+  printf '   %-48s %s\n' "BuildChannel symbols" "$bc_syms"; [[ "$bc_syms" == 0 ]] || fail=1
+  printf '   %-48s %s\n' "appStoreReceiptURL selector" "$receipt_sel"; [[ "$receipt_sel" == 0 ]] || fail=1
 
   # dlsym is imported by the compiler's own #available support
   # (__isPlatformVersionAtLeast). Any other caller is a finding.
@@ -150,10 +147,6 @@ for bundle in "$@"; do
   echo "   'environment' selector sent: $(grep -c -x -F environment <<<"$sent" || true)"
   echo "   'shareddocuments' strings:  $(grep -c -F shareddocuments "$strings_file" || true)"
   echo "   'GEMINI_LIVE_BUDGET':       $(grep -c -F GEMINI_LIVE_BUDGET "$strings_file" || true)"
-  if grep -rq "enum BuildChannel" "$ROOT/WukongMind"; then
-    echo "   BuildChannel symbols (pending task B): $bc_syms"
-    echo "   appStoreReceiptURL selector (pending task B): $receipt_sel"
-  fi
   rm -f "$strings_file"
 done
 

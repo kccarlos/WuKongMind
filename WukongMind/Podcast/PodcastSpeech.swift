@@ -287,6 +287,8 @@ final class GeminiSpeechEngine: PodcastSpeechEngine {
     private let session: URLSession
     /// Waits between retries (tests pass an instant one).
     private let sleep: (TimeInterval) async throws -> Void
+    /// Consent backstop checked before each Google TTS request.
+    private let consentCheck: (@MainActor () throws -> Void)?
 
     var fileExtension: String { "wav" }
 
@@ -294,15 +296,18 @@ final class GeminiSpeechEngine: PodcastSpeechEngine {
         endpoint: GeminiTTS.Endpoint,
         voices: PodcastVoices,
         session: URLSession = .shared,
-        sleep: @escaping (TimeInterval) async throws -> Void = { try await Task.sleep(for: .seconds($0)) }
+        sleep: @escaping (TimeInterval) async throws -> Void = { try await Task.sleep(for: .seconds($0)) },
+        consentCheck: (@MainActor () throws -> Void)? = nil
     ) {
         self.endpoint = endpoint
         self.voices = voices
         self.session = session
         self.sleep = sleep
+        self.consentCheck = consentCheck
     }
 
     func synthesize(_ turns: [PodcastTurn], to url: URL) async throws -> TimeInterval {
+        try consentCheck?()
         let request = try GeminiTTS.request(turns: turns, voices: voices, endpoint: endpoint)
         var attempt = 0
         while true {

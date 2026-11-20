@@ -61,12 +61,15 @@ final class PodcastController: ObservableObject {
         #endif
     }
 
-    /// Google providers with a key, the voice provider first.
+    /// Google providers with a key and AI data consent, the voice provider first.
     var googleProviders: [VoiceProvider] {
         guard let app else { return [] }
         let preferred = app.settings.voice.provider
         return VoiceProvider.allCases
-            .filter { !app.settings.configuration(for: $0.keyProvider).apiKey.isEmpty }
+            .filter {
+                !app.settings.configuration(for: $0.keyProvider).apiKey.isEmpty
+                    && app.aiConsentState(for: $0.keyProvider).permitsRequests
+            }
             .sorted { ($0 == preferred ? 0 : 1) < ($1 == preferred ? 0 : 1) }
     }
 
@@ -100,7 +103,11 @@ final class PodcastController: ObservableObject {
             let configuration = app?.settings.configuration(for: provider.keyProvider) ?? ProviderConfiguration(provider: provider.keyProvider)
             return GeminiSpeechEngine(
                 endpoint: GeminiTTS.Endpoint(provider: provider, baseURL: configuration.baseURL, apiKey: configuration.apiKey),
-                voices: voices
+                voices: voices,
+                consentCheck: { [weak app] in
+                    guard let app else { throw AssistantError.aiConsentRequired(provider.keyProvider) }
+                    try app.settings.requireAIConsent(for: provider.keyProvider)
+                }
             )
         case .fake:
             #if DEBUG

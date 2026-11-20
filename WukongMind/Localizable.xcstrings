@@ -519,6 +519,40 @@
         }
       }
     },
+    "%@’s privacy policy" : {
+      "comment" : "AI data consent: link to the provider's privacy policy; the placeholder is an AI provider's name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的隐私政策"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的隱私權政策"
+          }
+        }
+      }
+    },
+    "%@’s terms" : {
+      "comment" : "AI data consent: link to the provider's terms; the placeholder is an AI provider's name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的服务条款"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 的服務條款"
+          }
+        }
+      }
+    },
     "%lld" : {
       "shouldTranslate" : false
     },
@@ -2253,6 +2287,23 @@
         }
       }
     },
+    "AI providers" : {
+      "comment" : "Settings › Data & privacy section header: consent per AI provider",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 提供方"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI 供應商"
+          }
+        }
+      }
+    },
     "AI use" : {
       "comment" : "Section header in Script detail showing today's GM_ai usage and cache",
       "localizations" : {
@@ -2975,6 +3026,23 @@
         }
       }
     },
+    "Agent & summaries" : {
+      "comment" : "Settings › Data & privacy: the AI features using one provider",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "智能体与摘要"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理與摘要"
+          }
+        }
+      }
+    },
     "Agent model" : {
       "comment" : "Assistant menu: switches the model used by the Agent\nSettings › Agent header subtitle under the selected model name",
       "localizations" : {
@@ -3073,6 +3141,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "代理：無"
+          }
+        }
+      }
+    },
+    "Agreed %@" : {
+      "comment" : "Settings › Data & privacy: when consent was given; the placeholder is a short date",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已于 %@ 同意"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已於 %@ 同意"
           }
         }
       }
@@ -3178,7 +3263,7 @@
       }
     },
     "Allow" : {
-      "comment" : "Confirmation card button that lets the Agent go ahead",
+      "comment" : "AI data consent: agree to send content to the provider\nConfirmation card button that lets the Agent go ahead",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -3234,6 +3319,40 @@
         }
       }
     },
+    "Allow sending microphone audio to Google before starting live voice." : {
+      "comment" : "Voice session error: live voice consent has not been granted yet",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先允许将麦克风音频发送至 Google，再开始实时语音。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先允許將麥克風音訊傳送至 Google，再開始即時語音。"
+          }
+        }
+      }
+    },
+    "Allow sending web page content to %@ first." : {
+      "comment" : "Error when AI data consent has not been granted yet; the placeholder is an AI provider's name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先允许将网页内容发送至 %@。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先允許將網頁內容傳送至 %@。"
+          }
+        }
+      }
+    },
     "Allowed sites" : {
       "localizations" : {
         "zh-Hans" : {
@@ -3246,6 +3365,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "允許的網站"
+          }
+        }
+      }
+    },
+    "Allow…" : {
+      "comment" : "Settings › Data & privacy: shows the AI data consent page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允许…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "允許…"
           }
         }
       }
@@ -4032,6 +4168,23 @@
         }
       }
     },
+    "Asks first" : {
+      "comment" : "Settings › Data & privacy: the consent page shows before the first request",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "首次请求时询问"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "首次請求時詢問"
+          }
+        }
+      }
+    },
     "Asks one of your forums a question: WukongMind searches and reads its topics and answers with sources." : {
       "localizations" : {
         "zh-Hans" : {
@@ -4810,6 +4963,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更改"
+          }
+        }
+      }
+    },
+    "Change this any time in Settings › Data & privacy." : {
+      "comment" : "Live voice consent footer; Settings › Data & privacy names the app's own Settings page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "随时可在“设置 › 数据与隐私”中更改。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隨時可在「設定 › 資料與隱私權」中變更。"
+          }
+        }
+      }
+    },
+    "Change this any time in Settings › Data & privacy. Live voice asks separately." : {
+      "comment" : "AI data consent footer; Settings › Data & privacy names the app's own Settings page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "随时可在“设置 › 数据与隐私”中更改。实时语音会单独询问。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隨時可在「設定 › 資料與隱私權」中變更。即時語音會單獨詢問。"
           }
         }
       }
@@ -6996,6 +7183,23 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "Don’t Allow" : {
+      "comment" : "AI data consent: refuse to send content to the provider",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不允许"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不允許"
           }
         }
       }
@@ -10291,6 +10495,40 @@
         }
       }
     },
+    "Live microphone audio while a voice session is active" : {
+      "comment" : "Live voice consent: what is sent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音会话进行时的实时麦克风音频"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "語音對話進行時的即時麥克風音訊"
+          }
+        }
+      }
+    },
+    "Live voice" : {
+      "comment" : "Settings › Data & privacy section header: live voice consent\nSettings › Data & privacy: live voice",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "实时语音"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即時語音"
+          }
+        }
+      }
+    },
     "Loading models…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -11153,6 +11391,23 @@
         }
       }
     },
+    "No consent needed" : {
+      "comment" : "Settings › Data & privacy: Apple Intelligence or a local server",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无需同意"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無須同意"
+          }
+        }
+      }
+    },
     "No delay, up to 4 at a time" : {
       "comment" : "Description of the Fast forum request pace",
       "localizations" : {
@@ -11588,6 +11843,23 @@
         }
       }
     },
+    "Not allowed" : {
+      "comment" : "AI model state: the user chose not to send web page content to this provider",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未允许"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未允許"
+          }
+        }
+      }
+    },
     "Not applicable" : {
       "comment" : "Site inspector slot status",
       "localizations" : {
@@ -11922,6 +12194,23 @@
         }
       }
     },
+    "Nothing goes to a WukongMind server: there isn’t one." : {
+      "comment" : "Settings › Data & privacy footer",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不会发送任何数据到 WukongMind 服务器：本应用没有服务器。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不會傳送任何資料到 WukongMind 伺服器：本應用程式沒有伺服器。"
+          }
+        }
+      }
+    },
     "Nothing learned here yet." : {
       "comment" : "Site inspector: empty learning log",
       "localizations" : {
@@ -12158,6 +12447,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開啟"
+          }
+        }
+      }
+    },
+    "On Google AI Studio’s free tier, Google may use what you send to improve its products, and people may review it. A paid key or Vertex AI doesn’t allow this." : {
+      "comment" : "AI data consent: Google Gemini's free-tier data use",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Google AI Studio 免费层级中，Google 可能会使用你发送的内容来改进其产品，且可能有人工审阅。付费密钥或 Vertex AI 不会如此。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Google AI Studio 免費方案中，Google 可能會使用你傳送的內容來改進其產品，且可能有人工審閱。付費金鑰或 Vertex AI 不會如此。"
+          }
+        }
+      }
+    },
+    "On Vertex AI, your Google Cloud agreement decides how Google may use what you send." : {
+      "comment" : "AI data consent: data use on Vertex AI",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Vertex AI 上，Google 如何使用你发送的内容由你的 Google Cloud 协议决定。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Vertex AI 上，Google 如何使用你傳送的內容由你的 Google Cloud 協議決定。"
           }
         }
       }
@@ -12615,6 +12938,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "打開「設定」App"
+          }
+        }
+      }
+    },
+    "OpenRouter passes each request to the company that runs the model you chose, under that company’s own terms." : {
+      "comment" : "AI data consent: OpenRouter's data use",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenRouter 会将每次请求转发给运行所选模型的公司，并受该公司条款约束。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenRouter 會將每次請求轉送給運行所選模型的公司，並受該公司條款約束。"
           }
         }
       }
@@ -13546,6 +13886,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "上一個結果"
+          }
+        }
+      }
+    },
+    "Privacy Policy" : {
+      "comment" : "First-run step 1: link to WukongMind's privacy policy\nSettings › Data & privacy: link to the app's privacy policy",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐私政策"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隱私權政策"
           }
         }
       }
@@ -16831,6 +17188,40 @@
         }
       }
     },
+    "Send microphone audio to %@?" : {
+      "comment" : "Live voice consent title; the placeholder is Google AI Studio or Google Vertex AI",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要将麦克风音频发送至 %@ 吗？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要將麥克風音訊傳送至 %@ 嗎？"
+          }
+        }
+      }
+    },
+    "Send web page content to %@?" : {
+      "comment" : "AI data consent title; the placeholder is an AI provider's name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要将网页内容发送至 %@ 吗？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要將網頁內容傳送至 %@ 嗎？"
+          }
+        }
+      }
+    },
     "Sending notification" : {
       "localizations" : {
         "zh-Hans" : {
@@ -16859,6 +17250,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在傳送請求"
+          }
+        }
+      }
+    },
+    "Sending web page content to %@ isn’t allowed. Change this in Settings › Data & privacy." : {
+      "comment" : "Error when AI data consent was declined or withdrawn; the placeholder is an AI provider's name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未允许将网页内容发送至 %@。可在“设置 › 数据与隐私”中更改。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未允許將網頁內容傳送至 %@。可在「設定 › 資料與隱私權」中變更。"
           }
         }
       }
@@ -18021,6 +18429,23 @@
         }
       }
     },
+    "Stays with Apple Intelligence (on this device or Private Cloud Compute)" : {
+      "comment" : "Settings › Data & privacy: Apple Intelligence keeps the data with Apple",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保留在 Apple 智能中（本机或私密云计算）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保留在 Apple Intelligence 中（本機或私密雲端運算）"
+          }
+        }
+      }
+    },
     "Step %lld" : {
       "comment" : "Folded header status during an Agent run while the keyboard is up; placeholder is step number",
       "localizations" : {
@@ -18337,6 +18762,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "安全儲存在 iOS 鑰匙圈中"
+          }
+        }
+      }
+    },
+    "Straight from this device. No WukongMind server." : {
+      "comment" : "AI data consent: requests go directly to the provider",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接从此设备发送，不经过 WukongMind 服务器。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "直接從此裝置傳送，不經過 WukongMind 伺服器。"
           }
         }
       }
@@ -20006,6 +20448,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無法朗讀這一章（%@）。"
+          }
+        }
+      }
+    },
+    "The web page content you ask about" : {
+      "comment" : "Live voice consent: what is sent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你提问涉及的网页内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你提問涉及的網頁內容"
           }
         }
       }
@@ -22569,6 +23028,23 @@
         }
       }
     },
+    "Waiting for permission to use %@…" : {
+      "comment" : "Status while the AI data consent page is waiting for an answer; the placeholder is an AI provider's name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在等待允许使用 %@…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在等待允許使用 %@…"
+          }
+        }
+      }
+    },
     "Watch a topic from the Assistant menu, or let the agent watch one." : {
       "localizations" : {
         "zh-Hans" : {
@@ -22635,6 +23111,57 @@
         }
       }
     },
+    "Web pages and text you summarize or ask about, including pages you see while signed in" : {
+      "comment" : "AI data consent: what is sent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你要总结或提问的网页与文本，包括登录状态下看到的页面"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你要摘要或提問的網頁與文字，包括登入狀態下看到的頁面"
+          }
+        }
+      }
+    },
+    "Web pages you open → %@" : {
+      "comment" : "Settings › Data & privacy: where AI features send data; the placeholder is an AI provider's name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你打开的网页 → %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你開啟的網頁 → %@"
+          }
+        }
+      }
+    },
+    "Web pages you open → %@, on your computer" : {
+      "comment" : "Settings › Data & privacy: a local model server; the placeholder is its name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你打开的网页 → %@（在你的电脑上）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你開啟的網頁 → %@（在你的電腦上）"
+          }
+        }
+      }
+    },
     "Website" : {
       "localizations" : {
         "zh-Hans" : {
@@ -22647,6 +23174,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "網站"
+          }
+        }
+      }
+    },
+    "What WukongMind sends" : {
+      "comment" : "AI data consent: heading above the list of what is sent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WukongMind 发送的内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WukongMind 傳送的內容"
           }
         }
       }
@@ -22750,6 +23294,23 @@
         }
       }
     },
+    "Where your data goes" : {
+      "comment" : "Settings › Data & privacy section header",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据去向"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "資料去向"
+          }
+        }
+      }
+    },
     "Whole topic" : {
       "comment" : "Result card for a source that is a whole topic, not one post",
       "localizations" : {
@@ -22780,6 +23341,90 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "助理在頁面旁邊時，工具列一律在頂部：「頂部」和「底部」只適用於單欄佈局。"
+          }
+        }
+      }
+    },
+    "Withdraw" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤回"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤回"
+          }
+        }
+      }
+    },
+    "Withdraw consent for %@" : {
+      "comment" : "Settings › Data & privacy; the placeholder is an AI provider's name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤回对 %@ 的同意"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤回對 %@ 的同意"
+          }
+        }
+      }
+    },
+    "Withdraw live voice consent for %@" : {
+      "comment" : "Settings › Data & privacy; the placeholder is Google AI Studio or Google Vertex AI",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤回对 %@ 的实时语音同意"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤回對 %@ 的即時語音同意"
+          }
+        }
+      }
+    },
+    "Withdrawing ends an active voice session and asks again before starting a new one." : {
+      "comment" : "Settings › Data & privacy footer of live voice consent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤回会结束当前语音会话，并在下次开始前重新询问。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤回會結束目前的語音對話，並在下次開始前重新詢問。"
+          }
+        }
+      }
+    },
+    "Withdrawing stops what is running on that provider and blocks new requests. It stays set up, so you can allow it again." : {
+      "comment" : "Settings › Data & privacy footer of the AI providers' consent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤回会停止该提供方上正在运行的任务并阻止新请求。配置会保留，随时可以再次允许。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "撤回會停止該供應商上正在執行的任務並阻擋新請求。設定會保留，隨時可以再次允許。"
           }
         }
       }
@@ -22986,6 +23631,23 @@
         }
       }
     },
+    "WukongMind’s privacy policy" : {
+      "comment" : "AI data consent: link to the app's privacy policy",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WukongMind 隐私政策"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WukongMind 隱私權政策"
+          }
+        }
+      }
+    },
     "You already have a script with this name from %@. This one is added separately." : {
       "comment" : "Import review notice when another script already shares the same name",
       "localizations" : {
@@ -23036,6 +23698,23 @@
         }
       }
     },
+    "Your API key, only to %@" : {
+      "comment" : "AI data consent: what is sent; the placeholder is an AI provider's name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的 API 密钥，仅发送至 %@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的 API 金鑰，僅傳送至 %@"
+          }
+        }
+      }
+    },
     "Your agent browser for the web and every forum." : {
       "localizations" : {
         "zh-Hans" : {
@@ -23081,6 +23760,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的 iCloud 儲存空間已滿。"
+          }
+        }
+      }
+    },
+    "Your microphone audio and the page → Google Gemini Live" : {
+      "comment" : "Settings › Data & privacy: where live voice sends data",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的麦克风音频与页面内容 → Google Gemini Live"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的麥克風音訊與頁面內容 → Google Gemini Live"
+          }
+        }
+      }
+    },
+    "Your questions, instructions, and chat messages" : {
+      "comment" : "AI data consent: what is sent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的问题、指令和聊天消息"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的問題、指令與聊天訊息"
           }
         }
       }

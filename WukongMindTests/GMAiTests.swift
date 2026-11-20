@@ -83,7 +83,7 @@ final class GMAiTests: XCTestCase {
 
     private func makeWebHarness(
         runtime: @escaping () -> GMAiRuntimeSnapshot,
-        liveAIService: AIService = AIService()
+        liveAIService: AIService = AIService.allowingAll()
     ) -> WebHarness {
         let base = tempDir.appendingPathComponent("Env-\(UUID().uuidString)", isDirectory: true)
         let store = ScriptStore(directoryURL: base.appendingPathComponent("Scripts", isDirectory: true))
