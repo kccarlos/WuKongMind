@@ -72,37 +72,6 @@ extension AppModel {
         browser.showForumsHome()
     }
 
-    /// The Today page, pushed over Home (Home's Today module, a digest
-    /// notification, the Open Today and Play Today intents). Setting it
-    /// false goes back to Home.
-    var showsTodayPage: Bool {
-        get { browser.showsForumsHome && homePath.first == .today }
-        set {
-            if newValue {
-                browser.showForumsHome()
-                if homePath != [.today] { homePath = [.today] }
-            } else if !homePath.isEmpty {
-                homePath = []
-            }
-        }
-    }
-
-    /// Home hid (a page loaded, Back): the pages pushed over it go too.
-    func homeVisibilityChanged() {
-        if !browser.showsForumsHome, !homePath.isEmpty { homePath = [] }
-    }
-
-    var todayModuleState: TodayModuleState {
-        let digest = todaysDigest
-        return TodayModuleState.resolve(
-            digest: digest,
-            digestActivity: digestActivity,
-            providerReady: isProviderReady(for: .assistant),
-            episode: podcast.episode?.digestID == digest?.id ? podcast.episode : nil,
-            podcastActivity: podcast.activity
-        )
-    }
-
     // MARK: Launch rule (§7.2)
 
     /// A link, notification, Siri, Spotlight or the share extension opened
@@ -111,9 +80,9 @@ extension AppModel {
         if launchPhase == .waiting { launchPhase = .openedExternally }
     }
 
-    /// Once, on the first activation (after the share inbox and today's
-    /// digest have started): Home or the last forum, which the browser has
-    /// been loading since launch. A request from outside always wins.
+    /// Once, on the first activation (after the share inbox has started):
+    /// Home or the last forum, which the browser has been loading since
+    /// launch. A request from outside always wins.
     func applyLaunchRuleIfNeeded(now: Date = Date()) {
         guard launchPhase != .settled, settings.hasCompletedOnboarding else { return }
         let openedExternally = launchPhase == .openedExternally
@@ -128,12 +97,10 @@ extension AppModel {
         #else
         let setting = settings.launchDestination
         #endif
-        podcast.refresh()
         let defaults = UserDefaults.standard
         let decision = LaunchRule.decide(
             setting: setting,
             openedExternally: openedExternally,
-            todayHasSomething: todayModuleState.hasSomething,
             lastHomeAutoShownDay: defaults.string(forKey: LaunchRule.lastHomeAutoShownDayKey),
             now: now
         )
@@ -141,7 +108,7 @@ extension AppModel {
         case .external, .lastForum:
             break
         case .home(let marksDay):
-            if marksDay { defaults.set(DailyDigest.dayKey(for: now), forKey: LaunchRule.lastHomeAutoShownDayKey) }
+            if marksDay { defaults.set(LaunchRule.dayKey(for: now), forKey: LaunchRule.lastHomeAutoShownDayKey) }
             // Over the restored forum's first load, which would otherwise
             // dismiss it as it starts.
             browser.showForumsHome(overPendingLoad: true)

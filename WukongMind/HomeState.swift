@@ -2,101 +2,9 @@ import Foundation
 
 // MARK: - Home and the launch rule (spec §7.1, §7.2): the decisions, no views
 //
-// - `HomeRoute`            pages pushed over Home (Today, an earlier digest,
-//                          Settings › Daily digest); `AppModel.homePath`
-// - `TodayModuleState`     which of the Today module's 7 states Home shows
 // - `HomeSections`         Continue reading, Following
 // - `LaunchDestination`    Settings › Browser › When WukongMind opens
 // - `LaunchRule`           where a launch lands (Home or the last forum)
-
-/// A page pushed over Home.
-enum HomeRoute: Hashable {
-    case today
-    /// An earlier digest, read only.
-    case digest(UUID)
-    case digestSettings
-}
-
-// MARK: - Today module
-
-/// What the Today module at the top of Home shows. Only the podcast states
-/// get the big card; the others are a strip or one row, so the forums stay
-/// on the first screen.
-enum TodayModuleState: Equatable {
-    /// Today's episode is made: "Listen to today".
-    case podcastReady
-    /// The episode is being made; playable once its first chapter is.
-    case podcastInProgress
-    /// The digest is done (no episode): the card strip and Listen.
-    case digestReady
-    /// The digest is being made ("3 of 6 ready"); `offline` when the
-    /// forums or the provider can't be reached.
-    case digestInProgress(offline: Bool)
-    /// No digest today: "Make a digest of today's topics".
-    case digestOff
-    /// No assistant model to make one: "Set up AI to get a daily digest".
-    case aiNotSetUp
-    /// Today's digest found nothing.
-    case nothingNew
-
-    /// Podcast or digest ready or being made (the launch rule's "Today has
-    /// something").
-    var hasSomething: Bool {
-        switch self {
-        case .podcastReady, .podcastInProgress, .digestReady, .digestInProgress: true
-        case .digestOff, .aiNotSetUp, .nothingNew: false
-        }
-    }
-
-    var usesBigCard: Bool { self == .podcastReady || self == .podcastInProgress }
-
-    /// The state for today's digest and episode, highest first: the episode,
-    /// then the digest, then why there is none.
-    static func resolve(
-        digest: DailyDigest?,
-        digestActivity: DigestActivity,
-        providerReady: Bool,
-        episode: PodcastEpisode?,
-        podcastActivity: PodcastActivity
-    ) -> TodayModuleState {
-        if let digest, let episode, episode.digestID == digest.id, !episode.entries.isEmpty {
-            return episode.isComplete && !podcastActivity.isRunning ? .podcastReady : .podcastInProgress
-        }
-        if let digest {
-            if digest.isComplete {
-                return digest.cards.isEmpty ? .nothingNew : .digestReady
-            }
-            // Cards waiting with nothing to make them (no model): set up.
-            if !digestActivity.isRunning, digestActivity != .unreachable, !providerReady { return .aiNotSetUp }
-            return .digestInProgress(offline: digestActivity == .unreachable)
-        }
-        switch digestActivity {
-        case .preparing, .summarizing: return .digestInProgress(offline: false)
-        case .unreachable: return .digestInProgress(offline: true)
-        case .idle: return providerReady ? .digestOff : .aiNotSetUp
-        }
-    }
-}
-
-/// The podcast card's numbers: topics, the real length (every chapter's
-/// audio, the intro and outro included) and how much is made.
-struct PodcastCardFacts: Equatable {
-    var topics: Int
-    /// Seconds of audio made so far.
-    var seconds: TimeInterval
-    var readyChapters: Int
-    var chapters: Int
-
-    init(episode: PodcastEpisode) {
-        topics = episode.entries.filter { $0.chapter.kind == .topic }.count
-        seconds = episode.entries.filter(\.isReady).compactMap(\.duration).reduce(0, +)
-        readyChapters = episode.readyCount
-        chapters = episode.entries.count
-    }
-
-    /// Whole minutes, at least 1 once there is any audio.
-    var minutes: Int { seconds > 0 ? max(1, Int((seconds / 60).rounded())) : 0 }
-}
 
 // MARK: - Sections
 
@@ -130,8 +38,7 @@ enum HomeSections {
 
 /// Settings › Browser › When WukongMind opens. Synced like the other settings.
 enum LaunchDestination: String, Codable, CaseIterable, Identifiable {
-    /// Home on the day's first launch when Today has something; otherwise
-    /// the last forum.
+    /// Home on the day's first launch; otherwise the last forum.
     case automatic
     case home
     case lastForum
@@ -140,7 +47,7 @@ enum LaunchDestination: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .automatic: String(localized: "Automatic", comment: "When WukongMind opens: Home on the first launch of the day when Today has something, else the last forum")
+        case .automatic: String(localized: "Automatic", comment: "When WukongMind opens: Home on the first launch of the day, else the last site")
         case .home: String(localized: "Home", comment: "When WukongMind opens: always on Home")
         case .lastForum: String(localized: "Last forum", comment: "When WukongMind opens: always on the forum read last")
         }
@@ -170,14 +77,23 @@ enum LaunchDecision: Equatable {
 }
 
 enum LaunchRule {
-    /// The day (`DailyDigest.dayKey`) `.automatic` last showed Home; local
+    /// The local day (`dayKey`) `.automatic` last showed Home; local
     /// to the device (UserDefaults), never synced.
     static let lastHomeAutoShownDayKey = "dc.lastHomeAutoShownDay"
+
+    static func dayKey(for date: Date, calendar: Calendar = .current) -> String {
+        let components = calendar.dateComponents([.year, .month, .day], from: date)
+        return String(
+            format: "%04d-%02d-%02d",
+            components.year ?? 0,
+            components.month ?? 0,
+            components.day ?? 0
+        )
+    }
 
     static func decide(
         setting: LaunchDestination,
         openedExternally: Bool,
-        todayHasSomething: Bool,
         lastHomeAutoShownDay: String?,
         now: Date,
         calendar: Calendar = .current
@@ -189,8 +105,8 @@ enum LaunchRule {
         case .lastForum:
             return .lastForum
         case .automatic:
-            let today = DailyDigest.dayKey(for: now, calendar: calendar)
-            guard lastHomeAutoShownDay != today, todayHasSomething else { return .lastForum }
+            let today = dayKey(for: now, calendar: calendar)
+            guard lastHomeAutoShownDay != today else { return .lastForum }
             return .home(marksDay: true)
         }
     }

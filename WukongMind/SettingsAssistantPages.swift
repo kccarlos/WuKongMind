@@ -892,7 +892,7 @@ struct SettingsBrowserPage: View {
                 }
                 .accessibilityIdentifier("launchDestination")
             } footer: {
-                Text("Automatic opens Home the first time each day when Today has a podcast or digest, and otherwise the forum you read last. Links, notifications, Siri and shared pages always open what they point to.")
+                Text("Automatic opens Home the first time each day, and otherwise the forum you read last. Links, notifications, Siri and shared pages always open what they point to.")
             }
         }
         .formStyle(.grouped)

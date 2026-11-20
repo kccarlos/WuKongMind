@@ -297,7 +297,6 @@ final class DesignTokenTests: XCTestCase {
 
         let app = AppModel(
             store: PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
-            backgroundScheduler: FakeTaskScheduler(),
             podcastDirectory: dir.appendingPathComponent("Podcasts", isDirectory: true)
         )
         app.usesDirectForumRequests = true
@@ -372,7 +371,6 @@ final class DesignTokenTests: XCTestCase {
 
         let app = AppModel(
             store: PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
-            backgroundScheduler: FakeTaskScheduler(),
             podcastDirectory: dir.appendingPathComponent("Podcasts", isDirectory: true)
         )
         app.usesDirectForumRequests = true
@@ -441,7 +439,6 @@ final class DesignTokenTests: XCTestCase {
 
         let app = AppModel(
             store: PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
-            backgroundScheduler: FakeTaskScheduler(),
             podcastDirectory: dir.appendingPathComponent("Podcasts", isDirectory: true)
         )
         app.usesDirectForumRequests = true

@@ -14,28 +14,24 @@ enum BottomLayer: Equatable {
     case bar
     /// The bar with an "Answer ready" row.
     case barWithAnswerReady
-    /// The bar with the podcast mini row.
-    case barWithPodcast
     /// The bar with the AI drawer's hint row (DrawerHint): first-run tip,
     /// new replies, or AI to set up.
     case barWithHint(DrawerHint.Row)
     /// The voice Dock replaces the bar.
     case dock
-    /// The drawer or the split panel is up: its status row carries voice,
-    /// playback and research.
+    /// The drawer or the split panel is up: its status row carries voice
+    /// and research.
     case drawer
 
     static func resolve(
         drawerOpen: Bool,
         voiceShowing: Bool,
         answerReady: Bool,
-        podcastPlaying: Bool,
         hint: DrawerHint.Row? = nil
     ) -> BottomLayer {
         if drawerOpen { return .drawer }
         if voiceShowing { return .dock }
         if answerReady { return .barWithAnswerReady }
-        if podcastPlaying { return .barWithPodcast }
         if let hint { return .barWithHint(hint) }
         return .bar
     }
@@ -45,7 +41,7 @@ enum BottomLayer: Equatable {
     func showsNewRepliesDot(hint: DrawerHint.Row?) -> Bool {
         guard case .checkNew? = hint?.action else { return false }
         switch self {
-        case .barWithAnswerReady, .barWithPodcast: return true
+        case .barWithAnswerReady: return true
         case .bar, .barWithHint, .dock, .drawer: return false
         }
     }
@@ -71,52 +67,6 @@ enum DockText {
         let time = clock(connected)
         guard let minutesLeft else { return time }
         return String(localized: "\(time) · \(minutesLeft) min left today", comment: "Voice Dock: the session's time, then the minutes left of today's allowance")
-    }
-
-    static func podcastPaused(at seconds: Double) -> String {
-        String(localized: "Podcast paused at \(clock(seconds)) · resumes when you end", comment: "Voice Dock: the Today podcast waits while voice runs")
-    }
-
-    /// "Today · Topic 2 of 5 · 3:12 left".
-    static func podcastLine(chapter: Int, count: Int, secondsLeft: Double) -> String {
-        String(
-            localized: "Today · Topic \(chapter + 1) of \(count) · \(PodcastClock.format(secondsLeft)) left",
-            comment: "AI drawer status row while the Today podcast plays: chapter, chapter count, time left"
-        )
-    }
-
-    /// "Today · Welcome · 3:12 left".
-    static func podcastLine(label: String, secondsLeft: Double) -> String {
-        String(
-            localized: "Today · \(label) · \(PodcastClock.format(secondsLeft)) left",
-            comment: "AI drawer status row while the Today podcast plays its Welcome or Wrap-up chapter: chapter label, time left"
-        )
-    }
-
-    @MainActor
-    static func podcastLine(player: PodcastPlayer, episode: PodcastEpisode) -> String {
-        let timeline = PodcastTimeline(durations: episode.entries.map { $0.isReady ? $0.duration : nil })
-        let secondsLeft = max(0, timeline.total - timeline.elapsed(player.position))
-        guard episode.entries.indices.contains(player.chapterIndex) else {
-            return podcastLine(chapter: player.chapterIndex, count: episode.entries.count, secondsLeft: secondsLeft)
-        }
-        let entry = episode.entries[player.chapterIndex]
-        switch entry.chapter.kind {
-        case .intro:
-            return podcastLine(
-                label: String(localized: "Welcome", comment: "Podcast: the intro chapter's title"),
-                secondsLeft: secondsLeft
-            )
-        case .outro:
-            return podcastLine(
-                label: String(localized: "Wrap-up", comment: "Now Playing: the closing chapter"),
-                secondsLeft: secondsLeft
-            )
-        case .topic:
-            let topics = episode.entries.filter { $0.chapter.kind == .topic }
-            let topicIndex = topics.firstIndex { $0.id == entry.id } ?? 0
-            return podcastLine(chapter: topicIndex, count: topics.count, secondsLeft: secondsLeft)
-        }
     }
 }
 
@@ -176,7 +126,6 @@ extension AppModel {
             drawerOpen: isAIViewShown,
             voiceShowing: voice.showsBar,
             answerReady: activeResearch == nil && readyAnswer != nil,
-            podcastPlaying: podcast.isPlayingEpisode && !podcast.player.isSuspendedForVoice,
             hint: drawerHint
         )
     }
@@ -269,16 +218,11 @@ struct DockLayer: View {
             DockContainer {
                 switch layer {
                 case .dock:
-                    VoiceDock(voice: voice, player: podcast.player)
+                    VoiceDock(voice: voice)
                         .modifier(DockSurface())
                 case .barWithAnswerReady:
                     DockAnswerReadyRow(app: app)
                         .modifier(DockSurface())
-                case .barWithPodcast:
-                    if let episode = podcast.episode {
-                        DockPodcastRow(app: app, player: podcast.player, episode: episode)
-                            .modifier(DockSurface())
-                    }
                 case .barWithHint(let hint):
                     DockHintRow(app: app, hint: hint)
                         .modifier(DockSurface())
@@ -287,63 +231,6 @@ struct DockLayer: View {
                 }
             }
             .frame(maxWidth: floatsTrailing ? 420 : DCTheme.contentMaxWidth)
-        }
-    }
-}
-
-/// Keeps active live-voice controls and, off Today itself, the podcast mini
-/// row accessible on pages pushed over Home (`HomeDestinations`), where
-/// `BrowserContent` sits underneath the navigation stack.
-struct HomeRouteDockModifier: ViewModifier {
-    @ObservedObject var app: AppModel
-    @ObservedObject private var voice: VoiceController
-    @ObservedObject private var router: PresentationRouter
-    @ObservedObject private var podcast: PodcastController
-    @ObservedObject private var player: PodcastPlayer
-    let route: HomeRoute
-
-    init(app: AppModel, route: HomeRoute) {
-        self.app = app
-        _voice = ObservedObject(wrappedValue: app.voice)
-        _router = ObservedObject(wrappedValue: app.router)
-        _podcast = ObservedObject(wrappedValue: app.podcast)
-        _player = ObservedObject(wrappedValue: app.podcast.player)
-        self.route = route
-    }
-
-    private var showsVoice: Bool {
-        !router.drawerPhase.isPresented && voice.showsBar
-    }
-
-    private var showsPodcast: Bool {
-        !router.drawerPhase.isPresented
-            && !voice.showsBar
-            && route != .today
-            && podcast.isPlayingEpisode
-            && !player.isSuspendedForVoice
-            && podcast.episode != nil
-    }
-
-    private var floatsTrailing: Bool { router.splitLayout == true }
-
-    func body(content: Content) -> some View {
-        content.safeAreaInset(edge: .bottom, spacing: 0) {
-            if showsVoice || showsPodcast {
-                DockContainer {
-                    if showsVoice {
-                        VoiceDock(voice: voice, player: player)
-                            .modifier(DockSurface())
-                    } else if showsPodcast, let episode = podcast.episode {
-                        DockPodcastRow(app: app, player: player, episode: episode)
-                            .modifier(DockSurface())
-                    }
-                }
-                .frame(maxWidth: floatsTrailing ? 420 : DCTheme.contentMaxWidth)
-                .frame(maxWidth: .infinity, alignment: floatsTrailing ? .trailing : .center)
-                .padding(.horizontal, DCTheme.spacingM)
-                .padding(.top, DCTheme.spacingXS)
-                .padding(.bottom, DCTheme.spacingS)
-            }
         }
     }
 }
@@ -446,54 +333,6 @@ private struct DockHintRow: View {
             RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("dockHintRow")
-    }
-}
-
-/// The Today podcast while the drawer is closed. Tapping opens Now Playing.
-private struct DockPodcastRow: View {
-    @ObservedObject var app: AppModel
-    @ObservedObject var player: PodcastPlayer
-    let episode: PodcastEpisode
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
-    var body: some View {
-        HStack(spacing: 0) {
-            Button {
-                app.router.item = .nowPlaying
-            } label: {
-                HStack(spacing: DCTheme.spacingS) {
-                    Image(systemName: "headphones")
-                        .foregroundStyle(DigestStyle.tint)
-                        .accessibilityHidden(true)
-                    Text(verbatim: DockText.podcastLine(player: player, episode: episode))
-                        .font(.subheadline.weight(.medium))
-                        .lineLimit(dynamicTypeSize.isAccessibilitySize ? 2 : 1)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .foregroundStyle(.primary)
-                    Spacer(minLength: 0)
-                }
-                .padding(.leading, DCTheme.spacingM)
-                .padding(.vertical, dynamicTypeSize.isAccessibilitySize ? DCTheme.spacingS : 0)
-                .frame(maxWidth: .infinity, minHeight: 48)
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .nowPlayingZoomSource()
-            .accessibilityIdentifier("dockPodcastOpen")
-            Button {
-                DCHaptics.tap()
-                player.toggle()
-            } label: {
-                Image(systemName: player.isActive ? "pause.fill" : "play.fill")
-                    .contentTransition(.symbolEffect(.replace))
-            }
-            .buttonStyle(DCIconButtonStyle())
-            .accessibilityLabel(player.isActive ? Text("Pause") : Text("Play"))
-            .accessibilityIdentifier("dockPodcastToggle")
-            .padding(.trailing, DCTheme.spacingXS)
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityIdentifier("dockPodcastRow")
     }
 }
 

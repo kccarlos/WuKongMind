@@ -979,8 +979,7 @@ final class ScriptImportTests: XCTestCase {
         app.scriptImporter.httpClientProvider = { [unowned self] in self.httpClient }
         defer {
             app.browser.stopLoading()
-            app.pauseDigest()
-            app.podcast.pauseGeneration()
+            app.podcast.cancelReadAloud()
             app.scriptWebController.detach()
             browser.webView.removeFromSuperview()
             window.isHidden = true

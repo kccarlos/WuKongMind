@@ -159,15 +159,6 @@ struct AppSettings: Codable, Equatable {
     var forumRateLimitingEnabled = true
     /// How quickly requests go to one forum (see ForumRequestPacing.swift).
     var forumRequestPace: ForumRequestPace = .default
-    /// Daily digest (see DailyDigest.swift). Off by default: making it
-    /// spends the user's AI credits. On/off and the notification are per
-    /// device (each device spends and schedules on its own); what goes in
-    /// and how many cards sync.
-    var dailyDigestEnabled = false
-    var dailyDigestNotifies = false
-    var dailyDigestIncludesWatched = true
-    var dailyDigestIncludesTrending = true
-    var dailyDigestMaxCards = DigestLimits.defaultCards
     /// Live voice (WukongMind/Voice). Off until turned on on this device.
     var voiceEnabled = false
     var voice = VoiceSettings()
@@ -175,14 +166,10 @@ struct AppSettings: Codable, Equatable {
     var aiConsent: [String: AIConsentDecision] = [:]
     /// Per-endpoint live voice microphone consent. Kept on this device.
     var voiceConsent: [String: Date] = [:]
-    /// The daily podcast (WukongMind/Podcast): made right after the digest
-    /// finishes on open. Off by default (it spends AI and TTS credits); the
-    /// switch is per device.
-    var podcastDailyEnabled = false
+    /// Read aloud speech settings (WukongMind/Podcast).
     var podcast = PodcastSettings()
-    /// The language summaries, digest cards and posts are translated into
-    /// (Translation/ReadingLanguage.swift), and the podcast's script
-    /// language. Empty: the app's language.
+    /// The language summaries and posts are translated into
+    /// (Translation/ReadingLanguage.swift). Empty: the app's language.
     var readingLanguage = ""
     /// Read topics and saved summaries in Spotlight (System/Spotlight.swift).
     /// On by default; each device keeps its own index.
@@ -230,16 +217,10 @@ struct AppSettings: Codable, Equatable {
         case syncAPIKeys
         case forumRateLimitingEnabled
         case forumRequestPace
-        case dailyDigestEnabled
-        case dailyDigestNotifies
-        case dailyDigestIncludesWatched
-        case dailyDigestIncludesTrending
-        case dailyDigestMaxCards
         case voiceEnabled
         case voice
         case aiConsent
         case voiceConsent
-        case podcastDailyEnabled
         case podcast
         case readingLanguage
         case spotlightEnabled
@@ -341,18 +322,10 @@ struct AppSettings: Codable, Equatable {
         syncAPIKeys = try container.decodeIfPresent(Bool.self, forKey: .syncAPIKeys) ?? true
         forumRateLimitingEnabled = try container.decodeIfPresent(Bool.self, forKey: .forumRateLimitingEnabled) ?? true
         forumRequestPace = try container.decodeIfPresent(ForumRequestPace.self, forKey: .forumRequestPace) ?? .default
-        dailyDigestEnabled = try container.decodeIfPresent(Bool.self, forKey: .dailyDigestEnabled) ?? false
-        dailyDigestNotifies = try container.decodeIfPresent(Bool.self, forKey: .dailyDigestNotifies) ?? false
-        dailyDigestIncludesWatched = try container.decodeIfPresent(Bool.self, forKey: .dailyDigestIncludesWatched) ?? true
-        dailyDigestIncludesTrending = try container.decodeIfPresent(Bool.self, forKey: .dailyDigestIncludesTrending) ?? true
-        dailyDigestMaxCards = DigestLimits.clampCards(
-            try container.decodeIfPresent(Int.self, forKey: .dailyDigestMaxCards) ?? DigestLimits.defaultCards
-        )
         voiceEnabled = try container.decodeIfPresent(Bool.self, forKey: .voiceEnabled) ?? false
         voice = try container.decodeIfPresent(VoiceSettings.self, forKey: .voice) ?? VoiceSettings()
         aiConsent = try container.decodeIfPresent([String: AIConsentDecision].self, forKey: .aiConsent) ?? [:]
         voiceConsent = try container.decodeIfPresent([String: Date].self, forKey: .voiceConsent) ?? [:]
-        podcastDailyEnabled = try container.decodeIfPresent(Bool.self, forKey: .podcastDailyEnabled) ?? false
         podcast = try container.decodeIfPresent(PodcastSettings.self, forKey: .podcast) ?? PodcastSettings()
         readingLanguage = try container.decodeIfPresent(String.self, forKey: .readingLanguage) ?? ""
         spotlightEnabled = try container.decodeIfPresent(Bool.self, forKey: .spotlightEnabled) ?? true

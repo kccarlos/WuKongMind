@@ -249,7 +249,6 @@ struct AIDrawerCoordinator: ViewModifier {
         if app.browser.showsForumsHome { router.closeDrawer() }
         router.splitPanelMode = .auto
         app.aiViewVisibilityChanged()
-        app.homeVisibilityChanged()
         app.syncDrawer()
     }
 }
