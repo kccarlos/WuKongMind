@@ -22,7 +22,7 @@ There is **no tolerance** for objectionable content or abusive behavior. Don't u
 
 ## Reporting AI output
 
-On any AI summary or answer in the app, open its menu and choose **Report this answer** (or **Report this summary**) to report objectionable, harmful, or inaccurate AI output. Reports are prepared using your device's own email app or share sheet so you can send them to the developer at [kccarlos.opensource@gmail.com](mailto:kccarlos.opensource@gmail.com). Reports are reviewed **within 24 hours**.
+On any AI summary or answer in the app, open its menu and choose **Report this answer** (or **Report this summary**) to report objectionable, harmful, or inaccurate AI output. Reports are prepared using your device's own email app or share sheet so you can send them to the developer (see the [WukongMind Support page](https://kccarlos.github.io/WuKongMind/support/)). Reports are reviewed **within 24 hours**.
 
 ## AI features and user scripts
 
@@ -42,4 +42,4 @@ If these terms change materially, the new version is posted here with a new effe
 
 ## Contact
 
-[kccarlos.opensource@gmail.com](mailto:kccarlos.opensource@gmail.com), or <https://github.com/kccarlos/WuKongMind/issues>.
+Visit the [WukongMind Support page](https://kccarlos.github.io/WuKongMind/support/) or open an issue at <https://github.com/kccarlos/WuKongMind/issues>.

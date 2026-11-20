@@ -67,9 +67,31 @@ final class TermsAndReportingTests: XCTestCase {
         XCTAssertFalse(draft.body.contains(longText))
         XCTAssertTrue(draft.body.contains(String(repeating: "a", count: AIOutputReportTarget.reportTextLimit)))
 
-        let mailto = AIOutputReport.mailtoURL(subject: draft.subject, body: draft.body)
+        let mailto = AIOutputReport.mailtoURL(to: "support@example.com", subject: draft.subject, body: draft.body)
         XCTAssertEqual(mailto?.scheme, "mailto")
-        XCTAssertEqual(mailto?.path, TermsOfUse.reportEmail)
+        XCTAssertEqual(mailto?.path, "support@example.com")
+        XCTAssertEqual(
+            AIOutputReport.clipboardText(recipient: "support@example.com", draft: draft),
+            "To: support@example.com\nSubject: \(draft.subject)\n\n\(draft.body)"
+        )
+    }
+
+    func testReportEmailReadsInfoPlistAndUnsetFallsBackToCopyShareOnly() {
+        XCTAssertEqual(
+            TermsOfUse.reportEmail(info: ["DCReportEmail": "  support@example.com \n"]),
+            "support@example.com"
+        )
+        XCTAssertNil(TermsOfUse.reportEmail(info: [:]))
+        XCTAssertNil(TermsOfUse.reportEmail(info: ["DCReportEmail": "   "]))
+        XCTAssertNil(TermsOfUse.reportEmail(info: ["DCReportEmail": "SUPPORT_EMAIL_TBD"]))
+
+        let draft = MailDraft(subject: "Test subject", body: "Test body")
+        XCTAssertNil(AIOutputReport.mailtoURL(to: nil, subject: draft.subject, body: draft.body))
+        XCTAssertNil(AIOutputReport.mailtoURL(to: "   ", subject: draft.subject, body: draft.body))
+        XCTAssertEqual(
+            AIOutputReport.clipboardText(recipient: nil, draft: draft),
+            "Subject: Test subject\n\nTest body"
+        )
     }
 
     func testAgentAnswerReportTargetRequiresNonEmptyReply() {

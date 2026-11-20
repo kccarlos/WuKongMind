@@ -10,8 +10,17 @@ import Foundation
 enum TermsOfUse {
     /// Bump when the terms change materially; everyone accepts again.
     static let currentVersion = 1
-    /// Receives AI output reports. Reports are reviewed within 24 hours.
-    static let reportEmail = "kccarlos.opensource@gmail.com"
+    private static let reportEmailInfoKey = "DCReportEmail"
+
+    /// Receives AI output reports when `DCReportEmail` is configured in `Info.plist`.
+    static var reportEmail: String? { reportEmail() }
+
+    static func reportEmail(info: [String: Any]? = Bundle.main.infoDictionary) -> String? {
+        guard let raw = info?[reportEmailInfoKey] as? String else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, !trimmed.hasSuffix("_TBD") else { return nil }
+        return trimmed
+    }
 }
 
 /// An AI-generated summary or answer that the user chooses to report.
@@ -136,15 +145,25 @@ enum AIOutputReport {
         )
     }
 
-    static func mailtoURL(subject: String, body: String) -> URL? {
+    static func mailtoURL(to recipient: String?, subject: String, body: String) -> URL? {
+        guard let recipient = recipient?.trimmingCharacters(in: .whitespacesAndNewlines), !recipient.isEmpty else {
+            return nil
+        }
         var components = URLComponents()
         components.scheme = "mailto"
-        components.path = TermsOfUse.reportEmail
+        components.path = recipient
         components.queryItems = [
             URLQueryItem(name: "subject", value: subject),
             URLQueryItem(name: "body", value: body)
         ]
         return components.url
+    }
+
+    static func clipboardText(recipient: String?, draft: MailDraft) -> String {
+        if let recipient = recipient?.trimmingCharacters(in: .whitespacesAndNewlines), !recipient.isEmpty {
+            return "To: \(recipient)\nSubject: \(draft.subject)\n\n\(draft.body)"
+        }
+        return "Subject: \(draft.subject)\n\n\(draft.body)"
     }
 }
 

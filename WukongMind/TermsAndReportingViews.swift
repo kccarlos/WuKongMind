@@ -99,19 +99,20 @@ struct TermsGateView: View {
 /// then opens the user's Mail composer or a copy/share fallback.
 struct AIOutputReportSheet: View {
     let target: AIOutputReportTarget
+    var reportEmail: String? = TermsOfUse.reportEmail
     @Environment(\.dismiss) private var dismiss
     @State private var draft: MailDraft?
 
     var body: some View {
         if let draft {
-            if MFMailComposeViewController.canSendMail() {
-                MailComposer(draft: draft) { dismiss() }
+            if let reportEmail, MFMailComposeViewController.canSendMail() {
+                MailComposer(recipient: reportEmail, draft: draft) { dismiss() }
                     .ignoresSafeArea()
             } else {
-                ReportEmailFallback(draft: draft)
+                ReportEmailFallback(reportEmail: reportEmail, draft: draft)
             }
         } else {
-            AIOutputReportForm(target: target) { reason, note in
+            AIOutputReportForm(target: target, hasRecipient: reportEmail != nil) { reason, note in
                 draft = AIOutputReport.draft(for: target, reason: reason, note: note)
             }
             .accessibilityIdentifier("aiOutputReportForm")
@@ -122,6 +123,7 @@ struct AIOutputReportSheet: View {
 /// Reason picker and optional details for reporting an AI answer or summary.
 struct AIOutputReportForm: View {
     let target: AIOutputReportTarget
+    var hasRecipient = true
     let onSend: (AIOutputReportReason, String) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var reason: AIOutputReportReason = .inaccurate
@@ -149,7 +151,11 @@ struct AIOutputReportForm: View {
                     )
                     .lineLimit(3...8)
                 } footer: {
-                    Text("Next, your email app opens with the report filled in, or you can copy or share it. Reports are reviewed within 24 hours.", comment: "Report form footer")
+                    Text(
+                        hasRecipient
+                            ? String(localized: "Next, your email app opens with the report filled in, or you can copy or share it. Reports are reviewed within 24 hours.", comment: "Report form footer")
+                            : String(localized: "Next, you can copy or share the report. Reports are reviewed within 24 hours.", comment: "Report form footer when no report email is configured")
+                    )
                 }
             }
             .navigationTitle(title)
@@ -177,8 +183,9 @@ struct AIOutputReportForm: View {
     }
 }
 
-/// Shown when Mail isn't configured on the device: open another email app, copy, or share.
+/// Shown when Mail isn't configured (or no recipient is set): open another email app, copy, or share.
 struct ReportEmailFallback: View {
+    let reportEmail: String?
     let draft: MailDraft
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
@@ -188,10 +195,16 @@ struct ReportEmailFallback: View {
         NavigationStack {
             Form {
                 Section {
-                    LabeledContent("To", value: TermsOfUse.reportEmail)
+                    if let reportEmail {
+                        LabeledContent("To", value: reportEmail)
+                    }
                     LabeledContent("Subject", value: draft.subject)
                 } footer: {
-                    Text("Mail isn’t set up on this device. Send the report from any email app, or copy or share it.", comment: "Report fallback footer")
+                    Text(
+                        reportEmail != nil
+                            ? String(localized: "Mail isn’t set up on this device. Send the report from any email app, or copy or share it.", comment: "Report fallback footer")
+                            : String(localized: "Copy or share the report to send it.", comment: "Report fallback footer when no report email is configured")
+                    )
                 }
                 Section("Report") {
                     Text(draft.body)
@@ -199,15 +212,16 @@ struct ReportEmailFallback: View {
                         .textSelection(.enabled)
                 }
                 Section {
-                    if let url = AIOutputReport.mailtoURL(subject: draft.subject, body: draft.body) {
+                    if let mailtoURL = AIOutputReport.mailtoURL(to: reportEmail, subject: draft.subject, body: draft.body) {
                         Button {
-                            openURL(url)
+                            openURL(mailtoURL)
                         } label: {
                             Label("Open in email app", systemImage: "envelope")
                         }
+                        .accessibilityIdentifier("openEmailApp")
                     }
                     Button {
-                        UIPasteboard.general.string = "To: \(TermsOfUse.reportEmail)\nSubject: \(draft.subject)\n\n\(draft.body)"
+                        UIPasteboard.general.string = AIOutputReport.clipboardText(recipient: reportEmail, draft: draft)
                         copied = true
                         DCHaptics.success()
                     } label: {
@@ -237,6 +251,7 @@ struct ReportEmailFallback: View {
 
 /// System mail composer addressed to the developer's report email.
 struct MailComposer: UIViewControllerRepresentable {
+    let recipient: String
     let draft: MailDraft
     let onFinish: () -> Void
 
@@ -245,7 +260,7 @@ struct MailComposer: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> MFMailComposeViewController {
         let controller = MFMailComposeViewController()
         controller.mailComposeDelegate = context.coordinator
-        controller.setToRecipients([TermsOfUse.reportEmail])
+        controller.setToRecipients([recipient])
         controller.setSubject(draft.subject)
         controller.setMessageBody(draft.body, isHTML: false)
         return controller

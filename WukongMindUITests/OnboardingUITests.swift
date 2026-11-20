@@ -94,10 +94,13 @@ final class OnboardingUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(panel, timeout: 20, in: app), "Step 3 did not show.")
         assertStep(3, any(app, "onboardingProgress"))
         XCTAssertTrue(app.buttons["onboardingTrySkip"].waitForExistence(timeout: 5))
-        let hasSuggestions = suggestionButtons(app).count == 2
+        let suggestions = suggestionButtons(app)
         let setup = any(app, "providerSetupCard")
-        XCTAssertTrue(hasSuggestions || setup.exists, "Neither the suggestions nor the model setup card showed.")
-        if hasSuggestions {
+        XCTAssertTrue(
+            wait(timeout: 5) { suggestions.count == 2 || setup.exists },
+            "Neither the suggestions nor the model setup card showed."
+        )
+        if suggestions.count == 2 {
             XCTAssertTrue(any(app, "agentPromptInput").exists, "The shared Agent input box is missing.")
         }
         // Leave the first run closed for the other tests.
