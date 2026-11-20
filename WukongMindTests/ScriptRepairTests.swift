@@ -411,7 +411,7 @@ final class ScriptRepairTests: XCTestCase {
             connectHosts: ["api.example.com", "cdn.example.com"]
         )
         let driver = FixturePageDriver(page: .init(url: "https://other.example.org/home", title: "Other Site"))
-        var registry = ToolRegistry.m2(bridge: driver, scriptStore: store)
+        var registry = ToolRegistry.m2(bridge: driver, scriptStore: store, saveScriptsWithoutAsking: true)
 
         for badPatch: [String: JSONValue] in [
             ["script_id": .string(initial.id), "match_rules": .array([.string("*://news.example.com/*"), .string("*://evil.example.com/*")])],
@@ -510,6 +510,7 @@ final class ScriptRepairTests: XCTestCase {
         anthropic.model = "claude-haiku-5-5"
         app.settings.setConfiguration(anthropic, for: .anthropic)
         app.settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .browserAgent)
+        app.settings.agentSaveScriptsWithoutAsking = true
 
         let created = try app.scriptStore.create(
             id: "highlight-post",

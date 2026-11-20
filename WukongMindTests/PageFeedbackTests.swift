@@ -441,7 +441,7 @@ final class PageFeedbackTests: XCTestCase {
             bridge: browser.agentBridge, workspace: nil, scriptStore: store,
             liveApplier: controller, currentUserPrompt: { "Test prompt" },
             pageBaseline: baseline, pageBaselineImage: baselineImage,
-            settings: AgentToolSettings(supportsImageInput: supportsImageInput)
+            settings: AgentToolSettings(supportsImageInput: supportsImageInput, saveScriptsWithoutAsking: true)
         ))
         let openResult = try await registry.dispatch(toolName: "navigate", arguments: ["url": .string(server.articleURL.absoluteString)])
         XCTAssertFalse(openResult.isError, openResult.output)
@@ -674,7 +674,8 @@ final class PageFeedbackTests: XCTestCase {
                     settings: AgentToolSettings(
                         truncationLimit: limit,
                         redactedSecrets: secrets,
-                        supportsImageInput: true
+                        supportsImageInput: true,
+                        saveScriptsWithoutAsking: true
                     )
                 ))
             }

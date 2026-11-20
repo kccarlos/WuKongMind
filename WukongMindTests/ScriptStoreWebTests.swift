@@ -1028,7 +1028,8 @@ final class ScriptStoreWebTests: XCTestCase {
             bridge: cleanHarness.bridge,
             scriptStore: cleanStore,
             liveApplier: cleanHarness.controller,
-            currentUserPrompt: { "Always hide replies here" }
+            currentUserPrompt: { "Always hide replies here" },
+            saveScriptsWithoutAsking: true
         )
 
         let saveDispatch = try await registry.dispatch(
@@ -1249,6 +1250,7 @@ final class ScriptStoreWebTests: XCTestCase {
             anthropicConfig.model = "claude-haiku-5-5"
             app.settings.setConfiguration(anthropicConfig, for: .anthropic)
             app.settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .browserAgent)
+            app.settings.agentSaveScriptsWithoutAsking = true
 
             let fakeClient = RecordedAppModelScriptClient()
             app.browserAgent.configureDebugModelClient(fakeClient)

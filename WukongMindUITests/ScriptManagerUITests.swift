@@ -4,8 +4,15 @@ final class ScriptManagerUITests: DCUITestCase {
     func testSavedScriptCardViewCodeToggleAndDeleteUndo() throws {
         let app = launch(["-dc-browser-agent-demo", "saved-script", "-dc-drawer-detent", "large"])
 
+        // Default: Save scripts without asking is off, so script_save opens the shared review sheet.
+        let approveButton = app.buttons["scriptImportAddTurnOn"].firstMatch
+        XCTAssertTrue(waitOrDump(approveButton, timeout: 15, in: app), "Agent script_save did not open the shared review sheet.")
+        XCTAssertFalse(app.buttons["scriptImportAskAgent"].exists, "Agent-proposed scripts must not offer 'Ask the Agent to review it'.")
+        capture("agent-script-save-review-sheet")
+        approveButton.tap()
+
         let card = any(app, "agentScriptCard")
-        XCTAssertTrue(waitOrDump(card, timeout: 15, in: app), "Script card did not appear after script_save.")
+        XCTAssertTrue(waitOrDump(card, timeout: 15, in: app), "Script card did not appear after approving script_save.")
 
         let viewCode = app.buttons["agentScriptViewCode"].firstMatch
         XCTAssertTrue(viewCode.waitForExistence(timeout: 5))
@@ -200,6 +207,8 @@ final class ScriptManagerUITests: DCUITestCase {
 
                 // 2. Saved script card in Agent conversation
                 let cardApp = launch(styleArgs + ["-dc-browser-agent-demo", "saved-script", "-dc-drawer-detent", "large"])
+                let approveCard = cardApp.buttons["scriptImportAddTurnOn"].firstMatch
+                if approveCard.waitForExistence(timeout: 10) { approveCard.tap() }
                 XCTAssertTrue(waitOrDump(any(cardApp, "agentScriptCard"), timeout: 15, in: cardApp))
                 RunLoop.current.run(until: Date().addingTimeInterval(1.0))
                 captureIfRequested("iphone-card-\(suffix)")
@@ -256,6 +265,8 @@ final class ScriptManagerUITests: DCUITestCase {
 
                 // 1. iPad split workspace: top bar badge + side panel with Script card
                 let splitCard = launch(styleArgs + ["-dc-browser-agent-demo", "saved-script"], orientation: .landscapeLeft)
+                let approveSplit = splitCard.buttons["scriptImportAddTurnOn"].firstMatch
+                if approveSplit.waitForExistence(timeout: 10) { approveSplit.tap() }
                 XCTAssertTrue(waitOrDump(any(splitCard, "agentScriptCard"), timeout: 15, in: splitCard))
                 RunLoop.current.run(until: Date().addingTimeInterval(1.0))
                 captureIfRequested("ipad-split-card-\(suffix)")

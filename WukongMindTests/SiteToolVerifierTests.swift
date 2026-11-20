@@ -144,6 +144,7 @@ final class SiteToolVerifierTests: XCTestCase {
             let ptCtx = pageToolBridge.isEnabled ? PageToolContext(bridge: pageToolBridge, scriptStore: scriptStore) : nil
             var reg = ToolRegistry.m3(context: AgentToolContext(
                 bridge: bridge, workspace: nil, scriptStore: scriptStore, liveApplier: controller,
+                settings: AgentToolSettings(saveScriptsWithoutAsking: true),
                 learnedSite: pageToolBridge.isEnabled ? learned : nil, pageTools: ptCtx,
                 siteToolStateStore: stateStore, learningRunState: SiteLearningRunState(verifierLimits: limits)
             ), surface: surface)
@@ -493,5 +494,76 @@ final class SiteToolVerifierTests: XCTestCase {
         XCTAssertFalse(h.makeRegistry(surface: .voice).definitions.contains { $0.name == "site_learning_report" })
         h.pageToolBridge.isEnabled = false
         XCTAssertFalse(h.makeRegistry().definitions.contains { $0.name == "site_learning_report" })
+    }
+
+    func testLearnedReaderApprovalAskedOncePerSite() async throws {
+        let base = try await startFixtureServer(), h = try makeHarness()
+        defer { h.controller.detach(); h.pageToolBridge.detach() }
+        let u1 = base.appendingPathComponent("thread-101").absoluteString
+        let u2 = base.appendingPathComponent("thread-102").absoluteString
+        let forumURL = base.appendingPathComponent("forum").absoluteString
+        try await h.waiter.load(h.webView, url: URL(string: u1)!)
+
+        let readTopicJS = """
+        await modelContext.registerTool({ name: "read_topic", async execute({ url }) {
+          const slug = url.includes("thread-102") ? "thread-102" : "thread-101";
+          const d = await (await fetch("/api/" + slug)).json();
+          return { shape: { title: d.title, url, posts: d.posts } };
+        }});
+        """
+
+        var approvalReviews: [ScriptImportReview] = []
+        var nextDecision: ScriptApprovalDecision = .declined
+        func makeGatedRegistry() -> ToolRegistry {
+            let host = "127.0.0.1", state = h.stateStore.state(forHost: host) ?? SiteToolState(host: host)
+            let learned = LearnedSiteContext(host: host, state: state, pageToolBridge: h.pageToolBridge, scriptStore: h.scriptStore, stateStore: h.stateStore)
+            let ptCtx = PageToolContext(bridge: h.pageToolBridge, scriptStore: h.scriptStore)
+            var reg = ToolRegistry.m3(context: AgentToolContext(
+                bridge: h.bridge, workspace: nil, scriptStore: h.scriptStore, liveApplier: h.controller,
+                settings: AgentToolSettings(saveScriptsWithoutAsking: false),
+                scriptApprover: { review in
+                    approvalReviews.append(review)
+                    return nextDecision
+                },
+                learnedSite: learned, pageTools: ptCtx, siteToolStateStore: h.stateStore
+            ))
+            reg.taskID = "task-approval"
+            return reg
+        }
+
+        // 1. Declining the first learned reader leaves no script and no site state.
+        let declined = try await makeGatedRegistry().dispatch(toolName: "script_save", arguments: [
+            "name": .string("Read Threads"), "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "js": .string(readTopicJS), "provides": .array([.string("read_topic")]),
+            "thread_match": .string("*://127.0.0.1/thread-*"), "test_urls": .array([.string(u1), .string(u2)])
+        ])
+        XCTAssertTrue(declined.isError)
+        XCTAssertTrue(declined.output.contains(ToolRegistry.declinedMessage))
+        XCTAssertEqual(approvalReviews.count, 1)
+        XCTAssertTrue(h.scriptStore.scripts.isEmpty)
+        XCTAssertNil(h.stateStore.state(forHost: "127.0.0.1"))
+
+        // 2. Approving the first learned reader saves it and marks the site approved.
+        nextDecision = .approved(turnOn: true)
+        let approved = try await makeGatedRegistry().dispatch(toolName: "script_save", arguments: [
+            "name": .string("Read Threads"), "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "js": .string(readTopicJS), "provides": .array([.string("read_topic")]),
+            "thread_match": .string("*://127.0.0.1/thread-*"), "test_urls": .array([.string(u1), .string(u2)])
+        ])
+        XCTAssertFalse(approved.isError, approved.output)
+        XCTAssertEqual(approvalReviews.count, 2)
+        XCTAssertEqual(h.stateStore.state(forHost: "127.0.0.1")?.isReaderApproved, true)
+
+        // 3. A second learned reader slot on the SAME site does not ask again.
+        try await h.waiter.load(h.webView, url: URL(string: forumURL)!)
+        nextDecision = .declined
+        let secondSlot = try await makeGatedRegistry().dispatch(toolName: "script_save", arguments: [
+            "name": .string("Read List"), "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "js": .string(Self.passingListAndSearchJS), "provides": .array([.string("list_latest")]),
+            "list_match": .string("*://127.0.0.1/forum*"), "test_urls": .array([.string(forumURL)])
+        ])
+        XCTAssertFalse(secondSlot.isError, secondSlot.output)
+        XCTAssertEqual(approvalReviews.count, 2, "Second learned reader slot on an already-approved site must not prompt again")
+        XCTAssertEqual(h.scriptStore.scripts.count, 2)
     }
 }

@@ -141,6 +141,7 @@ final class GMAiAgentScriptTests: XCTestCase {
         )
         app.usesDirectForumRequests = true
         app.browser.ignoresNavigationFailures = true
+        app.settings.agentSaveScriptsWithoutAsking = true
         defer {
             forumSession.invalidateAndCancel()
             app.browser.stopLoading()
@@ -226,7 +227,8 @@ final class GMAiAgentScriptTests: XCTestCase {
 
             let registry = ToolRegistry.m3(context: AgentToolContext(
                 bridge: app.browser.agentBridge, workspace: app.agentWorkspace,
-                scriptStore: app.scriptStore, liveApplier: app.scriptWebController
+                scriptStore: app.scriptStore, liveApplier: app.scriptWebController,
+                settings: AgentToolSettings(saveScriptsWithoutAsking: true)
             ))
             let rules: JSONValue = .array([.string("https://forum.example.org/t/*")])
             let grants: JSONValue = .array([.string("GM_ai")])

@@ -20,6 +20,7 @@ struct ScriptCapabilitySummary: Equatable, Identifiable, Sendable {
         case ai = "sparkles"
         case style = "paintbrush"
         case menu = "list.bullet"
+        case pageWorld = "exclamationmark.shield"
     }
     var id: String
     var icon: Icon
@@ -41,6 +42,8 @@ struct ScriptUpdateDiff: Equatable, Sendable {
     var removedGrants: [String]
     var addedLibraries: [String]
     var removedLibraries: [String]
+    var turnedOn: Bool = false
+    var changedEnvironment: AgentExecutionEnvironment? = nil
     var changedLineCount: Int
     var addedCodeLines: Set<String>
 
@@ -53,12 +56,18 @@ struct ScriptUpdateDiff: Equatable, Sendable {
             && lhs.addedMatches == rhs.addedMatches && lhs.removedMatches == rhs.removedMatches
             && lhs.addedGrants == rhs.addedGrants && lhs.removedGrants == rhs.removedGrants
             && lhs.addedLibraries == rhs.addedLibraries && lhs.removedLibraries == rhs.removedLibraries
+            && lhs.turnedOn == rhs.turnedOn && lhs.changedEnvironment == rhs.changedEnvironment
             && lhs.changedLineCount == rhs.changedLineCount && lhs.addedCodeLines == rhs.addedCodeLines
     }
 
     var grantsUnchanged: Bool {
         addedGrants.isEmpty && removedGrants.isEmpty && addedConnects.isEmpty && removedConnects.isEmpty
     }
+}
+
+enum ScriptApprovalDecision: Equatable, Sendable {
+    case approved(turnOn: Bool)
+    case declined
 }
 
 struct ScriptImportFailure: Error, Equatable, Sendable {
@@ -80,6 +89,7 @@ struct ScriptImportReview: Equatable, Sendable {
     var author: String?
     var libraries: [ScriptLoadedLibrary]
     var unsupportedItems: [ScriptUnsupportedItem]
+    var isAgentProposal: Bool = false
 
     var isUpdate: Bool { if case .update = mode { true } else { false } }
     var lineCount: Int { max(1, rawSource.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n").count) }
@@ -121,6 +131,7 @@ final class ScriptImporter: ObservableObject {
     var httpClientProvider: () -> AgentHTTPClient
     private var activeLoadTask: Task<Void, Never>?
     private var retryTarget: (url: URL, targetScriptID: String?, inSettings: Bool)?
+    private var pendingAgentApproval: (sessionID: UUID, continuation: CheckedContinuation<ScriptApprovalDecision, Error>)?
 
     private struct PersistedState: Codable {
         var lastForegroundCheckAt: Date?
@@ -236,11 +247,54 @@ final class ScriptImporter: ObservableObject {
     }
 
     func dismissImport() {
+        if let pending = pendingAgentApproval {
+            pendingAgentApproval = nil
+            pending.continuation.resume(returning: .declined)
+        }
         activeLoadTask?.cancel()
         activeLoadTask = nil
         phase = nil
         presentsInSettings = false
         activeSessionID = nil
+    }
+
+    /// Opens the shared script review sheet for an Agent-proposed create or update
+    /// and waits until the user approves, cancels, or the task is cancelled.
+    func requestAgentApproval(review: ScriptImportReview) async throws -> ScriptApprovalDecision {
+        try Task.checkCancellation()
+        if let existing = pendingAgentApproval {
+            pendingAgentApproval = nil
+            existing.continuation.resume(returning: .declined)
+        }
+        activeLoadTask?.cancel()
+        activeLoadTask = nil
+        retryTarget = nil
+        presentsInSettings = false
+        let session = UUID()
+        phase = .ready(review)
+        activeSessionID = session
+        return try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<ScriptApprovalDecision, Error>) in
+                if Task.isCancelled {
+                    if self.activeSessionID == session {
+                        self.phase = nil
+                        self.activeSessionID = nil
+                    }
+                    continuation.resume(throwing: CancellationError())
+                    return
+                }
+                self.pendingAgentApproval = (session, continuation)
+            }
+        } onCancel: {
+            Task { @MainActor [weak self] in
+                guard let self, let pending = self.pendingAgentApproval, pending.sessionID == session else { return }
+                self.pendingAgentApproval = nil
+                self.phase = nil
+                self.presentsInSettings = false
+                self.activeSessionID = nil
+                pending.continuation.resume(throwing: CancellationError())
+            }
+        }
     }
 
     #if DEBUG
@@ -262,6 +316,12 @@ final class ScriptImporter: ObservableObject {
         guard case .ready(let review) = phase else { return nil }
         if let expectedSessionID, activeSessionID != expectedSessionID { return nil }
         if let expectedReview, review != expectedReview { return nil }
+        if let pending = pendingAgentApproval, pending.sessionID == activeSessionID {
+            pendingAgentApproval = nil
+            dismissImport()
+            pending.continuation.resume(returning: .approved(turnOn: turnOn))
+            return nil
+        }
         let saved: UserScript
         switch review.mode {
         case .create:
@@ -512,6 +572,15 @@ final class ScriptImporter: ObservableObject {
         if grants.contains("GM_registerMenuCommand") {
             rows.append(.init(id: "menu", icon: .menu, title: String(localized: "Adds commands to This page", comment: "Capability row for GM_registerMenuCommand grant"), subtitle: nil, isDanger: false))
         }
+        if script.environment == .page {
+            rows.append(.init(
+                id: "pageWorld",
+                icon: .pageWorld,
+                title: String(localized: "Runs in the page’s JavaScript world", comment: "Capability row when a script runs in the page's JavaScript world instead of an isolated world"),
+                subtitle: nil,
+                isDanger: forImportSheet
+            ))
+        }
         return rows
     }
 
@@ -524,10 +593,19 @@ final class ScriptImporter: ObservableObject {
         existing: UserScript,
         candidate: UserScript,
         newRawSource: String,
-        changedHost: (oldHost: String, newHost: String)?
+        changedHost: (oldHost: String, newHost: String)?,
+        oldVersionOverride: String? = nil,
+        newVersionOverride: String? = nil,
+        locallyChangedOverride: Bool? = nil
     ) -> ScriptUpdateDiff {
-        let oldBody = Set(existing.js.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n"))
-        let newBody = Set(candidate.js.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n"))
+        let oldBody = Set(
+            existing.js.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n")
+                + existing.css.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n")
+        )
+        let newBody = Set(
+            candidate.js.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n")
+                + candidate.css.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n")
+        )
         let existingFull = Set(existing.toUserScriptFileContent().replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty })
         let addedLines = Set(newRawSource.replacingOccurrences(of: "\r\n", with: "\n").components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty && !existingFull.contains($0) })
         let oc = existing.metadata.connectHosts, nc = candidate.metadata.connectHosts
@@ -535,14 +613,61 @@ final class ScriptImporter: ObservableObject {
         let og = existing.metadata.grants, ng = candidate.metadata.grants
         let ol = existing.metadata.requireURLs, nl = candidate.metadata.requireURLs
         return ScriptUpdateDiff(
-            oldVersion: existing.metadata.authorVersion, newVersion: candidate.metadata.authorVersion,
-            changedHost: changedHost, locallyChanged: existing.metadata.locallyChanged,
+            oldVersion: oldVersionOverride ?? existing.metadata.authorVersion,
+            newVersion: newVersionOverride ?? candidate.metadata.authorVersion,
+            changedHost: changedHost,
+            locallyChanged: locallyChangedOverride ?? existing.metadata.locallyChanged,
             addedConnects: nc.filter { !oc.contains($0) }, removedConnects: oc.filter { !nc.contains($0) },
             addedMatches: nm.filter { !om.contains($0) }, removedMatches: om.filter { !nm.contains($0) },
             addedGrants: ng.filter { !og.contains($0) }, removedGrants: og.filter { !ng.contains($0) },
             addedLibraries: nl.filter { !ol.contains($0) }, removedLibraries: ol.filter { !nl.contains($0) },
+            turnedOn: !existing.isEnabled && candidate.isEnabled,
+            changedEnvironment: candidate.environment != existing.environment ? candidate.environment : nil,
             changedLineCount: max(oldBody.symmetricDifference(newBody).count, addedLines.count),
             addedCodeLines: addedLines
+        )
+    }
+
+    static func makeAgentCreateReview(candidate: UserScript, existingScripts: [UserScript]) -> ScriptImportReview {
+        let duplicateHost = existingScripts.first {
+            $0.name.caseInsensitiveCompare(candidate.name) == .orderedSame
+        }.map { $0.metadata.sourceHost ?? $0.metadata.installURL.flatMap { URL(string: $0)?.host } ?? String(localized: "this device", comment: "Fallback host label when a duplicate-named script was created locally on this device") }
+        return ScriptImportReview(
+            mode: .create(duplicateNameHost: duplicateHost),
+            candidate: candidate,
+            rawSource: candidate.toUserScriptFileContent(),
+            installURL: "",
+            finalHost: String(localized: "Agent", comment: "Source badge on the script review sheet when the script was written by the Agent"),
+            upstreamHash: "",
+            author: nil,
+            libraries: [],
+            unsupportedItems: collectUnsupportedItems(for: candidate),
+            isAgentProposal: true
+        )
+    }
+
+    static func makeAgentUpdateReview(previous: UserScript, candidate: UserScript) -> ScriptImportReview {
+        let rawSource = candidate.toUserScriptFileContent()
+        let diff = computeDiff(
+            existing: previous,
+            candidate: candidate,
+            newRawSource: rawSource,
+            changedHost: nil,
+            oldVersionOverride: previous.metadata.authorVersion ?? "v\(previous.version)",
+            newVersionOverride: candidate.metadata.authorVersion ?? "v\(candidate.version)",
+            locallyChangedOverride: false
+        )
+        return ScriptImportReview(
+            mode: .update(existing: previous, diff: diff),
+            candidate: candidate,
+            rawSource: rawSource,
+            installURL: previous.metadata.installURL ?? "",
+            finalHost: String(localized: "Agent", comment: "Source badge on the script review sheet when the script was written by the Agent"),
+            upstreamHash: "",
+            author: nil,
+            libraries: [],
+            unsupportedItems: collectUnsupportedItems(for: candidate),
+            isAgentProposal: true
         )
     }
 

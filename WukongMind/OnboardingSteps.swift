@@ -150,10 +150,21 @@ struct OnboardingModelPage: View {
             .overlay {
                 RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous).strokeBorder(DCTheme.hairline)
             }
-            Label {
-                Text("Keys stay in the Keychain", comment: "First-run step 1 footnote")
-            } icon: {
-                Image(systemName: "key.fill")
+            VStack(alignment: .leading, spacing: DCTheme.spacingS) {
+                Label {
+                    Text("Keys stay in the Keychain", comment: "First-run step 1 footnote")
+                } icon: {
+                    Image(systemName: "key.fill")
+                }
+                Label {
+                    Text(
+                        "The Agent can read and act on pages you’re signed in to, and asks before saving scripts or sending requests.",
+                        comment: "First-run step 1 footnote explaining that the Agent can act on signed-in pages and asks before saving scripts or sending requests"
+                    )
+                } icon: {
+                    Image(systemName: "person.badge.shield.checkmark")
+                }
+                .accessibilityIdentifier("onboardingAgentNotice")
             }
             .font(.footnote)
             .foregroundStyle(DCTheme.inkMuted)
