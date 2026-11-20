@@ -34,7 +34,7 @@ It follows roadmap v2, "Just ask" ([next-phase.md](next-phase.md), which v2 repl
   - `cheer` shows when a run ends, for about 3 seconds, and in onboarding's "You're set" card.
   - It never appears in the bar, in buttons, in lists, beside every message or with errors.
   - With Reduce Motion it doesn't change pose mid-run; it shows `think` until the result.
-- **Motion.** The turning ring is the only continuous animation. By the owner's decision, three short transitions are allowed besides the system ones: a suggestion flying into the input box, a result rising into view, and the browser bar morphing between its expanded bar and collapsed pill (section 6).
+- **Motion.** Motion shows a live signal or a cause, never decoration. Continuous motion is allowed only where it displays something happening now: the turning ring (the Agent is working), the voice level meter (sound in or out), the composer's recording pulse (the microphone is on), and progress (the app's progress bar and the system's own activity spinner). Functional transitions (a suggestion into the input box, a result rising, the browser bar morph, Home appearing over the page, system sheets) finish within 250 ms with no bounce (section 6).
 
 **The end state in one line:** one input box and a mic on every page, no modes, no target switch, one Agent loop. Forum summary, search, podcast and voice become the Agent's tools. The boards draw that look, which the One panel milestone already ships. What changes between milestones is only what runs behind a tap (section 1, "Phases").
 
@@ -399,15 +399,18 @@ OnboardingFlow
 
 ### 6. Motion
 
-**The owner's decision (2026-11-12, updated with the browser bar morph in [design-browser-bar-tabs-models.md](design-browser-bar-tabs-models.md)):** the turning gold ring is the only continuous animation, and it means the Agent is working. Three short transitions are allowed because they explain cause and effect: a suggestion flying into the input box, a result rising into view, and the browser bar morphing between its expanded bar and collapsed pill. Each finishes within 250 ms with no bounce, and becomes a fade with Reduce Motion. Haptics are not motion and stay (`DCHaptics`).
+**The motion rule (2026-11-19, [design-motion.md](design-motion.md)):** **Motion shows a live signal or a cause, never decoration.** Continuous motion is allowed only where it displays something happening now: the turning ring (the Agent is working), the voice level meter (sound in or out), the composer's recording pulse (the microphone is on), and progress (the app's progress bar and the system's own activity spinner). The ring also has one one-shot motion: its gap closes into the check when work is done or saved. The functional transitions stay as they are (a suggestion into the input box, a result rising, the browser bar morph, Home appearing over the page, system sheets): each within 250 ms, no bounce. Every state is also a still picture and a word. With Reduce Motion, transitions fade and continuous motion stands still, with one exception: a progress bar with no known value keeps a slow opacity pulse, so a long job never looks frozen. Haptics are not motion and stay (`DCHaptics`).
 
 | Moment | What happens | How (SwiftUI) |
 |---|---|---|
 | Tap a suggestion | The chip flies into the input box. A full question then sends, and the text becomes your bubble; a "…" suggestion stays in the box with the caret at the end. The row closes the gap | `matchedGeometryEffect` from the chip to the field text, `.snappy(duration: 0.25)` or shorter; Reduce Motion: `.opacity` |
 | A result arrives | The result card (summary, sourced answer, listen row) or the ScriptCard rises into view at the bottom of the conversation, which scrolls to it | `.transition(.move(edge: .bottom).combined(with: .opacity))` within 250 ms, then `scrollPosition` to the bottom; Reduce Motion: `.opacity` |
 | Scroll the page / expand the bar | The glass browser bar morphs between its expanded bar and collapsed domain pill (`p = clamp(p_prev + δy ÷ 64 pt, 0, 1)` on user scroll while tracking or coasting; buttons fade and shrink over `p = 0…0.5`). Settles when scrolling stops, and springs open on a pill tap, reaching the page end, a page load, address editing, or the Agent finishing or asking while collapsed ([design-browser-bar-tabs-models.md](design-browser-bar-tabs-models.md)) | `@Animatable` progress `p`; settle and discrete triggers use `.spring(response: 0.24, dampingFraction: 1.0)` (no bounce, under 250 ms); Reduce Motion: `0.2 s` cross-fade at `p > 0.6` / `p < 0.4` |
-| A tool runs | Its ToolRow disc is an open gold ring that turns. It is the only continuous animation | `rotationEffect` on a repeating linear animation; Reduce Motion: still |
+| A tool runs | Its ToolRow disc is an open gold ring that turns | `TimelineView(.animation)` `rotationEffect`; Reduce Motion: still |
 | The Agent works with the panel closed | The bar's Agent ring turns (or a 16 pt turning ring replaces the lock inside the collapsed pill). It replaces `ResearchRing` | Same animation |
+| Voice session active | Five level bars follow live audio levels | `TimelineView(.animation(minimumInterval: 1.0 / 30, paused: reduceMotion))`; Reduce Motion: still |
+| Dictating in the composer | A cinnabar halo pulses on the mic stop button while the microphone is open | `repeatForever(autoreverses: false)`; Reduce Motion: still |
+| Job in progress | `AssistantProgressBar` sweeps (or fills determinately), and system `ProgressView()` spinners turn | `TimelineView(.animation(minimumInterval: 1 / 60))`; Reduce Motion: indeterminate bar keeps a slow opacity pulse |
 | A run ends | The ring stops and becomes the check. Success haptic; the mascot swaps to `cheer` for about 3 s (a swap, not an animation). With the panel closed, a collapsed bar springs open once no finger is on the page, and the Dock shows "Answer ready" | `DCHaptics.success()` |
 | A run fails or hits the step limit | Warning haptic. The explanation appears in the conversation and is announced | `DCHaptics.warning()` |
 | Open This page, Settings, the code sheet, Now playing | The system popover and sheet transitions; Settings push and pop | `.popover`, `.sheet`, `NavigationStack` |
@@ -416,7 +419,7 @@ OnboardingFlow
 
 **Still removed:** rolling counts on the seal and badge, and the Home tile zoom (both by the owner's decision); also suggestion crossfades, Home pin reordering, the Dock's `glassEffectID` morph, the button bounce, and the onboarding dot stretch and staggered prompts.
 
-**Reduce Motion.** The three transitions become fades (a `0.2 s` cross-fade at `p > 0.6` / `p < 0.4` for the browser bar), the ring stands still, the mascot keeps one pose until the result, and haptics stay.
+**Reduce Motion.** Transitions fade (a `0.2 s` cross-fade at `p > 0.6` / `p < 0.4` for the browser bar), continuous motion stands still (except an indeterminate progress bar keeps a slow opacity pulse so a long job never looks frozen), the mascot keeps one pose until the result, and haptics stay.
 
 ## Migration list
 
