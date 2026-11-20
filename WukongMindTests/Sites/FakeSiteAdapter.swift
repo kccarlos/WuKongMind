@@ -52,10 +52,6 @@ struct FakeSiteAdapter: SiteAdapter {
         )
     }
 
-    var suggestedForums: SuggestedForums {
-        SuggestedForums(general: [], chinese: [])
-    }
-
     var agent: AgentSiteProfile {
         AgentSiteProfile(
             siteDescription: "a fake site",

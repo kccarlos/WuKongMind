@@ -674,4 +674,81 @@ final class DrawerPerformanceTests: XCTestCase {
             window.rootViewController = nil
         }
     }
+
+    /// Measures HomeView's hosted first-frame time (empty and populated) for before/after
+    /// comparison when Home changes (docs/wukongmind/app-store-review.md tasks 11 and 12).
+    func testHomeFirstFramePerformance() {
+        let actions = BrowserActions(
+            showLoginInfo: {},
+            addForum: {},
+            openForum: { _ in },
+            showForumsHome: {}
+        )
+        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
+
+        func measureHome(name: String, configure: (AppModel) -> Void) {
+            let directory = FileManager.default.temporaryDirectory
+                .appendingPathComponent("home-perf-\(name)-\(UUID().uuidString)", isDirectory: true)
+            let store = PersistentStore(
+                fileURL: directory.appendingPathComponent("state.json"),
+                keys: InMemoryProviderKeyStore()
+            )
+            let app = AppModel(
+                store: store,
+                cloudSync: CloudSyncController(transport: nil, files: nil, defaults: nil, schedulesAutomatically: false),
+                podcastDirectory: directory.appendingPathComponent("Podcasts", isDirectory: true),
+                workspaceDirectory: directory.appendingPathComponent("Workspace", isDirectory: true),
+                spotlightIndex: FakeSpotlightIndex(),
+                topicActivityDonor: FakeTopicActivityDonor()
+            )
+            app.siteVisits.hidesVisits = true
+            configure(app)
+            defer { try? FileManager.default.removeItem(at: directory) }
+
+            let window = scene.map(UIWindow.init(windowScene:)) ?? UIWindow(frame: CGRect(x: 0, y: 0, width: 393, height: 852))
+            window.frame = CGRect(x: 0, y: 0, width: 393, height: 852)
+            defer {
+                window.isHidden = true
+                window.rootViewController = nil
+            }
+
+            // Warm-up pass (not recorded) to eliminate one-time SwiftUI/UIKit lazy initialization.
+            do {
+                let warm = UIHostingController(rootView: AnyView(
+                    NavigationStack { HomeView(app: app, actions: actions) }.environment(\.colorScheme, .light)
+                ))
+                window.rootViewController = warm
+                window.makeKeyAndVisible()
+                warm.view.layoutIfNeeded()
+                RunLoop.current.run(until: Date().addingTimeInterval(0.2))
+                window.rootViewController = nil
+                RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+            }
+
+            var samples: [Double] = []
+            for _ in 0..<6 {
+                var host: UIHostingController<AnyView>!
+                let elapsed = mainThreadMilliseconds(settle: 0.25) {
+                    host = UIHostingController(rootView: AnyView(
+                        NavigationStack { HomeView(app: app, actions: actions) }.environment(\.colorScheme, .light)
+                    ))
+                    window.rootViewController = host
+                    window.makeKeyAndVisible()
+                    host.view.layoutIfNeeded()
+                }
+                samples.append(elapsed)
+                window.rootViewController = nil
+                RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+            }
+            recordSamples(name, "first_frame", samples)
+        }
+
+        measureHome(name: "home-empty") { _ in }
+        measureHome(name: "home-populated") { app in
+            for i in 1...6 {
+                app.pin(Forum(siteURL: "https://site\(i).example.org", kind: .discourse, name: "Site \(i)"))
+            }
+        }
+        attachLines(named: "home-perf.tsv")
+    }
 }

@@ -93,10 +93,16 @@ extension AppModel {
         Bundle.main.preferredLocalizations.first?.hasPrefix("zh") == true
     }
 
-    /// The walkthrough's site suggestions: with a Chinese app language the
-    /// Chinese-language forums come first.
-    nonisolated static func onboardingSuggestions(chineseFirst: Bool = appLanguageIsChinese) -> [SuggestedForum] {
-        chineseFirst ? SiteRegistry.standard.adapters.flatMap(\.suggestedForums.chinese) + suggestedForums : suggestedForums
+    /// The walkthrough's starter sites: ordinary public web pages (with Chinese
+    /// Wikipedia first when the app language is Chinese).
+    nonisolated static func onboardingSuggestions(chineseFirst: Bool = appLanguageIsChinese) -> [SuggestedSite] {
+        guard chineseFirst else { return suggestedSites }
+        let zhWikipedia = SuggestedSite(
+            name: String(localized: "Wikipedia (Chinese)", comment: "Starter site name for Chinese Wikipedia"),
+            siteURL: "https://zh.wikipedia.org",
+            description: String(localized: "Free encyclopedia you can read and summarize.", comment: "Description of a suggested starter site")
+        )
+        return [zhWikipedia] + suggestedSites.filter { $0.siteURL != "https://en.wikipedia.org" }
     }
 }
 
@@ -243,9 +249,9 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
         case .provider: String(localized: "Models", comment: "Settings page: AI models for Agent and Summaries, answer language, and provider keys")
         case .agent: String(localized: "Agent", comment: "Settings page: Agent step limits, safety, audit log, developer mode and forum search")
         case .scripts: String(localized: "Scripts & tools", comment: "Settings page: per-site userscripts and saved site tools")
-        case .sites: String(localized: "Sites", comment: "Settings page: saved forums, followed topics, reading pace and ad blocking")
+        case .sites: String(localized: "Sites", comment: "Settings page: pinned sites, followed topics, reading pace and ad blocking")
         case .browser: String(localized: "Browser")
-        case .forums: String(localized: "Forums")
+        case .forums: String(localized: "Pinned sites", comment: "Settings page: pinned and visited sites")
         case .watched: String(localized: "Following", comment: "Settings page: followed topics and new-reply checks")
         case .voice: String(localized: "Voice", comment: "Settings page: the live voice conversation with Google Gemini")
         case .digest: String(localized: "Daily digest & podcast", comment: "Settings page: the Today page's daily digest of watched and trending topics")
@@ -264,7 +270,7 @@ enum SettingsPage: String, CaseIterable, Identifiable, Hashable {
         case .scripts: "curlybraces"
         case .sites: "globe"
         case .browser: "safari.fill"
-        case .forums: "bubble.left.and.bubble.right.fill"
+        case .forums: "pin.fill"
         case .watched: "bell.fill"
         case .voice: "waveform"
         case .digest: "sun.max.fill"

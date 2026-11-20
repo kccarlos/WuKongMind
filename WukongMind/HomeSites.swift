@@ -38,7 +38,7 @@ struct HomeSite: Identifiable, Equatable {
     var lastVisitedAt: Date?
 
     var id: String { siteURL }
-    var isForum: Bool { forum != nil }
+    var isForum: Bool { forum?.hasReader == true }
     var host: String { ForumSite.host(of: siteURL) }
     var url: URL? { URL(string: siteURL) }
 }

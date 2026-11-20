@@ -41,11 +41,6 @@ struct WordPressAdapter: SiteAdapter {
     var voice: VoiceSiteProfile { WordPressAgent.voice }
     var discussion: DiscussionProfile { WordPressAgent.discussion }
 
-    /// None: the app offers no WordPress sites to add.
-    var suggestedForums: SuggestedForums {
-        SuggestedForums(general: [], chinese: [])
-    }
-
     func siteURLCandidates(fromAddress address: String) -> [String] {
         WordPressAddress.candidates(fromAddress: address)
     }

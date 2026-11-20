@@ -633,6 +633,43 @@ final class VoiceToolTests: XCTestCase {
         XCTAssertTrue(navigator.calls.contains("openPage bbc.com"))
     }
 
+    func testVoiceOpenPageOpensPinnedWebSite() async throws {
+        let server = try LocalPageServer()
+        try await server.start()
+        addTeardownBlock { server.stop() }
+
+        let savedVisits = UserDefaults.standard.data(forKey: SiteVisitStore.defaultsKey)
+        UserDefaults.standard.removeObject(forKey: SiteVisitStore.defaultsKey)
+        addTeardownBlock {
+            if let savedVisits { UserDefaults.standard.set(savedVisits, forKey: SiteVisitStore.defaultsKey) }
+            else { UserDefaults.standard.removeObject(forKey: SiteVisitStore.defaultsKey) }
+        }
+
+        let app = makeApp()
+        app.browser.onPageContextChanged = nil
+        let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 390, height: 844))
+        let hostVC = UIViewController()
+        hostVC.view.frame = window.bounds
+        app.browser.webView.frame = window.bounds
+        hostVC.view.addSubview(app.browser.webView)
+        window.rootViewController = hostVC
+        window.isHidden = false
+        window.layoutIfNeeded()
+        addTeardownBlock { app.browser.webView.removeFromSuperview(); window.isHidden = true }
+
+        let pinnedOrigin = "http://127.0.0.1:\(server.port)"
+        app.pin(Forum(siteURL: pinnedOrigin, kind: .web, name: "Local News"))
+
+        let bridge = VoiceToolBridge(navigator: app)
+        bridge.registryBuilder = app.voiceToolRegistry
+        _ = bridge.declare()
+
+        let opened = await bridge.handle(.init(id: "pw1", name: "open_page", args: ["target": "Local News"]), eyesFree: false)
+        XCTAssertEqual(opened.response["status"], "opened")
+        XCTAssertEqual(opened.response["host"], "127.0.0.1")
+        XCTAssertEqual(app.browser.webView.url?.host, "127.0.0.1")
+    }
+
     func testOrdinaryPageOpenAndMovesWorkInWebKit() async throws {
         let server = try LocalPageServer()
         try await server.start()

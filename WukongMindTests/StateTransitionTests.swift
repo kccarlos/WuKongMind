@@ -760,7 +760,8 @@ final class StateTransitionTests: XCTestCase {
         let harness = makeHarness()
         let app = harness.app
         StateForumStub.gate(path: "/site/basic-info.json")
-        app.pinSuggested(SuggestedForum(kind: .discourse, name: "Example", siteURL: site, description: ""))
+        app.pin(Forum(siteURL: site, kind: .discourse, name: "Example"))
+        app.refreshForumInfo(siteURL: site)
         try await waitUntil { StateForumStub.isWaiting }
         app.unpin(try XCTUnwrap(app.forum(for: site)))
         StateForumStub.release()

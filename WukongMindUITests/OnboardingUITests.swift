@@ -53,6 +53,10 @@ final class OnboardingUITests: DCUITestCase {
                 .firstMatch.waitForExistence(timeout: 5),
             "No suggested sites."
         )
+        let step2Shot = XCTAttachment(screenshot: app.screenshot())
+        step2Shot.name = "onboarding-step2-starter-sites"
+        step2Shot.lifetime = .keepAlways
+        self.add(step2Shot)
         let back = app.buttons["onboardingBack"]
         XCTAssertTrue(waitForHittable(back))
         back.tap()

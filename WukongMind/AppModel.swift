@@ -277,8 +277,29 @@ final class AppModel: ObservableObject {
     }
     #endif
 
-    nonisolated static var suggestedForums: [SuggestedForum] {
-        return SiteRegistry.standard.adapters.flatMap(\.suggestedForums.general)
+    nonisolated static var suggestedSites: [SuggestedSite] {
+        [
+            SuggestedSite(
+                name: "Wikipedia",
+                siteURL: "https://en.wikipedia.org",
+                description: String(localized: "Free encyclopedia you can read and summarize.", comment: "Description of a suggested starter site")
+            ),
+            SuggestedSite(
+                name: "NPR",
+                siteURL: "https://www.npr.org",
+                description: String(localized: "World news, stories, and radio.", comment: "Description of a suggested starter site")
+            ),
+            SuggestedSite(
+                name: "MDN Web Docs",
+                siteURL: "https://developer.mozilla.org",
+                description: String(localized: "Documentation for web technologies.", comment: "Description of a suggested starter site")
+            ),
+            SuggestedSite(
+                name: "Project Gutenberg",
+                siteURL: "https://www.gutenberg.org",
+                description: String(localized: "Free eBooks and classic literature.", comment: "Description of a suggested starter site")
+            )
+        ]
     }
 
     /// Open browser tabs (`BrowserTabs.swift`); `browser`, `browserAgent`,
@@ -611,7 +632,7 @@ final class AppModel: ObservableObject {
         }
 
         tabBrowser.knownForumLookup = { [weak appBox] url in
-            guard let forum = appBox?.value?.directory.forum(containing: url) else { return nil }
+            guard let forum = appBox?.value?.directory.forum(containing: url), forum.hasReader else { return nil }
             return KnownForumSite(siteURL: forum.siteURL, name: forum.name, iconURL: forum.iconURL, kind: forum.kind)
         }
         tabBrowser.onPageContextChanged = { [weak appBox, weak tabBrowser] context in
@@ -1056,12 +1077,15 @@ final class AppModel: ObservableObject {
         applyBarMorphDebugArguments()
         seedScriptsSampleIfNeeded()
         seedM4ImportPreviewIfNeeded()
-        // Sample only: never over the real digests or with a real key.
-        if AssistantDebug.isActive, AssistantDebug.has("-dc-digest-sample") { seedDigestSample() }
+        // Sample only: never over the real digests or with a real key, and never mix
+        // real device siteVisits from UserDefaults into `-dc-sample` Home grids.
+        if AssistantDebug.isActive {
+            siteVisits.hidesVisits = true
+            if AssistantDebug.has("-dc-digest-sample") { seedDigestSample() }
+        }
         // `-dc-no-forums`: the sample as a new user sees Home (never saved).
         if AssistantDebug.isActive, AssistantDebug.has("-dc-no-forums") {
             directory = ForumDirectory(forums: [])
-            siteVisits.hidesVisits = true
             currentSiteURL = nil
             self.browser.homeSiteURL = nil
         }
@@ -2123,12 +2147,39 @@ final class AppModel: ObservableObject {
                 return forum
             }
         }
-        guard let firstCandidate else {
+        let plainSiteURL = firstCandidate
+            ?? ForumBrowserModel.resolveAddress(address, currentSiteURL: nil)
+                .flatMap(HomeSites.originOf)
+                .flatMap(ForumSite.normalizeSiteURL)
+        guard let plainSiteURL else {
             finishAddForum(key, .idle)
             throw ForumDirectoryError.invalidAddress
         }
-        finishAddForum(key, lastFailure.map { .failed($0) } ?? .unsupported)
-        throw ForumDirectoryError.notSupported(ForumSite.host(of: firstCandidate))
+        if lastFailure == .offline {
+            finishAddForum(key, .failed(.offline))
+            throw ForumDirectoryError.offline
+        }
+        // Any valid web address can be saved and pinned even when no built-in reader recognizes it.
+        var directory = self.directory
+        guard var site = directory.upsert(
+            siteURL: plainSiteURL,
+            kind: .web,
+            name: HomeSites.displayName(forOrigin: plainSiteURL),
+            iconURL: nil
+        ) else {
+            finishAddForum(key, .idle)
+            throw ForumDirectoryError.invalidAddress
+        }
+        if key.pin {
+            directory.setPinned(true, siteURL: site.siteURL)
+            site = directory.forum(siteURL: site.siteURL) ?? site
+        }
+        if suppressedAutoAddSiteURL == site.siteURL { suppressedAutoAddSiteURL = nil }
+        self.directory = directory
+        save()
+        browser.refreshPageContext()
+        finishAddForum(key, .recognized(kind: site.kind, siteURL: site.siteURL))
+        return site
     }
 
     /// Fetches a forum's name and icon in the background. Only the name and
@@ -2247,20 +2298,29 @@ final class AppModel: ObservableObject {
         }
     }
 
-    /// Makes the forum current and loads its /latest.
+    /// Opens a saved site: through its built-in reader when it has one, or directly
+    /// in the browser for an ordinary `.web` favourite.
     func openForum(_ forum: Forum) {
-        // No adapter (a placeholder, or a platform this build lacks): leave the state alone.
-        guard let adapter = sites.adapter(for: forum.kind) else { return }
-        if suppressedAutoAddSiteURL == forum.siteURL { suppressedAutoAddSiteURL = nil }
-        currentSiteURL = forum.siteURL
-        browser.homeSiteURL = forum.siteURL
-        browser.loadHome(adapter: adapter)
+        if let adapter = sites.adapter(for: forum.kind) {
+            if suppressedAutoAddSiteURL == forum.siteURL { suppressedAutoAddSiteURL = nil }
+            currentSiteURL = forum.siteURL
+            browser.homeSiteURL = forum.siteURL
+            browser.loadHome(adapter: adapter)
+            panelRoute = .topic
+            return
+        }
+        guard forum.kind == .web, let url = URL(string: forum.siteURL) else { return }
+        siteVisits.noteVisit(siteURL: forum.siteURL, name: forum.displayName, isForum: false)
+        browser.load(url)
         panelRoute = .topic
     }
 
-    /// Opens a suggested forum (added to the directory as recent on arrival).
-    func openForum(_ suggested: SuggestedForum) {
-        openForum(Forum(siteURL: suggested.siteURL, kind: suggested.kind, name: suggested.name))
+    /// Opens an ordinary suggested site in the browser.
+    func openSuggestedSite(_ suggested: SuggestedSite) {
+        guard let url = suggested.url else { return }
+        siteVisits.noteVisit(siteURL: suggested.siteURL, name: suggested.name, isForum: false)
+        browser.load(url)
+        panelRoute = .topic
     }
 
     // MARK: Saved answers

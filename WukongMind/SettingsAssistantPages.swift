@@ -45,8 +45,8 @@ struct SettingsSitesPage: View {
                         SettingsIcon(page: .forums)
                     } title: {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Forums")
-                            Text("Saved sites, search & pins", comment: "Settings › Sites › Forums row subtitle")
+                            Text(SettingsPage.forums.title)
+                            Text("Pinned and visited sites", comment: "Settings › Sites › Pinned sites row subtitle")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -78,7 +78,7 @@ struct SettingsSitesPage: View {
                 }
                 .accessibilityIdentifier("settingsRow-watched")
             } header: {
-                Text("Forums")
+                Text("Saved", comment: "Settings › Sites section header for pinned sites and followed discussions")
             }
 
             ForumRequestPaceSection(app: app)
