@@ -114,8 +114,16 @@ struct AppSettings: Codable, Equatable {
     var searchEngine: SearchEngine = .google
     /// Where the app opens (HomeState.swift). Synced.
     var launchDestination: LaunchDestination = .automatic
-    /// Optional confirmation before write actions (`Settings › Agent`). Off by default.
-    var agentConfirmBeforeWrites = false
+    /// Confirmation before write actions (`Settings › Agent`). On by default.
+    var agentConfirmBeforeWrites = true
+    /// One-time upgrade marker: existing installs saved `agentConfirmBeforeWrites = false`
+    /// before safe defaults shipped, so the first load after upgrade turns it on once.
+    /// Per device; never synced.
+    var didMigrateAgentConfirmBeforeWritesDefault = true
+    /// Allow cookie values in `cookies_get` and `run_js` results (`Settings › Agent`). Off by default.
+    var agentShareCookieValues = false
+    /// Allow the Agent to save scripts without showing an approval sheet (`Settings › Agent`). Off by default.
+    var agentSaveScriptsWithoutAsking = false
     /// Page tools (`Settings › Agent`): WebMCP shim, learned site readers and page-tool calls. On by default.
     var agentPageToolsEnabled = true
     /// Developer mode, the one switch (`Settings › Agent › Developer`): raw requests, tokens per step,
@@ -198,6 +206,9 @@ struct AppSettings: Codable, Equatable {
         case searchEngine
         case launchDestination
         case agentConfirmBeforeWrites
+        case didMigrateAgentConfirmBeforeWritesDefault
+        case agentShareCookieValues
+        case agentSaveScriptsWithoutAsking
         case agentPageToolsEnabled
         case agentDeveloperMode
         case saveFailedTasksForFeedback
@@ -277,7 +288,16 @@ struct AppSettings: Codable, Equatable {
         browserBarPosition = try container.decodeIfPresent(BrowserBarPosition.self, forKey: .browserBarPosition) ?? stock.browserBarPosition
         searchEngine = try container.decodeIfPresent(SearchEngine.self, forKey: .searchEngine) ?? stock.searchEngine
         launchDestination = try container.decodeIfPresent(LaunchDestination.self, forKey: .launchDestination) ?? stock.launchDestination
-        agentConfirmBeforeWrites = try container.decodeIfPresent(Bool.self, forKey: .agentConfirmBeforeWrites) ?? stock.agentConfirmBeforeWrites
+        let migratedConfirmDefault = try container.decodeIfPresent(Bool.self, forKey: .didMigrateAgentConfirmBeforeWritesDefault) ?? false
+        if migratedConfirmDefault {
+            agentConfirmBeforeWrites = try container.decodeIfPresent(Bool.self, forKey: .agentConfirmBeforeWrites) ?? stock.agentConfirmBeforeWrites
+        } else {
+            // Existing install from before safe-defaults upgrade: turn on once.
+            agentConfirmBeforeWrites = true
+        }
+        didMigrateAgentConfirmBeforeWritesDefault = true
+        agentShareCookieValues = try container.decodeIfPresent(Bool.self, forKey: .agentShareCookieValues) ?? stock.agentShareCookieValues
+        agentSaveScriptsWithoutAsking = try container.decodeIfPresent(Bool.self, forKey: .agentSaveScriptsWithoutAsking) ?? stock.agentSaveScriptsWithoutAsking
         agentPageToolsEnabled = try container.decodeIfPresent(Bool.self, forKey: .agentPageToolsEnabled) ?? stock.agentPageToolsEnabled
         agentDeveloperMode = try container.decodeIfPresent(Bool.self, forKey: .agentDeveloperMode) ?? stock.agentDeveloperMode
         saveFailedTasksForFeedback = try container.decodeIfPresent(Bool.self, forKey: .saveFailedTasksForFeedback)

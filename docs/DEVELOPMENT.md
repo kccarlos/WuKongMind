@@ -137,6 +137,15 @@ A free Apple ID team can run the app on your own devices, with limits:
   `DC_ENABLE_CLOUDKIT=NO`. API keys still sync through iCloud Keychain, which
   needs no iCloud entitlement.
 
+## One build (no store variant)
+
+WukongMind ships one build everywhere — App Store, TestFlight, and local builds
+run the same code with the same defaults. There is no store compile flag or
+variant, and no feature or default may depend on the build configuration
+(beyond `#if DEBUG` test hooks), the install source, the date, or the region.
+Where more freedom is wanted, expose it as a visible Settings switch with the
+safe side as the default.
+
 ## Build and run
 
 In Xcode, pick the **WukongMind** scheme and a simulator or device.
