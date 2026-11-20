@@ -1316,12 +1316,12 @@ struct TabGlassCapsuleSurface: ViewModifier {
 // MARK: - Hardware Keyboard Shortcuts Responder (⌘T, ⌘W, ⌃Tab, ⌃⇧Tab)
 
 enum TabCycleShortcutGate {
-    @MainActor private static var lastFireUptime: TimeInterval = 0
+    @MainActor private static var lastFireAt: ContinuousClock.Instant?
 
     @MainActor static func postOncePerKeystroke(_ command: WorkspaceCommand) {
-        let now = ProcessInfo.processInfo.systemUptime
-        guard now - lastFireUptime > 0.04 else { return }
-        lastFireUptime = now
+        let now = ContinuousClock.now
+        if let lastFireAt, now - lastFireAt <= .milliseconds(40) { return }
+        lastFireAt = now
         command.post()
     }
 }
