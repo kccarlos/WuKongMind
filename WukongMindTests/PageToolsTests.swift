@@ -388,6 +388,7 @@ final class PageToolsTests: XCTestCase {
             store: PersistentStore(fileURL: dir.appendingPathComponent("state.json"), keys: InMemoryProviderKeyStore()),
             aiService: ai, workspaceDirectory: dir.appendingPathComponent("Workspace", isDirectory: true)
         )
+        app.allowAllAIProviders()
         app.browser.onPageContextChanged = nil
         hostWebView(app.browser.webView)
         var settings = app.settings

@@ -43,6 +43,15 @@ class AIService: @unchecked Sendable {
     private let session: URLSession
     /// The Apple Intelligence provider (FoundationModels); tests pass a fake.
     let appleIntelligence: AppleIntelligenceServing
+    /// The AI data consent backstop (`AIDataConsent.swift`), checked before
+    /// every request that sends content to a third-party provider (both
+    /// `streamText` and `completeToolTurn`). Until `AppModel` installs its
+    /// check, third-party requests are refused.
+    var consentCheck: @MainActor (AIProvider, ProviderConfiguration) throws -> Void = { provider, configuration in
+        if provider.requiresDataConsent(baseURL: configuration.baseURL) {
+            throw AssistantError.aiConsentRequired(provider)
+        }
+    }
 
     init(
         session: URLSession = .shared,
@@ -475,6 +484,8 @@ class AIService: @unchecked Sendable {
                 onDelta: onDelta
             )
         }
+        // Every streamed/completed third-party request (summaries, GM_ai, podcast scripts) comes here.
+        try await consentCheck(provider, configuration)
         try validate(configuration: configuration, provider: provider)
         var tokenBudgets: [Int] = [
             maxTokens,
@@ -808,6 +819,8 @@ class AIService: @unchecked Sendable {
                 "\(provider.displayName) does not support browser agent tool calling. Choose a tool-calling model in Settings."
             )
         }
+        // Every streamed/completed third-party request (summaries, GM_ai, podcast scripts) comes here.
+        try await consentCheck(provider, configuration)
         try validate(configuration: configuration, provider: provider)
 
         let request = try makeToolRequest(

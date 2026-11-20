@@ -343,6 +343,7 @@ final class BrowseNavigationTests: XCTestCase {
             aiService: AIService(session: session)
         )
         app.usesDirectForumRequests = true
+        app.allowAllAIProviders()
         return app
     }
 }

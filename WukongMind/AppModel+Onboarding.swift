@@ -275,6 +275,7 @@ enum AppVersion {
     static let repositoryURL = URL(string: "https://github.com/kccarlos/WuKongMind")!
     static let websiteURL = URL(string: "https://github.com/kccarlos/WuKongMind")!
     static let supportURL = URL(string: "https://github.com/kccarlos/WuKongMind/issues")!
+    static let privacyPolicyURL = URL(string: "https://github.com/kccarlos/WuKongMind/blob/main/PRIVACY.md")!
 }
 
 extension AppModel {

@@ -1732,6 +1732,7 @@ final class StateTransitionTests: XCTestCase {
             backgroundGrace: backgroundGrace
         )
         app.usesDirectForumRequests = true
+        app.allowAllAIProviders()
         app.browser.stopLoading()
         let handler = app.browser.onPageContextChanged
         app.browser.onPageContextChanged = nil

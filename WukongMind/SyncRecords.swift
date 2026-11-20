@@ -148,6 +148,7 @@ enum SyncSettings {
         "dailyDigestNotifies",
         // Voice and the daily podcast spend credits on this device.
         "voiceEnabled",
+        "voiceConsent",
         "podcastDailyEnabled",
         // Spotlight and Siri suggestions live on this device: its own index
         // and its own donated activities.
@@ -157,6 +158,8 @@ enum SyncSettings {
 
     /// Each provider configuration is one unit: `configurations.<provider>`.
     static let configurationPrefix = "configurations."
+    /// Each provider's AI data consent is one unit: `aiConsent.<provider>`.
+    static let aiConsentPrefix = "aiConsent."
 }
 
 /// How the units of each kind are built and merged.
@@ -274,6 +277,11 @@ enum SyncSchema {
                 units[SyncSettings.configurationPrefix + provider] = .object(configuration)
             }
         }
+        if let consent = object.removeValue(forKey: "aiConsent")?.objectValue {
+            for (provider, value) in consent {
+                units[SyncSettings.aiConsentPrefix + provider] = value
+            }
+        }
         for (key, value) in object { units[key] = value }
         return units
     }
@@ -283,9 +291,10 @@ enum SyncSchema {
     static func applying(settingsUnits units: [String: JSONValue], to local: AppSettings) throws -> AppSettings {
         guard var object = try SyncCoding.json(local).objectValue else { return local }
         var configurations = object["configurations"]?.objectValue ?? [:]
+        var consent = object["aiConsent"]?.objectValue ?? [:]
         for (name, value) in units {
             if value.isNull {
-                if !SyncSettings.deviceLocalKeys.contains(name), name != "configurations" {
+                if !SyncSettings.deviceLocalKeys.contains(name), name != "configurations", name != "aiConsent" {
                     object.removeValue(forKey: name)
                 }
                 continue
@@ -295,11 +304,15 @@ enum SyncSchema {
                 var configuration = value.objectValue ?? [:]
                 configuration["apiKey"] = configurations[provider]?.objectValue?["apiKey"] ?? .string("")
                 configurations[provider] = .object(configuration)
-            } else if !SyncSettings.deviceLocalKeys.contains(name), name != "configurations" {
+            } else if name.hasPrefix(SyncSettings.aiConsentPrefix) {
+                let provider = String(name.dropFirst(SyncSettings.aiConsentPrefix.count))
+                consent[provider] = value
+            } else if !SyncSettings.deviceLocalKeys.contains(name), name != "configurations", name != "aiConsent" {
                 object[name] = value
             }
         }
         object["configurations"] = .object(configurations)
+        object["aiConsent"] = .object(consent)
         var result = try SyncCoding.decode(AppSettings.self, from: .object(object))
         // Keys are never read from a synced record, whatever it holds.
         for provider in AIProvider.allCases {

@@ -133,7 +133,7 @@ final class PodcastController: ObservableObject {
     var canMake: Bool {
         guard let app, let digest = app.todaysDigest, !app.digestActivity.isRunning else { return false }
         guard digest.cards.contains(where: { $0.state == .done && !$0.summary.isEmpty }) else { return false }
-        return Self.isFake || app.isProviderReady(for: .assistant)
+        return Self.isFake || app.canRunUnattended(.assistant)
     }
 
     var isPlayingEpisode: Bool {
@@ -141,12 +141,15 @@ final class PodcastController: ObservableObject {
         return player.playlist?.id == episode.digestID.uuidString
     }
 
-    /// Google providers with a key, the voice provider first.
+    /// Google providers with a key and AI data consent, the voice provider first.
     var googleProviders: [VoiceProvider] {
         guard let app else { return [] }
         let preferred = app.settings.voice.provider
         return VoiceProvider.allCases
-            .filter { !app.settings.configuration(for: $0.keyProvider).apiKey.isEmpty }
+            .filter {
+                !app.settings.configuration(for: $0.keyProvider).apiKey.isEmpty
+                    && app.aiConsentState(for: $0.keyProvider).permitsRequests
+            }
             .sorted { ($0 == preferred ? 0 : 1) < ($1 == preferred ? 0 : 1) }
     }
 

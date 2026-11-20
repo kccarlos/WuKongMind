@@ -190,6 +190,9 @@ extension AppModel: VoiceNavigator {
     func voiceConfiguration() -> Result<VoiceSession.Configuration, VoiceSession.Failure> {
         guard settings.voiceEnabled else { return .failure(.disabled) }
         guard let provider = voiceProvider else { return .failure(.noKey) }
+        if !VoiceDebug.isFake, !VoiceConsent.isGranted(provider, in: settings) {
+            return .failure(.consentRequired)
+        }
         if VoiceDebug.isFake {
             return .success(VoiceSession.Configuration(endpoint: .aiStudio, apiKey: "fake-key", settings: settings.voice))
         }
