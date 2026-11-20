@@ -220,6 +220,11 @@ final class OnboardingUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(panel, timeout: 20, in: app), "Step 3 did not show.")
 
         let setupCard = any(app, "providerSetupCard")
+        if !setupCard.waitForExistence(timeout: 5) {
+            let suggestion = app.buttons["suggestion-tryReadable"]
+            XCTAssertTrue(waitForHittable(suggestion, timeout: 5))
+            suggestion.tap()
+        }
         XCTAssertTrue(waitOrDump(setupCard, timeout: 10, in: app), "Provider setup card did not appear without a key.")
         XCTAssertTrue(
             setupCard.staticTexts.matching(NSPredicate(format: "label CONTAINS 'API key'")).firstMatch.exists,

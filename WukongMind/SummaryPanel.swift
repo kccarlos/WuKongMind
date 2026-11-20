@@ -203,10 +203,15 @@ private final class DrawerAppRelay {
         lastAppleIntelligenceStatus = aiStatus
         let sel = app.selection(for: .browserAgent)
         let ready = DrawerInputs.browserAgentReadiness(app)
-        let defaultRole: ModelRole? = ready == .ready ? nil : .browserAgent
-        let requestedRole: ModelRole? = defaultRole
+        let assistantModel = settings.effectiveModel(for: .assistant)
+        let defaultRole: ModelRole? = if ready == .ready {
+            nil
+        } else {
+            settings.readiness(of: assistantModel, appleIntelligence: aiStatus) != .ready ? .browserAgent : nil
+        }
+        let requestedRole: ModelRole? = ready == .ready ? nil : .browserAgent
         let requestedSetup = requestedRole.map { ProviderSetupModel(app: app, role: $0, appleIntelligence: aiStatus) }
-        let defaultSetup = requestedSetup
+        let defaultSetup = defaultRole != nil ? requestedSetup : nil
         let derived = SettingsDerived(
             sel: sel,
             isBrowserAgentReady: ready == .ready,
