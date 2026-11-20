@@ -425,10 +425,11 @@ final class PodcastController: ObservableObject {
         player.update(playlist(for: episode))
     }
 
-    /// The episode's engine, unless its key is gone since.
-    private func resolvedEngine(for episode: PodcastEpisode) -> PodcastEngineKind {
+    /// The episode's engine, unless its key or AI data consent is gone since.
+    func resolvedEngine(for episode: PodcastEpisode) -> PodcastEngineKind {
         guard let app, let provider = episode.engine.provider else { return episode.engine }
         let usable = !app.settings.configuration(for: provider.keyProvider).apiKey.isEmpty
+            && app.aiConsentState(for: provider.keyProvider).permitsRequests
         return usable ? episode.engine : .onDevice
     }
 
@@ -440,7 +441,11 @@ final class PodcastController: ObservableObject {
             let configuration = app?.settings.configuration(for: provider.keyProvider) ?? ProviderConfiguration(provider: provider.keyProvider)
             return GeminiSpeechEngine(
                 endpoint: GeminiTTS.Endpoint(provider: provider, baseURL: configuration.baseURL, apiKey: configuration.apiKey),
-                voices: voices
+                voices: voices,
+                consentCheck: { [weak app] in
+                    guard let app else { throw AssistantError.aiConsentRequired(provider.keyProvider) }
+                    try app.settings.requireAIConsent(for: provider.keyProvider)
+                }
             )
         case .fake:
             #if DEBUG
