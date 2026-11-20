@@ -1392,6 +1392,7 @@ struct TabKeyCommandResponder: UIViewRepresentable {
 
 // MARK: - UIKit Accessibility Tree Walker (Used by Unit Tests & Optional `-dc-tab-ax-debug` UI Test Hook)
 
+#if DEBUG
 @MainActor
 enum TabCardAccessibilityInspector {
     /// Finds the live UIAccessibility element in `root` matching `identifier` by walking
@@ -1457,7 +1458,6 @@ enum TabCardAccessibilityInspector {
     }
 }
 
-#if DEBUG
 private struct TabAccessibilityDebugOverlay: View {
     @ObservedObject var tabs: BrowserTabs
 
