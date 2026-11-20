@@ -11841,6 +11841,22 @@
         }
       }
     },
+    "Models…" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模型…"
+          }
+        }
+      }
+    },
     "More" : {
       "comment" : "The More button at the end of the app row in the iOS share sheet",
       "localizations" : {
@@ -14748,19 +14764,19 @@
         }
       }
     },
-    "Pick a model or add its key in Settings › AI models." : {
+    "Pick a model or add its key in Settings › Models." : {
       "comment" : "Model not ready card: how to fix it",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请在“设置 › AI 模型”中选择模型或添加其密钥。"
+            "value" : "请在“设置 › 模型”中选择模型或添加其密钥。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請在「設定 › AI 模型」中選擇模型或加入其金鑰。"
+            "value" : "請在「設定 › 模型」中選擇模型或加入其金鑰。"
           }
         }
       }
@@ -21452,6 +21468,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "AI 供應商傳回了空白的回應。"
+          }
+        }
+      }
+    },
+    "The Agent needs an API key or a local server. Add one in Settings › Models." : {
+      "comment" : "Browser agent not ready card: explains that the Agent needs an API key or a local server",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "智能体需要 API 密钥或本地服务器。请在“设置 › 模型”中添加。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理需要 API 金鑰或本機伺服器。請在「設定 › 模型」中加入。"
+          }
+        }
+      }
+    },
+    "The Agent needs an API key or a local server—Apple Intelligence only runs Summaries. Add one in Settings › Models." : {
+      "comment" : "Browser agent not ready card: explains that the Agent needs an API key (or local server) and Apple Intelligence only runs Summaries",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "智能体需要 API 密钥或本地服务器，Apple 智能仅用于摘要。请在“设置 › 模型”中添加。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理需要 API 金鑰或本機伺服器，Apple Intelligence 僅用於摘要。請在「設定 › 模型」中加入。"
           }
         }
       }
