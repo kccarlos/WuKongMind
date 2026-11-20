@@ -68,8 +68,6 @@ private struct HomeList: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var forumToRemove: Forum?
-    @State private var addressText = ""
-    @FocusState private var addressFocused: Bool
 
     private var tiles: [HomeSite] { HomeSites.tiles(forums: app.forums, visits: siteVisits.shownVisits) }
 
@@ -81,8 +79,6 @@ private struct HomeList: View {
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: DCTheme.spacingS, leading: 4, bottom: 0, trailing: 4))
-
-            addressSection(tiles: tiles)
 
             if tiles.isEmpty {
                 suggestedCard
@@ -96,6 +92,8 @@ private struct HomeList: View {
         }
         .listStyle(.insetGrouped)
         .listSectionSpacing(.compact)
+        .scrollDismissesKeyboard(.immediately)
+        .modifier(HomeScrollKeyboardDismiss(isEditingAddress: browser.isEditingAddress))
         .contentMargins(.top, DCTheme.spacingXS, for: .scrollContent)
         .scrollContentBackground(.hidden)
         .frame(maxWidth: 760)
@@ -137,93 +135,6 @@ private struct HomeList: View {
         .foregroundStyle(DCTheme.ink)
         .accessibilityLabel(label)
         .accessibilityIdentifier(id)
-    }
-
-    // MARK: Address field
-
-    /// The only address entry on Home (the bar hides its own while Home shows).
-    /// Text that is not an address searches with Settings › Browser › Search
-    /// engine; while typing, the sites that match are offered.
-    @ViewBuilder
-    private func addressSection(tiles: [HomeSite]) -> some View {
-        Section {
-            HStack(spacing: DCTheme.spacingS) {
-                Image(systemName: "magnifyingglass")
-                    .font(.body)
-                    .foregroundStyle(DCTheme.inkFaint)
-                    .accessibilityHidden(true)
-                TextField(text: $addressText, prompt: Text("Search or enter address", comment: "Home address field placeholder").foregroundStyle(DCTheme.inkFaint)) {
-                    Text("Address", comment: "Accessibility label of Home's address field")
-                }
-                .textContentType(.URL)
-                .keyboardType(.webSearch)
-                .autocorrectionDisabled()
-                .textInputAutocapitalization(.never)
-                .submitLabel(.go)
-                .focused($addressFocused)
-                .onSubmit(submitAddress)
-                .onChange(of: addressText) { _, _ in
-                    PerfProbe.mark("address.keystroke")
-                }
-                .foregroundStyle(DCTheme.ink)
-                .accessibilityIdentifier("homeAddress")
-                if !addressText.isEmpty {
-                    Button {
-                        addressText = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundStyle(DCTheme.inkFaint)
-                            .frame(width: 30, height: 30)
-                    }
-                    .buttonStyle(.plain)
-                    .accessibilityLabel("Clear address")
-                }
-            }
-            .padding(.horizontal, 14)
-            .frame(minHeight: DCTheme.controlHeight)
-            .background(DCTheme.surfaceRaised, in: RoundedRectangle(cornerRadius: DCTheme.radiusMd, style: .continuous))
-            .listRowBackground(Color.clear)
-            .listRowSeparator(.hidden)
-            .listRowInsets(EdgeInsets(top: DCTheme.spacingXS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
-
-            if addressFocused {
-                let matches = PerfProbe.time("HomeSites.matches") {
-                    HomeSites.matches(tiles, for: addressText)
-                }
-                ForEach(matches) { site in
-                    Button { open(site) } label: {
-                        HStack(spacing: DCTheme.spacingM) {
-                            ForumIcon(siteURL: site.siteURL, name: site.name, iconURL: site.iconURL, size: 30)
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(site.name).font(.subheadline.weight(.semibold)).foregroundStyle(DCTheme.ink).lineLimit(1)
-                                Text(site.host).font(.caption).foregroundStyle(DCTheme.inkMuted).lineLimit(1)
-                            }
-                            Spacer(minLength: 0)
-                        }
-                        .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                    .listRowBackground(DCTheme.surface)
-                    .accessibilityIdentifier("homeMatch-\(site.host)")
-                }
-            }
-        }
-    }
-
-    private func submitAddress() {
-        let context = AddressInput.Context(
-            currentSiteURL: browser.homeSiteURL,
-            forumSearchURL: nil,
-            webSearchURL: { app.webSearchURL(query: $0) }
-        )
-        guard let action = AddressInput.actions(for: addressText, context: context).first else { return }
-        browser.load(action.url)
-        finishAddress()
-    }
-
-    private func finishAddress() {
-        addressFocused = false
-        addressText = ""
     }
 
     // MARK: Sites
@@ -349,7 +260,7 @@ private struct HomeList: View {
 
     private func open(_ site: HomeSite) {
         DCHaptics.tap()
-        addressFocused = false
+        browser.setEditingAddress(false)
         if let forum = site.forum {
             actions.openForum(forum)
         } else if let url = site.url {
@@ -437,6 +348,7 @@ private struct HomeList: View {
 
     private func openRecent(_ item: HomeRecentItem) {
         DCHaptics.tap()
+        browser.setEditingAddress(false)
         switch item.target {
         case .topic(let topicKey): app.openTopic(topicKey: topicKey)
         case .askRun(let id): app.openAgentRun(id: id)
@@ -511,6 +423,22 @@ private struct HomeList: View {
             .foregroundStyle(DCTheme.ink)
             .textCase(nil)
             .accessibilityAddTraits(.isHeader)
+    }
+}
+
+private struct HomeScrollKeyboardDismiss: ViewModifier {
+    let isEditingAddress: Bool
+
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            content.onScrollPhaseChange { _, phase in
+                if phase == .interacting, isEditingAddress {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
+            }
+        } else {
+            content
+        }
     }
 }
 

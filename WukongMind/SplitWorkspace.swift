@@ -187,6 +187,8 @@ private struct WorkspaceSplitRow: View {
     var body: some View {
         let split = isSplit
         let showsPanel = panelVisible
+        let showsHomeOverlay = !split && browser.isEditingAddress && !browser.showsForumsHome
+        let showsHome = browser.showsForumsHome || showsHomeOverlay
         let showsWebView = !browser.showsForumsHome
         let resolvedPosition = split ? BrowserBarPosition.top : app.settings.browserBarPosition.resolved(isSplit: false)
         let dockClearance = BrowserBarFontMetrics.bottomDockClearance(
@@ -199,6 +201,9 @@ private struct WorkspaceSplitRow: View {
             isLandscape: verticalSizeClass == .compact,
             dynamicTypeSize: dynamicTypeSize
         )
+        let homeBottomInset: CGFloat? = (!split && resolvedPosition == .bottom && browser.isEditingAddress)
+            ? DCTheme.controlHeight + 12
+            : nil
         HStack(spacing: 0) {
             BrowserContent(
                 app: app,
@@ -206,13 +211,15 @@ private struct WorkspaceSplitRow: View {
                 voice: app.voice,
                 actions: actions,
                 cardsBottomInset: dockClearance,
+                homeBottomInset: homeBottomInset,
                 floatingTopBarInset: resolvedPosition == .top
                     ? (split ? BrowserBarMorphMetrics.expandedWebViewTopInset(isSplit: true, isLandscape: verticalSizeClass == .compact) : 64)
                     : 0,
                 webViewIgnoresBottomSafeArea: showsWebView,
+                showsHomeWhileEditing: !split,
                 dockFloatsTrailing: split && !showsPanel
             )
-            .ignoresSafeArea(.keyboard, edges: showsWebView ? .bottom : [])
+            .ignoresSafeArea(.keyboard, edges: !showsHome ? .bottom : [])
             .frame(maxWidth: .infinity)
             if showsPanel { panel }
         }

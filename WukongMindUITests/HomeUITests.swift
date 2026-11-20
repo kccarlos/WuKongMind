@@ -75,22 +75,21 @@ final class HomeUITests: DCUITestCase {
         XCTAssertTrue(waitForGone(app.navigationBars["Add Site"], timeout: 5))
     }
 
-    /// Address field, Today, Sites, Recent, Continue reading: top to bottom
-    /// (the sample: a digest being made, saved topics, three forums and
-    /// summaries).
+    /// Today, Sites, Recent, Continue reading: top to bottom, with address entry
+    /// in the browser bar rather than Home's own field.
     func testHomeSectionsComeInTheFixedOrder() throws {
         let app = launch(["-dc-sample", "-dc-forums-home", "-dc-digest-sample"],
                          orientation: isPhone ? .portrait : .landscapeLeft)
         openHome(in: app)
 
-        let address = app.textFields["homeAddress"]
+        let barField = app.buttons["browserTitle"]
         let today = any(app, "homeToday")
         let tile = siteTiles(app).firstMatch
         let continueRow = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'continueReading-'")).firstMatch
-        XCTAssertTrue(address.waitForExistence(timeout: 10), "No address field.")
+        XCTAssertFalse(app.textFields["homeAddress"].exists, "Home no longer has its own address field.")
+        XCTAssertTrue(barField.waitForExistence(timeout: 10), "No bar address field on Home.")
         XCTAssertTrue(waitOrDump(today, timeout: 10, in: app), "No Today module.")
         XCTAssertTrue(tile.waitForExistence(timeout: 5), "No site tiles.")
-        XCTAssertLessThan(address.frame.minY, today.frame.minY)
         XCTAssertLessThan(today.frame.minY, tile.frame.minY)
         XCTAssertTrue(app.buttons["homeHistory"].exists)
         XCTAssertTrue(app.buttons["homeSettings"].exists)
@@ -133,13 +132,14 @@ final class HomeUITests: DCUITestCase {
         XCTAssertTrue(waitForGone(home, timeout: 10), "The tile did not open its site.")
     }
 
-    /// No sites yet: the address field and three suggested sites; no Today,
-    /// no share card, no Add tile.
+    /// No sites yet: three suggested sites and the bar's address field; no
+    /// `homeAddress`, no Today, no share card, no Add tile.
     func testHomeWithNoSitesShowsTheAddressFieldAndSuggestedSites() throws {
         let app = launch(["-dc-sample", "-dc-forums-home", "-dc-no-forums"],
                          orientation: isPhone ? .portrait : .landscapeLeft)
         openHome(in: app)
-        XCTAssertTrue(app.textFields["homeAddress"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.textFields["homeAddress"].exists)
+        XCTAssertTrue(app.buttons["browserTitle"].waitForExistence(timeout: 10))
         let suggested = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH 'suggestedSite-'"))
         XCTAssertTrue(suggested.firstMatch.waitForExistence(timeout: 5), "No suggested sites.")
         XCTAssertLessThanOrEqual(suggested.count, 3)
@@ -152,20 +152,101 @@ final class HomeUITests: DCUITestCase {
         XCTAssertEqual(siteTiles(app).count, 0)
     }
 
-    /// Home has its own address field, so the bar shows no address capsule
-    /// while it shows; an address typed there opens the page and Home goes.
+    /// On Home, the bar shows its own address field; tapping it edits in
+    /// `addressField` and opens the typed address.
     func testHomeAddressFieldOpensAnAddressAndTheBarHidesItsOwn() throws {
         let server = FixtureWordPressServer()
         try server.start()
         defer { server.stop() }
         let app = launch(["-dc-sample", "-dc-forums-home", "-dc-no-forums", "-dc-page-state", "loading"])
         let home = openHome(in: app)
-        XCTAssertFalse(app.buttons["browserTitle"].exists, "The bar still shows its address capsule on Home.")
-        let field = app.textFields["homeAddress"]
+        XCTAssertFalse(app.textFields["homeAddress"].exists, "Home no longer renders homeAddress.")
+        let barTitle = app.buttons["browserTitle"]
+        XCTAssertTrue(waitForBarItem(barTitle, timeout: 10), "The bar must show browserTitle on Home.")
+        tapBarItem(barTitle)
+        let field = app.textFields["addressField"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
-        field.tap()
         field.typeText(server.baseURL + "\n")
         XCTAssertTrue(waitForGone(home, timeout: 15), "The typed address did not open.")
+    }
+
+    /// Motion task 4 (iPhone): tap field -> Home over page, scroll lowers keyboard
+    /// and keeps Home, Cancel preserves scroll offset, push + Back returns to page,
+    /// tile opens in same tab, new tab has `browserTitle` and no `homeAddress`.
+    func testHomeOverPageScrollCancelPushTileAndNewTab() throws {
+        try skipUnlessPhone("Motion task 4 targets iPhone Home over the page.")
+        let app = launch(["-dc-seed-forums", "-dc-digest-sample", "-dc-bar-morph-fixture", "long", "-dc-browse-debug"])
+        let title = app.buttons["browserTitle"]
+        let debugState = any(app, "browserBarDebugState")
+        XCTAssertTrue(waitForBarItem(title, timeout: 15) && debugState.waitForExistence(timeout: 10))
+        app.webViews.firstMatch.swipeUp()
+        if app.buttons["browserChromeStrip"].waitForExistence(timeout: 3) {
+            tapBarItem(app.buttons["browserChromeStrip"])
+            XCTAssertTrue(waitForGone(app.buttons["browserChromeStrip"], timeout: 5))
+        }
+        XCTAssertTrue(waitForBarItem(title, timeout: 5))
+        let offsetBefore = barDebugOffsetY(debugState.label)
+        XCTAssertGreaterThan(offsetBefore, 0)
+
+        tapBarItem(title)
+        let home = any(app, "home"), field = app.textFields["addressField"]
+        XCTAssertTrue(home.waitForExistence(timeout: 5) && field.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.textFields["homeAddress"].exists)
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+        attachScreenshot(app, named: "motion4-home-over-page-light")
+
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.40))
+            .press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.15)))
+        XCTAssertTrue(waitForGone(app.keyboards.firstMatch, timeout: 5))
+        XCTAssertTrue(home.exists && field.exists)
+
+        app.buttons["addressCancel"].tap()
+        XCTAssertTrue(waitForGone(home, timeout: 5))
+        XCTAssertEqual(barDebugOffsetY(debugState.label), offsetBefore, accuracy: 2)
+
+        tapBarItem(title)
+        XCTAssertTrue(home.waitForExistence(timeout: 5) && waitForHittable(app.buttons["homeSettings"], timeout: 5))
+        app.buttons["homeSettings"].tap()
+        XCTAssertTrue(any(app, "settingsRoot").waitForExistence(timeout: 10))
+        app.buttons["Done"].tap()
+        XCTAssertTrue(waitForGone(any(app, "settingsRoot"), timeout: 5) && !home.exists)
+
+        tapBarItem(title)
+        XCTAssertTrue(home.waitForExistence(timeout: 5))
+        let tile = siteTiles(app).firstMatch
+        XCTAssertTrue(reveal(tile, in: app))
+        tile.tap()
+        XCTAssertTrue(waitForGone(home, timeout: 10))
+
+        let tabsBtn = app.buttons["browserTabsButton"]
+        XCTAssertTrue(waitForBarItem(tabsBtn, timeout: 10))
+        tapBarItem(tabsBtn)
+        XCTAssertTrue(app.buttons["tabOverviewNewTab"].waitForExistence(timeout: 5))
+        app.buttons["tabOverviewNewTab"].tap()
+        XCTAssertTrue(home.waitForExistence(timeout: 10) && app.buttons["browserTitle"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.textFields["homeAddress"].exists || app.keyboards.firstMatch.exists)
+        app.terminate()
+
+        for (name, extra) in [
+            ("motion4-home-over-page-dark", ["-AppleInterfaceStyle", "Dark"]),
+            ("motion4-home-over-page-xxxl", ["-UIPreferredContentSizeCategoryName", UIContentSizeCategory.accessibilityExtraExtraExtraLarge.rawValue])
+        ] {
+            let shotApp = launch(["-dc-seed-forums", "-dc-digest-sample", "-dc-bar-morph-fixture", "short"] + extra)
+            XCTAssertTrue(waitForBarItem(shotApp.buttons["browserTitle"], timeout: 15))
+            tapBarItem(shotApp.buttons["browserTitle"])
+            XCTAssertTrue(any(shotApp, "home").waitForExistence(timeout: 5) && shotApp.textFields["addressField"].waitForExistence(timeout: 5))
+            attachScreenshot(shotApp, named: name)
+            shotApp.terminate()
+        }
+    }
+
+    private func barDebugOffsetY(_ label: String) -> Double {
+        label.split(separator: " ").first { $0.hasPrefix("offsetY=") }.flatMap { Double($0.dropFirst(8)) } ?? -1
+    }
+
+    private func attachScreenshot(_ app: XCUIApplication, named name: String) {
+        let shot = XCTAttachment(screenshot: app.screenshot())
+        shot.name = name; shot.lifetime = .keepAlways; add(shot)
     }
 
     func testDockRowsWrapToTwoLinesAtAccessibilitySize() throws {

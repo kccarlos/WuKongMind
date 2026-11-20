@@ -247,6 +247,12 @@ struct DockLayer: View {
     private var layer: BottomLayer { app.bottomLayer }
 
     var body: some View {
+        if !browser.isEditingAddress {
+            dockContent
+        }
+    }
+
+    private var dockContent: some View {
         VStack(alignment: floatsTrailing ? .trailing : .center, spacing: DCTheme.spacingS) {
             #if DEBUG
             if VoiceDebug.speaksTypedInput {

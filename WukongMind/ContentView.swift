@@ -226,7 +226,11 @@ struct ContentView: View {
             browser.focusAddressBar()
             router.addressEditRevision &+= 1
         case .newTab:
-            _ = app.openNewTabFromUI(reduceMotion: reduceMotion)
+            if app.openNewTabFromUI(reduceMotion: reduceMotion) != nil {
+                addressFocusRequest += 1
+                app.browser.focusAddressBar()
+                router.addressEditRevision &+= 1
+            }
         case .closeTab:
             _ = app.closeTabWithUndo(id: app.tabs.currentTabID)
         case .nextTab:
@@ -393,28 +397,47 @@ struct BrowserContent: View {
     let actions: BrowserActions
     /// Room the cards leave at the bottom (above the floating browser bar).
     var cardsBottomInset: CGFloat = 0
+    /// Bottom inset for Home (defaults to `cardsBottomInset`; clears the edit bar while editing).
+    var homeBottomInset: CGFloat? = nil
     /// Room Home and top banners leave under the floating iPhone top bar.
     var floatingTopBarInset: CGFloat = 0
     /// iPhone: the page runs under the bottom toolbar and the home indicator
     /// (WKWebView insets its own scroll view); the cards stay above them.
     var webViewIgnoresBottomSafeArea = false
+    /// iPhone / compact width: editing the address bar shows Home over the page.
+    var showsHomeWhileEditing = false
     /// Split layout with the panel hidden: the Dock floats bottom-right.
     var dockFloatsTrailing = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        let showsHome = browser.showsForumsHome
+        let showsHomeOverlay = showsHomeWhileEditing && browser.isEditingAddress && !browser.showsForumsHome
+        let showsHome = browser.showsForumsHome || showsHomeOverlay
         ZStack {
             BrowserTabsWebHost(tabs: app.tabs, router: app.router)
                 .background(Color(uiColor: .systemBackground))
                 .ignoresSafeArea(.container, edges: webViewIgnoresBottomSafeArea ? .bottom : [])
+                .ignoresSafeArea(.keyboard, edges: .bottom)
                 .allowsHitTesting(!showsHome)
                 .accessibilityHidden(showsHome)
             if showsHome {
                 HomeView(app: app, actions: actions)
                     .safeAreaPadding(.top, floatingTopBarInset)
-                    .safeAreaPadding(.bottom, cardsBottomInset)
+                    .safeAreaPadding(.bottom, homeBottomInset ?? cardsBottomInset)
+                    .transition(.opacity)
                     .zIndex(1)
+                    .accessibilityAction(.escape) {
+                        if browser.isEditingAddress {
+                            browser.setEditingAddress(false)
+                            app.router.addressEditRevision &+= 1
+                        }
+                    }
+            }
+        }
+        .animation(UIView.areAnimationsEnabled ? .easeOut(duration: 0.18) : nil, value: showsHomeOverlay)
+        .onChange(of: showsHomeOverlay) { _, shown in
+            if shown {
+                UIAccessibility.post(notification: .screenChanged, argument: nil)
             }
         }
         .overlay(alignment: .top) {

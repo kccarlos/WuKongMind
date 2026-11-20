@@ -8,8 +8,8 @@ import WebKit
 // - Expanded (`p = 0`):
 //   - iPhone / narrow iPad (`split == nil`): Back (tap goes back, long press opens
 //     history with Forward), address field (Page menu at leading edge, middle-truncated
-//     domain, Reload at trailing edge), Tabs, and the Agent ring. On Home, the address
-//     field gives way to Home's own field and the bar stays expanded (`p = 0`).
+//     domain or "Search or enter address" on Home, Reload at trailing edge on pages),
+//     Tabs, and the Agent ring. On Home, the bar stays expanded (`p = 0`).
 //   - iPad split (`split != nil`): `pageColumnWidth - 24 × 52 pt` across the top
 //     of the page column (`top safe area + 6 pt`), holding Back, Forward, centred
 //     address field (Page menu, domain, Reload, max 520 pt), Tabs, Mic (when available),
@@ -350,8 +350,6 @@ private struct AddressEditBar: View {
 
     @State private var addressDraft: String
     @State private var addressError: AddressError?
-    @State private var didGainFocus = false
-    @State private var openedAt = Date()
     @FocusState private var addressFocused: Bool
 
     init(app: AppModel, browser: ForumBrowserModel, addressFocusRequest: Int) {
@@ -372,27 +370,25 @@ private struct AddressEditBar: View {
                     .accessibilityHidden(true)
                 TextField("Search or enter address", text: $addressDraft)
                     .textContentType(.URL)
-                    .keyboardType(.URL)
+                    .keyboardType(.webSearch)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
                     .submitLabel(.go)
                     .focused($addressFocused)
                     .onSubmit(commitAddress)
+                    .onChange(of: addressDraft) { _, _ in
+                        PerfProbe.mark("address.keystroke")
+                    }
                     .accessibilityIdentifier("addressField")
                     // Select the whole address so typing replaces it, like Safari.
-                    // Only mark `didGainFocus` once UIKit confirms the text field
-                    // actually became first responder (never prematurely on `@FocusState`
-                    // write while a hardware shortcut key-up or mount is still settling).
                     .onReceive(
                         NotificationCenter.default.publisher(for: UITextField.textDidBeginEditingNotification)
                     ) { notification in
                         guard let textField = notification.object as? UITextField else { return }
-                        didGainFocus = true
                         PerfProbe.mark("addressEdit.focus")
                         textField.selectAll(nil)
                     }
                     .task(id: browser.addressFocusRequest) {
-                        openedAt = Date()
                         for delayMs in [0, 50, 150, 350] {
                             if delayMs > 0 {
                                 try? await Task.sleep(for: .milliseconds(delayMs))
@@ -438,21 +434,7 @@ private struct AddressEditBar: View {
         .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
         .padding(.horizontal, DCTheme.spacingM)
         .padding(.vertical, 6)
-        .onChange(of: addressFocused) { _, isFocused in
-            if !isFocused, didGainFocus, addressError == nil {
-                // Ignore transient responder blips while a hardware shortcut key-up
-                // or keyboard bar transition is still settling right after opening.
-                if Date().timeIntervalSince(openedAt) < 0.6 {
-                    DispatchQueue.main.async {
-                        if browser.isEditingAddress {
-                            addressFocused = true
-                        }
-                    }
-                } else {
-                    closeAddressBar()
-                }
-            }
-        }
+        .accessibilityAction(.escape) { closeAddressBar() }
         .onChange(of: addressFocusRequest) {
             addressFocused = true
         }
@@ -476,7 +458,6 @@ private struct AddressEditBar: View {
     }
 
     private func closeAddressBar() {
-        didGainFocus = false
         addressFocused = false
         browser.setEditingAddress(false)
         app.router.addressEditRevision &+= 1
@@ -900,7 +881,7 @@ struct PhoneMorphingBar: View {
         ZStack(alignment: capsuleAlignment) {
             if browser.showsForumsHome {
                 HStack(spacing: itemGap) {
-                    homeItems
+                    homeItems(barHeight: expandedH, fontSize: expandedFont)
                 }
                 .padding(.horizontal, outerHPad)
                 .frame(width: barWidth, height: barHeight)
@@ -963,28 +944,58 @@ struct PhoneMorphingBar: View {
     }
 
     @ViewBuilder
-    private var homeItems: some View {
-        if let split {
-            PhoneBackButton(browser: browser, isActive: true)
-                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+    private func homeItems(barHeight: CGFloat, fontSize: CGFloat) -> some View {
+        let fieldFill = BrowserBarMorphMetrics.addressFieldFillOpacity(
+            progress: 0,
+            isDark: colorScheme == .dark
+        )
+        let visualFieldHeight = max(30, barHeight - ((!isSplit && isLandscape) ? 12 : 14))
+        let rowHeight = max(DCTheme.controlHeight, visualFieldHeight)
+        let maxFieldWidth: CGFloat = isSplit ? BrowserBarMorphMetrics.maxBarWidth : .infinity
+
+        PhoneBackButton(browser: browser, isActive: true)
+            .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+        if isSplit {
             PhoneForwardButton(browser: browser)
-            ForumMenuButton(app: app, browser: browser, actions: actions)
-                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-            Spacer(minLength: 0)
-            BrowserTabsButton(app: app)
-                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+        }
+        HStack(spacing: 0) {
+            ForumMenuButton(
+                app: app,
+                browser: browser,
+                actions: actions,
+                avatarSize: (!isSplit && isLandscape) ? 22 : 26
+            )
+            .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+
+            PhoneAddressTitleButton(
+                domainText: "",
+                placeholder: String(localized: "Search or enter address", comment: "Home address field placeholder"),
+                fullAddressDisplay: "",
+                isSecurePage: false,
+                fontSize: fontSize,
+                minHeight: rowHeight,
+                isActive: true,
+                onEdit: onEdit
+            )
+            .frame(maxWidth: .infinity, minHeight: rowHeight)
+        }
+        .frame(maxWidth: maxFieldWidth, minHeight: rowHeight, maxHeight: rowHeight)
+        .background {
+            Capsule()
+                .fill(DCTheme.ink.opacity(fieldFill))
+                .frame(height: visualFieldHeight)
+        }
+        .contentShape(Capsule())
+        .frame(maxWidth: .infinity, minHeight: rowHeight, maxHeight: rowHeight)
+
+        BrowserTabsButton(app: app)
+            .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
+        if let split {
             if app.showsVoiceButton {
                 VoiceBarButton(voice: voice)
             }
             SplitPanelToggle(app: app, isShown: split.panelShown, action: split.togglePanel)
         } else {
-            PhoneBackButton(browser: browser, isActive: true)
-                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-            ForumMenuButton(app: app, browser: browser, actions: actions)
-                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
-            Spacer(minLength: 0)
-            BrowserTabsButton(app: app)
-                .frame(width: DCTheme.controlHeight, height: DCTheme.controlHeight)
             if app.showsVoiceButton {
                 VoiceBarButton(voice: app.voice)
             }
@@ -1616,6 +1627,7 @@ private struct CollapsedScriptsSeal: View {
 /// accessibility Dynamic Type sizes.
 private struct PhoneAddressTitleButton: View {
     let domainText: String
+    var placeholder: String = ""
     let fullAddressDisplay: String
     let isSecurePage: Bool
     let fontSize: CGFloat
@@ -1640,11 +1652,18 @@ private struct PhoneAddressTitleButton: View {
             onEdit()
         } label: {
             HStack(spacing: 0) {
-                Text(verbatim: domainText)
-                    .font(.system(size: fontSize, weight: .semibold))
-                    .foregroundStyle(DCTheme.ink)
-                    .lineLimit(1)
-                    .truncationMode(.middle)
+                if domainText.isEmpty, !placeholder.isEmpty {
+                    Text(verbatim: placeholder)
+                        .font(.system(size: fontSize, weight: .regular))
+                        .foregroundStyle(DCTheme.inkFaint)
+                        .lineLimit(1)
+                } else {
+                    Text(verbatim: domainText)
+                        .font(.system(size: fontSize, weight: .semibold))
+                        .foregroundStyle(DCTheme.ink)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
                 Spacer(minLength: 0)
             }
             .padding(.horizontal, 2)

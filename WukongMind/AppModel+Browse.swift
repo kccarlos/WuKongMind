@@ -76,10 +76,14 @@ extension AppModel {
     /// notification, the Open Today and Play Today intents). Setting it
     /// false goes back to Home.
     var showsTodayPage: Bool {
-        get { browser.showsForumsHome && homePath.first == .today }
+        get { homePath.first == .today }
         set {
             if newValue {
-                browser.showForumsHome()
+                if browser.isEditingAddress {
+                    browser.setEditingAddress(false)
+                } else if !browser.showsForumsHome {
+                    browser.showForumsHome()
+                }
                 if homePath != [.today] { homePath = [.today] }
             } else if !homePath.isEmpty {
                 homePath = []
