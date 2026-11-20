@@ -37,4 +37,22 @@ final class AppIdentityTests: XCTestCase {
             XCTAssertEqual(SharedInbox.drainAll(), [])
         }
     }
+
+    func testBackgroundModesMatchCloudKitCapability() {
+        let modes = Bundle.main.object(forInfoDictionaryKey: "UIBackgroundModes") as? [String] ?? []
+        XCTAssertEqual(modes.contains("remote-notification"), AppIdentity.isCloudKitEnabled)
+    }
+
+    func testPurposeStringsUseWebPageWording() {
+        let keys = [
+            "NSCameraUsageDescription",
+            "NSMicrophoneUsageDescription",
+            "NSPhotoLibraryAddUsageDescription"
+        ]
+        for key in keys {
+            let value = Bundle.main.object(forInfoDictionaryKey: key) as? String ?? ""
+            XCTAssertTrue(value.localizedCaseInsensitiveContains("web page"), "\(key) should mention web page: \(value)")
+            XCTAssertFalse(value.localizedCaseInsensitiveContains("forum"), "\(key) should not mention forum: \(value)")
+        }
+    }
 }

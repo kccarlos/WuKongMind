@@ -237,7 +237,16 @@ final class SettingsNavigationUITests: DCUITestCase {
 
         let confirmSwitch = app.switches["agentConfirmBeforeWrites"]
         XCTAssertTrue(reveal(confirmSwitch, in: app))
-        XCTAssertEqual(confirmSwitch.value as? String, "0", "Confirm before writes defaults to off.")
+        XCTAssertEqual(confirmSwitch.value as? String, "1", "Confirm before writes defaults to on.")
+
+        let cookieSwitch = app.switches["agentShareCookieValues"]
+        XCTAssertTrue(reveal(cookieSwitch, in: app))
+        XCTAssertEqual(cookieSwitch.value as? String, "0", "Give cookie values to the model defaults to off.")
+
+        let saveScriptsSwitch = app.switches["agentSaveScriptsWithoutAsking"]
+        XCTAssertTrue(reveal(saveScriptsSwitch, in: app))
+        XCTAssertEqual(saveScriptsSwitch.value as? String, "0", "Save scripts without asking defaults to off.")
+        capture("settings-agent-safety-defaults")
 
         let pageToolsSwitch = app.switches["agentPageToolsEnabled"]
         XCTAssertTrue(reveal(pageToolsSwitch, in: app))
@@ -266,6 +275,25 @@ final class SettingsNavigationUITests: DCUITestCase {
         }
         XCTAssertTrue(any(app, "auditLogEmptyState").waitForExistence(timeout: 5))
         tapNavigationBack(in: app)
+        XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
+    }
+
+    func testAgentWorkspaceRowOpensDocumentPicker() throws {
+        let app = launch(["-dc-sample", "-dc-show-settings", "agent"])
+        XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 20))
+
+        let workspace = app.buttons["settingsRow-workspace"]
+        XCTAssertTrue(reveal(workspace, in: app), "Workspace row is missing.")
+        workspace.tap()
+
+        // UIDocumentPickerViewController presents an out-of-process Files picker with a Cancel button.
+        let cancelButton = app.buttons["Cancel"]
+        XCTAssertTrue(
+            cancelButton.waitForExistence(timeout: 15),
+            "Tapping Workspace did not present the Files document picker."
+        )
+        capture("settings-agent-workspace-picker")
+        cancelButton.tap()
         XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
     }
 

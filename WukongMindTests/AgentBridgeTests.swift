@@ -817,4 +817,83 @@ extension AgentBridgeTests {
         )
         XCTAssertTrue(missing.valueJSON?.contains("404") == true, missing.valueJSON ?? "nil")
     }
+
+    func testRunAgentJSRedactsDocumentCookieInBothWorldsUnlessSwitchIsOn() async throws {
+        let html = """
+        <!doctype html><html><head><title>Cookie Test</title></head><body>
+        <script>
+          document.cookie = "theme=sepia; path=/";
+          document.cookie = "session_tok=real-cookie-secret-99; path=/";
+        </script>
+        <p>Hello</p>
+        </body></html>
+        """
+        let server = try LoopbackFixtureServer(routes: [
+            "/cookie-page": .init(body: Data(html.utf8))
+        ])
+        let baseURL = try await server.start()
+        defer { server.stop() }
+
+        let (webView, bridge, waiter) = makeHostedWebView()
+        try await waiter.waitForLoad {
+            webView.load(URLRequest(url: baseURL.appendingPathComponent("cookie-page")))
+        }
+
+        // Default (switch off): neither isolated nor page world exposes cookie values.
+        let isolatedResult = try await bridge.runAgentJS(
+            code: "console.log(document.cookie); return document.cookie;",
+            environment: .isolated
+        )
+        XCTAssertNil(isolatedResult.error)
+        let isolatedValue = try XCTUnwrap(isolatedResult.valueJSON)
+        XCTAssertTrue(isolatedValue.contains("theme=[cookie]"), isolatedValue)
+        XCTAssertTrue(isolatedValue.contains("session_tok=[cookie]"), isolatedValue)
+        XCTAssertFalse(isolatedValue.contains("sepia"), isolatedValue)
+        XCTAssertFalse(isolatedValue.contains("real-cookie-secret-99"), isolatedValue)
+        XCTAssertFalse(isolatedResult.consoleOutput.joined().contains("real-cookie-secret-99"))
+
+        // Even reading Document.prototype's descriptor or base64-encoding in isolated world yields no values.
+        let protoBypass = try await bridge.runAgentJS(
+            code: "return Object.getOwnPropertyDescriptor(Document.prototype, 'cookie').get.call(document);",
+            environment: .isolated
+        )
+        XCTAssertNil(protoBypass.error)
+        XCTAssertFalse((protoBypass.valueJSON ?? "").contains("real-cookie-secret-99"))
+        XCTAssertFalse((protoBypass.valueJSON ?? "").contains("sepia"))
+
+        let encodedResult = try await bridge.runAgentJS(
+            code: "return btoa(document.cookie);",
+            environment: .isolated
+        )
+        XCTAssertNil(encodedResult.error)
+        let rawBase64Secret = Data("real-cookie-secret-99".utf8).base64EncodedString()
+        XCTAssertFalse((encodedResult.valueJSON ?? "").contains(rawBase64Secret))
+
+        let pageResult = try await bridge.runAgentJS(
+            code: "return document.cookie;",
+            environment: .page
+        )
+        XCTAssertNil(pageResult.error)
+        let pageValue = try XCTUnwrap(pageResult.valueJSON)
+        XCTAssertTrue(pageValue.contains("theme=[cookie]"), pageValue)
+        XCTAssertTrue(pageValue.contains("session_tok=[cookie]"), pageValue)
+        XCTAssertFalse(pageValue.contains("sepia"), pageValue)
+        XCTAssertFalse(pageValue.contains("real-cookie-secret-99"), pageValue)
+
+        // The page's own document.cookie is restored once runAgentJS finishes.
+        let pageOwnCookies = try await webView.evaluateJavaScript("document.cookie") as? String ?? ""
+        XCTAssertTrue(pageOwnCookies.contains("theme=sepia"), pageOwnCookies)
+        XCTAssertTrue(pageOwnCookies.contains("session_tok=real-cookie-secret-99"), pageOwnCookies)
+
+        // Switch ON: runAgentJS exposes the real document.cookie values.
+        bridge.shareCookieValuesProvider = { true }
+        let allowedResult = try await bridge.runAgentJS(
+            code: "return document.cookie;",
+            environment: .isolated
+        )
+        XCTAssertNil(allowedResult.error)
+        let allowedValue = try XCTUnwrap(allowedResult.valueJSON)
+        XCTAssertTrue(allowedValue.contains("theme=sepia"), allowedValue)
+        XCTAssertTrue(allowedValue.contains("session_tok=real-cookie-secret-99"), allowedValue)
+    }
 }

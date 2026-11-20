@@ -138,6 +138,7 @@ struct SyncRecord: Codable, Equatable {
 enum SyncSettings {
     static let deviceLocalKeys: Set<String> = [
         "browserBarPosition",
+        "didMigrateAgentConfirmBeforeWritesDefault",
         "agentDeveloperMode",
         "saveFailedTasksForFeedback",
         "hasCompletedOnboarding",

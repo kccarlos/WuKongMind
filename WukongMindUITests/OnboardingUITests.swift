@@ -153,4 +153,22 @@ final class OnboardingUITests: DCUITestCase {
         XCTAssertGreaterThan(axContinueMinY, portraitHeight * 0.80, "Onboarding AX5 footer covered too much of the screen (minY \(axContinueMinY) of \(portraitHeight)).")
         XCTAssertGreaterThan(landOpenMinY, landHeight * 0.75, "Onboarding landscape footer covered too much of the screen (minY \(landOpenMinY) of \(landHeight)).")
     }
+
+    func testProviderKeyLinkOpensInAppBrowserTab() throws {
+        let app = launch(["-dc-sample", "-dc-onboarding-step", "model"])
+        let onboarding = any(app, "onboarding")
+        XCTAssertTrue(onboarding.waitForExistence(timeout: 20), "Onboarding did not appear.")
+
+        let keyLink = app.buttons["getAPIKeyLink"]
+        XCTAssertTrue(reveal(keyLink, in: app), "Get a key button is missing.")
+        XCTAssertEqual(keyLink.label, "Get a key")
+        capture("onboarding-get-a-key-button")
+        keyLink.tap()
+
+        XCTAssertTrue(waitForGone(onboarding, timeout: 10), "Onboarding did not close after tapping Get a key.")
+        XCTAssertEqual(app.state, .runningForeground, "Tapping Get a key left the app instead of opening an in-app browser tab.")
+        let browserTitle = any(app, "browserTitle")
+        XCTAssertTrue(browserTitle.waitForExistence(timeout: 10), "Browser bar did not appear for the provider key tab.")
+        capture("provider-key-in-app-tab")
+    }
 }

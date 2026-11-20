@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 // Settings › Agent, Audit log, Sites, Following, and Browser.
 
@@ -234,10 +235,21 @@ struct SettingsAgentPage: View {
             Section {
                 Toggle("Confirm before writes", isOn: $app.settings.agentConfirmBeforeWrites)
                     .accessibilityIdentifier("agentConfirmBeforeWrites")
+                Toggle(isOn: $app.settings.agentShareCookieValues) {
+                    Text("Give cookie values to the model", comment: "Settings › Agent switch allowing cookie values to be sent to the AI model")
+                }
+                .accessibilityIdentifier("agentShareCookieValues")
+                Toggle(isOn: $app.settings.agentSaveScriptsWithoutAsking) {
+                    Text("Save scripts without asking", comment: "Settings › Agent switch allowing the Agent to save scripts without an approval sheet")
+                }
+                .accessibilityIdentifier("agentSaveScriptsWithoutAsking")
             } header: {
                 Text("Safety", comment: "Settings › Agent section header for confirmation settings")
             } footer: {
-                Text("Asks before the Agent sends a network request. Reading cookies, and sending your login to another site, always ask.")
+                Text(
+                    "Confirm before writes asks before the Agent sends a network request. Reading cookies, and sending your login to another site, always ask; cookie values stay hidden unless Give cookie values to the model is on.",
+                    comment: "Settings › Agent › Safety footer explaining the safety switches"
+                )
             }
 
             Section {
@@ -360,6 +372,8 @@ struct SettingsAgentPage: View {
             auditStepCount = await Task.detached { log.stepCount }.value
         }
         .onChange(of: app.settings.agentConfirmBeforeWrites) { app.saveSettings() }
+        .onChange(of: app.settings.agentShareCookieValues) { app.saveSettings() }
+        .onChange(of: app.settings.agentSaveScriptsWithoutAsking) { app.saveSettings() }
         .onChange(of: app.settings.agentPageToolsEnabled) { app.saveSettings() }
         .onChange(of: app.settings.agentDeveloperMode) { app.saveSettings() }
         .onChange(of: app.settings.saveFailedTasksForFeedback) { app.saveSettings() }
@@ -624,9 +638,45 @@ struct AuditTaskPage: View {
     }
 }
 
-/// Settings › Agent › Records › Workspace: the folder's size, opening the Files app at it.
+/// Opens the system document picker at a workspace folder using public UIKit API.
+struct WorkspaceFilesPicker: UIViewControllerRepresentable {
+    let directoryURL: URL
+    var onDismiss: () -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(onDismiss: onDismiss)
+    }
+
+    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
+        let picker = UIDocumentPickerViewController(forOpeningContentTypes: [.item, .folder])
+        picker.directoryURL = directoryURL
+        picker.delegate = context.coordinator
+        return picker
+    }
+
+    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
+
+    final class Coordinator: NSObject, UIDocumentPickerDelegate {
+        let onDismiss: () -> Void
+
+        init(onDismiss: @escaping () -> Void) {
+            self.onDismiss = onDismiss
+        }
+
+        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+            onDismiss()
+        }
+
+        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
+            onDismiss()
+        }
+    }
+}
+
+/// Settings › Agent › Records › Workspace: the folder's size, opening the Files picker at it.
 struct SettingsWorkspaceRow: View {
     @State private var size: Int64 = 0
+    @State private var showingPicker = false
     @State private var openFailed = false
 
     private var folder: URL? {
@@ -635,13 +685,11 @@ struct SettingsWorkspaceRow: View {
 
     var body: some View {
         Button {
-            guard let folder, let url = URL(string: "shareddocuments://" + folder.path) else {
+            guard folder != nil else {
                 openFailed = true
                 return
             }
-            UIApplication.shared.open(url) { opened in
-                if !opened { openFailed = true }
-            }
+            showingPicker = true
         } label: {
             SettingsIconRow {
                 SettingsIcon(symbol: "folder", tint: DCTheme.ink)
@@ -656,6 +704,13 @@ struct SettingsWorkspaceRow: View {
         }
         .accessibilityIdentifier("settingsRow-workspace")
         .task { size = Self.folderSize(folder) }
+        .sheet(isPresented: $showingPicker) {
+            if let folder {
+                WorkspaceFilesPicker(directoryURL: folder) {
+                    showingPicker = false
+                }
+            }
+        }
         if openFailed {
             Text("In the Files app: On My iPhone › WukongMind", comment: "Settings › Agent › Workspace footer when the Files app can't be opened")
                 .font(.footnote)

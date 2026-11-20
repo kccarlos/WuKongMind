@@ -1,0 +1,49 @@
+name: Site
+
+# Builds site/ (plus PRIVACY.md, and TERMS.md when it exists) with scripts/site/build.py,
+# checks every internal link, and on main deploys it to GitHub Pages.
+# One-time setting (not done by this workflow): Settings > Pages > Source: "GitHub Actions".
+# Target: https://kccarlos.github.io/WuKongMind/ (links are relative, so a custom domain works too).
+
+on:
+  push:
+    branches: [main]
+    paths: ['site/**', 'PRIVACY.md', 'TERMS.md', 'scripts/site/**', '.github/workflows/site.yml']
+  pull_request:
+    paths: ['site/**', 'PRIVACY.md', 'TERMS.md', 'scripts/site/**', '.github/workflows/site.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build and check the site
+        run: python3 -I scripts/site/build.py --out _site
+      - uses: actions/upload-pages-artifact@v4
+        if: github.event_name != 'pull_request'
+        with:
+          path: _site
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
