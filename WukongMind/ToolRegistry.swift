@@ -1836,8 +1836,24 @@ extension ToolRegistry {
                     )
                 }
 
-                var verification = try await verifyCandidateBeforeSaving(
-                    candidate: candidate,
+                var candidateToCommit = candidate
+                if !saveScriptsWithoutAsking {
+                    let review = await MainActor.run {
+                        ScriptImporter.makeAgentCreateReview(candidate: candidate, existingScripts: scriptStore.scripts)
+                    }
+                    let decision = try await scriptApprover?(review) ?? .declined
+                    switch decision {
+                    case .declined:
+                        return ToolExecutionOutput(content: ToolRegistry.declinedMessage, summary: "Declined", isError: true)
+                    case .approved(let turnOn):
+                        if !turnOn {
+                            candidateToCommit.isEnabled = false
+                        }
+                    }
+                }
+
+                let verification = try await verifyCandidateBeforeSaving(
+                    candidate: candidateToCommit,
                     replacingScriptID: nil,
                     confirmChange: confirmChange,
                     bridge: bridge,
@@ -1850,29 +1866,6 @@ extension ToolRegistry {
 
                 if case .refused(let message, let summary, let images) = verification {
                     return ToolExecutionOutput(content: message, summary: summary, isError: true, images: images)
-                }
-
-                var candidateToCommit = candidate
-                if !saveScriptsWithoutAsking {
-                    let review = await MainActor.run {
-                        ScriptImporter.makeAgentCreateReview(candidate: candidate, existingScripts: scriptStore.scripts)
-                    }
-                    let decision = try await scriptApprover?(review) ?? .declined
-                    switch decision {
-                    case .declined:
-                        if case .verifiedOnCurrentPage = verification {
-                            await restorePageAfterRefusedCandidate(bridge: bridge, liveApplier: liveApplier)
-                        }
-                        return ToolExecutionOutput(content: ToolRegistry.declinedMessage, summary: "Declined", isError: true)
-                    case .approved(let turnOn):
-                        if !turnOn {
-                            candidateToCommit.isEnabled = false
-                            if case .verifiedOnCurrentPage = verification {
-                                await restorePageAfterRefusedCandidate(bridge: bridge, liveApplier: liveApplier)
-                            }
-                            verification = .unverified(note: "Saved disabled at user's request.")
-                        }
-                    }
                 }
 
                 let saved: UserScript = try await MainActor.run {
@@ -2276,6 +2269,26 @@ extension ToolRegistry {
                     )
                 }
 
+                if !saveScriptsWithoutAsking {
+                    var candidateForReview = prospective.updated
+                    if isTargetRepair {
+                        candidateForReview.isEnabled = true
+                        candidateForReview.disabledReason = nil
+                    }
+                    if scriptUpdateRequiresApproval(previous: prospective.previous, candidate: candidateForReview) {
+                        let review = await MainActor.run {
+                            ScriptImporter.makeAgentUpdateReview(
+                                previous: prospective.previous,
+                                candidate: candidateForReview
+                            )
+                        }
+                        let decision = try await scriptApprover?(review) ?? .declined
+                        if decision == .declined {
+                            return ToolExecutionOutput(content: ToolRegistry.declinedMessage, summary: "Declined", isError: true)
+                        }
+                    }
+                }
+
                 var verification = try await verifyCandidateBeforeSaving(
                     candidate: prospective.updated,
                     replacingScriptID: prospective.previous.id,
@@ -2330,23 +2343,6 @@ extension ToolRegistry {
                         verification = .unverified(
                             note: "Saved unverified with enabled: false because the current page does not match this script. Check it on a page matching \(ruleHint)."
                         )
-                    }
-                }
-
-                if !saveScriptsWithoutAsking,
-                   scriptUpdateRequiresApproval(previous: prospectiveToCommit.previous, candidate: prospectiveToCommit.updated) {
-                    let review = await MainActor.run {
-                        ScriptImporter.makeAgentUpdateReview(
-                            previous: prospectiveToCommit.previous,
-                            candidate: prospectiveToCommit.updated
-                        )
-                    }
-                    let decision = try await scriptApprover?(review) ?? .declined
-                    if decision == .declined {
-                        if case .verifiedOnCurrentPage = verification {
-                            await restorePageAfterRefusedCandidate(bridge: bridge, liveApplier: liveApplier)
-                        }
-                        return ToolExecutionOutput(content: ToolRegistry.declinedMessage, summary: "Declined", isError: true)
                     }
                 }
 
@@ -2596,16 +2592,9 @@ extension ToolRegistry {
     }
 
     private enum ProvidedVerificationOutcome: Sendable {
-        case verified(prepared: UserScript, report: SiteToolVerificationReport, host: String)
+        case verified(prepared: UserScript, report: SiteToolVerificationReport, host: String, readerApproved: Bool)
+        case savedDisabled(UserScript)
         case refused(ToolExecutionOutput)
-    }
-
-    private static func clearProvidedCandidateOnDecline(scriptID: String, env: ProvidedVerifyEnv) async {
-        let resolvedBridge: PageToolBridge? = await MainActor.run {
-            env.pageToolBridge ?? (env.liveApplier as? ScriptWebController)?.pageToolBridge
-        }
-        await resolvedBridge?.clearScriptTools(scriptID: scriptID)
-        await restorePageAfterRefusedCandidate(bridge: env.bridge, liveApplier: env.liveApplier)
     }
 
     private static func finishProvidedSave(
@@ -2614,44 +2603,26 @@ extension ToolRegistry {
     ) async throws -> ToolExecutionOutput {
         switch try await verifyProvidedCandidate(
             candidate: candidate, previousScript: nil, providedSlots: provides, rawTestURLs: rawTestURLs,
-            confirmChange: confirmChange, env: env, callContext: callContext
+            confirmChange: confirmChange, isTargetRepair: false, env: env, callContext: callContext
         ) {
         case .refused(let output): return output
-        case .verified(var prepared, let report, let host):
-            let alreadyApprovedForSite = env.siteToolStateStore?.state(forHost: host)?.isReaderApproved == true
-            var markReaderApproved = alreadyApprovedForSite
-            if !env.saveScriptsWithoutAsking && !alreadyApprovedForSite {
-                let review = await MainActor.run {
-                    ScriptImporter.makeAgentCreateReview(candidate: prepared, existingScripts: env.scriptStore.scripts)
-                }
-                let decision = try await env.scriptApprover?(review) ?? .declined
-                switch decision {
-                case .declined:
-                    await clearProvidedCandidateOnDecline(scriptID: prepared.id, env: env)
-                    return ToolExecutionOutput(content: ToolRegistry.declinedMessage, summary: "Declined", isError: true)
-                case .approved(let turnOn):
-                    if !turnOn {
-                        prepared.isEnabled = false
-                        await clearProvidedCandidateOnDecline(scriptID: prepared.id, env: env)
-                        let savedOff: UserScript = try await MainActor.run {
-                            try env.scriptStore.commitCreated(prepared)
-                        }
-                        let payload: [String: JSONValue] = [
-                            "script_id": .string(savedOff.id), "name": .string(savedOff.name), "version": .int(Int64(savedOff.version)),
-                            "match_rules": .array(savedOff.matchRules.map(JSONValue.string)),
-                            "injection_time": .string(savedOff.injectionTime.rawValue), "environment": .string(savedOff.environment.rawValue),
-                            "grants": .array(savedOff.metadata.grants.map(JSONValue.string)), "connect": .array(savedOff.metadata.connectHosts.map(JSONValue.string)),
-                            "provides": .array(savedOff.metadata.provides.map(JSONValue.string)), "test_urls": .array(savedOff.metadata.testURLs.map(JSONValue.string)),
-                            "enabled": .bool(false), "applied_to_current_page": .bool(false), "verified": .bool(true)
-                        ]
-                        return ToolExecutionOutput(
-                            content: JSONValue.encodeCompactJSON(payload),
-                            summary: "Saved '\(savedOff.name)' (\(savedOff.id), v\(savedOff.version), off)", isError: false
-                        )
-                    }
-                    markReaderApproved = true
-                }
+        case .savedDisabled(let prepared):
+            let savedOff: UserScript = try await MainActor.run {
+                try env.scriptStore.commitCreated(prepared)
             }
+            let payload: [String: JSONValue] = [
+                "script_id": .string(savedOff.id), "name": .string(savedOff.name), "version": .int(Int64(savedOff.version)),
+                "match_rules": .array(savedOff.matchRules.map(JSONValue.string)),
+                "injection_time": .string(savedOff.injectionTime.rawValue), "environment": .string(savedOff.environment.rawValue),
+                "grants": .array(savedOff.metadata.grants.map(JSONValue.string)), "connect": .array(savedOff.metadata.connectHosts.map(JSONValue.string)),
+                "provides": .array(savedOff.metadata.provides.map(JSONValue.string)), "test_urls": .array(savedOff.metadata.testURLs.map(JSONValue.string)),
+                "enabled": .bool(false), "applied_to_current_page": .bool(false), "verified": .bool(false)
+            ]
+            return ToolExecutionOutput(
+                content: JSONValue.encodeCompactJSON(payload),
+                summary: "Saved '\(savedOff.name)' (\(savedOff.id), v\(savedOff.version), off)", isError: false
+            )
+        case .verified(let prepared, let report, let host, let readerApproved):
             let saved: UserScript = try await MainActor.run {
                 let committed = try env.scriptStore.commitCreated(prepared)
                 env.scriptStore.noteExecuted(scriptID: committed.id)
@@ -2659,7 +2630,7 @@ extension ToolRegistry {
             }
             try persistVerifiedSiteState(
                 script: saved, report: report, host: host, stateStore: env.siteToolStateStore,
-                taskID: callContext.taskID, markReaderApproved: markReaderApproved
+                taskID: callContext.taskID, markReaderApproved: readerApproved
             )
             let payload: [String: JSONValue] = [
                 "script_id": .string(saved.id), "name": .string(saved.name), "version": .int(Int64(saved.version)),
@@ -2685,22 +2656,13 @@ extension ToolRegistry {
         switch try await verifyProvidedCandidate(
             candidate: candidate, previousScript: prospective.previous, providedSlots: provides,
             rawTestURLs: explicitTestURLs ?? candidate.metadata.testURLs,
-            confirmChange: confirmChange, env: env, callContext: callContext
+            confirmChange: confirmChange, isTargetRepair: isTargetRepair, env: env, callContext: callContext
         ) {
         case .refused(let output): return output
-        case .verified(var prepared, let report, let host):
+        case .savedDisabled:
+            return ToolExecutionOutput(content: ToolRegistry.declinedMessage, summary: "Declined", isError: true)
+        case .verified(var prepared, let report, let host, let readerApproved):
             if isTargetRepair { prepared.isEnabled = true; prepared.disabledReason = nil }
-            if !env.saveScriptsWithoutAsking,
-               scriptUpdateRequiresApproval(previous: prospective.previous, candidate: prepared) {
-                let review = await MainActor.run {
-                    ScriptImporter.makeAgentUpdateReview(previous: prospective.previous, candidate: prepared)
-                }
-                let decision = try await env.scriptApprover?(review) ?? .declined
-                if decision == .declined {
-                    await clearProvidedCandidateOnDecline(scriptID: prepared.id, env: env)
-                    return ToolExecutionOutput(content: ToolRegistry.declinedMessage, summary: "Declined", isError: true)
-                }
-            }
             let touches = prospective.touchesVersionedFields || prepared.metadata != prospective.previous.metadata
                 || prepared.environment != prospective.previous.environment || prepared.injectionTime != prospective.previous.injectionTime
             let toCommit = ScriptStore.ProspectiveUpdate(previous: prospective.previous, updated: prepared, touchesVersionedFields: touches)
@@ -2710,10 +2672,9 @@ extension ToolRegistry {
                 env.scriptStore.noteExecuted(scriptID: committed.id)
                 return committed
             }
-            let preserveApproval = env.siteToolStateStore?.state(forHost: host)?.isReaderApproved == true || !env.saveScriptsWithoutAsking
             try persistVerifiedSiteState(
                 script: updated, report: report, host: host, stateStore: env.siteToolStateStore,
-                taskID: callContext.taskID, markReaderApproved: preserveApproval
+                taskID: callContext.taskID, markReaderApproved: readerApproved
             )
             var payload: [String: JSONValue] = [
                 "script_id": .string(updated.id), "name": .string(updated.name),
@@ -2734,7 +2695,7 @@ extension ToolRegistry {
 
     private static func verifyProvidedCandidate(
         candidate: UserScript, previousScript: UserScript?, providedSlots: [SiteToolSlot], rawTestURLs: [String],
-        confirmChange: Bool, env: ProvidedVerifyEnv, callContext: ToolCallContext
+        confirmChange: Bool, isTargetRepair: Bool, env: ProvidedVerifyEnv, callContext: ToolCallContext
     ) async throws -> ProvidedVerificationOutcome {
         guard candidate.isEnabled else {
             return .refused(ToolExecutionOutput(content: "Error: Not saved: a reading tool is saved only when it can be checked (cannot save disabled).", summary: "Not saved · disabled", isError: true))
@@ -2808,6 +2769,46 @@ extension ToolRegistry {
         }
 
         var prepared = candidate; prepared.environment = .isolated; prepared.injectionTime = .documentEnd
+
+        // Ask for user approval BEFORE running any candidate code on the page.
+        // For Learn on ask creates, once-per-site approval applies only after the static
+        // invariants above pass (zero grants, zero @connect, isolated world, single open host)
+        // and only while an enabled learned reader for this host is already active.
+        let hasActiveApprovedReader = existingState?.isReaderApproved == true
+            && allScripts.contains { $0.isEnabled && $0.matchesDomain(openHost) && !$0.metadata.provides.isEmpty }
+        var markReaderApproved = hasActiveApprovedReader
+        if !env.saveScriptsWithoutAsking {
+            if let prev = previousScript {
+                var reviewCandidate = prepared
+                if isTargetRepair { reviewCandidate.isEnabled = true; reviewCandidate.disabledReason = nil }
+                if scriptUpdateRequiresApproval(previous: prev, candidate: reviewCandidate) {
+                    let review = await MainActor.run {
+                        ScriptImporter.makeAgentUpdateReview(previous: prev, candidate: reviewCandidate)
+                    }
+                    let decision = try await env.scriptApprover?(review) ?? .declined
+                    if decision == .declined {
+                        return .refused(ToolExecutionOutput(content: ToolRegistry.declinedMessage, summary: "Declined", isError: true))
+                    }
+                    markReaderApproved = true
+                }
+            } else if !hasActiveApprovedReader {
+                let review = await MainActor.run {
+                    ScriptImporter.makeAgentCreateReview(candidate: prepared, existingScripts: allScripts)
+                }
+                let decision = try await env.scriptApprover?(review) ?? .declined
+                switch decision {
+                case .declined:
+                    return .refused(ToolExecutionOutput(content: ToolRegistry.declinedMessage, summary: "Declined", isError: true))
+                case .approved(let turnOn):
+                    if !turnOn {
+                        prepared.isEnabled = false
+                        return .savedDisabled(prepared)
+                    }
+                    markReaderApproved = true
+                }
+            }
+        }
+
         let baseVerification = try await verifyCandidateBeforeSaving(
             candidate: prepared, replacingScriptID: previousScript?.id, confirmChange: confirmChange,
             bridge: env.bridge, scriptStore: env.scriptStore, liveApplier: env.liveApplier,
@@ -2850,7 +2851,7 @@ extension ToolRegistry {
             return await recordCountedRefusal(reason: report.reason ?? "site tool verification failed")
         }
         prepared.metadata.setTestURLs(report.headerTestURLs)
-        return .verified(prepared: prepared, report: report, host: openHost)
+        return .verified(prepared: prepared, report: report, host: openHost, readerApproved: markReaderApproved)
     }
 
     private static func persistVerifiedSiteState(

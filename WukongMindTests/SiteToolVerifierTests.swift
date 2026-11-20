@@ -531,10 +531,11 @@ final class SiteToolVerifierTests: XCTestCase {
             return reg
         }
 
-        // 1. Declining the first learned reader leaves no script and no site state.
+        // 1. Declining the first learned reader runs no code on the page and leaves no script or site state.
         let declined = try await makeGatedRegistry().dispatch(toolName: "script_save", arguments: [
             "name": .string("Read Threads"), "match_rules": .array([.string("*://127.0.0.1/*")]),
-            "js": .string(readTopicJS), "provides": .array([.string("read_topic")]),
+            "js": .string("window.__declinedReaderRan = true;\n" + readTopicJS),
+            "provides": .array([.string("read_topic")]),
             "thread_match": .string("*://127.0.0.1/thread-*"), "test_urls": .array([.string(u1), .string(u2)])
         ])
         XCTAssertTrue(declined.isError)
@@ -542,6 +543,8 @@ final class SiteToolVerifierTests: XCTestCase {
         XCTAssertEqual(approvalReviews.count, 1)
         XCTAssertTrue(h.scriptStore.scripts.isEmpty)
         XCTAssertNil(h.stateStore.state(forHost: "127.0.0.1"))
+        let ranCheck = try await h.bridge.runJS(code: "return Boolean(window.__declinedReaderRan);", environment: .isolated)
+        XCTAssertEqual(ranCheck.valueJSON, "false", "Declined learned reader must never execute on the page")
 
         // 2. Approving the first learned reader saves it and marks the site approved.
         nextDecision = .approved(turnOn: true)
@@ -554,8 +557,18 @@ final class SiteToolVerifierTests: XCTestCase {
         XCTAssertEqual(approvalReviews.count, 2)
         XCTAssertEqual(h.stateStore.state(forHost: "127.0.0.1")?.isReaderApproved, true)
 
-        // 3. A second learned reader slot on the SAME site does not ask again.
+        // 3. A second learned reader with @grant is still refused even on an approved site.
         try await h.waiter.load(h.webView, url: URL(string: forumURL)!)
+        let grantedSecond = try await makeGatedRegistry().dispatch(toolName: "script_save", arguments: [
+            "name": .string("Granted List"), "match_rules": .array([.string("*://127.0.0.1/*")]),
+            "js": .string(Self.passingListAndSearchJS), "grants": .array([.string("GM_xmlhttpRequest")]),
+            "provides": .array([.string("list_latest")]),
+            "list_match": .string("*://127.0.0.1/forum*"), "test_urls": .array([.string(forumURL)])
+        ])
+        XCTAssertTrue(grantedSecond.isError)
+        XCTAssertTrue(grantedSecond.output.contains("@grant"), grantedSecond.output)
+
+        // 4. A second zero-grant, isolated learned reader slot on the SAME approved site does not ask again.
         nextDecision = .declined
         let secondSlot = try await makeGatedRegistry().dispatch(toolName: "script_save", arguments: [
             "name": .string("Read List"), "match_rules": .array([.string("*://127.0.0.1/*")]),

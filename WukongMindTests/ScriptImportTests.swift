@@ -1058,20 +1058,22 @@ final class ScriptImportTests: XCTestCase {
         let store = ScriptStore(directoryURL: dir)
         let driver = FixturePageDriver(page: .init(url: "https://other.example.net/home", title: "Home"))
 
-        // 1. Default (saveScriptsWithoutAsking == false) with no approver fails closed and stores nothing.
+        // 1. Default (saveScriptsWithoutAsking == false) with no approver fails closed,
+        // stores nothing, and never runs verification/reload on a matching page.
+        let matchingPageDriver = FixturePageDriver(page: .init(url: "https://example.org/post/1", title: "Post"))
         let noApproverRegistry = ToolRegistry.m3(context: AgentToolContext(
-            bridge: driver, workspace: nil, scriptStore: store
+            bridge: matchingPageDriver, workspace: nil, scriptStore: store
         ))
         let unapproved = try await noApproverRegistry.dispatch(
             toolName: "script_save",
             arguments: [
                 "name": .string("Hide Banner"),
                 "match_rules": .array([.string("*://example.org/*")]),
-                "css": .string(".banner { display: none; }")
+                "js": .string("document.body.dataset.ran = 'yes';")
             ]
         )
         XCTAssertTrue(unapproved.isError)
-        XCTAssertTrue(unapproved.output.contains(ToolRegistry.declinedMessage))
+        XCTAssertTrue(unapproved.output.contains(ToolRegistry.declinedMessage), "Decline must happen before verify/reload: \(unapproved.output)")
         XCTAssertTrue(store.scripts.isEmpty, "A save without approval must store nothing")
 
         // 2. Recorded-response run through ScriptImporter: declining leaves no script; approving saves it.
