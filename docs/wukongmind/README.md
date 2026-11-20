@@ -1,6 +1,6 @@
 # WukongMind (悟空)
 
-WukongMind is a fork of Forumind into a self-use, open-source iOS/iPadOS browser whose AI agent reads and changes any web page by running JavaScript, and saves the changes as per-site userscripts.
+WukongMind is a fork of Forumind into an open-source iOS/iPadOS browser (self-use until 2026-11-19, when the owner decided to take it to the App Store; see [store-positioning.md](store-positioning.md)) whose AI agent reads and changes any web page by running JavaScript, and saves the changes as per-site userscripts.
 
 - The full requirements are in [requirements.md](requirements.md). [next-phase.md](next-phase.md) supplements them and wins where they conflict (including the rule that Forumind's features and tests must keep passing: features the cleanup deletes take their tests with them).
 - The unified interface design is in [design-unified.md](design-unified.md); exported boards and the design system are in [design/README.md](design/README.md).

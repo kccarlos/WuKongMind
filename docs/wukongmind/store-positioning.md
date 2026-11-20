@@ -14,7 +14,7 @@ Read from App Store Connect with the read-only `asc` wrapper, and from the publi
 
 | | Forumind | WukongMind |
 |---|---|---|
-| App record | id 6816718686, bundle `io.github.kccarlos.forumind` | **Exists already:** id 6833832262, bundle `io.github.kccarlos.wukongmind`, SKU `wukongmind`, created 2026-11-12 (the WUKO-169 brief assumed it did not exist) |
+| App record | id 6816718686, bundle `io.github.kccarlos.forumind` | **Exists already:** id 6833832262, bundle `io.github.kccarlos.wukongmind`, SKU `wukongmind`; its 1.0 version was created 2026-11-12 (the WUKO-169 brief assumed there was no record) |
 | Store state | Version 1.0.0 is `DEVELOPER_REJECTED`; the one review submission on record (submitted 2026-11-09) is `COMPLETE`. **Not on the store:** the public lookup for its id returns nothing | Version 1.0 in `PREPARE_FOR_SUBMISSION`; nothing filled in except the name; not on the store |
 | Name and subtitle | "Forumind" / "AI reader for forums" (zh-Hans 论坛 AI 阅读助手, zh-Hant 論壇 AI 閱讀助理) | "WukongMind" / no subtitle, en-US only |
 | Categories | Productivity, then Reference | none set |
@@ -56,7 +56,7 @@ The rows follow Forumind's own listing headings, since that is the side-by-side 
 | 14 | On all your devices: iCloud sync, iPad side by side | Yes. Sync page lists "Forums and pins · … Ask the forum answers · watched topics" (`SettingsSyncPage.swift:207`) | **Keep; reword** | Sync is generic | S (task 10) |
 | 15 | (code only) History and Manage grouped "by forum" | `HistoryView.swift:336`, `:374` | **Generalise** to "by site" | A browser's history is by site | S (task 10) |
 | 16 | (code only) Camera, microphone and photo prompts say "forum page" | `WukongMind/Info.plist:57`, `:61`, `:65` | **Generalise** to "web page" | The system prompts are the first text a reviewer reads | already task 7 |
-| 17 | (code only) First run | Step 1 "An agent for any web page", step 2 "Open a site · Any address works" with a "Suggested" list (`OnboardingSteps.swift:130`, `:265-277`); step 3 suggests "Make this page easier to read" | **Keep.** If step 2's "Suggested" list is the forums list of row 4, it is deleted with it (task 11) | First run already says browser and Agent. Good | S (in task 11) |
+| 17 | (code only) First run | Step 1 "An agent for any web page", step 2 "Open a site · Any address works" with a "Suggested" list (`OnboardingSteps.swift:130`, `:265-277`); step 3 suggests "Make this page easier to read" | **Keep the steps; change the list.** Step 2's "Suggested" entries are the suggested forums of row 4 (`[SuggestedForum]`, `OnboardingSteps.swift:260`). Replace them with a short mixed list of ordinary pages, or with the address field alone; which one is settled in design-unified.md (task 11) | First run already says browser and Agent, but the only things to tap on its second screen are forums, and it is the second screen a reviewer sees | S (in task 11) |
 | 18 | (code only) Type and file names (`ForumBrowser`, `ForumService`, …) | throughout | **Leave** | Not visible to users or reviewers; renaming is churn with no review value | none |
 
 **What this adds up to.** Two tasks do the generalising (10: words and entry points; 11: the Sites list and first run, which also deletes the forum picker), one task removes the digest once the owner agrees (12), and one small task covers Forumind's side (13). They are specified in [app-store-review.md](app-store-review.md), section 5.
@@ -79,8 +79,8 @@ The rows follow Forumind's own listing headings, since that is the side-by-side 
 | Leads with | Thread summaries, Ask the forum, the daily digest and podcast, watch topics, forum moderation | Open any site (tabs, address bar); ask the Agent to change the page ("make it dark", "hide the clutter"); keep a change as a script you approved; user scripts; Learn on ask |
 | Names further down | Voice, translate, share, choice of AI, sync | Summarize and read aloud any page, voice, translate, follow discussions, choice of AI, sync (and the daily digest, only if the owner keeps it) |
 | Never says | "browser for any site", "agent", "scripts", "automate" | "forum browser", "Ask the forum", any forum platform's name |
-| Category | Productivity, Reference (as it is) | **Utilities**, then Productivity. Every browser the store search returned sits in Utilities, so the category itself says "browser". (This changes app-store-review.md 4.4, which had Productivity first) |
-| Works on | Discourse, WordPress and Hacker News sites only | Any web page |
+| Category | Productivity, Reference (as it is) | **Utilities**, then Productivity. Most browsers the store search returned, including all the large ones, sit in Utilities (a few small ones are in Productivity), so the category helps say "browser". (This changes app-store-review.md 4.4, which had Productivity first) |
+| Works on | Discourse forums, WordPress sites and Hacker News only | Any web page |
 
 Rules for WukongMind's text (also guideline 2.3.7, section 4): no provider names, no "Safari", "Chrome" or "Tampermonkey" in the name, subtitle or keywords; no forum platform names anywhere in the metadata; no "forum" in the keywords, so the two apps do not compete for the same searches. Every feature the build has is named somewhere in the description (rule 1 above).
 
@@ -116,10 +116,10 @@ For App Review Information › Notes, after the opening paragraph ([app-store-re
 
 ```
 OUR OTHER APP
-We also develop Forumind (Apple ID 6816718686). The two apps share some code but are different products. Forumind is a reader for discussion forums: it works only on forum sites and has no agent that changes pages and no scripts. WukongMind is a general web browser: it opens any website in tabs, its Agent can change the page you are on by running JavaScript in WebKit, and it can keep a change as a user script that you review and approve. WukongMind can also summarize or read aloud any page, including discussion pages; that is one feature of the browser, not its purpose.
+We also develop Forumind (Apple ID 6816718686). The two apps share some code but are different products. Forumind is a reader for discussions: it works only on Discourse forums, WordPress sites and Hacker News, and has no agent that changes pages and no scripts. WukongMind is a general web browser: it opens any website in tabs, its Agent can change the page you are on by running JavaScript in WebKit, and it can keep a change as a user script that you review and approve. WukongMind can also summarize or read aloud any page, including discussion pages; that is one feature of the browser, not its purpose.
 ```
 
-Every sentence must be true of both builds on the day of submission. "has no agent that changes pages and no scripts" and "works only on forum sites" describe Forumind and are to be checked against its submitted build (see Not proven).
+Every sentence must be true of both builds on the day of submission. "a user script that you review and approve" is true only after task 4. "has no agent that changes pages and no scripts" and "works only on Discourse forums, WordPress sites and Hacker News" describe Forumind (the second is what its own listing says) and are to be checked against its submitted build (see Not proven).
 
 ## 4. Name
 
@@ -179,7 +179,7 @@ Store names are at most 30 characters; so are subtitles.
 |---|---|---|
 | Bundle id `io.github.kccarlos.wukongmind`, SKU, App Group, iCloud container, URL scheme | **No.** No reason to: the record exists under this bundle id, TestFlight builds are attached to it, and Apple does not show it to users | |
 | App Store name (App Information › Name, per language) | Yes | An edit of the existing record while the version is in Prepare for Submission; with `asc` in write mode, as part of task 8. The store name must be free at that moment: only App Store Connect can say so |
-| Name under the icon (`CFBundleDisplayName`, `WukongMind/Info.plist:13`, `WukongMindShare/Info.plist:8`) | **No, recommended.** "WukongMind" fits under an icon; "WukongMind Browser" would be cut. The store name and the home-screen name may differ when one is the short form of the other | |
+| Name under the icon (`CFBundleDisplayName`, `WukongMind/Info.plist:13`, `WukongMindShare/Info.plist:8`) | **No, recommended.** "WukongMind" fits under an icon; "WukongMind Browser" would be cut. A home-screen name that is the short form of the store name is common practice; no rule on it was looked up (see Not proven) | |
 | In-app text | No. 44 interface strings and 6 share-extension strings say "WukongMind"; they stay | |
 | Repository, README, website | The README's title may say "WukongMind Browser" once; part of task 3 | |
 
@@ -187,8 +187,9 @@ Store names are at most 30 characters; so are subtitles.
 
 - **Name availability.** Only App Store Connect can confirm a store name is free, at the moment of saving. The iTunes Search API is a fuzzy, top-25 search of six stores; an app with one of these names can exist and not have been returned.
 - **Trademarks.** USPTO only (no EUIPO, WIPO, China, Taiwan). Wordmark search only; 12 of the 62 "wukong" results were not read; goods and services are quoted as the site cut them; no search for 悟空 returned anything and "wu kong" (two words) was an any-word search. Not legal advice.
+- **Store name and home-screen name differing.** That Apple accepts "WukongMind Browser" in the store with "WukongMind" under the icon is common practice as far as known, not checked against Apple's text.
 - **Who is behind 悟空浏览器.** Only the seller name the API returned is recorded.
-- **Forumind's build.** That Forumind "works only on forum sites" and has no tabs, agent or scripts is taken from this repository's documents (the block removed here, [m0-module-map.md](m0-module-map.md) row 9) and Forumind's listing, not from running its current build.
+- **Forumind's build.** That Forumind "works only on forum sites" and has no tabs, agent or scripts is taken from this repository's documents (the "not a supported site" block removed here, [m0-module-map.md](m0-module-map.md) row 9) and Forumind's listing (Discourse, WordPress and Hacker News), not from running its current build.
 - **How Apple applies 4.3(a) to two apps like these.** No precedent was found or searched for; the plan is an argument, and a rejection round is possible.
 - **The string count.** "About 165" is a pattern count over the string catalogue; nobody walked the screens. Task 10 starts by listing them.
 - **Forumind's review state beyond the API.** The Resolution Center messages and the 5.6 appeal's outcome are not readable through the API key used.
