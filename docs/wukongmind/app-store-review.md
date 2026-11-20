@@ -4,6 +4,8 @@ A guideline-by-guideline review of what stands between WukongMind and App Store 
 
 **Updated 2026-11-19 (WUKO-168):** the owner decided on one build with no store flag, and on the general-browser case for 1.2 (recorded in [requirements.md](requirements.md), section 12). The summary, the checklist rows and the tasks below were changed to match, and the code was audited for non-public API and hidden behaviour: [app-store-code-audit.md](app-store-code-audit.md), summarized in section 6.
 
+**Updated 2026-11-19 (WUKO-169):** the owner decided that WukongMind goes to the App Store, alongside Forumind, as an AI-assisted browser (requirements.md, section 12). Task 0 is closed. How the two apps are kept apart, the name, and both apps' state in App Store Connect are in [store-positioning.md](store-positioning.md); risk 4, the 4.3(a), 2.3.7 and 5.2.1 rows, section 3, the category and tasks 8 and 10 to 13 below were changed to match.
+
 - **Guidelines used:** [App Store Review Guidelines](https://developer.apple.com/app-store/review/guidelines/), fetched 2026-11-18, "Last Updated: October 16, 2026". Quotes below are from that text.
 - **Code state:** `main` at `c6974c2` (version 1.5.0). Every `file:line` was checked against that commit; the lines added or changed on 2026-11-19 (tasks 0, 1, 4, 5 and section 6) refer to `6c4f66c` (version 1.5.4).
 - **Forumind history:** from the Forumind Claude Code transcripts (through 2026-11-11) and from Forumind's own `docs/APP_STORE.md`, which is still in this repo's history (`git show e046b43:docs/APP_STORE.md`).
@@ -11,7 +13,7 @@ A guideline-by-guideline review of what stands between WukongMind and App Store 
 
 ## 1. Summary
 
-**Verdict: WukongMind would not pass as it is today.** That is by design, not by accident: [requirements.md](requirements.md) line 28 says "No App Store compliance, and no limits on any capability for its sake", and the cleanup in `d915ea0` and `83b4e45` deleted the consent, terms, moderation and listing work Forumind had built for review. Submitting reverses that recorded decision, so the first item below is the owner's to decide.
+**Verdict: WukongMind would not pass as it is today.** Until 2026-11-19 that was by design: [requirements.md](requirements.md) said "No App Store compliance, and no limits on any capability for its sake", and the cleanup in `d915ea0` and `83b4e45` deleted the consent, terms, moderation and listing work Forumind had built for review. The owner reversed that decision on 2026-11-19 (requirements.md, section 12): the app goes to the store, so the items below are now work to do.
 
 Nothing found is impossible to fix. The engine (WebKit only), the lack of accounts, payments, analytics and servers, and the bundled filter lists are all in good shape. The work is in three places: things the cleanup deleted, the Agent's freedom to act and save code without the user seeing it, and everything App Store Connect needs.
 
@@ -22,7 +24,7 @@ Nothing found is impossible to fix. The engine (WebKit only), the lack of accoun
 | 1 | Reviewers cannot use the app's main feature | 2.1 | blocker | The Agent needs a tool-calling model, and Apple Intelligence is excluded (`WukongMind/ProviderModels.swift:91`). Without a key a reviewer gets the browser and, only on a device with Apple Intelligence turned on, thread summaries (the Summaries role accepts it, `WukongMind/AppModel+Models.swift:62`). The Agent, saved scripts, Learn on ask, podcasts' Google voices and live voice all need a key. The sample content is DEBUG only (`WukongMind/AppModel+Browse.swift:195`). |
 | 2 | No permission before page content goes to a third-party AI, and no privacy policy in the app | 5.1.2(i), 5.1.1(i) | blocker | 5.1.2(i) now names "third-party AI" and requires "explicit permission". The per-provider consent page was deleted in `d915ea0`; a search of the app for "consent", "privacy policy" or a privacy URL finds nothing. `PRIVACY.md` says the app is "not distributed on the App Store". |
 | 3 | Public materials contradict a submission | 5.6, 2.3.1, 2.5.19 | blocker | `README.md:16` says "not distributed on the App Store … with App Store capability restrictions removed" and `README.md:31` says "no confirmation prompts and no risk tiers". Forumind's last rejection was 5.6 ("features that appear to have been intentionally hidden") and the most likely trigger was public pages that did not match the build. |
-| 4 | Two apps from one codebase on one account | 4.3(a) | likely | "Don't create multiple Bundle IDs of the same app." WukongMind is a fork of Forumind, and it still contains Forumind's forum summaries, digest, podcasts and voice. If Forumind is live or in review on the same account, expect this. |
+| 4 | Two apps from one codebase on one account | 4.3(a) | likely | "Don't create multiple Bundle IDs of the same app." WukongMind is a fork of Forumind, and it still contains Forumind's forum summaries, digest, podcasts and voice. Decided 2026-11-19: both apps go up. Neither is live yet (Forumind 1.0.0 is developer-rejected). The plan to keep them apart is [store-positioning.md](store-positioning.md); tasks 10 to 13. |
 | 5 | The Agent writes, saves and auto-runs code the user never saw; no confirmations by default | 2.5.2, 4.7.2, 4.7.3, 1.6 | likely | `script_save` stores the script enabled (`WukongMind/ToolRegistry.swift:1742`) with no approval step; "Confirm before writes" is off by default (`WukongMind/Models.swift:118`); `cookies_get` can hand HttpOnly cookie values to the model (`WukongMind/ToolRegistry+Network.swift:184`). User scripts as such have precedent on the store; unreviewed, self-saving ones are the weak point. |
 | 6 | No user-generated-content precautions | 1.2, 2.3.6 | likely | Forumind was rejected under 1.2 for exactly this (a browser where users read and post to forums), and had to add Terms of Use, report, block and a word filter. All four were deleted in `d915ea0`. A general browser has a better argument than a forum app, but the forum features are still here. |
 | 7 | No store listing at all | 2.1, 2.3, 1.5 | blocker (process) | `appstore/` and the website were deleted in `83b4e45`: no description, screenshots, privacy URL, support page or age rating answers exist. |
@@ -30,7 +32,7 @@ Nothing found is impossible to fix. The engine (WebKit only), the lack of accoun
 
 ### What must change before submitting
 
-1. The owner decides whether WukongMind goes to the store at all, and whether alongside Forumind or instead of it (risks 3 and 4).
+1. Decided 2026-11-19: WukongMind goes to the store, alongside Forumind. Make the difference between the two plain in the app, the listings and the note (risk 4; [store-positioning.md](store-positioning.md); tasks 10 to 13).
 2. Give reviewers a working model (section 4.1): a spend-capped key in the review notes, plus a screen recording.
 3. Bring back AI data consent and an in-app privacy policy link; rewrite `PRIVACY.md` and `README.md` for a store app.
 4. Make Agent-saved scripts wait for the user's approval, turn "Confirm before writes" on by default, and stop giving cookie values to the model by default. Each is a visible Settings switch with the safe side as the default.
@@ -48,7 +50,7 @@ Guidelines that cannot apply are grouped in one row per section. "Note" means te
 
 | Item | Applies? | Evidence | Risk | Fix / note |
 |---|---|---|---|---|
-| "If you build an app that you just want to show to family and friends, the App Store isn't the best way" | Yes | `README.md:14` calls it a "self-use browser"; requirements.md:15, 28 | blocker until decided | Owner decision. If it goes to the store, the README and requirements must stop saying self-use only. |
+| "If you build an app that you just want to show to family and friends, the App Store isn't the best way" | Yes | `README.md:14` calls it a "self-use browser" | blocker until task 3 | Decided 2026-11-19: it goes to the store (requirements.md, section 12). The README must stop saying self-use only (task 3). |
 | "Provide App Review with full access to your app … demo account or fully-featured demo mode, plus any other hardware or resources" | Yes | No key, no Agent (`ProviderModels.swift:91`); onboarding step 1 asks for an Agent provider (`WukongMind/OnboardingSteps.swift:112-119`) | blocker | Section 4.1. |
 | "Include detailed explanations of non-obvious features" | Yes | Agent tools, user scripts, Learn on ask, developer mode | likely | Notes in section 4.2 name each one. |
 | "Ensure that all app information and metadata is complete and accurate" | Yes | `appstore/` deleted in `83b4e45` | blocker (process) | Task 8. |
@@ -74,7 +76,7 @@ Guidelines that cannot apply are grouped in one row per section. "Note" means te
 | 2.3 / 2.3.1 | Accurate metadata, describe features | Yes | No listing exists; README and PRIVACY.md describe a non-store app | blocker | Tasks 3 and 8. Every claim in the listing must be true of the submitted build. |
 | 2.3.3, 2.3.9 | Screenshots | Yes | None exist | blocker (process) | Task 8: the app in use, invented data only, no real people's posts. |
 | 2.3.6 | Age rating | Yes | Any website can be opened; forums are user-generated content | likely if answered wrong | Unrestricted Web Access: Yes (gives 16+); User-Generated Content: Yes. Forumind was rejected twice over the second answer (once because the setting silently reverted). Section 4.4. |
-| 2.3.7 | Name and keywords | Yes | Name "WukongMind"; provider names are trademarks | question | No provider or other app names in name, subtitle or keywords. See 5.2.1 for the name itself. |
+| 2.3.7 | Name and keywords | Yes | Name "WukongMind" (the app record exists under it); provider names are trademarks | question | No provider, platform or other app names in name, subtitle or keywords; no "forum" in the keywords. Name candidates and the recommended name and subtitle: [store-positioning.md](store-positioning.md), section 4. |
 | 2.3.10 | Other platforms | Partly | "Tampermonkey-compatible" is a third-party product name, not a mobile platform | fine | Keep it out of the name and subtitle; fine in the description. |
 | 2.3.12 | What's New | Yes | Release notes come from the tag (`.github/workflows/release.yml:322`) | fine | Write real notes for store versions. |
 | 2.4.1 | iPad | Yes | `TARGETED_DEVICE_FAMILY` "1,2" (`scripts/generate_project.rb:239`) | fine | |
@@ -109,7 +111,7 @@ Guidelines that cannot apply are grouped in one row per section. "Note" means te
 | 4.1 | Copycats | Partly | Original design; "Tampermonkey-compatible" describes compatibility only | fine | |
 | 4.2 | Minimum functionality | Yes | Far more than a wrapped website | fine | Only at risk if the reviewer has no model (risk 1): then it looks like a bare browser. |
 | 4.2.3 | Works on its own | Yes | No other app needed | fine | |
-| 4.3(a) | Same app, several bundle IDs | **Yes** | Fork of Forumind (`docs/wukongmind/README.md:16`), with Forumind's forum features kept | likely | Owner decision: one of the two on the store, or make the difference plain in the listings and the note. |
+| 4.3(a) | Same app, several bundle IDs | **Yes** | Fork of Forumind (`docs/wukongmind/README.md:16`), with Forumind's forum features kept; about 165 interface strings still say forum, topic or thread | likely | Decided 2026-11-19: both on the store. [store-positioning.md](store-positioning.md) lists every Forumind-derived feature with keep, generalise or remove, the two listings, and the note paragraph on the relationship. Tasks 10 to 13. |
 | 4.4 | Extensions | Partly | Share extension off by default | fine | If enabled, mention it in the description. |
 | 4.5.4 | Push notifications | Partly | Silent CloudKit pushes only; local notifications are opt-in (`WukongMind/WatchSupport.swift:20-23`) | fine | |
 | 4.7 | Mini apps, plug-ins, chatbots | **Yes** | User scripts are JavaScript plug-ins; the Agent is a chatbot | question | 4.7 makes the developer "responsible for all such software offered in your app". The app offers none itself: say so. |
@@ -132,7 +134,7 @@ Guidelines that cannot apply are grouped in one row per section. "Note" means te
 | 5.1.2(i) | Explicit permission before sharing with third parties, "including with third-party AI" | **Yes** | Page text, forum content and voice audio go to the chosen provider (`PRIVACY.md`); no consent step. The deleted `AIDataConsent.swift` was built for this rule | blocker | Task 2. |
 | 5.1.2(i), tracking | App Tracking Transparency | No | No tracking, no SDKs (`PrivacyInfo.xcprivacy`: NSPrivacyTracking false) | fine | |
 | 5.1.4 | Kids | No | | fine | Rated 16+ by the web-access answer. |
-| 5.2.1 | Trademarks | Yes | "Wukong" is a public-domain character, but also the name of a well-known game and of other products | question | Owner: search the trademark database and the store for the name before creating the app record, as Forumind did when it renamed. |
+| 5.2.1 | Trademarks | Yes | Checked 2026-11-19 ([store-positioning.md](store-positioning.md), section 4): USPTO has a registered WUKONG for educational software (class 9), a pending WUKONG for AI services (class 42) and BLACK MYTH WUKONG in classes 9 and 42; nothing for "wukongmind". The store has a large browser named 悟空浏览器 | question | The owner decides the name. Recommended: "WukongMind Browser"; not "Wukong Browser". Nothing in the icon or text may borrow the game's look. |
 | 5.2.2 | Third-party content and terms | Yes | Reads, summarises and narrates pages; optional ad blocking, off by default (`Models.swift:132-136`); no site-specific ad skipping or paywall code | question | Note: acts like a browser for the user's own reading; ad blocking is optional and off; filter lists are credited (Settings › Acknowledgements, `NOTICE`). No listing claim of an ad-free web. |
 | 5.2.3 | Saving media from third-party sources | Partly | No downloader; `GM_download` is refused; `http_request` can save any file up to 20 MB to the workspace | question | Never describe it as a downloader. If asked: a general file tool, like saving from a browser. |
 | 5.2.4, 5.2.5 | Apple endorsement, look-alikes | Partly | "Safari-like address bar" is a design-doc phrase only | fine | Don't use "Safari" in the listing except to describe the share sheet. |
@@ -154,7 +156,7 @@ The share extension's manifest declares no APIs; that matches its code (no UserD
 
 ## 3. Forumind's review history and what it means here
 
-Forumind 1.0.0 was **never approved** in the record. The last state (2026-11-10) is a submission the owner cancelled in order to resubmit a newer build; the appeal's result is not recorded.
+Forumind 1.0.0 was **never approved**. The transcripts end on 2026-11-10 with a submission the owner cancelled in order to resubmit a newer build; the appeal's result is not recorded. App Store Connect on 2026-11-19 (read-only API): version 1.0.0 is `DEVELOPER_REJECTED`, the one review submission on record (submitted 2026-11-09) is `COMPLETE`, and the public lookup for the app's id returns nothing, so Forumind is not on the store. Its listing as it stands is summarised in [store-positioning.md](store-positioning.md), section 1.
 
 | Date | Build | Apple said | Cause | What fixed it | Same risk in WukongMind? |
 |---|---|---|---|---|---|
@@ -183,11 +185,11 @@ Other lessons:
 | C. A demo mode with recorded answers | Ship the DEBUG sample in release | No key, no cost | 2.1(a) allows a demo mode only "with prior approval by Apple" and it must show "full features". A mode made for reviewers is also what 5.6 punishes. Only acceptable as a visible "try a sample" for everyone, and it still proves nothing live |
 | D. A hosted free tier | The developer's own proxy | Easiest for users too | A server, cost and abuse; changes the privacy label; against the app's design |
 
-**Recommendation:** A, plus a screen recording from a real iPhone and iPad showing the same steps, so the review does not depend on the key working that day. Whether to pay for and share such a key is the owner's call (Forumind's owner at first declined).
+**Recommendation:** A, plus a screen recording from a real iPhone and iPad showing the same steps, so the review does not depend on the key working that day. Decided (WUKO-169 brief, 2026-11-19): yes, a spend-capped key goes in the notes.
 
 ### 4.2 Draft notes (App Review Information › Notes)
 
-Plain text, under 4,000 characters. Text in [brackets] is filled in at submission. Statements marked (after task N) are true only once that task ships.
+Plain text, under 4,000 characters. The paragraph on the relationship with Forumind ("OUR OTHER APP", [store-positioning.md](store-positioning.md), section 3) goes after the opening paragraph. Text in [brackets] is filled in at submission. Statements marked (after task N) are true only once that task ships.
 
 ```
 WukongMind is a web browser for iPhone and iPad with an AI assistant ("Agent") that reads the page you are on and answers questions about it. It has no account, no login of its own, no in-app purchases, no ads, no analytics and no server of ours.
@@ -254,21 +256,24 @@ The privacy policy must still describe every flow above, name the AI services, a
 ### 4.4 Other answers
 
 - **Age rating:** Unrestricted Web Access: Yes. User-Generated Content: Yes. Messaging and Chat: No (users don't talk to each other through the app). Everything else None or No. Apple's [age ratings page](https://developer.apple.com/help/app-store-connect/reference/age-ratings-values-and-definitions) (read 2026-11-18) lists "Unrestricted web access" under **16+** and has no question on AI assistants in the part read. Read the saved result back before submitting.
-- **Category:** Productivity (primary), Utilities (secondary).
+- **Category:** Utilities (primary), Productivity (secondary). Changed 2026-11-19: most browsers the store search returned, including all the large ones, are in Utilities, and Forumind is in Productivity and Reference, so the category helps tell the two apart.
 - **Content rights:** contains third-party content (the filter lists), and has the rights.
 - **Export compliance:** no non-exempt encryption (the plist key already answers it).
 - **Availability:** as Forumind, exclude China mainland (AI services and filtering rules there).
 
 ## 5. Follow-up tasks
 
-Each is one pull request. Order matters: 1 first; 2 to 7 and 9 are independent of each other; 8 last. There is one build (decided 2026-11-19): tasks 1, 2, 4 and 5 change every install, and where the owner wants the old freedom back it is a visible Settings switch, never a build flag. Task 0 is not code. The code audit adds tasks B to E ([app-store-code-audit.md](app-store-code-audit.md), section 6).
+Each is one pull request. Order matters: 1 first; 2 to 7, 9 and 11 are independent of each other; 10 starts once the owner has answered on the digest (task 12); 12 only if the owner agrees; 8 last, after 10, 11 and 12 or its "no" branch (the listing describes the app as those tasks leave it). Task 13 is in Forumind's repository. There is one build (decided 2026-11-19): tasks 1, 2, 4 and 5 change every install, and where the owner wants the old freedom back it is a visible Settings switch, never a build flag. Task 0 is not code. The code audit adds tasks B to E ([app-store-code-audit.md](app-store-code-audit.md), section 6).
 
-### Task 0 (owner): decide
+The owner's principles (2026-11-19) apply to every task: speed first (a task that touches a hot path such as launch, Home, the drawer, typing or scrolling shows before and after numbers); the smallest complete change, deleting what can be deleted; a design gap is fixed in its design document, not worked around; nothing hidden and no store rule worked around; each task re-runs the tests itself with `scripts/remote-test.sh` and keeps the command, the result and the log path in its proof.
+
+### Task 0 (owner): decide (closed 2026-11-19)
 
 - **Decided 2026-11-19** (recorded in requirements.md, section 12): (c) for 1.2, argue the general web browser and AI agent case, with a lightweight Terms acceptance and "Report this answer" on AI output; (e) one build only, no `DC_APP_STORE` flag: the TestFlight build is the store build, and what the store needs is a visible Settings switch with the safe side as the default.
-- **Still open:** (a) Does WukongMind go to the App Store at all, reversing requirements.md line 28? The decisions above say how, if it does. (b) With Forumind or instead of it (4.3)? (d) Will a spend-capped key be shared with reviewers?
-- **Why:** every other task depends on (a); (b) can sink the submission on its own.
-- **Check:** the answers recorded in requirements.md.
+- **Decided 2026-11-19 (WUKO-169):** (a) Yes, WukongMind goes to the App Store; the old decision is reversed. (b) Both apps go up: WukongMind as an AI-assisted browser, Forumind as forum browsing only; the plan is [store-positioning.md](store-positioning.md). (d) Yes, a spend-capped key is shared with reviewers (from the task brief). The assistant may fill in App Store Connect with the `asc` CLI.
+- **Left for the owner, no longer part of this task:** the store name (store-positioning.md, section 4; decide before task 8) and removing the daily digest (task 12; decide before task 10 starts, because task 10 rewords the digest if it stays).
+- **Why:** every other task depended on (a); (b) could sink the submission on its own.
+- **Check:** done: the answers are in requirements.md, section 12.
 
 ### Task 1: one build, safe defaults as visible settings
 
@@ -321,7 +326,7 @@ Each is one pull request. Order matters: 1 first; 2 to 7 and 9 are independent o
 
 ### Task 8: listing, website and App Store Connect
 
-- **What:** recreate `appstore/metadata/` (name, subtitle, description, keywords, URLs) in English and both Chinese scripts, with no provider or product names in name, subtitle or keywords; screenshots with invented content; a small site with the privacy policy and a support page with a contact address; the App Store Connect answers from section 4 (privacy label, age rating, content rights, review notes, recording). Add to the notes what the code audit says to state plainly: web views send Safari's user agent; tapped links stay in the browser unless "Open links in apps" is on; what live voice does in the background (after task 7). Restore what is reusable from `git show 83b4e45^:appstore/`, `mobile-site/`, `scripts/ci/check-appstore-metadata.sh` and the listing lanes in `fastlane/Fastfile`. The owner checks the name against trademarks first (5.2.1).
+- **What:** recreate `appstore/metadata/` (name, subtitle, description, keywords, URLs) in English and both Chinese scripts, with no provider or product names in name, subtitle or keywords; screenshots with invented content; a small site with the privacy policy and a support page with a contact address; the App Store Connect answers from section 4 (privacy label, age rating, content rights, review notes, recording). Add to the notes what the code audit says to state plainly: web views send Safari's user agent; tapped links stay in the browser unless "Open links in apps" is on; what live voice does in the background (after task 7). Restore what is reusable from `git show 83b4e45^:appstore/`, `mobile-site/`, `scripts/ci/check-appstore-metadata.sh` and the listing lanes in `fastlane/Fastfile`. The app record already exists (id 6833832262, name "WukongMind", version 1.0 in Prepare for Submission since 2026-11-12, en-US only, nothing else filled in): fill it with the `asc` CLI in write mode (allowed by the owner, 2026-11-19), adding the two Chinese localisations, and read every saved value back. Use the name and subtitle the owner chose from [store-positioning.md](store-positioning.md), section 4 (the name was checked there against the store and USPTO), its listing rules and screenshot list (section 3), the relationship paragraph in the notes, and category Utilities then Productivity. The bundle id does not change.
 - **Why:** 2.1, 2.3, 1.5, 5.1.1(i).
 - **Files:** `appstore/`, `mobile-site/` (or another host), `fastlane/Fastfile`, `.github/workflows/release.yml`, a new `docs/APP_STORE.md` based on Forumind's.
 - **Check:** the metadata limit check passes in CI; URLs load; the age rating and privacy answers are read back from App Store Connect after saving (Forumind lost one that way).
@@ -332,6 +337,38 @@ Each is one pull request. Order matters: 1 first; 2 to 7 and 9 are independent o
 - **Why:** 3.1.1(a) outside the United States.
 - **Files:** `WukongMind/AppModel+Onboarding.swift` (121-193), `WukongMind/SettingsProviderForm.swift`.
 - **Check:** a test over `ProviderGuide` strings for banned words; a UI check of where the link opens.
+
+### Task 10: one vocabulary, a browser's (words and entry points)
+
+- **What:** WukongMind's interface stops speaking as a forum app ([store-positioning.md](store-positioning.md), section 2, rows 1 to 3, 6, 8 to 10, 13 to 15, and row 5's wording if the owner keeps the digest). Start by listing the interface strings that speak as a forum app: forum, topic, thread, post, reply, community, discussion, "worth reading", and the platform names Discourse, WordPress and Hacker News (about 165 of 1,556 by a count of the first three and the platform names; the wider list adds about 54) and mark each reword, delete (unused, or a leftover of the deleted chat and research engines) or keep (true only of a discussion page). Then: one "Summarize this page" wording; "Search this site…" for "Search this forum…"; "What's new on this site" for "What's worth reading today" on a list page; "Follow this discussion"; "Read it to me" on ordinary pages too; "Ask a Site" and "Summarize Link" taking any address in Siri; share-sheet actions reworded and the platform badge deleted; "site" for "forum" in Settings, History, Sync and the request-pace footers. If the owner keeps the digest (task 12 answered no): its strings ("Daily digest & podcast", "Today's podcast", "Make the podcast every day", the Siri actions) are reworded to pinned sites and followed pages here, and the listing names the feature. If the owner removes it, task 12 deletes those strings and this task leaves them alone. English and both Chinese scripts. No behaviour changes and no new types; internal tool and type names stay.
+- **Why:** 4.3(a). Forumind's listing must not also describe WukongMind's screens. Words are most of the difference a reviewer can see, and the engines are already general.
+- **Size:** M (strings in three languages, intents, the share extension, and the tests that match on these strings).
+- **Starts when:** the owner has answered on the digest (task 12).
+- **Files:** `WukongMind/Localizable.xcstrings`, `WukongMind/AppShortcuts.xcstrings`, `WukongMind/SuggestionRow.swift`, `WukongMind/System/AppIntents.swift`, `WukongMindShare/ShareSheetView.swift`, `WukongMind/SettingsAssistantPages.swift`, `WukongMind/SettingsSyncPage.swift`, `WukongMind/HistoryView.swift`, `WukongMind/SettingsDataHelpPages.swift`, the tests that assert these strings.
+- **Done when:** a search of the string catalogues for the same pattern as above (forum, topic, thread, post, reply, community, discussion, "worth reading", Discourse, WordPress, Hacker News, and digest, podcast and Today if the digest stays) finds only strings on the task's "keep" list, each with its reason; the unit and UI tests pass on `scripts/remote-test.sh`; screenshots of Home, the suggestion row on an article and on a discussion page, Settings and the share sheet are in the proof.
+
+### Task 11: pinned sites, not forums; no forum picker
+
+- **What:** store-positioning.md, section 2, rows 4 and 17. Settings › Forums becomes Sites: any address can be pinned to Home; the "doesn't look like a supported site" refusal (`WukongMind/ForumDirectory.swift:85`) is deleted; the "Suggested" list of well-known forums (`WukongMind/SettingsForumsPage.swift:69`, `SiteAdapter.suggestedForums`) is deleted in Settings; first run's step 2 shows the same forums (`WukongMind/OnboardingSteps.swift:260`) and gets a short mixed list of ordinary pages or the address field alone, whichever design-unified.md settles on. The three adapters stay as readers for the sites they recognise. A pinned site with no reader is a favourite and nothing more; say so in the design document rather than adding a second kind of pin. Update [design-unified.md](design-unified.md) (start page, Settings › Sites) in the same pull request.
+- **Why:** 4.3(a). A list that accepts only three forum platforms is Forumind's home screen; a list of pinned sites is a browser's favourites.
+- **Size:** M. The synced `Forum` record needs a kind for "no reader" (or an optional one); check `WukongMind/SyncRecords.swift` and older builds reading it.
+- **Files:** `WukongMind/ForumDirectory.swift`, `WukongMind/SettingsForumsPage.swift`, `WukongMind/HomeSites.swift`, `WukongMind/HomeView.swift`, `WukongMind/OnboardingSteps.swift`, `WukongMind/Sites/SiteAdapter.swift` and the adapters' `suggestedForums`, `WukongMind/SyncRecords.swift`, `docs/wukongmind/design-unified.md`.
+- **Done when:** a unit test pins an ordinary site and a recognised one and both appear on Home; a sync round-trip test covers a pin with no reader; no "Suggested" forums list remains; Home's first-frame time before and after is in the proof and is not slower; tests pass on `scripts/remote-test.sh`.
+
+### Task 12 (needs the owner's yes): remove the daily digest from WukongMind
+
+- **What:** store-positioning.md, section 2, row 5. Delete the Today module and page, the digest, its two-host podcast, the background prefetch task and the "Open Today's Digest" and "Play Today's Podcast" Siri actions, with their settings, strings and tests. Read aloud and following a discussion stay. Decide in the task what happens to digests already synced (recommended: stop reading and writing the record kind; leave the stored records alone). Update [next-phase.md](next-phase.md) sections 4 and 6 and design-unified.md, which keep Today on the start page, in the same pull request.
+- **Why:** 4.3(a), and the owner's "what can be deleted?". The digest is the one screen that is Forumind and nothing else, it is not useful on any web page, and generalising it is new background work. It contradicts next-phase.md, so it waits for the owner.
+- **Size:** M (1,624 lines in `DailyDigest.swift`, `DigestViews.swift` and `AppModel+Digest.swift`, plus the digest parts of `Podcast/` and the tests; mostly deletion).
+- **Files:** `WukongMind/DailyDigest.swift`, `WukongMind/DigestViews.swift`, `WukongMind/AppModel+Digest.swift`, `WukongMind/HomeView.swift`, `WukongMind/Podcast/`, `WukongMind/System/AppIntents.swift`, `WukongMind/Info.plist` (the background task identifier), `WukongMind/SyncRecords.swift`, the two design documents.
+- **Done when:** no Today entry point remains; the `processing` background mode is dropped if nothing else uses it (then say so in task 7's notes); Home's first-frame time before and after is in the proof; tests pass on `scripts/remote-test.sh`. If the owner says no instead: the digest's words are generalised in task 10 (which waits for this answer), the listing names it, and this task is closed unused. Either way the answer comes before task 10 starts, so the build never reaches submission with the forum digest untouched.
+
+### Task 13 (Forumind's repository): Forumind's listing leaves "browser" to WukongMind
+
+- **What:** store-positioning.md, section 3. In Forumind's listing: open with "an AI reader for forums" rather than "a forum browser"; remove 浏览器 / 瀏覽器 from the Chinese keywords; remove `wordpress` and `hacker news` from the en-US keywords (other parties' names, 2.3.7); add the mirrored relationship paragraph to its review notes. Submit Forumind before WukongMind.
+- **Why:** 4.3(a) and 2.3.7: the two listings should not compete for the same words, and each note should name the other app.
+- **Size:** S (metadata only; a write through `asc` or Forumind's `appstore/metadata`, read back).
+- **Done when:** the saved values are read back from App Store Connect and match.
 
 ## 6. Code compliance audit (WUKO-168)
 
@@ -344,7 +381,7 @@ The full audit is [app-store-code-audit.md](app-store-code-audit.md): 15 finding
 
 ## Not verified
 
-- Whether Forumind was ever approved, and the result of its 5.6 appeal: the record ends first.
+- Forumind was never approved (confirmed in App Store Connect, 2026-11-19: 1.0.0 is developer-rejected and the app is not on the store). The result of its 5.6 appeal is still not known: the Resolution Center is not readable through the API.
 - What exactly triggered Forumind's 5.6 rejection: Apple named no feature.
 - The exact questions App Store Connect asks today: only visible in App Store Connect.
 - That a summary really works with Apple Intelligence and no key: the Summaries role accepts it in code; not run on a device here.

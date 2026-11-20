@@ -1,6 +1,6 @@
 # WukongMind (悟空)
 
-WukongMind is a fork of Forumind into a self-use, open-source iOS/iPadOS browser whose AI agent reads and changes any web page by running JavaScript, and saves the changes as per-site userscripts.
+WukongMind is a fork of Forumind into an open-source iOS/iPadOS browser (self-use until 2026-11-19, when the owner decided to take it to the App Store; see [store-positioning.md](store-positioning.md)) whose AI agent reads and changes any web page by running JavaScript, and saves the changes as per-site userscripts.
 
 - The full requirements are in [requirements.md](requirements.md). [next-phase.md](next-phase.md) supplements them and wins where they conflict (including the rule that Forumind's features and tests must keep passing: features the cleanup deletes take their tests with them).
 - The unified interface design is in [design-unified.md](design-unified.md); exported boards and the design system are in [design/README.md](design/README.md).
@@ -11,8 +11,9 @@ WukongMind is a fork of Forumind into a self-use, open-source iOS/iPadOS browser
 - The Safari-like address bar, multiple tabs and the provider page model list are designed in [design-browser-bar-tabs-models.md](design-browser-bar-tabs-models.md) (proposed, WUKO-77).
 - Drawer performance on long threads and the app's state machines: measurements on the owner's iPhone, causes, decisions and the task split are in [design-performance-and-state.md](design-performance-and-state.md) (proposed, WUKO-139).
 - Voice (Gemini Live) cost: measured session, where the cost goes and the planned cuts are in [voice-cost.md](voice-cost.md); live test rules are in DEVELOPMENT.md "Live Gemini Live budget".
-- App Store review readiness: what would stand in the way of passing App Store review, guideline by guideline, with Forumind's review history, draft review notes and follow-up tasks, is in [app-store-review.md](app-store-review.md) (assessment only, WUKO-148).
+- App Store review readiness: what would stand in the way of passing App Store review, guideline by guideline, with Forumind's review history, draft review notes and follow-up tasks, is in [app-store-review.md](app-store-review.md) (WUKO-148; the owner decided on 2026-11-19 to go to the store).
 - App Store code compliance audit: a sweep of the code for non-public API, rule-bending flows and hidden or review-conditional behaviour, with a check of the Release binary and follow-up tasks: [app-store-code-audit.md](app-store-code-audit.md)
+- Store positioning: the owner's decision to go to the App Store with both apps, how WukongMind is kept apart from Forumind (every Forumind-derived feature: keep, generalise or remove), the listings, the review note on the relationship, and the name candidates checked against the store and USPTO: [store-positioning.md](store-positioning.md) (WUKO-169).
 - TestFlight feedback: where task exports saved for feedback land on the Mac, their names and how to match them to a feedback item are in [feedback.md](feedback.md).
 - English first: code, docs, commits and pull requests are in English.
 - This repo started as a copy of Forumind `main` (e046b43). The `forumind` remote is fetch-only; never push to it.
