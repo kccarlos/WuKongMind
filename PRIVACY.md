@@ -1,18 +1,36 @@
-# Privacy
+# Privacy Policy
 
-**WukongMind** ([kccarlos/WuKongMind](https://github.com/kccarlos/WuKongMind)) is a self-use, open-source iOS and iPadOS browser with an AI agent, built from source with your own Apple developer account and not distributed on the App Store.
+**WukongMind Browser** ([kccarlos/WuKongMind](https://github.com/kccarlos/WuKongMind)) is an open-source AI-assisted web browser for iPhone and iPad.
 
-**The maintainer collects nothing.** There are no WukongMind servers, accounts, analytics, telemetry, crash-reporting SDKs, advertising, or tracking.
+**The developer collects no data from this app.** There are no WukongMind servers, user accounts, analytics, telemetry, crash-reporting SDKs, advertising, or cross-app tracking.
 
-## Where data goes
+## Where your data goes
 
-- **Websites you visit:** Pages load directly in `WKWebView` from each site, with cookies and logins stored locally on your device by WebKit and sent only to their own site. Built-in forum adapters read directly from Discourse and WordPress endpoints (reusing your site session where supported) and from Algolia's public Hacker News API (`hn.algolia.com`) for Hacker News.
-- **Your AI and speech providers (BYOK):** When you run the browser agent, summaries, chat, Ask the forum, daily digests, podcast scripts, Gemini text-to-speech, or Gemini Live voice sessions, the relevant page or forum content (and live microphone audio during a voice session) is sent directly from your device to the provider you configured:
+- **Websites you visit:** Pages load directly in `WKWebView` from each site. Cookies, site storage, and website logins are stored locally on your device by WebKit and sent only to their own sites. Built-in site readers fetch directly from Discourse and WordPress endpoints (reusing your site session where supported) and from Algolia's public Hacker News API (`hn.algolia.com`) for Hacker News.
+- **Your AI and speech providers (BYOK):** When you use the browser Agent, summaries, site search, read aloud, Gemini text-to-speech, Gemini Live voice sessions, or userscripts that call `GM_ai`, the relevant page content or questions (and live microphone audio while a voice session is active) are sent directly from your device to the provider you configured:
   - Hosted APIs (OpenRouter, OpenAI, Anthropic, Google Gemini, Google Vertex AI, Groq, xAI, DeepSeek, NVIDIA NIM) using your own API key, governed by that provider's terms and privacy policy.
-  - Local network servers (Ollama or LM Studio) on your LAN.
-  - Apple Intelligence (on-device or Apple Private Cloud Compute, where available).
-- **Local storage and Keychain:** Conversations, summaries, per-site userscripts (`ScriptStore`), watched topics, digests, cached podcast audio, and settings are stored locally on your device. Provider API keys live in the iOS Keychain (and optionally sync across your own devices via end-to-end encrypted iCloud Keychain), never in plaintext app state files.
-- **Optional iCloud sync (CloudKit):** Disabled by default in source builds (`DC_ENABLE_CLOUDKIT=NO`). When enabled in your own signed build, app records sync through your own iCloud account's private CloudKit database using encrypted fields.
-- **On-device features:** Optional ad and tracker blocking uses bundled EasyList and EasyPrivacy rules compiled locally in WebKit. Spotlight indexing, Siri suggestions and Shortcuts, local notifications, and Apple on-device Translation all run locally on your device.
+  - Local network servers (Ollama or LM Studio) on your own LAN.
+  - Apple Intelligence (on-device or Apple Private Cloud Compute, where available on your device; used for summaries).
+- **Optional iCloud sync (CloudKit):** Disabled by default in builds without iCloud entitlements (`DC_ENABLE_CLOUDKIT=NO`). When enabled, app records sync through your own private Apple iCloud CloudKit database using encrypted fields; the developer cannot access or read them.
+- **Diagnostic exports:** Any problem report or task export you generate is saved to your own device or your own iCloud Drive. Nothing is sent to the developer unless you choose to share the file yourself.
+- **On-device features:** Optional ad and tracker blocking uses bundled EasyList and EasyPrivacy filter lists compiled locally in WebKit. Spotlight indexing, Siri Suggestions and Shortcuts, local notifications, and Apple on-device Translation all run locally on your device.
 
-For risks around active web logins and untrusted page content when running the agent, see the [Risk Statement in README.md](README.md#risk-statement).
+## Storage and retention
+
+- **Local app data:** Conversations, summaries, per-site userscripts (`ScriptStore`), watched discussions, cached audio, and settings are stored locally on your device until you clear them or uninstall the app.
+- **API keys:** Provider API keys live in the iOS Keychain (and optionally sync across your own devices via end-to-end encrypted iCloud Keychain), never in plaintext app state files.
+- **Third-party AI providers:** Data sent to a hosted AI provider is retained and handled according to that provider's own terms and privacy policy.
+
+## Withdrawing consent and deleting data
+
+- **Stop using an AI provider:** Remove or replace a provider's API key at any time in **Settings › AI models**, or remove all keys via **Settings › Data & privacy › Reset Settings to Defaults…**.
+- **Delete saved app data:** Clear saved summaries, chats, and site data per site or all at once in **Settings › Data & privacy**. View, turn off, or delete saved userscripts in **Settings › Scripts**.
+- **Delete everything locally:** Uninstalling WukongMind deletes all local app data from your device.
+
+## Security
+
+For risks around active web logins and untrusted page content when running the Agent, see [SECURITY.md](SECURITY.md) and the [Risk Statement in README.md](README.md#risk-statement).
+
+## Contact
+
+For privacy questions or support, visit the [WukongMind Support page](https://kccarlos.github.io/WuKongMind/support/) or open an issue at <https://github.com/kccarlos/WuKongMind/issues>.

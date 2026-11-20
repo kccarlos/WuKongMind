@@ -1,4 +1,4 @@
-# WukongMind (悟空)
+# WukongMind 浏览器
 
 <p>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="许可证：Apache-2.0"></a>
@@ -11,12 +11,12 @@
   <a href="README.md">English</a> · <b>简体中文</b> · <a href="README.zh-Hant.md">繁體中文</a>
 </p>
 
-**WukongMind**（悟空）是一款面向 iPhone 与 iPad 的开源自用浏览器：内置的 AI 智能体通过运行 JavaScript 与注入 CSS 读取和修改任意网页，并可将修改保存为按站点生效的用户脚本（类似 Tampermonkey）。
+**WukongMind 浏览器**是一款面向 iPhone 与 iPad 的开源 AI 辅助浏览器：内置的 AI 智能体通过运行 JavaScript 与注入 CSS 读取和修改任意网页，并可将修改保存为按站点生效的用户脚本（类似 Tampermonkey）。
 
-- **个人自用，不上架 App Store。** WukongMind 派生自 [Forumind](https://github.com/kccarlos/forumind)（Forumind 为通过 App Store 审核，将 AI 限制在受支持的论坛平台且保持只读）。WukongMind 不在 App Store 或公开 TestFlight 分发：由你使用自己的 Apple 开发者账号从源代码构建并签名安装，移除了面向 App Store 的能力限制。
+- **全球同一构建。** WukongMind 派生自只读论坛阅读器 [Forumind](https://github.com/kccarlos/forumind)。WukongMind 是带 AI 智能体的通用网页浏览器，基于同一套代码库构建，没有任何隐藏或仅限商店版的功能差异：App Store、TestFlight 与源码自建版运行完全相同的代码和默认安全设置。
 - **通过代码驱动网页。** AI 不会直接操作页面，而是编写代码；App 在 `WKWebView` 中执行代码并将结果返回给模型，通过工具调用循环完成任务。
 - **自带密钥（BYOK）。** 没有 WukongMind 后端服务器、账户、统计分析或中转代理。API 密钥保存在 iOS 钥匙串中，请求由你的设备直接发往模型提供方（或局域网内的本地模型服务）。
-- **当前状态：** `M1` 已完成（支持任意网站的智能体聊天面板与页面内工具）；`M2`（按站点保存并自动注入用户脚本）进行中。详见[当前进展](#当前进展)。
+- **当前状态：** 已发布 `1.5.4` 版本，包含浏览器智能体、按站点用户脚本、Tampermonkey 兼容 `GM_*` API 与按需学习（Learn on ask）。详见[当前进展](#当前进展)。
 
 ---
 
@@ -28,34 +28,35 @@
 在登录网站或运行智能体前，请充分了解其安全模型：
 
 - **提示词注入与登录态共享：** 网页上的不受信任文本可能会误导模型执行非预期操作，而智能体与你的日常浏览共享同一个 `WKWebView` Cookie 与会话存储。你在 WukongMind 内登录的任何网站，智能体均可访问。请避免在其中登录网银、支付工具、主邮箱或其他高价值账户。
-- **页面内完整执行权限（`run_js`）：** 默认**没有任何确认弹窗，也没有风险分级**——智能体会直接调用工具，`run_js` 在当前页面内拥有完整的 JavaScript 执行权限（读写 DOM、在 `page` 世界访问页面全局变量、操作表单及发起同源请求）。
-- **可选的写入前确认（规划中）：** 设置中的可选开关 **“写入前确认”（Confirm before writes）**（默认关闭；开启后在调用 `http_request`、`cookies_get` 及提交表单前先询问确认）计划在后续里程碑（`M3`）中提供，**当前尚未实装**。
+- **页面执行权限（`run_js`）与默认安全设置：** `run_js` 可在当前页面内执行 JavaScript（读写 DOM、在 `page` 世界访问页面全局变量、操作表单及发起同源请求）。在 **设置 › 智能体 › 安全（Settings › Agent › Safety）** 中，**写入前确认（Confirm before writes）** 默认**开启**（在发起 `http_request` 请求前询问确认），而 **向模型提供 Cookie 值（Give cookie values to the model）** 与 **无需询问即保存脚本（Save scripts without asking）** 默认**关闭**（关闭状态下，`cookies_get` 不返回 Cookie 值，`run_js` 输出中的 Cookie 值也会被脱敏）。读取 Cookie（`cookies_get`）以及将你的登录态发送到其他站点始终会弹出确认。你可在设置中自行调整这些开关。
 - **当前已内置的安全基线：**
   - **桥接隔离：** App 与页面的消息通道（`WKScriptMessageHandlerWithReply`）仅注册在隔离的 `WKContentWorld` 中，页面自身脚本不可见，因此网页无法调用原生工具或伪造工具结果。
   - **密钥隔离：** AI 提供方的 API 密钥仅保存在 iOS 钥匙串中，绝不进入页面环境或对话历史，若意外出现在工具输出中也会被脱敏。
   - **不受信任内容标记：** 工具返回的网页文本会包裹在 `<untrusted_web_content>` 分隔符中，系统提示词明确要求模型绝不服从网页内容中的指令。
-  - **随时停止：** 运行期间 **停止（Stop）** 按钮全程可见，点击即刻中止循环；单次运行还受可配置的步数上限保护（默认 `30` 步）。全局脚本总开关（`M2`）和本地磁盘审计日志（`M3`）见下方路线图。
+  - **随时停止：** 运行期间 **停止（Stop）** 按钮全程可见，点击即刻中止循环；单次运行还受可配置的步数上限保护（默认 `30` 步）。全局脚本总开关与本地磁盘审计日志均已内置。
 
 ---
 
 ## 当前进展
 
-WukongMind 按里程碑顺序推进（详见英文需求文档 [docs/wukongmind/requirements.md](docs/wukongmind/requirements.md)）：
+WukongMind 按里程碑顺序推进（详见英文需求文档 [docs/wukongmind/requirements.md](docs/wukongmind/requirements.md) 与 [docs/wukongmind/README.md](docs/wukongmind/README.md)）：
 
 | 里程碑 | 状态 | 内容 |
 | :--- | :--- | :--- |
 | **M0 — 调研** | **已完成** | Forumind 模块映射与改动清单（[m0-module-map.md](docs/wukongmind/m0-module-map.md)），以及 `WKWebView` CSP 与双执行世界实测验证（[m0-csp-and-worlds.md](docs/wukongmind/m0-csp-and-worlds.md)）。 |
 | **M1 — 核心循环** | **已完成** | 支持任意网站的通用地址栏、**Agent** 聊天面板（iPhone 底部抽屉，iPad 可调宽分栏）与工具栏按钮、支持原生工具调用的 `AgentLoop`、停止按钮、Token 统计，以及页面内工具（`read_page`、`run_js`、`inject_css`、`wait_for`）。 |
-| **M2 — 持久化脚本** | **进行中** | 按站点的用户脚本系统（`ScriptStore`，带 `// ==UserScript==` 头与 `@match` 规则的 `.user.js` 文件）、脚本管理工具（`script_save`、`script_list`、`script_read`、`script_update`、`script_delete`）、页面加载与 SPA 路由切换自动注入、脚本管理器界面、工具栏脚本计数徽标与全局脚本开关。 |
-| **M3 — 完整能力** | 规划中 | `screenshot`（视觉截图）、`network_log`、`navigate`、多标签页 `tabs`、跨域 `http_request`、`cookies_get`（含 `httpOnly`）、工作区文件读写 `file_read` / `file_write`、磁盘审计日志界面，以及可选的“写入前确认”模式。 |
-| **M4 — 自扩展与 Tampermonkey 兼容** | 规划中 | `GM_addStyle`、`GM_getValue`、`GM_setValue`、`GM_xmlhttpRequest`、从 URL 导入用户脚本、脚本报错一键“交给智能体修复”、`notify`，以及脚本 iCloud 同步。 |
+| **M2 — 持久化脚本** | **已完成** | 按站点的用户脚本系统（`ScriptStore`，带 `// ==UserScript==` 头与 `@match` 规则的 `.user.js` 文件）、脚本管理工具（`script_save`、`script_list`、`script_read`、`script_update`、`script_delete`）、页面加载与 SPA 路由切换自动注入、脚本管理器界面、工具栏脚本计数徽标与全局脚本开关。 |
+| **M3 — 完整能力** | **已完成** | `screenshot`（视觉截图）、`network_log`、`navigate`、多标签页 `tabs`、跨域 `http_request`、`cookies_get`（含 `httpOnly`）、工作区文件读写 `file_read` / `file_write`、磁盘审计日志界面，以及“写入前确认”模式。 |
+| **One loop** | **已完成** | 统一对话视图、单一智能体循环（各项能力接入为智能体工具），并与语音会话共享工具。 |
+| **M4 — 自扩展与 Tampermonkey 兼容** | **已完成** | `GM_addStyle`、`GM_getValue`、`GM_setValue`、`GM_xmlhttpRequest`、`GM_ai`、从 URL 导入用户脚本、脚本报错一键“交给智能体修复”、`notify`，以及脚本 iCloud 同步。 |
+| **按需学习（`1.5.x`）** | **已完成** | 提问时自动学习站点读取器、站点检查器，以及性能优化（`1.5.4`）。 |
 
 ---
 
 ## 工作方式
 
-- **页面智能体（`M1`）：** 打开任意网页，点按浏览器栏中的 **✦** 按钮打开 **Agent** 面板，输入需求（例如 *“把这个页面改成深色并隐藏侧边栏”*）。工具默认在隔离的 `WKContentWorld` 中通过 `callAsyncJavaScript` 运行（也可指定 `page` 世界访问页面 JS 全局状态），CSS 通过 `adoptedStyleSheets` 注入以绕过严格的 `style-src` 限制。当前已提供 `read_page`、`run_js`、`inject_css`、`wait_for` 四个页面工具。
-- **继承自 Forumind 的能力：** Discourse、WordPress 与 Hacker News 的长帖分级**摘要**、话题**聊天**、全站**问论坛**、关注话题提醒、每日摘要与双人播客、Gemini Live 实时语音，以及基于 EasyList / EasyPrivacy 的可选广告与跟踪器拦截均完整保留，与 **Agent** 模式并存。
+- **页面智能体：** 打开任意网页，点按浏览器栏中的 **✦** 按钮打开 **Agent** 面板，输入需求（例如 *“把这个页面改成深色并隐藏侧边栏”*）。工具默认在隔离的 `WKContentWorld` 中通过 `callAsyncJavaScript` 运行（也可指定 `page` 世界访问页面 JS 全局状态），CSS 通过 `adoptedStyleSheets` 注入以绕过严格的 `style-src` 限制。
+- **内置站点阅读、摘要与语音：** 保留 Discourse、WordPress 与 Hacker News 站点读取器、长网页与讨论串分级**摘要**、由智能体驱动的全站问答、关注话题提醒、每日摘要与双人播客、Gemini Live 实时语音，以及基于 EasyList / EasyPrivacy 的可选广告与跟踪器拦截，与 **Agent** 模式并存。
 
 ---
 
@@ -63,10 +64,10 @@ WukongMind 按里程碑顺序推进（详见英文需求文档 [docs/wukongmind/
 
 - **直连提供方：** 所有模型请求均从你的 iPhone 或 iPad 直接发往所配置的 AI 提供方接口。
 - **钥匙串存储：** API 密钥保存在 iOS 钥匙串（可选通过 iCloud 钥匙串在你的设备间同步），不会写入明文状态文件，也不会暴露给网页或工具。
-- **独立的浏览器智能体模型：** **浏览器智能体**默认不预设模型（**设置 › AI 模型 › Browser agent**），首次使用时请从支持原生工具调用的提供方中选择模型：
+- **独立的浏览器智能体模型：** **浏览器智能体**默认不预设模型（**设置 › AI 模型 › Browser agent**），首次使用时请从支持原生工具调用的提供方中选择模型（独立于**摘要**所使用的模型）：
   - **云端提供方（需 API 密钥）：** OpenRouter、OpenAI、Anthropic、Google Gemini、Google Vertex AI、Groq、xAI (Grok)、DeepSeek、NVIDIA NIM。
   - **局域网本地服务（无需密钥）：** Ollama（如 `http://192.168.1.20:11434`）、LM Studio（如 `http://192.168.1.20:1234/v1`）。
-  - **Apple 智能：** 仅可用于继承自 Forumind 的论坛**摘要与聊天**及**问论坛**，不支持通用浏览器智能体工具调用。
+  - **Apple 智能：** 仅可用于**摘要**，不支持通用浏览器智能体工具调用。
 
 ---
 

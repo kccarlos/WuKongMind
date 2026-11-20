@@ -1,4 +1,4 @@
-# WukongMind (悟空)
+# WukongMind Browser
 
 <p>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License: Apache-2.0"></a>
@@ -11,12 +11,12 @@
   <b>English</b> · <a href="README.zh-Hans.md">简体中文</a> · <a href="README.zh-Hant.md">繁體中文</a>
 </p>
 
-**WukongMind** (悟空) is an open-source, self-use browser for iPhone and iPad whose AI agent reads and changes any web page by running JavaScript and injecting CSS, and saves its changes as per-site userscripts (like Tampermonkey).
+**WukongMind Browser** is an open-source, AI-assisted browser for iPhone and iPad whose Agent reads and changes any web page by running JavaScript and injecting CSS, and saves its changes as per-site userscripts (like Tampermonkey).
 
-- **Self-use, not on the App Store.** WukongMind is forked from [Forumind](https://github.com/kccarlos/forumind), which keeps its AI read-only and scoped to supported forum platforms to pass App Store review. WukongMind is not distributed on the App Store or public TestFlight: you build and sign it from source with your own Apple developer account, with App Store capability restrictions removed.
+- **One build everywhere.** WukongMind is forked from [Forumind](https://github.com/kccarlos/forumind), which is a read-only forum reader. WukongMind is a general web browser with an AI agent, built from one codebase with no hidden or store-only behaviour: App Store, TestFlight, and source builds ship the same code and the same safety defaults.
 - **Code-driven page agent.** The AI never touches the page directly. It writes code; the app runs that code inside `WKWebView` and returns the result in a tool-calling loop until the task is done.
 - **Bring your own key (BYOK).** There is no WukongMind backend, account, analytics, or proxy. API keys live in the iOS Keychain, and requests go straight from your device to the model provider (or a local server on your LAN).
-- **Current status:** `M1` is shipped (agent chat panel and in-page tools on any site); `M2` (saving and auto-injecting per-site userscripts) is in progress. See [Status](#status).
+- **Current status:** Version `1.5.4` is shipped with the browser Agent, per-site userscripts, Tampermonkey-compatible `GM_*` APIs, and Learn on ask. See [Status](#status).
 
 ---
 
@@ -28,26 +28,28 @@
 Understand the security model before signing in to websites or running the agent:
 
 - **Prompt injection and active sessions:** Untrusted text on a web page can steer the model into unintended actions, and the agent operates inside the same `WKWebView` cookie and session store as your browsing. Any site you are signed in to inside WukongMind is reachable by the agent. Avoid logging in to banking, payment, primary email, or other high-value accounts.
-- **Page execution (`run_js`) and safety defaults:** `run_js` runs JavaScript inside the current page (DOM reads and writes, page globals in the `page` world, forms, and same-origin requests). In **Settings › Agent › Safety**, **Confirm before writes** is **on by default** (asking before `http_request` and non-read-only page tools), while **Give cookie values to the model** and **Save scripts without asking** are **off by default** (cookie values are hidden from `cookies_get` and redacted from `run_js` results while off). Reading cookies (`cookies_get`) and sending your login to another site always ask.
+- **Page execution (`run_js`) and safety defaults:** `run_js` runs JavaScript inside the current page (DOM reads and writes, page globals in the `page` world, forms, and same-origin requests). In **Settings › Agent › Safety**, **Confirm before writes** is **on by default** (asking before `http_request`), while **Give cookie values to the model** and **Save scripts without asking** are **off by default** (cookie values are hidden from `cookies_get` and redacted from `run_js` results while off). Reading cookies (`cookies_get`) and sending your login to another site always ask. You can change these switches in Settings.
 - **Built-in safety baselines:**
   - **Bridge isolation:** The app–page message channel (`WKScriptMessageHandlerWithReply`) is registered only in an isolated `WKContentWorld`, invisible to page scripts so pages cannot call native tools or forge tool results.
   - **Key isolation:** Provider API keys stay in the iOS Keychain, never enter the page context or conversation history, and are redacted if they ever appear in tool output.
   - **Untrusted content delimiters:** Web page output returned to the model is wrapped in `<untrusted_web_content>` delimiters, and the system prompt instructs the model never to follow instructions found inside page content.
-  - **Stop any time:** A **Stop** button stays visible for the entire run and cancels the loop immediately; runs also stop at a configurable step limit (`30` steps by default). A global userscript switch (`M2`) and on-disk tool audit log (`M3`) are on the roadmap below.
+  - **Stop any time:** A **Stop** button stays visible for the entire run and cancels the loop immediately; runs also stop at a configurable step limit (`30` steps by default). A global userscript switch and an on-disk tool audit log are built in.
 
 ---
 
 ## Status
 
-WukongMind is built in sequential milestones ([docs/wukongmind/requirements.md](docs/wukongmind/requirements.md)):
+WukongMind is built in sequential milestones ([docs/wukongmind/requirements.md](docs/wukongmind/requirements.md), [docs/wukongmind/README.md](docs/wukongmind/README.md)):
 
 | Milestone | Status | Scope |
 | :--- | :--- | :--- |
 | **M0 — Survey** | **Shipped** | Forumind module map ([m0-module-map.md](docs/wukongmind/m0-module-map.md)) and `WKWebView` CSP / execution-world verification ([m0-csp-and-worlds.md](docs/wukongmind/m0-csp-and-worlds.md)). |
 | **M1 — Core loop** | **Shipped** | General address bar on any site, **Agent** chat panel (bottom drawer on iPhone, resizable split panel on iPad) and toolbar button, `AgentLoop` with native tool calling, Stop button, token count, and in-page tools (`read_page`, `run_js`, `inject_css`, `wait_for`). |
-| **M2 — Persistence** | **In progress** | Per-site userscripts (`ScriptStore`, `.user.js` files with `// ==UserScript==` headers and `@match` rules), script tools (`script_save`, `script_list`, `script_read`, `script_update`, `script_delete`), automatic injection on load and SPA route changes, script manager UI, toolbar badge, and global script switch. |
-| **M3 — Full abilities** | Planned | `screenshot` (vision), `network_log`, `navigate`, multi-tab `tabs`, cross-origin `http_request`, `cookies_get` (including `httpOnly`), workspace `file_read` / `file_write`, on-disk `AuditLog` UI, and optional "Confirm before writes" mode. |
-| **M4 — Self-extension & Tampermonkey** | Planned | `GM_addStyle`, `GM_getValue`, `GM_setValue`, `GM_xmlhttpRequest`, userscript import from URL, one-tap "let the agent fix" on script errors, `notify`, and iCloud sync for scripts. |
+| **M2 — Persistence** | **Shipped** | Per-site userscripts (`ScriptStore`, `.user.js` files with `// ==UserScript==` headers and `@match` rules), script tools (`script_save`, `script_list`, `script_read`, `script_update`, `script_delete`), automatic injection on load and SPA route changes, script manager UI, toolbar badge, and global script switch. |
+| **M3 — Full abilities** | **Shipped** | `screenshot` (vision), `network_log`, `navigate`, multi-tab `tabs`, cross-origin `http_request`, `cookies_get` (including `httpOnly`), workspace `file_read` / `file_write`, on-disk `AuditLog` UI, and "Confirm before writes" mode. |
+| **One loop** | **Shipped** | Unified conversation view, one Agent loop with capabilities wired as Agent tools, and voice sessions sharing tools. |
+| **M4 — Self-extension & Tampermonkey** | **Shipped** | `GM_addStyle`, `GM_getValue`, `GM_setValue`, `GM_xmlhttpRequest`, `GM_ai`, userscript import from URL, one-tap "let the agent fix" on script errors, `notify`, and iCloud sync for scripts. |
+| **Learn on ask (`1.5.x`)** | **Shipped** | Automatic site-reader learning when asked, site inspector, and performance improvements (`1.5.4`). |
 
 ---
 
@@ -71,7 +73,7 @@ WukongMind is built in sequential milestones ([docs/wukongmind/requirements.md](
 
 WukongMind keeps Forumind's existing forum features working beside the new **Agent** mode:
 
-- **Discourse, WordPress, and Hacker News support:** Long-thread hierarchical **Summaries**, topic **Chat**, site-wide **Ask the forum** with numbered citations, watched-topic notifications, daily digest, two-host podcast, and Gemini Live voice mode.
+- **Built-in site readers, summaries, and voice:** Discourse, WordPress, and Hacker News readers, long-page and thread **Summaries**, site-wide Q&A via the Agent, watched-topic notifications, daily digest, two-host podcast, and Gemini Live voice mode.
 - **Ad and tracker blocking:** Optional `WKContentRuleList` blocker built from EasyList and EasyPrivacy (off by default; toggle in **Settings › Browser**).
 - **Localization:** English, Simplified Chinese (`zh-Hans`), and Traditional Chinese (`zh-Hant`).
 
@@ -82,7 +84,7 @@ WukongMind keeps Forumind's existing forum features working beside the new **Age
 WukongMind talks directly from your device to the AI provider you configure — there are no WukongMind servers or accounts.
 
 - **Keychain storage:** API keys are saved in the iOS Keychain (and optionally synced across your own devices via iCloud Keychain). Keys are stripped from on-disk app state and never exposed to web pages or agent tools.
-- **Dedicated Browser Agent model:** No model is preset for the **Browser agent** (`Settings › AI models › Browser agent`). On first use, pick any model from a provider that supports native tool calling, independent of the models chosen for **Summaries & chat** and **Ask the forum**.
+- **Dedicated Browser Agent model:** No model is preset for the **Browser agent** (`Settings › AI models › Browser agent`). On first use, pick any model from a provider that supports native tool calling, independent of the model chosen for **Summaries**.
 
 | Provider | Credentials | Notes |
 | :--- | :--- | :--- |
@@ -97,7 +99,7 @@ WukongMind talks directly from your device to the AI provider you configure — 
 | **NVIDIA NIM** | API key | OpenAI-compatible hosted models |
 | **Ollama** | None (LAN URL, e.g. `http://192.168.1.20:11434`) | Local models on your own computer |
 | **LM Studio** | None (LAN URL, e.g. `http://192.168.1.20:1234/v1`) | Local models on your own computer |
-| **Apple Intelligence** | None (on-device / Private Cloud Compute) | Available for inherited forum **Summaries & chat** and **Ask the forum** only (not general browser-agent tool calling) |
+| **Apple Intelligence** | None (on-device / Private Cloud Compute) | Available for **Summaries** only (not general browser-agent tool calling) |
 
 ---
 
