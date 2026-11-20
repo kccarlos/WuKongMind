@@ -131,17 +131,23 @@ final class FeedbackReportsTests: XCTestCase {
         XCTAssertFalse(FeedbackReportStore.savesAutomatically(after: .failed(message: "x"), enabled: false))
     }
 
-    func testTheSettingFollowsTheBuildUntilChangedAndStaysOnTheDevice() throws {
-        var settings = AppSettings()
-        XCTAssertTrue(settings.savesFailedTasksForFeedback(isTestFlight: true))
-        XCTAssertFalse(settings.savesFailedTasksForFeedback(isTestFlight: false))
-        settings.saveFailedTasksForFeedback = false
-        XCTAssertFalse(settings.savesFailedTasksForFeedback(isTestFlight: true))
+    func testTheSettingDefaultsOffForEveryInstallKeepsStoredChoiceAndStaysOnTheDevice() throws {
+        let fresh = AppSettings()
+        XCTAssertFalse(fresh.saveFailedTasksForFeedback)
 
-        let decoded = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(settings))
-        XCTAssertEqual(decoded.saveFailedTasksForFeedback, false)
         let old = try JSONDecoder().decode(AppSettings.self, from: Data("{}".utf8))
-        XCTAssertNil(old.saveFailedTasksForFeedback, "older settings follow the build")
+        XCTAssertFalse(old.saveFailedTasksForFeedback, "missing key defaults off on every install")
+
+        var enabled = AppSettings()
+        enabled.saveFailedTasksForFeedback = true
+        let decodedEnabled = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(enabled))
+        XCTAssertTrue(decodedEnabled.saveFailedTasksForFeedback)
+
+        var disabled = AppSettings()
+        disabled.saveFailedTasksForFeedback = false
+        let decodedDisabled = try JSONDecoder().decode(AppSettings.self, from: JSONEncoder().encode(disabled))
+        XCTAssertFalse(decodedDisabled.saveFailedTasksForFeedback)
+
         XCTAssertTrue(SyncSettings.deviceLocalKeys.contains("saveFailedTasksForFeedback"))
     }
 
