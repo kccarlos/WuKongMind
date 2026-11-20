@@ -9,6 +9,8 @@ final class VoiceController: ObservableObject {
     /// The running session, or the last one while its bar still shows
     /// how it ended.
     @Published private(set) var session: VoiceSession?
+    /// Asks the user to agree before the first live voice session with this provider.
+    @Published var consentProvider: VoiceProvider?
     /// Why a session couldn't start (no key, voice off), shown in the bar.
     @Published private(set) var startFailure: VoiceSession.Failure?
     /// Called once a session is over or a session couldn't start (the
@@ -81,8 +83,12 @@ final class VoiceController: ObservableObject {
     func start() {
         guard let app, !isActive else { return }
         startFailure = nil
-        guard app.voiceProvider != nil else {
+        guard let provider = app.voiceProvider else {
             show(.noKey)
+            return
+        }
+        guard VoiceConsent.isGranted(provider, in: app.settings) else {
+            consentProvider = provider
             return
         }
         // Tapping the microphone is asking for voice.
@@ -115,6 +121,20 @@ final class VoiceController: ObservableObject {
             resumption = nil
             Task { await session.start(resuming: previous) }
         }
+    }
+
+    /// The voice consent page's Allow button.
+    func agree(_ provider: VoiceProvider) {
+        guard let app else { return }
+        app.grantVoiceConsent(provider)
+        app.settings.voiceEnabled = true
+        consentProvider = nil
+        start()
+    }
+
+    func declineConsent() {
+        consentProvider = nil
+        finished()
     }
 
     func end() {

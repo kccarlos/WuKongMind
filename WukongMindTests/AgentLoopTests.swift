@@ -599,7 +599,7 @@ final class AgentLoopTests: XCTestCase {
         config.protocolClasses = [RecordedToolURLProtocol.self]
         RecordedToolURLProtocol.handler = { _ in (200, Data(body.utf8)) }
         addTeardownBlock { RecordedToolURLProtocol.handler = nil }
-        return AIService(session: URLSession(configuration: config))
+        return AIService.allowingAll(session: URLSession(configuration: config))
     }
 
     func testStreamedAnthropicUsageFillsTheSinkAcrossCalls() async throws {
@@ -643,7 +643,7 @@ final class AgentLoopTests: XCTestCase {
     func testAIServiceAnthropicToolCallingWireFormatRoundTrip() async throws {
         let sessionConfig = URLSessionConfiguration.ephemeral
         sessionConfig.protocolClasses = [RecordedToolURLProtocol.self]
-        let service = AIService(session: URLSession(configuration: sessionConfig))
+        let service = AIService.allowingAll(session: URLSession(configuration: sessionConfig))
 
         var capturedRequest: URLRequest?
         var capturedJSON: [String: Any]?
@@ -748,7 +748,7 @@ final class AgentLoopTests: XCTestCase {
     func testAIServiceOpenAIToolCallingWireFormatRoundTrip() async throws {
         let sessionConfig = URLSessionConfiguration.ephemeral
         sessionConfig.protocolClasses = [RecordedToolURLProtocol.self]
-        let service = AIService(session: URLSession(configuration: sessionConfig))
+        let service = AIService.allowingAll(session: URLSession(configuration: sessionConfig))
 
         RecordedToolURLProtocol.handler = { _ in
             let recordedOpenAI = """
@@ -993,7 +993,7 @@ extension AgentLoopTests {
     func testAIServiceImageWireFormatAcrossAllProviderFamilies() async throws {
         let sessionConfig = URLSessionConfiguration.ephemeral
         sessionConfig.protocolClasses = [RecordedToolURLProtocol.self]
-        let service = AIService(session: URLSession(configuration: sessionConfig))
+        let service = AIService.allowingAll(session: URLSession(configuration: sessionConfig))
         defer { RecordedToolURLProtocol.handler = nil }
 
         let fakeImage = AgentImage(mediaType: "image/jpeg", data: "/9j/fakeBase64Screenshot==")

@@ -423,6 +423,7 @@ enum ComparisonApp {
             forumService: snapshot.makeForumService(pacer: snapshot.mode == .replay ? ForumRequestPacer(clock: InstantPacingClock()) : ForumRequestPacer()),
             aiService: ai, workspaceDirectory: folder.appendingPathComponent("Documents", isDirectory: true)
         )
+        app.allowAllAIProviders()
         app.usesDirectForumRequests = true
         app.browser.onPageContextChanged = nil
         var settings = app.settings

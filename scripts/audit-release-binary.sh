@@ -114,6 +114,14 @@ for bundle in "$@"; do
   c="$(grep -c -E "$DEBUG_SYMBOLS" <<<"$symbols" || true)"
   echo "-- DEBUG-only symbols among $(grep -c . <<<"$symbols" | tr -d ' ') (expect 0): $c"; [[ "$c" == 0 ]] || fail=1
 
+  # BuildChannel (Audit task B): fail if BuildChannel symbols or appStoreReceiptURL
+  # appear in Release.
+  bc_syms="$(grep -c -F BuildChannel <<<"$symbols" || true)"
+  receipt_sel="$(grep -c -x -F appStoreReceiptURL <<<"$sent" || true)"
+  echo "-- BuildChannel removal (Audit task B; expect 0 each)"
+  printf '   %-48s %s\n' "BuildChannel symbols" "$bc_syms"; [[ "$bc_syms" == 0 ]] || fail=1
+  printf '   %-48s %s\n' "appStoreReceiptURL selector" "$receipt_sel"; [[ "$receipt_sel" == 0 ]] || fail=1
+
   # dlsym is imported by the compiler's own #available support
   # (__isPlatformVersionAtLeast). Any other caller is a finding.
   if grep -q -x -F _dlsym <<<"$undefined"; then

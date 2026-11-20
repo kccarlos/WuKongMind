@@ -1361,6 +1361,8 @@ final class BrowserAgentSession {
     @ObservationIgnored var onRunEndedWithError: (@MainActor (String, BrowserAgentRunState) -> Void)?
     /// Checked before starting a turn; returns a user-facing refusal message when disallowed, or `nil` when allowed.
     @ObservationIgnored var runStartGate: (@MainActor () -> String?)?
+    /// Checked before sending web page content to a third-party provider; shows the AI data consent page if undecided.
+    @ObservationIgnored var authorizeProvider: (@MainActor (AIProvider, String) async throws -> Void)?
     /// Fired whenever `isRunning` changes (`true` on start, `false` when finished, stopped or failed).
     @ObservationIgnored var onRunStateChanged: (@MainActor (Bool) -> Void)?
     /// Fired when persisted conversation state changes.
@@ -1979,6 +1981,10 @@ final class BrowserAgentSession {
             }
 
             do {
+                if let authorizeProvider {
+                    try await authorizeProvider(selection.provider, configuration.baseURL)
+                    guard self.activeGeneration == generation, !Task.isCancelled else { return }
+                }
                 let result = try await loop.run(
                     runID: runID,
                     systemPrompt: systemPrompt,

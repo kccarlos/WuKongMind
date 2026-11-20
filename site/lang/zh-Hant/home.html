@@ -1,0 +1,36 @@
+<section class="hero">
+  <img src="{{root}}assets/mark.svg" alt="WukongMind 標誌：墨色與金色各佔一半的方形，上有三個同心圓環" width="120" height="120">
+  <div>
+    <h1>WukongMind 瀏覽器</h1>
+    <p class="sub">任何網頁上的 AI 代理</p>
+    <p class="lead">適用於 iPhone 與 iPad 的瀏覽器，每個頁面都有同一個輸入框。讓代理讀取、修改或自動化你正在看的頁面。</p>
+    <div class="actions">
+{{testflight_button}}      <a class="button secondary" href="{{repo_url}}">檢視原始碼</a>
+    </div>
+  </div>
+</section>
+
+<h2 id="features">它能做什麼</h2>
+<div class="cards">
+  <div class="card"><h3>直接說</h3><p>輸入你想要的：「把這個頁面改成深色」「隱藏側邊欄」「幫我摘要」。代理會讀取頁面，並用在頁面中執行的程式碼來修改它。</p></div>
+  <div class="card"><h3>真正的瀏覽器</h3><p>分頁與網址列，適用於任何網站。頁面由 WebKit 載入，登入方式和平常一樣。</p></div>
+  <div class="card"><h3>留住好用的修改</h3><p>代理可以把修改儲存成該網站的小腳本。每個腳本你都可以檢視、關閉或刪除，也可以匯入自己的使用者腳本。</p></div>
+  <div class="card"><h3>摘要與朗讀</h3><p>摘要你正在讀的頁面，讓它念給你聽，或用語音和代理對話。</p></div>
+  <div class="card"><h3>翻譯</h3><p>使用 Apple 的裝置端翻譯來翻譯頁面。</p></div>
+  <div class="card"><h3>自選 AI</h3><p>使用你自己的 API 金鑰連接代管服務、使用區域網路上的模型，或在支援的裝置上使用 Apple 智慧。</p></div>
+  <div class="card"><h3>更少的廣告與追蹤器</h3><p>選用的封鎖功能，過濾規則隨 App 一起提供，並在你的裝置上編譯。</p></div>
+</div>
+
+<h2 id="careful">為謹慎而設計</h2>
+<ul>
+  <li>預設情況下，代理在修改內容或把你的登入狀態傳送到其他網站之前會先詢問。執行期間畫面上一直有「停止」按鈕。</li>
+  <li>除非你在設定中開啟，Cookie 的值不會提供給 AI。</li>
+  <li>網頁上的文字一律視為不可信，網頁無法對代理下指令。</li>
+  <li>你的 API 金鑰儲存在 iOS 鑰匙圈中。</li>
+</ul>
+<div class="note"><p>代理使用的是你瀏覽時的同一套登入狀態。使用時請避免登入銀行、支付或主要電子郵件帳號。</p></div>
+
+<h2 id="data">你的資料</h2>
+<p>沒有 WukongMind 伺服器，沒有帳號，沒有分析，也沒有追蹤。你向代理提問時，所需的頁面內容會直接從你的裝置傳送給你選擇的 AI 供應商。請閱讀<a href="{{privacy}}">隱私權政策</a>。</p>
+
+{{testflight_section}}

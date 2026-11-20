@@ -3363,12 +3363,8 @@ private struct DrawerStatusLabel: View {
     }
 }
 
-/// While the summary is written and no text has come yet: three lines that
-/// pulse (static with Reduce Motion).
+/// While the summary is written and no text has come yet: three still lines.
 private struct SummaryPlaceholder: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             ForEach([1.0, 0.92, 0.6], id: \.self) { width in
@@ -3380,24 +3376,9 @@ private struct SummaryPlaceholder: View {
                 .frame(height: 12)
             }
         }
-        .modifier(PulseModifier(active: !reduceMotion))
         .accessibilityElement()
         .accessibilityLabel(Text("Writing summary…"))
         .accessibilityIdentifier("summaryPlaceholder")
-    }
-}
-
-private struct PulseModifier: ViewModifier {
-    let active: Bool
-
-    func body(content: Content) -> some View {
-        if active {
-            content.phaseAnimator([0.45, 1.0]) { view, opacity in
-                view.opacity(opacity)
-            } animation: { _ in .easeInOut(duration: 0.6) }
-        } else {
-            content
-        }
     }
 }
 

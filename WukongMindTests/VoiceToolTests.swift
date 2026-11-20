@@ -1009,6 +1009,7 @@ final class VoiceToolTests: XCTestCase {
             aiService: AIService(session: session)
         )
         app.usesDirectForumRequests = true
+        app.allowAllAIProviders()
         return app
     }
 

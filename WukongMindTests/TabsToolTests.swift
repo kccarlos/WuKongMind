@@ -176,6 +176,7 @@ final class TabsToolTests: XCTestCase {
             backgroundGrace: NoOpBackgroundGrace()
         )
         app.usesDirectForumRequests = true
+        app.allowAllAIProviders()
         var anthropic = app.settings.configuration(for: .anthropic)
         anthropic.apiKey = "test-key"
         anthropic.model = "claude-haiku-5-5"

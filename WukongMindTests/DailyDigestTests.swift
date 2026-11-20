@@ -231,7 +231,7 @@ final class DailyDigestTests: XCTestCase {
         XCTAssertTrue(identifiers.contains(DigestBackgroundPrefetch.identifier), "\(identifiers)")
         XCTAssertTrue(identifiers.contains(WatchBackgroundRefresh.identifier), "\(identifiers)")
         let modes = info["UIBackgroundModes"] as? [String] ?? []
-        XCTAssertTrue(Set(modes).isSuperset(of: ["processing", "fetch", "remote-notification"]), "\(modes)")
+        XCTAssertTrue(Set(modes).isSuperset(of: ["processing", "fetch"]), "\(modes)")
     }
 
     // MARK: Making the digest
@@ -513,6 +513,7 @@ final class DailyDigestTests: XCTestCase {
             backgroundScheduler: scheduler
         )
         app.usesDirectForumRequests = true
+        app.allowAllAIProviders()
         app.browser.onPageContextChanged = nil
         addTeardownBlock { @MainActor in
             app.pauseDigest()

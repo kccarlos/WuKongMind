@@ -127,6 +127,7 @@ final class AppStateDigestTests: XCTestCase {
             workspaceDirectory: dir.appendingPathComponent("ws", isDirectory: true)
         )
         app.suppressesPersistence = true
+        app.allowAllAIProviders()
         // No SwiftUI sheet is attached to answer `presentDrawer()` before the async agent turn finishes,
         // so keep the 2s UIKit drop-recovery watchdog from resetting `.presenting` to `.closed` under CI load.
         app.router.watchdogDelay = .seconds(60)
