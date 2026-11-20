@@ -269,6 +269,25 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
     }
 
+    func testAgentWorkspaceRowOpensDocumentPicker() throws {
+        let app = launch(["-dc-sample", "-dc-show-settings", "agent"])
+        XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 20))
+
+        let workspace = app.buttons["settingsRow-workspace"]
+        XCTAssertTrue(reveal(workspace, in: app), "Workspace row is missing.")
+        workspace.tap()
+
+        // UIDocumentPickerViewController presents an out-of-process Files picker with a Cancel button.
+        let cancelButton = app.buttons["Cancel"]
+        XCTAssertTrue(
+            cancelButton.waitForExistence(timeout: 15),
+            "Tapping Workspace did not present the Files document picker."
+        )
+        capture("settings-agent-workspace-picker")
+        cancelButton.tap()
+        XCTAssertTrue(app.navigationBars["Agent"].waitForExistence(timeout: 10))
+    }
+
     func testDeveloperModeShowsStateDigestAndDebugElementUpdates() throws {
         let app = launch(["-dc-sample", "-dc-developer-mode", "-dc-state-debug", "-dc-drawer-detent", "large"])
         let probe = any(app, "appStateDigest")
