@@ -1251,7 +1251,7 @@ enum AssistantError: LocalizedError {
         case .noTopic:
             String(localized: "Open a topic or article first.")
         case .noForum:
-            String(localized: "Open a forum first, or add the forum again.")
+            String(localized: "Open a site first, or add the site again.")
         case .missingConfiguration(let message):
             message
         case .invalidResponse:

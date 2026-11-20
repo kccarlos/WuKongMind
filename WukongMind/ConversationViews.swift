@@ -53,7 +53,7 @@ enum DCToolLabel {
         case "file_read": running ? String(localized: "Reading file") : String(localized: "Read file")
         case "file_write": running ? String(localized: "Writing file") : String(localized: "Wrote file")
         case "file_list": running ? String(localized: "Listing files") : String(localized: "Listed files")
-        case "search_forum": running ? String(localized: "Searching forum") : String(localized: "Searched forum")
+        case "search_forum": running ? String(localized: "Searching site") : String(localized: "Searched site")
         case "search_comments": running ? String(localized: "Searching comments") : String(localized: "Searched comments")
         case "list_latest": running ? String(localized: "Listing latest") : String(localized: "Listed latest")
         case "read_topic": running ? String(localized: "Reading thread") : String(localized: "Read thread")

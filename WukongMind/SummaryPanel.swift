@@ -2200,7 +2200,7 @@ private struct ContextLimitControl: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Label("Forum context", systemImage: "text.append")
+                Label("Discussion context", systemImage: "text.append")
                 Spacer()
                 Text(formattedLimit)
                     .foregroundStyle(.secondary)
@@ -2218,7 +2218,7 @@ private struct ContextLimitControl: View {
             .onChange(of: app.settings.forumContextLimit) {
                 app.saveSettings()
             }
-            .accessibilityLabel("Forum context size")
+            .accessibilityLabel("Discussion context size")
             .accessibilityValue(formattedLimit)
         }
     }
@@ -2791,7 +2791,7 @@ struct WorkProgressCard: View {
         case .summary: String(localized: "Creating summary")
         case .pull: String(localized: "Pulling post + replies")
         case .chat: String(localized: "Answering")
-        case .agent: String(localized: "Asking the forum")
+        case .agent: String(localized: "Asking this site")
         }
     }
 }

@@ -3473,7 +3473,7 @@ final class AppModel: ObservableObject {
         progress.remove(recordID)
         mutateRecord(recordID) {
             $0.status = .running
-            $0.statusText = String(localized: "Reading forum responses…", comment: "Status while downloading a topic's replies")
+            $0.statusText = String(localized: "Reading responses…", comment: "Status while downloading a topic's replies")
             $0.startedAt = Date()
             $0.provider = context.provider
             $0.model = context.configuration.model

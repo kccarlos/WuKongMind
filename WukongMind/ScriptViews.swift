@@ -1015,7 +1015,7 @@ struct PageCapabilitiesView: View {
                                     .frame(width: 20)
                                     .accessibilityHidden(true)
                             }
-                            Text("Add as a forum", comment: "This page popover action to add an unconfirmed forum site")
+                            Text("Add as a site", comment: "This page popover action to add an unconfirmed site")
                                 .font(.subheadline.weight(.medium))
                                 .foregroundStyle(DCTheme.goldInk)
                             Spacer()

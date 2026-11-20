@@ -124,7 +124,7 @@ struct AssistantForumPill: View {
     }
 
     private var label: String {
-        let name = forum?.displayName ?? String(localized: "No forum")
+        let name = forum?.displayName ?? String(localized: "No site")
         guard let prefix else { return name }
         return String(
             localized: "forumPill.prefixAndName",

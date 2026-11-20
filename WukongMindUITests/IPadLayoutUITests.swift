@@ -264,7 +264,7 @@ final class IPadLayoutUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(remove, timeout: 5, in: app), "The tile's context menu has no Remove….")
         snapshot("remove-context-menu")
         remove.tap()
-        let confirm = app.buttons["Remove Forum"]
+        let confirm = app.buttons["Remove Site"]
         XCTAssertTrue(waitOrDump(confirm, timeout: 5, in: app), "The removal dialog did not appear.")
         snapshot("remove-dialog")
         confirm.tap()

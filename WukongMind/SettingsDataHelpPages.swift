@@ -24,7 +24,7 @@ struct SettingsDataPage: View {
                 Toggle(isOn: $app.settings.spotlightEnabled) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Show in Spotlight")
-                        Text("Topics you read and their saved summaries")
+                        Text("Pages you read and their saved summaries")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -33,7 +33,7 @@ struct SettingsDataPage: View {
                 Toggle(isOn: $app.settings.donatesTopicActivity) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Siri Suggestions")
-                        Text("Lets Siri suggest topics you read")
+                        Text("Lets Siri suggest pages you read")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -47,7 +47,7 @@ struct SettingsDataPage: View {
 
             Section {
                 if forumsWithData.isEmpty {
-                    Text("Nothing saved yet. Summaries, chats, and answers appear here by forum.")
+                    Text("Nothing saved yet. Summaries, chats, and answers appear here by site.")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(forumsWithData, id: \.self) { siteURL in
@@ -74,9 +74,9 @@ struct SettingsDataPage: View {
                     }
                 }
             } header: {
-                Text("Saved data by forum")
+                Text("Saved data by site")
             } footer: {
-                Text("Clearing deletes saved summaries, chats, answers, and watched topics for that forum. The forum stays in your list.")
+                Text("Clearing deletes saved summaries, chats, answers, and followed discussions for that site. The site stays in your list.")
             }
 
             Section {
@@ -98,8 +98,8 @@ struct SettingsDataPage: View {
                     Text(status)
                 } else {
                     Text(app.settings.syncAPIKeys
-                        ? "Resetting settings keeps your forums and saved data. API keys are removed, including from iCloud Keychain on your other devices."
-                        : "Resetting settings keeps your forums and saved data. API keys are removed from this device.")
+                        ? "Resetting settings keeps your sites and saved data. API keys are removed, including from iCloud Keychain on your other devices."
+                        : "Resetting settings keeps your sites and saved data. API keys are removed from this device.")
                 }
             }
         }
@@ -113,20 +113,20 @@ struct SettingsDataPage: View {
             )
         }
         .confirmationDialog(
-            clearingSiteURL.map { String(localized: "Clear saved data for \(name(for: $0))?", comment: "Confirmation title; the argument is a forum name") }
-                ?? String(localized: "Clear saved data for this forum?"),
+            clearingSiteURL.map { String(localized: "Clear saved data for \(name(for: $0))?", comment: "Confirmation title; the argument is a site name") }
+                ?? String(localized: "Clear saved data for this site?"),
             isPresented: Binding(get: { clearingSiteURL != nil }, set: { if !$0 { clearingSiteURL = nil } }),
             titleVisibility: .visible,
             presenting: clearingSiteURL
         ) { siteURL in
             Button("Clear saved data", role: .destructive) {
                 withAnimation { app.clearSavedData(forSiteURL: siteURL) }
-                status = String(localized: "Cleared saved data for \(name(for: siteURL)).", comment: "The argument is a forum name")
+                status = String(localized: "Cleared saved data for \(name(for: siteURL)).", comment: "The argument is a site name")
                 DCHaptics.success()
             }
             Button("Cancel", role: .cancel) {}
         } message: { _ in
-            Text("Summaries, chats, answers, and watched topics for this forum will be deleted. This can’t be undone.")
+            Text("Summaries, chats, answers, and followed discussions for this site will be deleted. This can’t be undone.")
         }
         .confirmationDialog(
             "Clear all saved data?",
@@ -140,7 +140,7 @@ struct SettingsDataPage: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Every saved summary, chat, answer, and watched topic will be deleted. Your forums and settings stay.")
+            Text("Every saved summary, chat, answer, and followed discussion will be deleted. Your sites and settings stay.")
         }
         .confirmationDialog(
             "Reset all settings?",
@@ -178,7 +178,7 @@ struct SettingsHelpPage: View {
                 VStack(spacing: DCTheme.spacingM) {
                     DCLogoView(variant: .mark, size: 64)
                     Text("WukongMind").font(.title3.weight(.bold))
-                    Text("Your agent browser for the web and every forum.")
+                    Text("Your AI-assisted web browser.")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -200,8 +200,8 @@ struct SettingsHelpPage: View {
             }
 
             Section("How it works") {
-                helpLine("text.alignleft", String(localized: "Open a forum topic and WukongMind summarizes it; chat about it with the assistant."))
-                helpLine("sparkle.magnifyingglass", String(localized: "Ask the forum searches, reads the most relevant topics and answers with numbered sources you can open."))
+                helpLine("text.alignleft", String(localized: "Open a web page and WukongMind summarizes it; chat about it with the assistant."))
+                helpLine("sparkle.magnifyingglass", String(localized: "Ask this site searches, reads the most relevant pages and answers with numbered sources you can open."))
                 helpLine("waveform", String(localized: "Voice lets you talk with the assistant while you read."))
             }
 
@@ -292,7 +292,7 @@ struct SettingsSharingPage: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: DCTheme.spacingXL) {
-                Text("Send any forum page from Safari, Chrome, or another app straight to WukongMind.")
+                Text("Send any web page from Safari, Chrome, or another app straight to WukongMind.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 ShareHowToGuide()

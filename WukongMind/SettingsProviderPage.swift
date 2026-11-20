@@ -37,7 +37,7 @@ struct SettingsProviderPage: View {
                             .foregroundStyle(.secondary)
                             .monospacedDigit()
                     }
-                    Text("How much of a long topic is summarized at once.")
+                    Text("How much of a long page is summarized at once.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)

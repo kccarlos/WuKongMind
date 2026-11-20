@@ -2266,8 +2266,8 @@ struct ForumMenuButton: View {
     // MARK: Actions
 
     private var homeLabel: String {
-        forum.map { String(localized: "\($0.displayName) home", comment: "Button label: the forum's home page (forum name)") }
-            ?? String(localized: "Forums")
+        forum.map { String(localized: "\($0.displayName) home", comment: "Button label: the site's home page (site name)") }
+            ?? String(localized: "Sites")
     }
 
     private func accountLine(for forum: Forum) -> String {

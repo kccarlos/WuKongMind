@@ -149,14 +149,14 @@ final class SuggestionRowUITests: DCUITestCase {
         showAssistant(in: app)
         scrollToChip(app, "searchForum").tap()
         let input = app.textViews["agentPromptInput"].exists ? app.textViews["agentPromptInput"] : app.textFields["agentPromptInput"]
-        XCTAssertTrue(wait(timeout: 5) { (input.value as? String) == "Search this forum " }, "Got \(String(describing: input.value)).")
+        XCTAssertTrue(wait(timeout: 5) { (input.value as? String) == "Search this site " }, "Got \(String(describing: input.value)).")
         XCTAssertFalse(chip(app, "summarizeThread").exists, "The row hides once the box has text.")
         input.typeText("for streaming bugs")
         app.buttons["agentSendButton"].tap()
         let userTurn = any(app, "agentUserMessage")
         XCTAssertTrue(waitOrDump(userTurn, timeout: 15, in: app), "The search did not send to the Agent.")
         XCTAssertTrue(
-            app.staticTexts.matching(label(contains: "Search this forum for streaming bugs")).firstMatch.waitForExistence(timeout: 10),
+            app.staticTexts.matching(label(contains: "Search this site for streaming bugs")).firstMatch.waitForExistence(timeout: 10),
             "The sent search text is not shown in the Agent conversation."
         )
         captureIfRequested("suggestion-search-agent")

@@ -327,17 +327,17 @@ struct PostsTranslationSheet: View {
                     NavigationStack {
                         Group {
                             if sources.isEmpty {
-                                ContentUnavailableView("No posts are on screen", systemImage: "text.bubble")
+                                ContentUnavailableView("No text is on screen", systemImage: "text.bubble")
                             } else {
                                 ContentUnavailableView(
-                                    String(localized: "These posts are already in \(ReadingLanguage.displayName(target)).", comment: "Translate Posts on Screen; the placeholder is a language name"),
+                                    String(localized: "This text is already in \(ReadingLanguage.displayName(target)).", comment: "Translate text on screen; the placeholder is a language name"),
                                     systemImage: "checkmark.bubble"
                                 )
                             }
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(DCTheme.pageBackground)
-                        .navigationTitle(String(localized: "Translate posts"))
+                        .navigationTitle(String(localized: "Translate text"))
                         .navigationBarTitleDisplayMode(.inline)
                         .toolbar {
                             ToolbarItem(placement: .confirmationAction) {
@@ -347,7 +347,7 @@ struct PostsTranslationSheet: View {
                         }
                     }
                 } else {
-                    TranslationSheet(title: String(localized: "Translate posts"), sources: foreign, target: target)
+                    TranslationSheet(title: String(localized: "Translate text"), sources: foreign, target: target)
                 }
             } else {
                 ProgressView()

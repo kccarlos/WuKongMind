@@ -174,12 +174,12 @@ final class LocalizationCatalogTests: XCTestCase {
     func testChineseTranslationsResolveFromTheBundle() throws {
         let footerKey = "WukongMind works with %@ sites. It is an independent app and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. Discourse is a trademark of its respective owner."
         for (language, expected, expectedAppLanguage, expectedFooter) in [
-            ("zh-Hans", "论坛", "应用语言（%@）", "WukongMind 适用于 %@ 网站。它是一款独立 App，与 Civilized Discourse Construction Kit, Inc. 无关联，也未获其认可。Discourse 是其各自所有者的商标。"),
-            ("zh-Hant", "論壇", "應用語言（%@）", "WukongMind 適用於 %@ 網站。它是一款獨立 App，與 Civilized Discourse Construction Kit, Inc. 無關聯，也未獲其認可。Discourse 是其各自所有者的商標。")
+            ("zh-Hans", "站点", "应用语言（%@）", "WukongMind 适用于 %@ 网站。它是一款独立 App，与 Civilized Discourse Construction Kit, Inc. 无关联，也未获其认可。Discourse 是其各自所有者的商标。"),
+            ("zh-Hant", "網站", "應用語言（%@）", "WukongMind 適用於 %@ 網站。它是一款獨立 App，與 Civilized Discourse Construction Kit, Inc. 無關聯，也未獲其認可。Discourse 是其各自所有者的商標。")
         ] {
             let path = try XCTUnwrap(Bundle.main.path(forResource: language, ofType: "lproj"))
             let bundle = try XCTUnwrap(Bundle(path: path))
-            XCTAssertEqual(bundle.localizedString(forKey: "Forums", value: nil, table: nil), expected)
+            XCTAssertEqual(bundle.localizedString(forKey: "Sites", value: nil, table: nil), expected)
             XCTAssertEqual(bundle.localizedString(forKey: "App language (%@)", value: nil, table: nil), expectedAppLanguage)
             XCTAssertEqual(bundle.localizedString(forKey: footerKey, value: nil, table: nil), expectedFooter)
         }

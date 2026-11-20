@@ -43,7 +43,7 @@ struct SplitPanelToggle: View {
         if browserAgent.isRunning {
             parts.append(String(localized: "Working", comment: "Accessibility value of the AI button while the browser agent is working"))
         } else if app.activeResearch != nil {
-            parts.append(String(localized: "Ask the forum is searching", comment: "Accessibility value of the AI panel toggle while its ring shows an Ask the forum search running"))
+            parts.append(String(localized: "Ask this site is searching", comment: "Accessibility value of the AI panel toggle while its ring shows an Ask this site search running"))
         } else if app.readyAnswer != nil {
             parts.append(String(localized: "Answer ready", comment: "AI drawer status row: an Ask the forum answer finished"))
         }

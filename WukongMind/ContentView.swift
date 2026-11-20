@@ -693,11 +693,11 @@ struct AddressError: Identifiable {
 
     var message: String {
         if isPath, !hasForum {
-            return String(localized: "Open a forum first, then enter a path such as /about.")
+            return String(localized: "Open a site first, then enter a path such as /about.")
         }
         return hasForum
-            ? String(localized: "Enter a web address such as meta.discourse.org or a full https:// link. A path such as /about opens on the current forum.")
-            : String(localized: "Enter a web address such as meta.discourse.org or a full https:// link.")
+            ? String(localized: "Enter a web address such as en.wikipedia.org or a full https:// link. A path such as /about opens on the current site.")
+            : String(localized: "Enter a web address such as en.wikipedia.org or a full https:// link.")
     }
 }
 
@@ -737,7 +737,7 @@ struct LoginReadinessView: View {
     private var loginURL: URL? { app.loginURL }
 
     private var forumHost: String {
-        browser.homeSiteURL.map { ForumSite.host(of: $0) } ?? String(localized: "the forum")
+        browser.homeSiteURL.map { ForumSite.host(of: $0) } ?? String(localized: "the site")
     }
 
     var body: some View {
@@ -746,7 +746,7 @@ struct LoginReadinessView: View {
                 Section {
                     // Explicit rows: LabeledContent stretches these rows to
                     // several hundred points on compact (iPhone) widths.
-                    statusRow("Forum session") {
+                    statusRow("Site session") {
                         Label(
                             browser.isAuthenticated ? "Signed in" : "Not signed in",
                             systemImage: browser.isAuthenticated
@@ -762,7 +762,7 @@ struct LoginReadinessView: View {
                 }
 
                 Section("Signing in") {
-                    Text("Sign in on the forum’s page with your username and password, email link, or the forum’s single sign-on. Your session stays in this app’s browser, so summaries and Ask the forum can read topics you can see.")
+                    Text("Sign in on the site’s page with your username and password, email link, or single sign-on. Your session stays in this app’s browser, so summaries and Ask this site can read pages you can see.")
                     .foregroundStyle(.secondary)
                 }
 
@@ -772,7 +772,7 @@ struct LoginReadinessView: View {
                             app.loadLogin()
                             dismiss()
                         } label: {
-                            Label("Open forum sign in", systemImage: "person.badge.key")
+                            Label("Open site sign in", systemImage: "person.badge.key")
                         }
 
                         Link(destination: loginURL) {
@@ -781,7 +781,7 @@ struct LoginReadinessView: View {
                     }
                 }
             }
-            .navigationTitle("Forum Login")
+            .navigationTitle("Site Login")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

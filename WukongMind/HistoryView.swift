@@ -333,9 +333,9 @@ struct HistoryView: View {
                 forumFilter = nil
             } label: {
                 if forumFilter == nil {
-                    Label("All forums", systemImage: "checkmark")
+                    Label("All sites", systemImage: "checkmark")
                 } else {
-                    Text("All forums")
+                    Text("All sites")
                 }
             }
             Section {
@@ -371,8 +371,8 @@ struct HistoryView: View {
         }
         .accessibilityLabel(
             forumFilter.map {
-                String(localized: "Forum: \(app.forumInfo(siteURL: $0).displayName)", comment: "Accessibility label of Manage's forum filter; the placeholder is a forum name")
-            } ?? String(localized: "Forum: all forums")
+                String(localized: "Site: \(app.forumInfo(siteURL: $0).displayName)", comment: "Accessibility label of Manage's site filter; the placeholder is a site name")
+            } ?? String(localized: "Site: all sites")
         )
         .accessibilityIdentifier("historyForumFilter")
     }
@@ -397,7 +397,7 @@ struct HistoryView: View {
     private func watchingSection(_ items: [WatchedTopic]) -> some View {
         Section {
             if items.isEmpty {
-                emptyRow("Watch a topic from the Assistant menu, or let the agent watch one.", systemImage: "eye")
+                emptyRow("Follow a discussion from the Assistant menu, or let the agent follow one.", systemImage: "eye")
             } else {
                 forumGrouped(items, siteURL: \.siteURL) { watchedRow($0) }
             }
@@ -421,7 +421,7 @@ struct HistoryView: View {
     private func asksSection(_ items: [AgentRun]) -> some View {
         Section {
             if items.isEmpty {
-                emptyRow("Questions you ask the forum will appear here.", systemImage: "sparkle.magnifyingglass")
+                emptyRow("Questions you ask a site will appear here.", systemImage: "sparkle.magnifyingglass")
             } else {
                 // Answers from ordinary pages follow the forums, as "Other sites".
                 let otherSites = items.filter { !app.isForumRecord($0) }
