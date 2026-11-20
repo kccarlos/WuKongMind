@@ -214,6 +214,9 @@ Ordered by felt value per effort. Each is one pull request with its own check. S
 
 - Baseline of the suites the tasks build on, run on the Mac mini at `6d122e1` (iPhone 18 Pro simulator): `MotionTests`, `BrowserBarMorphTests`, `DrawerPerformanceTests`, `HomeTests`, `OnboardingTests`: 58 tests, 0 failures. Hosted drawer numbers from that run (Debug, simulator), across its 18 fixtures: open 37.1 to 75.4 ms, keystroke median 1.4 to 7.9 ms, scroll step median 8.0 to 15.1 ms. They are the simulator "before" for task 2, apart from the `running` fixture it adds.
 - The iPhone 13 numbers cited (drawer open 144 to 166 ms, typing 192 ms per key) are from [design-performance-2.md](design-performance-2.md), not re-measured here.
+- **Address-bar baseline (task 3, Mac mini, iPhone 18 Pro simulator, Debug, `-dc-perf-probe`, `AddressBarPerfUITests`):**
+  - `tap_to_edit_bar` (`browserTitle` tap on `-dc-bar-morph-fixture short`): `m:addressEdit.tap=88` ms, `f:addressEdit.tap=89` ms, `h:AddressEditBar.body=97/394x3`, `m:addressEdit.focus=280` ms, `f:addressEdit.focus=391` ms, `busy_ms=405` ms (main-thread pass `p:87+338` ms for bar + keyboard).
+  - `home_keystrokes` (20 characters typed in `homeAddress` with `-dc-forums-home -dc-seed-forums`): `busy_ms=1116` (`55.80` ms/key), `passes=427` (`21.35`/key), `over16=24` (`1.20`/key), `over33=7` (`0.35`/key), `over50=0`, `n:HomeList.body=20` (`1.00`/key), `n:HomeSites.matches=20` (`1.00`/key), `us:HomeSites.matches=712` (`35.60` µs/key).
 
 ## 7. Not proven
 

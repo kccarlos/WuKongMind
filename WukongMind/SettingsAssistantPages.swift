@@ -45,8 +45,8 @@ struct SettingsSitesPage: View {
                         SettingsIcon(page: .forums)
                     } title: {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Forums")
-                            Text("Saved sites, search & pins", comment: "Settings › Sites › Forums row subtitle")
+                            Text(SettingsPage.forums.title)
+                            Text("Pinned and visited sites", comment: "Settings › Sites › Pinned sites row subtitle")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -78,7 +78,7 @@ struct SettingsSitesPage: View {
                 }
                 .accessibilityIdentifier("settingsRow-watched")
             } header: {
-                Text("Forums")
+                Text("Saved", comment: "Settings › Sites section header for pinned sites and followed discussions")
             }
 
             ForumRequestPaceSection(app: app)
@@ -247,7 +247,7 @@ struct SettingsAgentPage: View {
                 Text("Safety", comment: "Settings › Agent section header for confirmation settings")
             } footer: {
                 Text(
-                    "Confirm before writes asks before the Agent sends a network request. Reading cookies, and sending your login to another site, always ask; cookie values stay hidden unless Give cookie values to the model is on.",
+                    "Confirm before writes asks before the Agent sends a network request, posts a notification, or runs a script tool that can make changes (it does not prompt for JavaScript on the open page). Reading cookies, and sending your login to another site, always ask; cookie values stay hidden unless Give cookie values to the model is on. Saving or updating a script asks for approval unless Save scripts without asking is on.",
                     comment: "Settings › Agent › Safety footer explaining the safety switches"
                 )
             }

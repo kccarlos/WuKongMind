@@ -258,6 +258,10 @@ struct SettingsHelpPage: View {
                     Label("Privacy Policy", systemImage: "hand.raised")
                 }
                 .accessibilityIdentifier("settingsAboutPrivacyPolicy")
+                Link(destination: AppVersion.termsURL) {
+                    Label("Terms of Use", systemImage: "doc.text")
+                }
+                .accessibilityIdentifier("settingsAboutTermsOfUse")
                 Link(destination: AppVersion.websiteURL) {
                     Label("Website", systemImage: "globe")
                 }

@@ -376,7 +376,8 @@ final class LearnedSiteRepairWebTests: XCTestCase {
 
         @MainActor func context(_ learned: LearnedSiteContext) -> AgentToolContext {
             AgentToolContext(
-                bridge: bridge, workspace: workspace, scriptStore: scriptStore, liveApplier: controller, network: client,
+                bridge: bridge, workspace: workspace, scriptStore: scriptStore, liveApplier: controller,
+                settings: AgentToolSettings(saveScriptsWithoutAsking: true), network: client,
                 learnedSite: learned, pageTools: PageToolContext(bridge: pageToolBridge, scriptStore: scriptStore), siteToolStateStore: stateStore
             )
         }

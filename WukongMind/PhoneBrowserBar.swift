@@ -264,6 +264,7 @@ private struct PhoneBarObserverHost: View {
                 browser.setExternalKeyboardFrozen(active)
             }
             .onChange(of: addressFocusRequest) {
+                PerfProbe.mark("addressEdit.tap")
                 browser.expandChrome(deferIfTracking: false)
                 browser.setEditingAddress(true)
             }
@@ -362,6 +363,7 @@ private struct AddressEditBar: View {
     }
 
     var body: some View {
+        let _ = PerfProbe.hit("AddressEditBar.body")
         HStack(spacing: DCTheme.spacingS) {
             HStack(spacing: 6) {
                 Image(systemName: "globe")
@@ -386,6 +388,7 @@ private struct AddressEditBar: View {
                     ) { notification in
                         guard let textField = notification.object as? UITextField else { return }
                         didGainFocus = true
+                        PerfProbe.mark("addressEdit.focus")
                         textField.selectAll(nil)
                     }
                     .task(id: browser.addressFocusRequest) {
@@ -481,11 +484,13 @@ private struct AddressEditBar: View {
 
     /// An address opens; other words search the current forum.
     private func commitAddress() {
-        let query = addressDraft.trimmingCharacters(in: .whitespacesAndNewlines)
-        if browser.open(address: addressDraft) {
-            closeAddressBar()
-        } else if !query.isEmpty, let url = app.searchPageURL(query: query) ?? app.webSearchURL(query: query) {
-            browser.load(url)
+        let context = AddressInput.Context(
+            currentSiteURL: browser.homeSiteURL,
+            forumSearchURL: { app.searchPageURL(query: $0) },
+            webSearchURL: { app.webSearchURL(query: $0) }
+        )
+        if let action = AddressInput.actions(for: addressDraft, context: context).first {
+            browser.load(action.url)
             closeAddressBar()
         } else {
             addressError = AddressError(address: addressDraft, hasForum: browser.homeSiteURL != nil)
@@ -651,6 +656,7 @@ private struct PhoneOnlyMorphingBarHost: View {
                     reduceTransparency: reduceTransparency,
                     increasedContrast: increasedContrast,
                     onEdit: {
+                        PerfProbe.mark("addressEdit.tap")
                         browser.expandChrome(deferIfTracking: false)
                         browser.setEditingAddress(true)
                     }
@@ -763,6 +769,7 @@ private struct PhoneMorphingBarHost: View {
                 reduceTransparency: reduceTransparency,
                 increasedContrast: increasedContrast,
                 onEdit: {
+                    PerfProbe.mark("addressEdit.tap")
                     browser.expandChrome(deferIfTracking: false)
                     browser.setEditingAddress(true)
                     router.addressEditRevision &+= 1

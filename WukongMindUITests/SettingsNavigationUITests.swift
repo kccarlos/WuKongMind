@@ -63,7 +63,7 @@ final class SettingsNavigationUITests: DCUITestCase {
             XCTAssertTrue(waitForGone(app.navigationBars[page.title], timeout: 5))
         }
 
-        // Sites sub-pages: Forums and Following push and pop cleanly.
+        // Sites sub-pages: Pinned sites and Following push and pop cleanly.
         let sitesRow = app.buttons["settingsRow-sites"]
         XCTAssertTrue(revealRow(sitesRow, in: app))
         sitesRow.tap()
@@ -71,7 +71,12 @@ final class SettingsNavigationUITests: DCUITestCase {
         let forumsRow = app.buttons["settingsRow-forums"]
         XCTAssertTrue(reveal(forumsRow, in: app))
         forumsRow.tap()
-        XCTAssertTrue(app.navigationBars["Forums"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Pinned sites"].waitForExistence(timeout: 10))
+        XCTAssertFalse(app.staticTexts["Suggested"].exists, "Settings › Sites must not show a Suggested forums list.")
+        let pinnedShot = XCTAttachment(screenshot: app.screenshot())
+        pinnedShot.name = "settings-pinned-sites"
+        pinnedShot.lifetime = .keepAlways
+        self.add(pinnedShot)
         tapNavigationBack(in: app)
         XCTAssertTrue(app.navigationBars["Sites"].waitForExistence(timeout: 10))
         let watchedRow = app.buttons["settingsRow-watched"]

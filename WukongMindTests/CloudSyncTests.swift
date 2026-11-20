@@ -1243,6 +1243,32 @@ final class CloudSyncTests: XCTestCase {
         XCTAssertEqual(b.sync.status, .upToDate)
     }
 
+    /// A pinned ordinary site (kind `.web`, no built-in reader) round-trips through
+    /// iCloud sync and unpinning on another device syncs back cleanly.
+    func testPinnedWebSiteWithNoReaderSyncsRoundTrip() async throws {
+        let webSite = "https://en.wikipedia.org"
+        let a = try makeDevice(AppSnapshot(forums: [
+            Forum(siteURL: webSite, kind: .web, name: "Wikipedia", isPinned: true, pinOrder: 0)
+        ]))
+        let b = try makeDevice()
+        await sync(a, b, a, b)
+
+        let synced = try XCTUnwrap(b.app.forum(for: webSite))
+        XCTAssertEqual(synced.kind, .web)
+        XCTAssertEqual(synced.name, "Wikipedia")
+        XCTAssertTrue(synced.isPinned)
+        XCTAssertFalse(synced.hasReader)
+        XCTAssertNil(b.app.adapter(for: webSite))
+        XCTAssertTrue(try serverPlaintexts()[name(.forum, webSite)]?.contains("\"web\"") ?? false)
+
+        // Unpinning on B syncs back to A without losing the `.web` kind.
+        b.app.unpin(synced)
+        await sync(b, a, b, a)
+        let afterUnpin = try XCTUnwrap(a.app.forum(for: webSite))
+        XCTAssertEqual(afterUnpin.kind, .web)
+        XCTAssertFalse(afterUnpin.isPinned)
+    }
+
     func testMergeKeepsTheKindUnitWhenOneSideHasNone() {
         let t1 = Date(timeIntervalSince1970: 1_000), t2 = Date(timeIntervalSince1970: 2_000)
         let withKind = SyncRecord(kind: .forum, id: site, fields: ["name": .string("A"), "kind": .string("discourse")], stamps: ["name": t1, "kind": t1])

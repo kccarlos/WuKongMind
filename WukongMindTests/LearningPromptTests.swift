@@ -394,7 +394,7 @@ final class LearningPromptTests: XCTestCase {
                 registryBuilder: { bridge, limit, secrets in
                     ToolRegistry.m3(context: AgentToolContext(
                         bridge: bridge, workspace: workspace, scriptStore: scriptStore, liveApplier: controller,
-                        settings: AgentToolSettings(truncationLimit: limit, redactedSecrets: secrets),
+                        settings: AgentToolSettings(truncationLimit: limit, redactedSecrets: secrets, saveScriptsWithoutAsking: true),
                         learnedSite: makeLearned(), capabilities: capabilities,
                         pageTools: PageToolContext(bridge: pageToolBridge, scriptStore: scriptStore), siteToolStateStore: stateStore
                     ))

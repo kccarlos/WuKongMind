@@ -150,17 +150,28 @@ struct OnboardingModelPage: View {
             .overlay {
                 RoundedRectangle(cornerRadius: DCTheme.radiusLg, style: .continuous).strokeBorder(DCTheme.hairline)
             }
-            HStack(spacing: DCTheme.spacingM) {
+            VStack(alignment: .leading, spacing: DCTheme.spacingS) {
+                HStack(spacing: DCTheme.spacingM) {
+                    Label {
+                        Text("Keys stay in the Keychain", comment: "First-run step 1 footnote")
+                    } icon: {
+                        Image(systemName: "key.fill")
+                    }
+                    Spacer(minLength: 0)
+                    Link(destination: AppVersion.privacyPolicyURL) {
+                        Text("Privacy Policy", comment: "First-run step 1: link to WukongMind's privacy policy")
+                    }
+                    .accessibilityIdentifier("onboardingPrivacyPolicy")
+                }
                 Label {
-                    Text("Keys stay in the Keychain", comment: "First-run step 1 footnote")
+                    Text(
+                        "The Agent can read and act on pages you’re signed in to, and asks before saving scripts or sending requests.",
+                        comment: "First-run step 1 footnote explaining that the Agent can act on signed-in pages and asks before saving scripts or sending requests"
+                    )
                 } icon: {
-                    Image(systemName: "key.fill")
+                    Image(systemName: "person.badge.shield.checkmark")
                 }
-                Spacer(minLength: 0)
-                Link(destination: AppVersion.privacyPolicyURL) {
-                    Text("Privacy Policy", comment: "First-run step 1: link to WukongMind's privacy policy")
-                }
-                .accessibilityIdentifier("onboardingPrivacyPolicy")
+                .accessibilityIdentifier("onboardingAgentNotice")
             }
             .font(.footnote)
             .foregroundStyle(DCTheme.inkMuted)
@@ -264,7 +275,7 @@ struct OnboardingSitePage: View {
     let onSubmit: () -> Void
     @FocusState private var focused: Bool
 
-    static var suggestions: [SuggestedForum] { Array(AppModel.onboardingSuggestions().prefix(4)) }
+    static var suggestions: [SuggestedSite] { Array(AppModel.onboardingSuggestions().prefix(4)) }
 
     var body: some View {
         OnboardingPage(spacing: DCTheme.spacingXL) {
@@ -343,7 +354,7 @@ struct OnboardingSitePage: View {
         }
     }
 
-    private func siteRow(_ site: SuggestedForum) -> some View {
+    private func siteRow(_ site: SuggestedSite) -> some View {
         let isOn = selectedSiteURL == site.siteURL
         return Button {
             DCHaptics.selection()

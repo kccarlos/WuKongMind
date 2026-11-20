@@ -576,8 +576,16 @@ private struct AgentRunSectionView: View, Equatable {
                     }
                     .accessibilityIdentifier("agentSources")
                 }
-                if model.developerMode, let info = run.finalTurn {
-                    DevDetailsButton(app: app, session: session, taskID: run.id.uuidString, info: info)
+                if !run.state.isRunning || (model.developerMode && run.finalTurn != nil) {
+                    HStack(spacing: 8) {
+                        if model.developerMode, let info = run.finalTurn {
+                            DevDetailsButton(app: app, session: session, taskID: run.id.uuidString, info: info)
+                        }
+                        Spacer(minLength: 0)
+                        if !run.state.isRunning {
+                            answerMenu(run: run, reply: reply)
+                        }
+                    }
                 }
             }
 
@@ -651,6 +659,44 @@ private struct AgentRunSectionView: View, Equatable {
                 .background(DCTheme.surfaceRaised, in: DCUserBubbleShape())
                 .accessibilityIdentifier("agentUserMessage")
         }
+    }
+
+    @ViewBuilder
+    private func answerMenu(run: BrowserAgentRun, reply: String) -> some View {
+        Menu {
+            Button {
+                UIPasteboard.general.string = reply
+                DCHaptics.success()
+            } label: {
+                Label(String(localized: "Copy", comment: "Button to copy an AI answer"), systemImage: "doc.on.doc")
+            }
+            .accessibilityIdentifier("copyAgentAnswer")
+
+            ShareLink(item: reply) {
+                Label(String(localized: "Share", comment: "Button to share an AI answer"), systemImage: "square.and.arrow.up")
+            }
+            .accessibilityIdentifier("shareAgentAnswer")
+
+            Divider()
+
+            Button {
+                if let target = app.agentAnswerReportTarget(for: run, reply: reply) {
+                    app.reportAIOutput(target)
+                }
+            } label: {
+                Label(String(localized: "Report this answer", comment: "Answer menu action to report objectionable or inaccurate AI output"), systemImage: "flag")
+            }
+            .accessibilityIdentifier("reportAgentAnswer")
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .frame(minWidth: 32, minHeight: 28)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(String(localized: "Answer actions", comment: "Accessibility label for an AI answer's menu"))
+        .accessibilityIdentifier("agentAnswerMenu")
     }
 
     @ViewBuilder

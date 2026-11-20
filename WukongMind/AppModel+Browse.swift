@@ -8,8 +8,6 @@ import SwiftUI
 // - `showsTodayPage`               the Today page pushed over Home
 // - `todayModuleState`             the Today module's state (HomeState.swift)
 // - `applyLaunchRuleIfNeeded()`    the first activation: Home or the last forum
-// - `suggestedForumsToOffer`       suggested forums not added yet
-// - `pinSuggested(_:)`             pins a suggested forum at once, then fetches its name/icon
 // - `askForum(_:)`                 opens the forum and the Agent, "Search this forum…" in the box
 // - `isCurrent(_:)`                forum of the current page (or the current forum)
 
@@ -148,18 +146,6 @@ extension AppModel {
             // dismiss it as it starts.
             browser.showForumsHome(overPendingLoad: true)
         }
-    }
-
-    /// Suggested forums the user has not added yet.
-    var suggestedForumsToOffer: [SuggestedForum] {
-        Self.suggestedForums.filter { forum(for: $0.siteURL) == nil }
-    }
-
-    /// Pins a suggested forum immediately (no network), then refreshes its name
-    /// and icon from `basic-info.json` in the background.
-    func pinSuggested(_ suggested: SuggestedForum) {
-        pin(Forum(siteURL: suggested.siteURL, kind: suggested.kind, name: suggested.name))
-        refreshForumInfo(siteURL: suggested.siteURL)
     }
 
     /// "Ask the forum": opens the forum and the Agent, with "Search this
@@ -380,6 +366,11 @@ extension AppModel {
             config.model = "claude-haiku-5-5"
             settings.setConfiguration(config, for: .anthropic)
             settings.setModel(ModelSelection(provider: .anthropic, model: "claude-haiku-5-5"), for: .assistant)
+            // Demo mode uses the local offline `BrowserAgentDemoClient` (never contacts
+            // Anthropic), so pre-allow consent unless a test explicitly checks the gate.
+            if !AssistantDebug.has("-dc-ask-ai-consent") {
+                settings.aiConsent[AIProvider.anthropic.rawValue] = .allowed(Date())
+            }
             if demoMode == "no-model" {
                 settings.setModel(ModelSelection(provider: .anthropic, model: ""), for: .browserAgent)
             } else if demoMode == "run-limit" {

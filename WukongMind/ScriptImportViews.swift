@@ -157,7 +157,7 @@ struct ScriptImportSheet: View {
                     if !review.unsupportedItems.isEmpty { unsupportedSection(items: review.unsupportedItems) }
                     codeSection(source: review.rawSource, lineCount: review.lineCount, addedLines: diff.addedCodeLines)
                 }
-                if !isRegularLayout { askAgentButton(for: review) }
+                if !isRegularLayout && !review.isAgentProposal { askAgentButton(for: review) }
             }
             .padding(.horizontal, isRegularLayout ? 24 : 16).padding(.top, 8).padding(.bottom, 20)
         }
@@ -308,6 +308,17 @@ struct ScriptImportSheet: View {
         for lib in diff.removedLibraries {
             rows.append(.init(id: "rl-\(lib)", symbol: "minus", title: String(localized: "Library removed", comment: "Update diff row when a @require library was removed"), monoSubtitle: Self.compactLibraryDisplay(lib)))
         }
+        if diff.turnedOn {
+            rows.append(.init(id: "turned-on", symbol: "power", title: String(localized: "Turns the script on", comment: "Update diff row when an update enables a disabled script"), isNew: true))
+        }
+        if let env = diff.changedEnvironment {
+            switch env {
+            case .page:
+                rows.append(.init(id: "env-page", symbol: "exclamationmark.shield", title: String(localized: "Runs in the page’s JavaScript world", comment: "Capability row when a script runs in the page's JavaScript world instead of an isolated world"), isNew: true, isDanger: true))
+            case .isolated:
+                rows.append(.init(id: "env-isolated", symbol: "shield", title: String(localized: "Runs in an isolated JavaScript world", comment: "Update diff row when an update switches a script to the isolated JavaScript world")))
+            }
+        }
         let grantNote = diff.grantsUnchanged ? String(localized: "Grants are the same.", comment: "Update diff note when no @grant or @connect permissions changed") : nil
         rows.append(.init(id: "lines", symbol: "info.circle", title: String(localized: "\(diff.changedLineCount) lines changed", comment: "Update diff summary counting modified lines in the userscript"), subtitle: grantNote))
 
@@ -392,7 +403,9 @@ struct ScriptImportSheet: View {
             footerContainer {
                 if isRegularLayout {
                     HStack(spacing: 8) {
-                        askAgentButton(for: review)
+                        if !review.isAgentProposal {
+                            askAgentButton(for: review)
+                        }
                         Spacer(minLength: 8)
                         actionButtons(for: review, sessionID: sessionID, fullWidth: false)
                     }

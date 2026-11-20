@@ -39,6 +39,8 @@ final class OnboardingUITests: DCUITestCase {
         XCTAssertTrue(reveal(any(app, "onboardingProvider-other"), in: app), "Other provider is not offered.")
         XCTAssertTrue(reveal(any(app, "onboardingProvider-openrouter"), in: app), "OpenRouter is not offered.")
         XCTAssertTrue(reveal(any(app, "onboardingProvider-openai"), in: app), "OpenAI is not offered.")
+        XCTAssertTrue(reveal(any(app, "onboardingAgentNotice"), in: app), "First-run notice about Agent acting on signed-in pages is missing.")
+        capture("onboarding-step1-agent-notice")
         XCTAssertTrue(waitForHittable(app.buttons["onboardingContinue"]))
         let later = app.buttons["onboardingSkipStep"]
         XCTAssertTrue(waitForHittable(later))
@@ -51,6 +53,10 @@ final class OnboardingUITests: DCUITestCase {
                 .firstMatch.waitForExistence(timeout: 5),
             "No suggested sites."
         )
+        let step2Shot = XCTAttachment(screenshot: app.screenshot())
+        step2Shot.name = "onboarding-step2-starter-sites"
+        step2Shot.lifetime = .keepAlways
+        self.add(step2Shot)
         let back = app.buttons["onboardingBack"]
         XCTAssertTrue(waitForHittable(back))
         back.tap()
@@ -67,6 +73,13 @@ final class OnboardingUITests: DCUITestCase {
         // 3 Try the Agent once: over the real browser, two suggestions; Skip
         // ends in the "You're set" card and Done closes it.
         XCTAssertTrue(waitForGone(any(app, "onboarding"), timeout: 10), "The walkthrough did not close.")
+        let termsGate = any(app, "termsGate")
+        XCTAssertTrue(waitOrDump(termsGate, timeout: 15, in: app), "Terms of Use gate did not appear after onboarding.")
+        let agree = app.switches["termsAgree"].firstMatch
+        XCTAssertTrue(waitForHittable(agree))
+        agree.tap()
+        app.buttons["termsContinue"].tap()
+        XCTAssertTrue(waitForGone(termsGate, timeout: 10), "Terms gate did not dismiss.")
         let panel = any(app, "onboardingTryPanel")
         XCTAssertTrue(waitOrDump(panel, timeout: 20, in: app), "Step 3 did not show.")
         assertStep(3, any(app, "onboardingProgress"))
@@ -87,10 +100,13 @@ final class OnboardingUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(panel, timeout: 20, in: app), "Step 3 did not show.")
         assertStep(3, any(app, "onboardingProgress"))
         XCTAssertTrue(app.buttons["onboardingTrySkip"].waitForExistence(timeout: 5))
-        let hasSuggestions = suggestionButtons(app).count == 2
+        let suggestions = suggestionButtons(app)
         let setup = any(app, "providerSetupCard")
-        XCTAssertTrue(hasSuggestions || setup.exists, "Neither the suggestions nor the model setup card showed.")
-        if hasSuggestions {
+        XCTAssertTrue(
+            wait(timeout: 5) { suggestions.count == 2 || setup.exists },
+            "Neither the suggestions nor the model setup card showed."
+        )
+        if suggestions.count == 2 {
             XCTAssertTrue(any(app, "agentPromptInput").exists, "The shared Agent input box is missing.")
         }
         // Leave the first run closed for the other tests.
