@@ -2592,6 +2592,8 @@ final class AppModel: ObservableObject {
             flushPendingSaves()
         case .background:
             flushPendingSaves()
+            // Live voice holds the microphone and WebSocket open; end it when leaving the foreground.
+            voice.end()
             watchTimer?.cancel()
             watchTimer = nil
             if !watchedTopics.isEmpty { WatchBackgroundRefresh.schedule() }

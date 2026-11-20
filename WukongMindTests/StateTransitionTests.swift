@@ -1027,6 +1027,23 @@ final class StateTransitionTests: XCTestCase {
         XCTAssertEqual(app.activities.first?.status, .completed)
     }
 
+    func testBackgroundingEndsActiveVoiceSession() async throws {
+        let harness = makeHarness()
+        let app = harness.app
+        app.voice.useScriptedSession = true
+        var configuration = app.settings.configuration(for: .gemini)
+        configuration.apiKey = "test-gemini-key"
+        app.setConfiguration(configuration, for: .gemini)
+        app.settings.voiceEnabled = true
+
+        app.voice.start()
+        XCTAssertTrue(app.voice.isActive)
+
+        app.handleScenePhase(.background)
+        XCTAssertFalse(app.voice.isActive)
+        XCTAssertEqual(app.voice.session?.state, .ended(.user))
+    }
+
     // MARK: 12. Progress
 
     /// The fetch and each summary step reported by the provider move

@@ -189,13 +189,17 @@ app_entitlements_path =
   end
 
 # The app's Info.plist: the committed file, or with CloudKit on a copy in
-# WukongMind/Generated/ (git-ignored) that adds NSUbiquitousContainers, so the
-# container shows as a "WukongMind" folder in iCloud Drive. The key is the
-# literal container ID: Xcode doesn't expand build settings in plist keys.
+# WukongMind/Generated/ (git-ignored) that adds NSUbiquitousContainers (so the
+# container shows as a "WukongMind" folder in iCloud Drive) and the
+# remote-notification background mode for silent CloudKit pushes. The key is
+# the literal container ID: Xcode doesn't expand build settings in plist keys.
 base_info_plist_path = "WukongMind/Info.plist"
 app_info_plist_path =
   if cloudkit_enabled
     info = Xcodeproj::Plist.read_from_path(File.join(root, base_info_plist_path))
+    modes = Array(info["UIBackgroundModes"])
+    modes << "remote-notification" unless modes.include?("remote-notification")
+    info["UIBackgroundModes"] = modes
     info["NSUbiquitousContainers"] = {
       "iCloud.#{bundle_id_prefix}" => {
         "NSUbiquitousContainerIsDocumentScopePublic" => false,

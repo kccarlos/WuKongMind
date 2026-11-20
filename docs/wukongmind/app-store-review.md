@@ -319,8 +319,9 @@ The owner's principles (2026-11-19) apply to every task: speed first (a task tha
 - **Files:** `WukongMind/Onboarding.swift`, `WukongMind/OnboardingSteps.swift`, `WukongMind/AppModel+Models.swift` (around 276-347, 520-530), `WukongMindUITests`.
 - **Check:** a UI test from a clean launch with no key reaches a page and the setup card; a second pastes a fake key along the documented path.
 
-### Task 7: privacy manifest, purpose strings, background modes
+### Task 7: privacy manifest, purpose strings, background modes (done)
 
+- **Done:** replaced `ProcessInfo.processInfo.systemUptime` in `WukongMind/BrowserTabsOverview.swift` (`TabCycleShortcutGate`) with `ContinuousClock.now` so `NSPrivacyAccessedAPICategorySystemBootTime` is not used or needed; changed "forum page(s)" to "web page(s)" in `NSCameraUsageDescription`, `NSMicrophoneUsageDescription` and `NSPhotoLibraryAddUsageDescription` in `WukongMind/Info.plist` and all three languages of `WukongMind/InfoPlist.xcstrings`; moved `remote-notification` out of `WukongMind/Info.plist` and into `scripts/generate_project.rb` only when `DC_ENABLE_CLOUDKIT=YES`; ended active live voice sessions (`voice.end()`) on `.background` in `WukongMind/AppModel.swift`.
 - **What:** add `NSPrivacyAccessedAPICategorySystemBootTime` with reason `35F9.1` to `WukongMind/PrivacyInfo.xcprivacy` (or replace `systemUptime` at `BrowserTabsOverview.swift:1322` with `ContinuousClock`). Change "forum page" to "web page" in the camera, microphone and photo strings, in all three languages. Declare `remote-notification` only when CloudKit is enabled. Decide what live voice does when the app goes to the background (stop, or keep and say so in the notes).
 - **Why:** upload checks for required-reason APIs; 5.1.1(ii); 2.5.4.
 - **Files:** `WukongMind/PrivacyInfo.xcprivacy`, `WukongMind/Info.plist`, `WukongMind/InfoPlist.xcstrings`, `scripts/generate_project.rb`, `WukongMind/Voice/VoiceAudioEngine.swift`.
