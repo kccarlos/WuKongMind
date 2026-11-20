@@ -160,7 +160,6 @@ struct SettingsDataPage: View {
 struct SettingsHelpPage: View {
     @ObservedObject var app: AppModel
     @Environment(\.replayOnboarding) private var replayOnboarding
-    @Environment(\.openURL) private var openURL
 
     var body: some View {
         Form {

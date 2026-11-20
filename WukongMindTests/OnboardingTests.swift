@@ -62,7 +62,7 @@ final class OnboardingTests: XCTestCase {
     }
 
     func testProviderGuideHasNoBannedPricingOrPurchaseWords() {
-        let bannedWords = ["buy", "credit", "credits", "price", "prices", "pricing", "purchase", "low-cost", "subscription", "$"]
+        let bannedWords = ["buy", "credit", "credits", "price", "prices", "pricing", "purchase", "low-cost", "subscription", "free", "bill", "billed", "$"]
         for provider in AIProvider.allCases {
             let guide = ProviderGuide.guide(for: provider)
             let texts = [guide.blurb, guide.linkTitle, guide.note].compactMap { $0 }

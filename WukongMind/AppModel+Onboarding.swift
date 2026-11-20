@@ -117,7 +117,7 @@ struct ProviderGuide: Equatable {
         switch provider {
         case .appleIntelligence:
             ProviderGuide(
-                blurb: String(localized: "Built in and private. Runs on this device or on Apple’s Private Cloud Compute; nothing goes anywhere else. No key, no bill."),
+                blurb: String(localized: "Built in and private. Runs on this device or on Apple’s Private Cloud Compute; nothing goes anywhere else. No key needed."),
                 link: URL(string: "https://www.apple.com/apple-intelligence/")!,
                 linkTitle: String(localized: "About Apple Intelligence"),
                 note: String(localized: "Needs iOS 26 or later on a device that supports Apple Intelligence, with Apple Intelligence turned on in Settings.")
@@ -142,26 +142,26 @@ struct ProviderGuide: Equatable {
             )
         case .groq:
             ProviderGuide(
-                blurb: String(localized: "Very fast open models, with a free tier."),
+                blurb: String(localized: "Very fast open models."),
                 link: URL(string: "https://console.groq.com/keys")!,
                 linkTitle: String(localized: "Get a key at console.groq.com")
             )
         case .gemini:
             ProviderGuide(
-                blurb: String(localized: "Gemini models from Google, with a free tier."),
+                blurb: String(localized: "Gemini models from Google."),
                 link: URL(string: "https://aistudio.google.com/app/apikey")!,
                 linkTitle: String(localized: "Get a key in Google AI Studio")
             )
         case .vertexAI:
             ProviderGuide(
-                blurb: String(localized: "Gemini models through your Google Cloud project, billed to it."),
+                blurb: String(localized: "Gemini models through your Google Cloud project."),
                 link: URL(string: "https://console.cloud.google.com/apis/credentials")!,
                 linkTitle: String(localized: "Get a key in the Google Cloud console"),
                 note: String(localized: "Use a Vertex AI API key. The model list is built in; you can also type any Gemini model ID that your project can use.")
             )
         case .ollama:
             ProviderGuide(
-                blurb: String(localized: "Runs on your own computer. No key and no usage bill."),
+                blurb: String(localized: "Runs on your own computer. No key needed."),
                 link: URL(string: "https://ollama.com/download")!,
                 linkTitle: String(localized: "Download Ollama"),
                 note: String(localized: "Use your computer’s network address (for example http://192.168.1.20:11434), not localhost, and start Ollama with OLLAMA_HOST=0.0.0.0 so your iPhone or iPad can reach it."),
@@ -181,7 +181,7 @@ struct ProviderGuide: Equatable {
             )
         case .lmStudio:
             ProviderGuide(
-                blurb: String(localized: "Runs on your own computer. No key and no usage bill."),
+                blurb: String(localized: "Runs on your own computer. No key needed."),
                 link: URL(string: "https://lmstudio.ai")!,
                 linkTitle: String(localized: "Download LM Studio"),
                 note: String(localized: "Turn on “Serve on Local Network” in LM Studio and use your computer’s network address (for example http://192.168.1.20:1234/v1).", comment: "“Serve on Local Network” is the name of a setting in LM Studio (English UI)."),
