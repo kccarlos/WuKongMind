@@ -1,0 +1,34 @@
+{
+  "html_lang": "zh-Hant",
+  "label": "繁體中文",
+  "skip": "跳到內文",
+  "nav_label": "頁面",
+  "lang_label": "語言",
+  "footer_label": "頁尾",
+  "footer_note": "WukongMind 是開源軟體。原始碼、問題回報與發佈請見 <a href=\"{{repo_url}}\">GitHub</a>。",
+  "nav": {
+    "features": "功能",
+    "privacy": "隱私權",
+    "support": "支援",
+    "terms": "條款"
+  },
+  "home": "首頁",
+  "pages": {
+    "home": {
+      "title": "WukongMind 瀏覽器：任何網頁上的 AI 代理",
+      "description": "適用於 iPhone 與 iPad 的瀏覽器，AI 代理可以讀取、修改並自動化任何網頁。無帳號、無分析，使用你自己的 AI。"
+    },
+    "privacy": {
+      "title": "隱私權 | WukongMind 瀏覽器",
+      "description": "WukongMind 收集什麼（什麼都不收集），以及使用 AI 代理時資料的去向。"
+    },
+    "support": {
+      "title": "支援 | WukongMind 瀏覽器",
+      "description": "取得 WukongMind 的協助：聯絡方式、問題回報與常見問題。"
+    },
+    "terms": {
+      "title": "條款 | WukongMind 瀏覽器",
+      "description": "使用 WukongMind 的條款。"
+    }
+  }
+}

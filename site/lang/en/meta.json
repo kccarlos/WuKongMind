@@ -1,0 +1,34 @@
+{
+  "html_lang": "en",
+  "label": "English",
+  "skip": "Skip to content",
+  "nav_label": "Pages",
+  "lang_label": "Language",
+  "footer_label": "Footer",
+  "footer_note": "WukongMind is open source. The source, issues and releases are on <a href=\"{{repo_url}}\">GitHub</a>.",
+  "nav": {
+    "features": "Features",
+    "privacy": "Privacy",
+    "support": "Support",
+    "terms": "Terms"
+  },
+  "home": "Home",
+  "pages": {
+    "home": {
+      "title": "WukongMind Browser: AI agent for any web page",
+      "description": "A browser for iPhone and iPad with an AI agent that reads, changes and automates any web page. No accounts, no analytics, your own AI."
+    },
+    "privacy": {
+      "title": "Privacy | WukongMind Browser",
+      "description": "What WukongMind collects (nothing) and where your data goes when you use the AI agent."
+    },
+    "support": {
+      "title": "Support | WukongMind Browser",
+      "description": "Get help with WukongMind: contact, bug reports and answers to common questions."
+    },
+    "terms": {
+      "title": "Terms | WukongMind Browser",
+      "description": "The terms for using WukongMind."
+    }
+  }
+}
