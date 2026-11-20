@@ -995,10 +995,12 @@ struct DCAgentRing: View {
     var size: CGFloat = 22
     var lineWidth: CGFloat = DCTheme.ringWidth
     var panelVisible = false
+    var animatesDoneOnAppear = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var doneTrim: CGFloat = 1
     @State private var showsDoneCheck = true
     @State private var doneRevealTask: Task<Void, Never>?
+    @State private var didPlayAppearDone = false
 
     static let turnPeriod: TimeInterval = 1.1
     static let doneCloseDuration: TimeInterval = 0.25
@@ -1012,6 +1014,11 @@ struct DCAgentRing: View {
         ringContent
             .frame(width: size, height: size)
             .accessibilityHidden(true)
+            .onAppear {
+                guard animatesDoneOnAppear, !didPlayAppearDone, state == .done, activeMotion == .closeGap else { return }
+                didPlayAppearDone = true
+                playDoneOneShot()
+            }
             .onChange(of: state) { oldState, newState in
                 doneRevealTask?.cancel()
                 doneRevealTask = nil
@@ -1021,18 +1028,7 @@ struct DCAgentRing: View {
                     return
                 }
                 if oldState == .working && activeMotion == .closeGap {
-                    doneTrim = Self.workingArcFraction
-                    showsDoneCheck = false
-                    withAnimation(.easeOut(duration: Self.doneCloseDuration)) {
-                        doneTrim = 1
-                    }
-                    doneRevealTask = Task { @MainActor in
-                        try? await Task.sleep(for: .milliseconds(250))
-                        guard !Task.isCancelled else { return }
-                        withAnimation(.easeOut(duration: 0.12)) {
-                            showsDoneCheck = true
-                        }
-                    }
+                    playDoneOneShot()
                 } else {
                     doneTrim = 1
                     showsDoneCheck = true
@@ -1042,6 +1038,23 @@ struct DCAgentRing: View {
                 doneRevealTask?.cancel()
                 doneRevealTask = nil
             }
+    }
+
+    private func playDoneOneShot() {
+        doneRevealTask?.cancel()
+        doneRevealTask = nil
+        doneTrim = Self.workingArcFraction
+        showsDoneCheck = false
+        withAnimation(.easeOut(duration: Self.doneCloseDuration)) {
+            doneTrim = 1
+        }
+        doneRevealTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.12)) {
+                showsDoneCheck = true
+            }
+        }
     }
 
     @ViewBuilder

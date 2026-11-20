@@ -1332,6 +1332,8 @@ final class BrowserAgentSession {
     /// In-memory ID of the last finished run the user has seen (panel open when it ended or opened afterwards).
     /// Restored conversations initialize this to the last restored run's ID so they never show as unseen.
     private(set) var seenRunID: UUID?
+    /// Run IDs loaded from a saved conversation so their saved-script notes don't replay the done one-shot.
+    private(set) var restoredRunIDs: Set<UUID> = []
 
     var toolCalls: [BrowserAgentToolCallRow] { runs.flatMap(\.toolCalls) }
     var runState: BrowserAgentRunState { runs.last?.state ?? .idle }
@@ -1630,6 +1632,7 @@ final class BrowserAgentSession {
         wireSizes = [:]
         runLimitNotice = nil
         seenRunID = normalizedRuns.last?.id
+        restoredRunIDs = Set(normalizedRuns.map(\.id))
         healDanglingToolCallsInHistory()
     }
 
@@ -1716,6 +1719,7 @@ final class BrowserAgentSession {
         pageBaselineImage = nil
         runLimitNotice = nil
         seenRunID = nil
+        restoredRunIDs = []
         onConversationReset?()
     }
 

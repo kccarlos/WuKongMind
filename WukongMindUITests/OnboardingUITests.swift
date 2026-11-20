@@ -187,4 +187,16 @@ final class OnboardingUITests: DCUITestCase {
         XCTAssertTrue(browserTitle.waitForExistence(timeout: 10), "Browser bar did not appear for the provider key tab.")
         capture("provider-key-in-app-tab")
     }
+
+    func testFailedOnboardingKeyTestShowsFailureAndNoDoneRow() throws {
+        let app = launch(["-dc-onboarding-step", "model", "-dc-no-provider"])
+        let continueButton = app.buttons["onboardingContinue"]
+        XCTAssertTrue(waitOrDump(continueButton, timeout: 20, in: app), "Onboarding Continue button did not appear.")
+        continueButton.tap()
+
+        let failure = any(app, "providerTestFailure")
+        XCTAssertTrue(reveal(failure, in: app, swipes: 2), "Failed key test did not show cinnabar failure status.")
+        XCTAssertFalse(any(app, "providerTestSuccess").exists, "Failed key test must not show the saved ring.")
+        capture("onboarding-key-test-failed")
+    }
 }

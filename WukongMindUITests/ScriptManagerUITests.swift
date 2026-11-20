@@ -7,12 +7,17 @@ final class ScriptManagerUITests: DCUITestCase {
         // Default: Save scripts without asking is off, so script_save opens the shared review sheet.
         let approveButton = app.buttons["scriptImportAddTurnOn"].firstMatch
         XCTAssertTrue(waitOrDump(approveButton, timeout: 20, in: app), "Agent script_save did not open the shared review sheet.")
+        XCTAssertFalse(any(app, "agentSavedNote").exists, "Saved note must not appear while the review sheet is up.")
         XCTAssertFalse(app.buttons["scriptImportAskAgent"].exists, "Agent-proposed scripts must not offer 'Ask the Agent to review it'.")
         capture("agent-script-save-review-sheet")
         approveButton.tap()
 
         let card = any(app, "agentScriptCard")
         XCTAssertTrue(waitOrDump(card, timeout: 30, in: app), "Script card did not appear after approving script_save.")
+        let savedNote = any(app, "agentSavedNote")
+        XCTAssertTrue(waitOrDump(savedNote, timeout: 10, in: app), "Saved note did not appear after approving script_save.")
+        XCTAssertEqual(savedNote.value as? String, "Saved", "Saved note ring should have the value 'Saved' after an approved save.")
+        capture("agent-saved-note-done")
 
         let viewCode = app.buttons["agentScriptViewCode"].firstMatch
         XCTAssertTrue(viewCode.waitForExistence(timeout: 5))
@@ -46,6 +51,21 @@ final class ScriptManagerUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(undoButton, timeout: 5, in: app), "Deleted row Undo button did not appear.")
         undoButton.tap()
         XCTAssertTrue(toggleButton.waitForExistence(timeout: 5), "Undo did not restore the script card.")
+    }
+
+    func testDeclinedScriptSaveShowsNoSavedNote() throws {
+        let app = launch(["-dc-browser-agent-demo", "saved-script", "-dc-drawer-detent", "large"])
+
+        let dismissButton = app.buttons["scriptImportDismiss"].firstMatch
+        XCTAssertTrue(waitOrDump(dismissButton, timeout: 20, in: app), "Agent script_save did not open the shared review sheet.")
+        XCTAssertFalse(any(app, "agentSavedNote").exists, "Saved note must not appear while the review sheet is up.")
+        dismissButton.tap()
+
+        XCTAssertTrue(waitForGone(any(app, "scriptImportSheet"), timeout: 8), "Review sheet did not dismiss.")
+        // Wait for the agent run to finish after declining.
+        XCTAssertTrue(waitForGone(app.buttons["agentStopButton"], timeout: 10), "Agent run did not finish after declining.")
+        XCTAssertFalse(any(app, "agentScriptCard").exists, "Declining script_save must not show a saved script card.")
+        XCTAssertFalse(any(app, "agentSavedNote").exists, "Declining script_save must not show the saved note.")
     }
 
     func testPageScriptsPopoverTogglesReloadAndOpensManager() throws {

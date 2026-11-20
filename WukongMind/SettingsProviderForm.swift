@@ -374,18 +374,26 @@ struct ProviderTestStatusView: View {
         switch state {
         case .idle:
             EmptyView()
-        case .testing:
+        case .testing, .success:
             HStack(spacing: DCTheme.spacingS) {
-                ProgressView().controlSize(.small)
-                Text("Testing connection…")
+                DCAgentRing(state: state == .testing ? .working : .done, size: 14, lineWidth: 1.5)
+                if state == .testing {
+                    Text("Testing connection…")
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("Connected — you’re ready to go.")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(DCTheme.goldInk)
+                }
             }
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-        case .success:
-            SwiftUI.Label("Connected — you’re ready to go.", systemImage: "checkmark.circle.fill")
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(DCTheme.success)
-                .accessibilityIdentifier("providerTestSuccess")
+            .accessibilityElement(children: .combine)
+            .accessibilityValue(
+                state == .success
+                    ? String(localized: "Saved", comment: "Accessibility value of the ring on a saved note or provider test row")
+                    : (AgentRingState.working.accessibilityValue ?? "")
+            )
+            .accessibilityIdentifier(state == .success ? "providerTestSuccess" : "providerTestTesting")
         case .failure(let message):
             VStack(alignment: .leading, spacing: 2) {
                 SwiftUI.Label("Couldn’t connect", systemImage: "exclamationmark.triangle.fill")

@@ -516,11 +516,13 @@ struct DCVoiceBubble: View {
     }
 }
 
-/// "Saved. Faster next time.": a gold-wash chip with the ring glyph.
+/// "Saved. Faster next time.": a gold-wash chip with the ring's done glyph.
 struct DCSavedNote: View {
+    var animateDone = false
+
     var body: some View {
         HStack(spacing: 6) {
-            DCAgentRing(size: 14, lineWidth: 1.5)
+            DCAgentRing(state: .done, size: 14, lineWidth: 1.5, animatesDoneOnAppear: animateDone)
             Text("Saved. Faster next time.", comment: "Note after the Agent saves a script")
                 .font(.caption.weight(.semibold))
         }
@@ -528,6 +530,8 @@ struct DCSavedNote: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(DCTheme.goldWash, in: RoundedRectangle(cornerRadius: DCTheme.radiusSm, style: .continuous))
+        .accessibilityElement(children: .combine)
+        .accessibilityValue(String(localized: "Saved", comment: "Accessibility value of the ring on a saved note or provider test row"))
         .accessibilityIdentifier("agentSavedNote")
     }
 }
