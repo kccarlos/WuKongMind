@@ -51,11 +51,14 @@ final class AddressBarPerfUITests: DCUITestCase {
         let pageApp = launch(["-dc-perf-probe", "-dc-bar-morph-fixture", "short"])
         let titleButton = pageApp.buttons["browserTitle"]
         XCTAssertTrue(waitForBarItem(titleButton, timeout: 15), "browserTitle did not appear")
-        RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+        XCTAssertTrue(waitForHittable(titleButton, timeout: 5), "browserTitle not hittable")
+        RunLoop.current.run(until: Date().addingTimeInterval(2.0))
 
-        let target = point(titleButton.frame, in: pageApp)
-        target.tap()
-        XCTAssertTrue(pageApp.textFields["addressField"].waitForExistence(timeout: 5), "addressField did not appear")
+        tapBarItem(titleButton)
+        if !pageApp.textFields["addressField"].waitForExistence(timeout: 5) {
+            attachTree(pageApp, named: "no-address-field")
+            XCTFail("addressField did not appear (titleButton frame=\(titleButton.frame))")
+        }
         RunLoop.current.run(until: Date().addingTimeInterval(3.5))
         note("tap_to_edit_bar " + timeline(pageApp))
 
