@@ -578,7 +578,7 @@ final class AppModel: ObservableObject {
             _ = appBox?.value?.saveAgentAnswer(answer)
         }
         agentSession.onRunEndedWithError = { [weak appBox] taskID, _ in
-            guard let app = appBox?.value, app.settings.savesFailedTasksForFeedback() else { return }
+            guard let app = appBox?.value, app.settings.saveFailedTasksForFeedback else { return }
             Task { await app.saveFeedbackReport(taskID: taskID, announces: false) }
         }
         agentSession.onRunFinished = { [weak appBox, weak tabBrowser] in
