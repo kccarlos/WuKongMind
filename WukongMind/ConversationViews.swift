@@ -519,10 +519,17 @@ struct DCVoiceBubble: View {
 /// "Saved. Faster next time.": a gold-wash chip with the ring's done glyph.
 struct DCSavedNote: View {
     var animateDone = false
+    var onDoneAnimationStarted: () -> Void = {}
 
     var body: some View {
         HStack(spacing: 6) {
-            DCAgentRing(state: .done, size: 14, lineWidth: 1.5, animatesDoneOnAppear: animateDone)
+            DCAgentRing(
+                state: .done,
+                size: 14,
+                lineWidth: 1.5,
+                animatesDoneOnAppear: animateDone,
+                onAppearDonePlayed: onDoneAnimationStarted
+            )
             Text("Saved. Faster next time.", comment: "Note after the Agent saves a script")
                 .font(.caption.weight(.semibold))
         }

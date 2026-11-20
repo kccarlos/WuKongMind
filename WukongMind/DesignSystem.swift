@@ -996,6 +996,7 @@ struct DCAgentRing: View {
     var lineWidth: CGFloat = DCTheme.ringWidth
     var panelVisible = false
     var animatesDoneOnAppear = false
+    var onAppearDonePlayed: () -> Void = {}
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var doneTrim: CGFloat = 1
     @State private var showsDoneCheck = true
@@ -1017,6 +1018,7 @@ struct DCAgentRing: View {
             .onAppear {
                 guard animatesDoneOnAppear, !didPlayAppearDone, state == .done, activeMotion == .closeGap else { return }
                 didPlayAppearDone = true
+                onAppearDonePlayed()
                 playDoneOneShot()
             }
             .onChange(of: state) { oldState, newState in
