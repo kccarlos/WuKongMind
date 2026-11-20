@@ -322,18 +322,23 @@ mode_lock_hold() { # _lock-hold <secs> [--fail]: take the sim lock, hold it, rel
   echo "RELEASING $(date +%s) $LOCK_NAME"
 }
 
-mode_demo_flow() { # _demo-flow <build-secs> <test-secs>: exercise build lock then iPhone pool
-  local build_secs="${1:-4}" test_secs="${2:-6}"
+mode_demo_flow() { # _demo-flow <build-secs> <test-secs> [timeout]: exercise build lock, iPhone pool, and timeout accounting
+  local build_secs="${1:-4}" test_secs="${2:-6}" timeout="${3:-1800}" b0 build_elapsed s0 sim_wait rem_timeout
   install_traps
   ssh_mini true || unavailable "SSH to $REMOTE_HOST failed"
   acquire_lock "$$.$RANDOM.$(date +%s).b" build "$BUILD_LOCK"
+  b0=$SECONDS
   echo "BUILD_START $(date +%s) $LOCK_NAME"
   sleep "$build_secs" & CHILD_PID=$!
   wait "$CHILD_PID" 2>/dev/null; CHILD_PID=""
-  echo "BUILD_END $(date +%s) $LOCK_NAME"
+  build_elapsed=$((SECONDS - b0))
+  echo "BUILD_END $(date +%s) $LOCK_NAME elapsed=${build_elapsed}s"
   release_lock
+  s0=$SECONDS
   acquire_lock "$$.$RANDOM.$(date +%s).s" simulator "${SIM_IPHONES[@]}"
-  echo "TEST_START $(date +%s) $LOCK_NAME"
+  sim_wait=$((SECONDS - s0))
+  rem_timeout=$((timeout - build_elapsed))
+  echo "TEST_START $(date +%s) $LOCK_NAME sim_wait=${sim_wait}s rem_timeout=${rem_timeout}s"
   sleep "$test_secs" & CHILD_PID=$!
   wait "$CHILD_PID" 2>/dev/null; CHILD_PID=""
   echo "TEST_END $(date +%s) $LOCK_NAME"
@@ -507,7 +512,8 @@ BUILD_T0=$SECONDS
 run_logged "$OUT/run.log" 0 "$TIMEOUT" emit_build_stdin \
   ssh "${SSH_OPTS[@]}" "$REMOTE_HOST" 'bash -s'
 rc=$?
-stage "generate+build" $((SECONDS - BUILD_T0))
+BUILD_SECS=$((SECONDS - BUILD_T0))
+stage "generate+build" "$BUILD_SECS"
 rm -f "$REMOTE_BUILD_SCRIPT"
 
 if (( rc == 0 )); then
@@ -532,7 +538,7 @@ if [[ "$MODE" == "test" ]] && (( rc == 0 )); then
   UDID="$LOCK_NAME"
   stage "sim lock wait" $((SECONDS - t))
 
-  REM_TIMEOUT=$((TIMEOUT - (SECONDS - BUILD_T0)))
+  REM_TIMEOUT=$((TIMEOUT - BUILD_SECS))
   if (( REM_TIMEOUT <= 0 )); then
     rc=124
     log "ERROR: xcodebuild timed out after ${TIMEOUT}s before tests started"
