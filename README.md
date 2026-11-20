@@ -84,7 +84,7 @@ WukongMind keeps Forumind's existing forum features working beside the new **Age
 WukongMind talks directly from your device to the AI provider you configure — there are no WukongMind servers or accounts.
 
 - **Keychain storage:** API keys are saved in the iOS Keychain (and optionally synced across your own devices via iCloud Keychain). Keys are stripped from on-disk app state and never exposed to web pages or agent tools.
-- **Dedicated Browser Agent model:** No model is preset for the **Browser agent** (`Settings › AI models › Browser agent`). On first use, pick any model from a provider that supports native tool calling, independent of the model chosen for **Summaries**.
+- **Dedicated Browser Agent model:** No model is preset for the **Browser agent** (`Settings › Models › Browser agent`). On first use, pick any model from a provider that supports native tool calling, independent of the model chosen for **Summaries**.
 
 | Provider | Credentials | Notes |
 | :--- | :--- | :--- |

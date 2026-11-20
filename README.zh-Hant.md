@@ -64,7 +64,7 @@ WukongMind 依里程碑順序開發（詳見英文需求文件 [docs/wukongmind/
 
 - **裝置直連供應商：** 所有模型請求皆直接從你的 iPhone 或 iPad 送往所設定的 AI 供應商端點。
 - **鑰匙圈儲存：** API 金鑰儲存在 iOS 鑰匙圈（可選擇透過 iCloud 鑰匙圈在你的裝置間同步），不會寫入明文狀態檔，也不會暴露給網頁或工具。
-- **獨立的瀏覽器代理模型：** **瀏覽器代理**預設不指定模型（**設定 › AI 模型 › Browser agent**），首次使用時請從支援原生工具呼叫的供應商中挑選模型（獨立於**摘要**所使用的模型）：
+- **獨立的瀏覽器代理模型：** **瀏覽器代理**預設不指定模型（**設定 › 模型（Settings › Models）› Browser agent**），首次使用時請從支援原生工具呼叫的供應商中挑選模型（獨立於**摘要**所使用的模型）：
   - **雲端供應商（需 API 金鑰）：** OpenRouter、OpenAI、Anthropic、Google Gemini、Google Vertex AI、Groq、xAI (Grok)、DeepSeek、NVIDIA NIM。
   - **區域網路本機伺服器（不需金鑰）：** Ollama（如 `http://192.168.1.20:11434`）、LM Studio（如 `http://192.168.1.20:1234/v1`）。
   - **Apple Intelligence：** 僅適用於**摘要**，不支援一般瀏覽器代理工具呼叫。

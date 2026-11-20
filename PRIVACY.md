@@ -7,7 +7,7 @@
 ## Where your data goes
 
 - **Websites you visit:** Pages load directly in `WKWebView` from each site. Cookies, site storage, and website logins are stored locally on your device by WebKit and sent only to their own sites. Built-in site readers fetch directly from Discourse and WordPress endpoints (reusing your site session where supported) and from Algolia's public Hacker News API (`hn.algolia.com`) for Hacker News.
-- **Your AI and speech providers (BYOK):** When you use the browser Agent, summaries, site search, read aloud, Gemini text-to-speech, Gemini Live voice sessions, or userscripts that call `GM_ai`, the relevant page content or questions (and live microphone audio while a voice session is active) are sent directly from your device to the provider you configured:
+- **Your AI and speech providers (BYOK):** When you use the browser Agent, summaries, site search, daily digests, podcast scripts, read aloud, Gemini text-to-speech, Gemini Live voice sessions, or userscripts that call `GM_ai`, the relevant page content or questions (and live microphone audio while a voice session is active) are sent directly from your device to the provider you configured:
   - Hosted APIs (OpenRouter, OpenAI, Anthropic, Google Gemini, Google Vertex AI, Groq, xAI, DeepSeek, NVIDIA NIM) using your own API key, governed by that provider's terms and privacy policy.
   - Local network servers (Ollama or LM Studio) on your own LAN.
   - Apple Intelligence (on-device or Apple Private Cloud Compute, where available on your device; used for summaries).
@@ -17,14 +17,14 @@
 
 ## Storage and retention
 
-- **Local app data:** Conversations, summaries, per-site userscripts (`ScriptStore`), watched discussions, cached audio, and settings are stored locally on your device until you clear them or uninstall the app.
+- **Local app data:** Conversations, summaries, per-site userscripts (`ScriptStore`), watched discussions, digests, cached podcast audio, and settings are stored locally on your device until you clear them or uninstall the app.
 - **API keys:** Provider API keys live in the iOS Keychain (and optionally sync across your own devices via end-to-end encrypted iCloud Keychain), never in plaintext app state files.
 - **Third-party AI providers:** Data sent to a hosted AI provider is retained and handled according to that provider's own terms and privacy policy.
 
 ## Withdrawing consent and deleting data
 
-- **Stop using an AI provider:** Remove or replace a provider's API key at any time in **Settings › AI models**, or remove all keys via **Settings › Data & privacy › Reset Settings to Defaults…**.
-- **Delete saved app data:** Clear saved summaries, chats, and site data per site or all at once in **Settings › Data & privacy**. View, turn off, or delete saved userscripts in **Settings › Scripts**.
+- **Stop using an AI provider:** Remove or replace a provider's API key at any time in **Settings › Models**, or remove all keys via **Settings › Data & privacy › Reset Settings to Defaults…**.
+- **Delete saved app data:** Clear saved summaries, chats, and site data per site or all at once in **Settings › Data & privacy**. View, turn off, or delete saved userscripts in **Settings › Scripts & tools**.
 - **Delete everything locally:** Uninstalling WukongMind deletes all local app data from your device.
 
 ## Security
