@@ -36,7 +36,18 @@ Rules that follow:
 
 The gold band is drawn as a circle with a gold stroke and nothing inside.
 
-- It is the Agent's button in the browser bar.
+- It is the Agent's button in the browser bar, and it says what the Agent is doing. One function maps what the app already knows to one of six states, and every ring draws that state:
+
+  | State | Still picture | Motion | Word (accessibility value) |
+  | --- | --- | --- | --- |
+  | idle | open `gold` ring | none | none |
+  | working | `gold` arc on a `hairline` track | turns, 1.1 s a turn | "Working" |
+  | needs you | `gold` ring with a `gold-ink` question mark | none | "Needs your answer" |
+  | done | closed `gold` ring with a `gold-ink` check | once: the gap closes in 250 ms, then the check | "Answer ready" |
+  | failed | ring and exclamation mark in `warning` | none | "Stopped with a problem" |
+  | unavailable | `ink-faint` ring | none | none; the button loses its button trait |
+
+  The bar ring and the iPad panel toggle show all six. The collapsed pill, the folded step header and the tool row show working only. One ring turns per surface: while the panel is visible, the bar ring shows its still state and the panel's tool row turns. "Saved" (the saved note, the Learn on ask card, the key row) reuses the done transition on a 14pt ring, after the event really happened. A state is never carried by colour or motion alone: each has its own shape and its word.
 - It is the composer's button: open ring with a mic when empty, filled gold to send, cinnabar to stop.
 - It is the running state of a tool: an open gold ring that turns.
 - It is the focus indicator (`ring-width` in `gold-ink`).
@@ -92,4 +103,4 @@ Button, Composer, SuggestionRow, Message, ToolRow, ResultCard, ScriptCard, Brows
 - Every text and icon colour pairs with the grounds named in its token note at 4.5:1 or better, in both themes; control edges and the ring at 3:1.
 - `ink-faint` is for `ground` and `surface` only.
 - Honour Increase Contrast by switching `hairline` to `border-strong`.
-- Motion: the turning ring is the only continuous animation; it means the Agent is working. Short functional transitions are allowed when they explain cause and effect: a suggestion moving into the input box, a new result rising into the conversation, the browser bar morphing between its expanded bar and collapsed pill, and standard sheet transitions. Keep each under 250 ms with no bounce. Decorative motion is not allowed: no rolling counts, zooming tiles, bounces or parallax. With Reduce Motion on, transitions become a fade (a 0.2 s cross-fade at `p > 0.6` / `p < 0.4` for the browser bar) and the ring is shown still.
+- Motion shows a live signal or a cause, never decoration. Continuous motion is allowed only where it displays something happening now: the turning ring (the Agent is working), the voice level meter (sound in or out), the composer's recording pulse (the microphone is on), and progress (the app's progress bar and the system's own spinner). The ring also has one one-shot: its gap closes into the check when work is done or saved. Short functional transitions are allowed when they explain cause and effect: a suggestion moving into the input box, a new result rising into the conversation, the browser bar morphing between its expanded bar and collapsed pill, Home appearing over the page (a fade within 200 ms), and standard sheet transitions. Keep each within 250 ms with no bounce. Decorative motion is not allowed: no rolling counts, zooming tiles, bounces, parallax, launch animations or pulsing placeholders. Every state is also a still picture and a word. With Reduce Motion on, transitions become a fade (a 0.2 s cross-fade at `p > 0.6` / `p < 0.4` for the browser bar) and continuous motion stands still, except that a progress bar with no known value keeps a slow opacity pulse so a long job never looks frozen.

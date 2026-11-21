@@ -21,61 +21,71 @@ body{margin:0}
 .ti{width:56px;height:56px;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-size:22px;font-weight:700;position:relative}
 .bd{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:10px;background:#48484A;color:#FFFFFF;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--page)}
 .rw{display:flex;align-items:center;gap:12px;min-height:56px;padding:6px 14px;border-top:1px solid var(--border)}
+/*wuko200*/
+.lt{--glass:rgba(255,253,248,.66);--glassedge:rgba(255,255,255,.75);--glassfill:rgba(26,22,18,.06);--glassshadow:0 10px 32px rgba(20,17,14,.20);--sel:rgba(176,127,12,.28)}
+.dk{--glass:rgba(42,37,30,.62);--glassedge:rgba(255,255,255,.14);--glassfill:rgba(244,238,226,.08);--glassshadow:0 10px 32px rgba(0,0,0,.45);--sel:rgba(224,176,64,.36)}
+.w2 svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.w2 svg text{stroke:none;font-family:inherit}
+.w2 button{font-family:inherit}
+.w2h{display:flex;flex-direction:column;gap:14px;padding:0 16px;color:var(--label)}
+.w2top{display:flex;align-items:center;gap:4px}
+.w2top h1{margin:0;font-size:34px;font-weight:700;flex-grow:1}
+.w2ib{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;border-radius:22px;padding:0}
+.w2hd{font-size:20px;font-weight:600;padding:0 4px;display:flex;align-items:baseline}
+.w2hd a{margin-left:auto;font-size:15px;font-weight:400;color:var(--blue);text-decoration:none}
+.w2grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 8px}
+.w2tile{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;line-height:15px;text-align:center;color:var(--label);text-decoration:none}
+.w2ti{width:56px;height:56px;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:700;position:relative}
+.w2bd{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:10px;background:#48484A;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--page)}
+.w2card{background:var(--surface);border-radius:14px;overflow:hidden}
+.w2rw{display:flex;align-items:center;gap:12px;min-height:52px;padding:6px 14px;box-sizing:border-box}
+.w2rw+.w2rw{border-top:1px solid var(--border)}
+.w2rw .m{flex:1;min-width:0;display:flex;flex-direction:column}
+.w2rw .a{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w2rw .b{font-size:13px;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w2new{font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0;background:var(--badgebg);color:var(--badgetx)}
+.w2glass{position:absolute;background:var(--glass);-webkit-backdrop-filter:blur(18px) saturate(1.7);backdrop-filter:blur(18px) saturate(1.7);border:1px solid var(--glassedge);box-shadow:var(--glassshadow);box-sizing:border-box;display:flex;align-items:center}
+.w2gb{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+.w2gb.off{color:var(--ter)}
+.w2ad{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:42px;border-radius:21px;background:var(--glassfill);padding:0 12px 0 8px;font-size:15px;color:var(--ter);box-sizing:border-box;white-space:nowrap;overflow:hidden}
+.w2ad b{color:var(--label);font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.w2edit{position:absolute;left:0;right:0;height:52px;display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--page);box-sizing:border-box}
+.w2ef{flex:1;min-width:0;height:40px;border-radius:20px;border:1.5px solid var(--gold);background:var(--fill);display:flex;align-items:center;gap:8px;padding:0 10px;font-size:15px;box-sizing:border-box;white-space:nowrap;overflow:hidden;color:var(--label)}
+.w2ef .tx{flex:1;min-width:0;overflow:hidden}
+.w2ef .sel{background:var(--sel);border-radius:3px;padding:2px 0}
+.w2ef .ph{color:var(--ter)}
+.w2cancel{border:0;background:none;font-size:16px;color:var(--blue);padding:0;min-height:44px;flex-shrink:0}
+.w2caret{display:inline-block;width:2px;height:18px;background:var(--gold);vertical-align:-3px;margin-left:1px}
+.w2kb{position:absolute;left:0;right:0;bottom:0;height:300px;background:var(--kb);display:flex;flex-direction:column;gap:10px;padding:10px 4px 0;box-sizing:border-box}
+.w2kr{display:flex;gap:6px;justify-content:center}
+.w2k{width:31px;height:42px;border-radius:6px;background:var(--key);box-shadow:0 1px 0 rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--label);flex-shrink:0}
+.w2sg{background:var(--surface);border-radius:14px;overflow:hidden}
+.w2sr{display:flex;align-items:center;gap:12px;min-height:44px;padding:9px 14px;font-size:15px;line-height:20px;color:var(--label);border:0;background:none;width:100%;text-align:left;box-sizing:border-box}
+.w2sr+.w2sr{border-top:1px solid var(--border)}
+.w2sr .ic{width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:var(--sec);flex-shrink:0}
+.w2sr .m{flex:1;min-width:0;display:flex;flex-direction:column}
+.w2sr .m small{font-size:13px;color:var(--sec)}
+.w2sr.first .m>span{font-weight:500}
+.w2sr.on{background:var(--goldwash)}
+.w2pend{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:6px;border:1px dashed var(--strong);font-size:12px;font-weight:600;color:var(--sec);white-space:nowrap}
+.w2cap{font-size:15px;line-height:21px;color:var(--label)}
+.w2cap b{display:block;font-size:17px;margin-bottom:4px}
+.w2cap .k{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;color:var(--sec);margin-top:2px}
+.w2frame{width:390px;height:844px;position:relative;overflow:hidden;background:var(--page);border-radius:44px;flex-shrink:0}
+.w2pad{width:1194px;height:834px;position:relative;overflow:hidden;background:var(--page);border-radius:24px;flex-shrink:0}
+.w2ind{position:absolute;left:50%;bottom:8px;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--label);opacity:.85}
+.w2box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-sizing:border-box}
+.w2mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+/*/wuko200*/
 </style>
 </helmet>
-<div class="sf {{theme}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: var(--page);">
-  <div style="padding: 54px 16px 0; display: flex; flex-direction: column; gap: 16px;">
-    <div style="display: flex; align-items: center; gap: 4px;">
-      <h1 style="margin: 0; font-size: 34px; font-weight: 700; flex-grow: 1;">Home</h1>
-      <button class="ibtn" aria-label="History" style="color: var(--label);"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg></button>
-      <button class="ibtn" aria-label="Settings" style="color: var(--label);"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button>
-    </div>
-    <label style="display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 14px; border-radius: 12px; background: var(--fill); color: var(--sec);">
-      <svg class="ico" viewBox="0 0 24 24" style="width: 17px; height: 17px;" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg>
-      <span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Address</span>
-      <input placeholder="Search or enter address" style="border: 0; background: none; font: inherit; font-size: 17px; outline: none; width: 100%; color: var(--label);">
-    </label>
-
-    <div class="card" style="display: flex; align-items: center; gap: 12px; padding: 12px 14px;">
-      <span style="width: 36px; height: 36px; border-radius: 10px; background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); display: flex; align-items: center; justify-content: center;"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></span>
-      <div style="flex-grow: 1; display: flex; flex-direction: column;"><span style="font-size: 15px; font-weight: 600;">Today · 5 topics · 9 min podcast</span><span style="font-size: 13px; color: var(--sec);">From the forums you follow</span></div>
-      <button class="ibtn" aria-label="Play podcast" style="background: var(--label); color: var(--ground); border-radius: 18px; width: 36px; height: 36px;"><svg class="ico" viewBox="0 0 24 24" style="width: 14px; height: 14px;" aria-hidden="true"><path d="M7 4l13 8-13 8z" fill="currentColor"/></svg></button>
-    </div>
-
-    <div style="display: flex; flex-direction: column; gap: 10px;">
-      <div class="hd">Sites</div>
-      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px 8px;">
-        <a class="tile" href="#"><span class="ti" style="background: #0E8A7E;">H<span class="bd" aria-label="Forum"><svg class="ico" viewBox="0 0 24 24" style="width: 11px; height: 11px;" aria-hidden="true"><path d="M4 5h12v8H9l-5 4z" fill="currentColor"/></svg></span></span>Home Lab Talk</a>
-        <a class="tile" href="#"><span class="ti" style="background: #7A2E1F;">N</span>Northwind</a>
-        <a class="tile" href="#"><span class="ti" style="background: #E06A1B;">Y<span class="bd" aria-label="Forum"><svg class="ico" viewBox="0 0 24 24" style="width: 11px; height: 11px;" aria-hidden="true"><path d="M4 5h12v8H9l-5 4z" fill="currentColor"/></svg></span></span>Hacker News</a>
-        <a class="tile" href="#"><span class="ti" style="background: #3A5BE0;">D</span>Docs</a>
-        <a class="tile" href="#"><span class="ti" style="background: #3A5BE0;">W<span class="bd" aria-label="Forum"><svg class="ico" viewBox="0 0 24 24" style="width: 11px; height: 11px;" aria-hidden="true"><path d="M4 5h12v8H9l-5 4z" fill="currentColor"/></svg></span></span>Garden Blog</a>
-        <a class="tile" href="#"><span class="ti" style="background: #5E5E66;">M</span>Maps</a>
-        <a class="tile" href="#"><span class="ti" style="background: #087A43;">R</span>Recipes</a>
-        <a class="tile" href="#"><span class="ti" style="background: var(--fill); color: var(--blue);"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>Add</a>
-      </div>
-    </div>
-
-    <div style="display: flex; flex-direction: column; gap: 8px;">
-      <div class="hd" style="display: flex; align-items: baseline;">Recent<a href="#" style="margin-left: auto; font-size: 15px; font-weight: 400; color: var(--blue); text-decoration: none;">History</a></div>
-      <div class="card">
-        <div class="rw" style="border-top: 0;"><svg class="ico" viewBox="0 0 24 24" style="color: var(--purple);" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Make this page dark and hide the sidebar</span><span style="font-size: 13px; color: var(--sec);">Agent · news.example.com · 10 min</span></div></div>
-        <div class="rw"><svg class="ico" viewBox="0 0 24 24" style="color: var(--purple);" aria-hidden="true"><circle cx="12" cy="12" r="8"/></svg><div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Which fanless boxes do people regret?</span><span style="font-size: 13px; color: var(--sec);">Agent · Home Lab Talk · 1 h</span></div></div>
-      </div>
-    </div>
-
-    <div style="display: flex; flex-direction: column; gap: 8px;">
-      <div class="hd">Continue reading</div>
-      <div class="card"><div class="rw" style="border-top: 0;"><span style="width: 28px; height: 28px; border-radius: 7px; background: #0E8A7E;"></span><div style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column;"><span style="font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Which home server for a quiet closet?</span><span style="font-size: 13px; color: var(--sec);">Home Lab Talk</span></div><span style="font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; white-space: nowrap; flex-shrink: 0; background: var(--badgebg); color: var(--badgetx);">12 new</span></div></div>
-    </div>
+<div class="sf {{theme}} w2" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: var(--page);">
+  <div class="w2h" style="padding-top: 54px;">
+    <div class="w2top"><h1>Home</h1><button class="w2ib" aria-label="History"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px;"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg></button><button class="w2ib" aria-label="Settings"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px;"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
+    <div style="display: flex; flex-direction: column; gap: 10px;"><div class="w2hd">Sites</div><div class="w2grid"><a class="w2tile" href="#"><span class="w2ti" style="background: #0E8A7E;">H<span class="w2bd" role="img" aria-label="Forum"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 11px; height: 11px;"><path d="M4 5h12v8H9l-5 4z" fill="currentColor"/></svg></span></span>Home Lab Talk</a><a class="w2tile" href="#"><span class="w2ti" style="background: #7A2E1F;">N</span>Northwind</a><a class="w2tile" href="#"><span class="w2ti" style="background: #E06A1B;">Y<span class="w2bd" role="img" aria-label="Forum"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 11px; height: 11px;"><path d="M4 5h12v8H9l-5 4z" fill="currentColor"/></svg></span></span>Hacker News</a><a class="w2tile" href="#"><span class="w2ti" style="background: #3A5BE0;">D</span>Docs</a><a class="w2tile" href="#"><span class="w2ti" style="background: #3A5BE0;">W<span class="w2bd" role="img" aria-label="Forum"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 11px; height: 11px;"><path d="M4 5h12v8H9l-5 4z" fill="currentColor"/></svg></span></span>Garden Blog</a><a class="w2tile" href="#"><span class="w2ti" style="background: #5E5E66;">M</span>Maps</a><a class="w2tile" href="#"><span class="w2ti" style="background: #087A43;">R</span>Recipes</a><a class="w2tile" href="#"><span class="w2ti" style="background: var(--fill); color: var(--blue);"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px;"><path d="M12 5v14M5 12h14"/></svg></span>Add</a></div></div><div style="display: flex; flex-direction: column; gap: 8px;"><div class="w2hd">Recent<a href="#">History</a></div><div class="w2card"><div class="w2rw"><span style="width: 24px; display: flex; justify-content: center; color: var(--label);"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 20px; height: 20px;"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg></span><div class="m"><span class="a">Which home server for a quiet closet?</span><span class="b">Summary · Home Lab Talk · 6 min</span></div></div><div class="w2rw"><span style="width: 24px; display: flex; justify-content: center;"><svg viewBox="0 0 18 18" aria-hidden="true" style="width: 18px; height: 18px; flex-shrink: 0;"><circle cx="9" cy="9" r="8" fill="none" stroke="var(--gold)" stroke-width="2"/></svg></span><div class="m"><span class="a">Make this page dark and hide the sidebar</span><span class="b">Agent · news.example.com · 20 min</span></div></div></div></div><div style="display: flex; flex-direction: column; gap: 8px;"><div class="w2hd">Continue reading</div><div class="w2card"><div class="w2rw"><span style="width: 28px; height: 28px; border-radius: 7px; background: #0E8A7E; color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">H</span><div class="m"><span class="a" style="font-weight: 600;">Which home server for a quiet closet?</span><span class="b">Home Lab Talk · 6 min ago</span></div></div></div></div><div style="display: flex; flex-direction: column; gap: 8px;"><div class="w2hd">Following</div><div class="w2card"><div class="w2rw"><div class="m"><span class="a">Fanless boxes people regret buying</span><span class="b">Home Lab Talk</span></div><span class="w2new">3 new</span></div><div class="w2rw"><div class="m"><span class="a">What are you building this month?</span><span class="b">Hacker News</span></div><span class="w2new">1 new</span></div></div></div>
   </div>
-
-  <div style="position: absolute; left: 12px; right: 12px; bottom: 28px; height: 52px; border-radius: 26px; background: var(--bg); box-shadow: 0 6px 24px rgba(0,0,0,.14); display: flex; align-items: center; padding: 0 4px; gap: 2px;">
-    <button class="ibtn" aria-label="Back" style="color: var(--ter);"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-    <div style="flex-grow: 1;"></div>
-    <div style="width: 40px; height: 32px; border: 1.5px dashed var(--ter); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: var(--sec);">M3</div>
-    <button aria-label="Agent" style="position: relative; width: 44px; height: 44px; border-radius: 999px; border: 2px solid var(--gold); background: none; padding: 0; box-sizing: border-box; flex-shrink: 0;"></button>
-  </div>
+  <nav class="w2glass" aria-label="Browser bar" style="left: 12px; width: 366px; bottom: 30px; height: 56px; border-radius: 28px; padding: 0 6px; gap: 2px;"><button class="w2gb off" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 21px; height: 21px;"><path d="M15 18l-6-6 6-6"/></svg></button><div class="w2ad" role="group" aria-label="Address field"><button aria-label="Page menu" style="border: 0; background: none; padding: 0; color: var(--label); display: flex; width: 30px; height: 36px; align-items: center; justify-content: center;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 19px; height: 19px;"><circle cx="12" cy="12" r="9.5"/><circle cx="8" cy="12" r=".7" fill="currentColor"/><circle cx="12" cy="12" r=".7" fill="currentColor"/><circle cx="16" cy="12" r=".7" fill="currentColor"/></svg></button><span>Search or enter address</span></div><button class="w2gb" aria-label="Tabs"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 21px; height: 21px;"><rect x="8.5" y="8.5" width="12" height="12" rx="2.5"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/></svg></button></nav>
+  <div class="w2ind"></div>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["lt","dk"],"default":"lt"},"$preview":{"width":390,"height":844}}'>

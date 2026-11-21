@@ -7,7 +7,7 @@ Status: **proposed**. Visual only, with no app code. The owner asked for three t
 
 | Board | What it shows |
 |---|---|
-| `PhoneBar` / `PhoneBarDark` | iPhone bar: expanded, 25 %, 50 %, 75 %, collapsed. Agent running (expanded and collapsed), bar at the top, Home, and the motion card |
+| `PhoneBar` / `PhoneBarDark` | iPhone bar: expanded, 25 %, 50 %, 75 %, collapsed. Agent running (expanded and collapsed), bar at the top, Home (the empty tab, with the bar's own field), and the motion card. The ring's six states are on `MotionRing`; editing the address with Home over the page and the suggestion rows are on `PhoneAddress` and `IPadAddress` ([design-motion.md](design-motion.md)) |
 | `IPadBar` / `IPadBarDark` | iPad bar: expanded, 25 %, 50 %, 75 %, collapsed, and collapsed with the Agent panel open |
 | `PhoneTabs` / `PhoneTabsDark` | Tab overview, one conversation per tab (the Agent opens a tab), closing a tab |
 | `IPadTabs` / `IPadTabsDark` | iPad tab overview |
@@ -49,7 +49,7 @@ Looks come from the design system (https://claude.ai/artifact/5fGhnS4fmcmWYZbPoK
   | Expanded, on a page | The gold ring at the trailing end. Tap opens the panel | Hold the ring (today's long press) |
   | Collapsed | No Agent button. A tap on the pill expands the bar first, then the ring opens the panel. While the Agent works, the pill's lock becomes a 16 pt turning ring and the ink scripts seal sits after the domain, so work stays visible | Expand first |
   | Collapsed, panel closed, and the Agent finishes or needs an answer | The bar springs open, once no finger is on the page. The ring then shows today's state: done, or the confirmation waiting. A tap opens the panel at the card. There is no separate pill state | — |
-  | Home | The ring shows only when a page is loaded under Home (as today) | The mic button replaces the ring. Home has no field of its own; the bar shows its address field and stays expanded |
+  | Home (the empty tab) | No ring on iPhone: a new tab has no page for the Agent to work on. On iPad the ring stays as the panel toggle. With Home over a page (editing the address) the bar is the field and Cancel, so no ring shows until editing ends; the ring then shows the Agent's current state | The mic button joins the trailing end once voice is set up. Home has no field of its own; the bar shows its address field ("Search or enter address") and stays expanded |
   | Panel open | The bar is under the panel, and the panel's input box has its own mic | Panel mic |
   | Voice session | The voice Dock replaces the bar (today's rule) and the bar doesn't collapse | Dock |
   | Editing the address | The field rides on the keyboard (today's rule) | — |

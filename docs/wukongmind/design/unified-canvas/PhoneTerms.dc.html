@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Terms of Use and AI data consent on iPhone</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+.lt{--ground:#f7f3ea;--bg:#fffdf8;--page:#f7f3ea;--surface:#fffdf8;--raised:#efe9dc;--label:#1a1612;--sec:#5f574c;--ter:#756c5f;--border:rgba(26,22,18,.14);--strong:#8c8375;--blue:#8a6200;--purple:#8a6200;--gold:#b07f0c;--ongold:#1a1612;--goldwash:#f6ecd0;--teal:#1f6f66;--jade:#1f6f66;--jadewash:#dcefeb;--danger:#b3321f;--cin:#b3321f;--oncin:#ffffff;--cinwash:#f9e1da;--success:#356f1b;--warning:#a34a08;--fill:#efe9dc;--pop:#fffdf8;--toggleoff:#fffdf8;--bar:#fffdf8;--scrim:rgba(20,17,14,.4);--badgebg:#f6ecd0;--badgetx:#8a6200;--canvas:#e8e1d2;--kb:#d6d0c4;--key:#fffdf8;--web:#FBFAF7;--webtext:#1E1E1E;--websec:#666666;--webline:#DDD6CC;--webimg:#DCD3C4}
+.dk{--ground:#14110e;--bg:#1f1b16;--page:#14110e;--surface:#1f1b16;--raised:#2a251e;--label:#f4eee2;--sec:#b3a998;--ter:#8f8676;--border:rgba(244,238,226,.16);--strong:#7d7567;--blue:#e8bd55;--purple:#e8bd55;--gold:#e0b040;--ongold:#1a1612;--goldwash:#3a2f14;--teal:#6fd0c2;--jade:#6fd0c2;--jadewash:#12302c;--danger:#ff7a5c;--cin:#ff7a5c;--oncin:#1a1612;--cinwash:#3d1a12;--success:#8fd66b;--warning:#ffb070;--fill:#2a251e;--pop:#1f1b16;--toggleoff:#1f1b16;--bar:#1f1b16;--scrim:rgba(0,0,0,.5);--badgebg:#3a2f14;--badgetx:#e8bd55;--canvas:#0c0a08;--kb:#2a251e;--key:#4a433a;--web:#121212;--webtext:#E8E6E1;--websec:#A3A09A;--webline:#2E2B27;--webimg:#2E2A24}
+.sf{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Helvetica Neue",sans-serif;color:var(--label);-webkit-font-smoothing:antialiased}
+.ico{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.pill{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:4px 8px;border-radius:6px;border:0;font-family:inherit}
+.ibtn{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;border-radius:11px;padding:0}
+.sg{display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--strong);background:var(--surface);color:var(--label);font-family:inherit;font-size:15px;white-space:nowrap;flex-shrink:0}
+.tr{display:flex;align-items:center;gap:8px;min-height:32px;font-size:13px;color:var(--sec)}
+.tr b{color:var(--label);font-weight:600}
+/*ds*/
+.seal{display:inline-flex;align-items:center;gap:4px;min-height:24px;padding:0 8px;border-radius:6px;font-size:12px;font-weight:600;border:0;font-family:inherit;white-space:nowrap;box-sizing:border-box}
+.seal.ink{background:var(--label);color:var(--ground)}
+.seal.gw{background:var(--goldwash);color:var(--blue)}
+.seal.out{border:1px solid var(--strong);color:var(--label);background:none}
+.seal svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.sg{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--strong);background:var(--surface);color:var(--label);font-family:inherit;font-size:15px;white-space:nowrap;flex-shrink:0;box-sizing:border-box}
+.sg svg{width:16px;height:16px;color:var(--blue);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.sgrow{display:flex;gap:8px;padding:0 16px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+.sgrow.fit{-webkit-mask-image:none;mask-image:none}
+.tl{display:flex;flex-direction:column}
+.t{display:flex;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--border)}
+.t:first-child{border-top:0}
+.gd{width:28px;height:28px;border-radius:999px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--sec);background:var(--raised);box-sizing:border-box}
+.gd svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.gd.run{background:none;border:2px solid var(--gold);border-right-color:var(--border)}
+.t .m{flex:1;min-width:0;display:flex;flex-direction:column}
+.t .nm{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px;font-weight:600;color:var(--label)}
+.t .ar{font-size:12px;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t .du{font-size:12px;color:var(--sec);font-variant-numeric:tabular-nums}
+.t .cv{width:14px;height:14px;color:var(--ter);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ub{align-self:flex-end;max-width:82%;background:var(--raised);color:var(--label);padding:9px 14px;border-radius:14px 14px 6px 14px;font-size:15px;line-height:20px}
+.at{font-size:15px;line-height:21px;color:var(--label)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.card .chd{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--jadewash);color:var(--jade);font-size:12px;font-weight:600}
+.card .chd svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.card .cbd{padding:10px 12px;font-size:15px;line-height:21px}
+.card .cbd ol{margin:0;padding-left:20px}
+.ci{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:6px;background:var(--jadewash);color:var(--jade);font-size:11px;font-weight:700;vertical-align:1px}
+.note{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;background:var(--goldwash);color:var(--blue);font-size:12px;font-weight:600;padding:5px 10px;border-radius:6px}
+.fld{flex:1;display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:10px;background:var(--surface);border:1px solid var(--strong);font-size:15px;color:var(--ter);box-sizing:border-box}
+.fld .tx{color:var(--label)}
+.ringb{width:44px;height:44px;border-radius:999px;border:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-sizing:border-box;padding:0}
+.ringb svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ringb.mic{background:none;border:2px solid var(--gold);color:var(--blue)}
+.ringb.send{background:var(--gold);color:var(--ongold)}
+.ringb.stop{background:var(--cin);color:var(--oncin)}
+.strow{display:flex;align-items:center;gap:8px;padding:0 16px;min-height:40px;white-space:nowrap;font-size:12px;font-weight:600;color:var(--sec)}
+.strow .ok{color:var(--success);display:flex}
+.strow svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.masc{width:40px;height:40px;flex-shrink:0;object-fit:contain}
+.caret{display:inline-block;width:2px;height:18px;background:var(--gold);vertical-align:middle;margin-left:1px}
+.ibtn2{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;padding:0}
+.ibtn2 svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.conv>*{flex-shrink:0}
+.t .lb{font-size:15px;font-weight:600;color:var(--label)}
+.fold{display:flex;align-items:center;gap:10px;background:var(--raised);border-radius:10px;padding:10px 12px;font-size:15px;font-weight:600;color:var(--label)}
+.fold svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/*/ds*/
+/*wuko77*/
+:where(.sf) svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+:where(.sf) svg text{stroke:none;font-family:inherit}
+.lt{--glass:rgba(255,253,248,.66);--glassedge:rgba(255,255,255,.75);--glassfill:rgba(26,22,18,.06);--glassshadow:0 10px 32px rgba(20,17,14,.20)}
+.dk{--glass:rgba(42,37,30,.62);--glassedge:rgba(255,255,255,.14);--glassfill:rgba(244,238,226,.08);--glassshadow:0 10px 32px rgba(0,0,0,.45)}
+.frame{width:390px;height:844px;position:relative;overflow:hidden;background:var(--web);border-radius:44px;flex-shrink:0}
+.ipad{width:1194px;height:834px;position:relative;overflow:hidden;background:var(--web);border-radius:24px;flex-shrink:0}
+.art{position:absolute;left:0;right:0;padding:0 20px;font-family:Georgia,serif;color:var(--webtext);display:flex;flex-direction:column;gap:12px}
+.art p{margin:0;font-size:17px;line-height:1.55}
+.art .kick{font-family:-apple-system,system-ui,sans-serif;font-size:13px;font-weight:700;letter-spacing:.08em;display:flex;justify-content:space-between}
+.art .kick span{font-weight:400;color:var(--websec);letter-spacing:0}
+.art .hr{height:1px;background:var(--webline)}
+.art h1{margin:0;font-size:26px;line-height:1.2;font-weight:700}
+.art .by{font-family:-apple-system,system-ui,sans-serif;font-size:13px;color:var(--websec)}
+.art .img{height:150px;border-radius:6px;background:var(--webimg)}
+.glass{position:absolute;background:var(--glass);-webkit-backdrop-filter:blur(18px) saturate(1.7);backdrop-filter:blur(18px) saturate(1.7);border:1px solid var(--glassedge);box-shadow:var(--glassshadow);box-sizing:border-box;display:flex;align-items:center;overflow:hidden}
+.gb{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+.gb svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.gb.off{color:var(--ter)}
+.addr{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;border:0;font-family:inherit;color:var(--label);background:var(--glassfill);box-sizing:border-box;padding:0 4px 0 12px;white-space:nowrap}
+.addr .dom{overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.addr svg{fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.ring{width:44px;height:44px;border-radius:999px;border:3px solid var(--gold);background:none;box-sizing:border-box;flex-shrink:0;padding:0;position:relative}
+.ring.run{border-right-color:transparent;border-bottom-color:rgba(176,127,12,.35)}
+.badge{position:absolute;top:-5px;right:-6px;min-width:18px;height:18px;border-radius:6px;background:var(--label);color:var(--ground);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px;box-sizing:border-box}
+.minring{width:16px;height:16px;border-radius:999px;border:2.5px solid var(--gold);border-right-color:transparent;box-sizing:border-box;flex-shrink:0}
+.cap{width:390px;font-size:15px;line-height:21px;color:var(--label)}
+.cap b{display:block;font-size:17px;margin-bottom:4px}
+.cap .k{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;color:var(--sec)}
+.home-ind{position:absolute;left:50%;bottom:8px;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--webtext);opacity:.85}
+.sbar{position:absolute;top:0;left:0;right:0;height:50px;background:var(--web);z-index:1;display:flex;align-items:center;justify-content:space-between;padding:0 32px;font-size:16px;font-weight:600;color:var(--webtext);font-family:-apple-system,system-ui,sans-serif;box-sizing:border-box}
+.sbar.solid{background:var(--web)}
+.sh{font-size:13px;color:var(--sec);padding:0 16px 6px;text-transform:uppercase;letter-spacing:.02em;display:flex;align-items:center;gap:8px}
+.secg{background:var(--surface);border-radius:14px;overflow:hidden}
+.r{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 6px 0 14px;color:var(--label);box-sizing:border-box}
+.r+.r{border-top:1px solid var(--border)}
+.r .mn{flex:1;min-width:0;display:flex;flex-direction:column;padding:6px 0}
+.r .mn .nm{font-size:17px;line-height:22px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.r .mn .id{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;line-height:16px;color:var(--sec)}
+.star{width:44px;height:44px;border:0;background:none;padding:0;display:flex;align-items:center;justify-content:center;color:var(--ter);flex-shrink:0;margin-left:-12px}
+.star svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+.star.on{color:var(--gold)}
+.star.on svg{fill:currentColor}
+.more{width:44px;height:44px;border:0;background:none;padding:0;display:flex;align-items:center;justify-content:center;color:var(--blue);flex-shrink:0}
+.more svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8}
+.foot{font-size:13px;line-height:18px;color:var(--sec);padding:6px 16px 0}
+.menu{position:absolute;width:250px;background:var(--pop);border-radius:14px;box-shadow:0 12px 40px rgba(20,17,14,.28);overflow:hidden;font-size:17px}
+.mi{display:flex;align-items:center;gap:10px;min-height:44px;padding:0 16px;color:var(--label);box-sizing:border-box}
+.mi+.mi{border-top:1px solid var(--border)}
+.mi svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.mi .ck{width:18px;color:var(--label)}
+.mi.dis{color:var(--ter)}
+.mi .sub{display:block;font-size:13px;color:var(--ter)}
+.msep{height:8px;background:var(--fill)}
+.navb{display:flex;align-items:center;padding:50px 8px 0;min-height:44px}
+.navb .bk{display:flex;align-items:center;gap:2px;color:var(--blue);font-size:17px;min-height:44px;padding:0 8px}
+.navb .bk svg{width:12px;height:20px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.navb .tt{position:absolute;left:0;right:0;text-align:center;font-size:17px;font-weight:600;pointer-events:none}
+.tab{display:flex;flex-direction:column;gap:6px;min-width:0}
+.tabc{position:relative;border-radius:14px;overflow:hidden;background:var(--web);border:1px solid var(--border);box-sizing:border-box}
+.tabc.act{border:3px solid var(--label)}
+.tabc .x{position:absolute;top:0;right:0;width:44px;height:44px;border:0;background:none;padding:0;display:flex;align-items:center;justify-content:center}
+.lt .tabc .x span{background:rgba(20,17,14,.55)}.dk .tabc .x span{background:rgba(244,238,226,.30)}
+.tabc .x span{width:24px;height:24px;border-radius:999px;color:#fff;display:flex;align-items:center;justify-content:center}
+.tabc .x svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round}
+.tabt{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--label);white-space:nowrap;overflow:hidden;padding:0 2px}
+.tabt .fv{width:16px;height:16px;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff}
+.tabt .tx{overflow:hidden;text-overflow:ellipsis}
+.mini{position:absolute;left:0;right:0;top:0;bottom:0;padding:10px;display:flex;flex-direction:column;gap:6px;font-family:Georgia,serif;color:var(--webtext)}
+.mini .l{height:6px;border-radius:3px;background:var(--webline)}
+.mini .h{font-size:11px;font-weight:700;line-height:1.2;padding-right:30px}
+.mini .b{height:44px;border-radius:4px;background:var(--webimg)}
+/*/wuko77*/
+/*wuko200*/
+.lt{--glass:rgba(255,253,248,.66);--glassedge:rgba(255,255,255,.75);--glassfill:rgba(26,22,18,.06);--glassshadow:0 10px 32px rgba(20,17,14,.20);--sel:rgba(176,127,12,.28)}
+.dk{--glass:rgba(42,37,30,.62);--glassedge:rgba(255,255,255,.14);--glassfill:rgba(244,238,226,.08);--glassshadow:0 10px 32px rgba(0,0,0,.45);--sel:rgba(224,176,64,.36)}
+.w2 svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.w2 svg text{stroke:none;font-family:inherit}
+.w2 button{font-family:inherit}
+.w2h{display:flex;flex-direction:column;gap:14px;padding:0 16px;color:var(--label)}
+.w2top{display:flex;align-items:center;gap:4px}
+.w2top h1{margin:0;font-size:34px;font-weight:700;flex-grow:1}
+.w2ib{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;border-radius:22px;padding:0}
+.w2hd{font-size:20px;font-weight:600;padding:0 4px;display:flex;align-items:baseline}
+.w2hd a{margin-left:auto;font-size:15px;font-weight:400;color:var(--blue);text-decoration:none}
+.w2grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 8px}
+.w2tile{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;line-height:15px;text-align:center;color:var(--label);text-decoration:none}
+.w2ti{width:56px;height:56px;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:700;position:relative}
+.w2bd{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:10px;background:#48484A;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--page)}
+.w2card{background:var(--surface);border-radius:14px;overflow:hidden}
+.w2rw{display:flex;align-items:center;gap:12px;min-height:52px;padding:6px 14px;box-sizing:border-box}
+.w2rw+.w2rw{border-top:1px solid var(--border)}
+.w2rw .m{flex:1;min-width:0;display:flex;flex-direction:column}
+.w2rw .a{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w2rw .b{font-size:13px;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w2new{font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0;background:var(--badgebg);color:var(--badgetx)}
+.w2glass{position:absolute;background:var(--glass);-webkit-backdrop-filter:blur(18px) saturate(1.7);backdrop-filter:blur(18px) saturate(1.7);border:1px solid var(--glassedge);box-shadow:var(--glassshadow);box-sizing:border-box;display:flex;align-items:center}
+.w2gb{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+.w2gb.off{color:var(--ter)}
+.w2ad{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:42px;border-radius:21px;background:var(--glassfill);padding:0 12px 0 8px;font-size:15px;color:var(--ter);box-sizing:border-box;white-space:nowrap;overflow:hidden}
+.w2ad b{color:var(--label);font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.w2edit{position:absolute;left:0;right:0;height:52px;display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--page);box-sizing:border-box}
+.w2ef{flex:1;min-width:0;height:40px;border-radius:20px;border:1.5px solid var(--gold);background:var(--fill);display:flex;align-items:center;gap:8px;padding:0 10px;font-size:15px;box-sizing:border-box;white-space:nowrap;overflow:hidden;color:var(--label)}
+.w2ef .tx{flex:1;min-width:0;overflow:hidden}
+.w2ef .sel{background:var(--sel);border-radius:3px;padding:2px 0}
+.w2ef .ph{color:var(--ter)}
+.w2cancel{border:0;background:none;font-size:16px;color:var(--blue);padding:0;min-height:44px;flex-shrink:0}
+.w2caret{display:inline-block;width:2px;height:18px;background:var(--gold);vertical-align:-3px;margin-left:1px}
+.w2kb{position:absolute;left:0;right:0;bottom:0;height:300px;background:var(--kb);display:flex;flex-direction:column;gap:10px;padding:10px 4px 0;box-sizing:border-box}
+.w2kr{display:flex;gap:6px;justify-content:center}
+.w2k{width:31px;height:42px;border-radius:6px;background:var(--key);box-shadow:0 1px 0 rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--label);flex-shrink:0}
+.w2sg{background:var(--surface);border-radius:14px;overflow:hidden}
+.w2sr{display:flex;align-items:center;gap:12px;min-height:44px;padding:9px 14px;font-size:15px;line-height:20px;color:var(--label);border:0;background:none;width:100%;text-align:left;box-sizing:border-box}
+.w2sr+.w2sr{border-top:1px solid var(--border)}
+.w2sr .ic{width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:var(--sec);flex-shrink:0}
+.w2sr .m{flex:1;min-width:0;display:flex;flex-direction:column}
+.w2sr .m small{font-size:13px;color:var(--sec)}
+.w2sr.first .m>span{font-weight:500}
+.w2sr.on{background:var(--goldwash)}
+.w2pend{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:6px;border:1px dashed var(--strong);font-size:12px;font-weight:600;color:var(--sec);white-space:nowrap}
+.w2cap{font-size:15px;line-height:21px;color:var(--label)}
+.w2cap b{display:block;font-size:17px;margin-bottom:4px}
+.w2cap .k{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;color:var(--sec);margin-top:2px}
+.w2frame{width:390px;height:844px;position:relative;overflow:hidden;background:var(--page);border-radius:44px;flex-shrink:0}
+.w2pad{width:1194px;height:834px;position:relative;overflow:hidden;background:var(--page);border-radius:24px;flex-shrink:0}
+.w2ind{position:absolute;left:50%;bottom:8px;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--label);opacity:.85}
+.w2box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-sizing:border-box}
+.w2mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+/*/wuko200*/
+</style>
+</helmet>
+<div class="sf {{theme}} w2" style="width: 1282px; height: 1100px; background: var(--canvas); display: flex; gap: 56px;"><div style="display: flex; flex-direction: column; gap: 20px;"><div class="w2frame"><div style="position: absolute; left: 0; right: 0; top: 62px; padding: 0 20px; display: flex; flex-direction: column; gap: 10px;">
+<div style="font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--blue);">TERMS OF USE</div>
+<h1 style="margin: 0; font-size: 26px; font-weight: 700;">Before you continue</h1>
+<p style="margin: 0; font-size: 15px; line-height: 21px; color: var(--sec);">Please read and accept the Terms of Use. They explain what isn’t allowed and how to report AI output.</p>
+<div class="w2card" style="border: 1px solid var(--border); padding: 16px 14px; display: flex; flex-direction: column; gap: 14px; margin-top: 8px;">
+<div style="display: flex; gap: 12px; align-items: flex-start;"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--raised); color: var(--cin); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px;"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-6.5a1.5 1.5 0 0 1 3 0V11m0-5a1.5 1.5 0 0 1 3 0V14c0 4-2.5 7-6 7s-5-2-7-6l-1-2.5a1.4 1.4 0 0 1 2.500-1.200L8 13"/></svg></span><div style="display: flex; flex-direction: column; gap: 2px;"><b style="font-size: 15px;">No tolerance for abuse</b><span style="font-size: 13px; line-height: 18px; color: var(--sec);">Objectionable content and abusive behavior are not tolerated. Websites you open belong to their own owners.</span></div></div>
+<div style="display: flex; gap: 12px; align-items: flex-start;"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--raised); color: var(--cin); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px;"><path d="M5 21V4M5 4h13l-3 5 3 5H5"/></svg></span><div style="display: flex; flex-direction: column; gap: 2px;"><b style="font-size: 15px;">Report AI output</b><span style="font-size: 13px; line-height: 18px; color: var(--sec);">On any AI summary or answer, open its menu and choose Report this answer. Reports are reviewed within 24 hours.</span></div></div>
+<div style="display: flex; gap: 12px; align-items: flex-start;"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--raised); color: var(--blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px;"><path d="M12 3l1.8 5.2L19 10l-5.200 1.800L12 17l-1.800-5.200L5 10l5.200-1.800z"/></svg></span><div style="display: flex; flex-direction: column; gap: 2px;"><b style="font-size: 15px;">Check AI answers</b><span style="font-size: 13px; line-height: 18px; color: var(--sec);">Summaries and answers come from your chosen AI provider and can be wrong. Verify important details on the page.</span></div></div>
+<a href="#" style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--blue); text-decoration: none;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px;"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg>Read the full Terms of Use</a>
+<div style="display: flex; align-items: center; gap: 12px; min-height: 44px;"><span style="flex: 1; font-size: 16px; font-weight: 500;">I agree to the Terms of Use</span><span role="switch" aria-checked="false" aria-label="I agree to the Terms of Use" style="width: 51px; height: 31px; border-radius: 16px; background: var(--raised); position: relative; flex-shrink: 0; box-shadow: inset 0 0 0 1px var(--border);"><span style="position: absolute; top: 2px; left: 2px; width: 27px; height: 27px; border-radius: 14px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25);"></span></span></div>
+</div></div>
+<div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 40px; border-top: 1px solid var(--border); background: var(--page);"><button disabled="disabled" style="width: 100%; min-height: 50px; border: 0; border-radius: 10px; background: var(--raised); color: var(--ter); font-size: 17px; font-weight: 600;">Continue</button></div></div><div class="w2cap" style="width: 390px;"><b>Terms of Use: once, before the first run</b>A full-screen page after onboarding’s site step and before step 3. Three plain points, a link to the full text, and one switch. Continue stays disabled until the switch is on. The Terms are also linked from Settings › About.<div class="k">termsGate · Continue disabled</div></div></div><div style="display: flex; flex-direction: column; gap: 20px;"><div class="w2frame"><div style="position: absolute; left: 0; right: 0; top: 62px; padding: 0 20px; display: flex; flex-direction: column; gap: 10px;">
+<div style="font-size: 12px; font-weight: 700; letter-spacing: .06em; color: var(--blue);">TERMS OF USE</div>
+<h1 style="margin: 0; font-size: 26px; font-weight: 700;">Before you continue</h1>
+<p style="margin: 0; font-size: 15px; line-height: 21px; color: var(--sec);">Please read and accept the Terms of Use. They explain what isn’t allowed and how to report AI output.</p>
+<div class="w2card" style="border: 1px solid var(--border); padding: 16px 14px; display: flex; flex-direction: column; gap: 14px; margin-top: 8px;">
+<div style="display: flex; gap: 12px; align-items: flex-start;"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--raised); color: var(--cin); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px;"><path d="M8 13V5.5a1.5 1.5 0 0 1 3 0V11m0-6.5a1.5 1.5 0 0 1 3 0V11m0-5a1.5 1.5 0 0 1 3 0V14c0 4-2.5 7-6 7s-5-2-7-6l-1-2.5a1.4 1.4 0 0 1 2.500-1.200L8 13"/></svg></span><div style="display: flex; flex-direction: column; gap: 2px;"><b style="font-size: 15px;">No tolerance for abuse</b><span style="font-size: 13px; line-height: 18px; color: var(--sec);">Objectionable content and abusive behavior are not tolerated. Websites you open belong to their own owners.</span></div></div>
+<div style="display: flex; gap: 12px; align-items: flex-start;"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--raised); color: var(--cin); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px;"><path d="M5 21V4M5 4h13l-3 5 3 5H5"/></svg></span><div style="display: flex; flex-direction: column; gap: 2px;"><b style="font-size: 15px;">Report AI output</b><span style="font-size: 13px; line-height: 18px; color: var(--sec);">On any AI summary or answer, open its menu and choose Report this answer. Reports are reviewed within 24 hours.</span></div></div>
+<div style="display: flex; gap: 12px; align-items: flex-start;"><span style="width: 32px; height: 32px; border-radius: 8px; background: var(--raised); color: var(--blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px;"><path d="M12 3l1.8 5.2L19 10l-5.200 1.800L12 17l-1.800-5.200L5 10l5.200-1.800z"/></svg></span><div style="display: flex; flex-direction: column; gap: 2px;"><b style="font-size: 15px;">Check AI answers</b><span style="font-size: 13px; line-height: 18px; color: var(--sec);">Summaries and answers come from your chosen AI provider and can be wrong. Verify important details on the page.</span></div></div>
+<a href="#" style="display: flex; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; color: var(--blue); text-decoration: none;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 16px; height: 16px;"><path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/></svg>Read the full Terms of Use</a>
+<div style="display: flex; align-items: center; gap: 12px; min-height: 44px;"><span style="flex: 1; font-size: 16px; font-weight: 500;">I agree to the Terms of Use</span><span role="switch" aria-checked="true" aria-label="I agree to the Terms of Use" style="width: 51px; height: 31px; border-radius: 16px; background: var(--gold); position: relative; flex-shrink: 0; box-shadow: inset 0 0 0 1px var(--border);"><span style="position: absolute; top: 2px; right: 2px; width: 27px; height: 27px; border-radius: 14px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25);"></span></span></div>
+</div></div>
+<div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 20px 40px; border-top: 1px solid var(--border); background: var(--page);"><button style="width: 100%; min-height: 50px; border: 0; border-radius: 10px; background: var(--gold); color: var(--ongold); font-size: 17px; font-weight: 600;">Continue</button></div></div><div class="w2cap" style="width: 390px;"><b>Agreed</b>The switch turns gold and Continue becomes the gold primary button. Step 3 (try the Agent once) follows in the real browser.<div class="k">termsAgree on · termsContinue</div></div></div><div style="display: flex; flex-direction: column; gap: 20px;"><div class="w2frame"><div style="position: absolute; left: 0; right: 0; top: 96px; padding: 0 24px; display: flex; flex-direction: column; gap: 12px;">
+<div style="display: flex; align-items: center; gap: 12px;"><span style="width: 44px; height: 44px; border-radius: 10px; background: var(--label); color: var(--ground); font-size: 20px; font-weight: 700; display: flex; align-items: center; justify-content: center;">A</span><span style="color: var(--ter); display: flex;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 18px; height: 18px;"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span><span style="font-size: 12px; line-height: 16px; color: var(--sec); max-width: 190px;">Straight from this device. No WukongMind server.</span></div>
+<h1 style="margin: 6px 0 0; font-size: 22px; line-height: 27px; font-weight: 700; max-width: 270px;">Send web page content to Anthropic?</h1>
+<div style="font-size: 12px; font-weight: 600; color: var(--sec);">What WukongMind sends</div>
+<ul style="margin: 0; padding-left: 18px; font-size: 15px; line-height: 21px;"><li style="margin: 0 0 8px;">Web pages and text you summarize or ask about, including pages you see while signed in</li><li style="margin: 0 0 8px;">Your questions, instructions, and chat messages</li><li style="margin: 0 0 8px;">Your API key, only to Anthropic</li></ul>
+<div style="display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 14px;"><a href="#" style="color: var(--blue); text-decoration: none;">Anthropic’s terms</a><a href="#" style="color: var(--blue); text-decoration: none;">Anthropic’s privacy policy</a><a href="#" style="color: var(--blue); text-decoration: none;">WukongMind’s privacy policy</a></div>
+<p style="margin: 4px 0 0; font-size: 12px; line-height: 17px; color: var(--sec);">Change this any time in Settings › Data &amp; privacy. Live voice asks separately.</p></div>
+<div style="position: absolute; left: 0; right: 0; bottom: 0; padding: 12px 24px 34px; border-top: 1px solid var(--border); background: var(--page); display: flex; flex-direction: column; gap: 4px;"><button style="min-height: 50px; border: 0; border-radius: 10px; background: var(--gold); color: var(--ongold); font-size: 17px; font-weight: 600;">Allow</button><button style="min-height: 44px; border: 0; background: none; color: var(--blue); font-size: 17px;">Don’t Allow</button></div></div><div class="w2cap" style="width: 390px;"><b>AI data consent: before the first request to a provider</b>Full screen, once per provider, the first time a summary or the Agent would send page content. It names the provider, says what is sent and that nothing passes through a WukongMind server, and links the terms and privacy policies. Allow goes on with the request; Don’t Allow sends nothing. Asking the Agent from the address bar meets this page first.<div class="k">aiConsentPage · Allow / Don’t Allow · Settings › Data & privacy</div></div></div></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["lt","dk"],"default":"lt"},"$preview":{"width":1282,"height":1100}}'>
+class Component extends DCLogic {
+renderVals() { return { theme: this.props.theme ?? 'lt' }; }
+}
+</script>
+</body>
+</html>
