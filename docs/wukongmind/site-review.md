@@ -112,8 +112,11 @@ podcast scripts and built-in forum readers. That text needs its own task.
    that names the pains and the promise. The product name moves to a small line above. *Because a visitor
    decides in seconds whether this is for them, and a name answers nothing.*
 2. **Make the hero a real before and after.** A phone with a page covered by a subscribe banner and a cookie
-   box; the request typed where you type an address; the banners go; the ring in the bar turns, then closes
-   into a check. *Because the picture should be the result, and this is the app's real flow and real ring.*
+   box; the request typed where you type an address; the Agent's panel opens, its two steps turn and finish,
+   and the banners go. *Because the picture should be the result, and this is the app's real flow
+   (design-motion.md section 3, step 6: "Ask the Agent" closes Home and opens the panel).* The bar ring stays
+   still here, as in the app: with the panel open, the panel's tool rows are the ring that turns, and "Answer
+   ready" shows on the bar only when a run ends with the panel closed.
 3. **Three trust facts under the buttons.** Every step shown with Stop; your own AI; no accounts, no tracking,
    open source. *Because "an AI that changes web pages" raises the worry before the interest.*
 4. **Replace the feature grid with "What gets in your way?"** Four problems, each with the sentence you would
@@ -122,7 +125,9 @@ podcast scripts and built-in forum readers. That text needs its own task.
    real screenshots → why trust it → the rest of the browser. *Because each section should answer the question
    the previous one raised.*
 6. **Show the ring's four real states once, with their words,** next to what the Agent asks before. *Because the
-   ring is how a person knows where things stand, and "Needs your answer" is the reason to trust it.*
+   ring is how a person knows where things stand, and "Needs your answer" is the reason to trust it.* The words
+   are the app's own strings ("Working", "Needs your answer", "Answer ready" and their Chinese). Idle has no
+   word in the app; the site captions that picture "Ready" (待命), which is the site's label, not an app string.
 7. **Rewrite trust in plain words and make every line true** (the table in section 4). *Because one overclaim
    on a safety line costs more than it gains.*
 8. **Make the demo page look like the problem** and drop "By [AUTHOR]". *Because a clean article needs no fixing.*

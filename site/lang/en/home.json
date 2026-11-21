@@ -53,8 +53,8 @@
  "typed": "hide the banners",
  "ui_ask_row": "Ask the Agent: “hide the banners”",
  "ui_search_row": "Search Google for “hide the banners”",
- "hero_alt": "An iPhone showing a news article covered by a subscribe banner and a cookie box. “hide the banners” is typed in the address field and sent to the Agent. The ring in the browser bar turns while it works; then the banners are gone and the ring closes into a check.",
- "hero_cap": "Type a request where you would type an address. The gold ring is the Agent: it turns while it works and closes into a check when it is done.",
+ "hero_alt": "An iPhone showing a news article covered by a subscribe banner and a cookie box. “hide the banners” is typed in the address field and sent to the Agent. The Agent’s panel opens and lists two steps; then the banners are gone and the answer reads “Done. The banners are hidden.”",
+ "hero_cap": "Type a request where you would type an address. The Agent opens, shows each step, and the page changes.",
  "st_idle": "Ready",
  "st_ask": "Needs your answer",
  "pain_h": "What gets in your way?",
@@ -98,5 +98,6 @@
  "a3": "Read aloud, and live voice with your own key.",
  "a4": "Translate what is on screen, on your device (iOS 18 or later).",
  "a5": "Optional ad and tracker blocking, off until you turn it on.",
- "a6": "Free and open source under the Apache License 2.0."
+ "a6": "Free and open source under the Apache License 2.0.",
+ "hero_answer": "Done. The banners are hidden."
 }

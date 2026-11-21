@@ -192,8 +192,6 @@ def build(out):
     partial = lambda name: read(os.path.join(SITE, "partials", name + ".html")).strip()
     partials = {"ring": partial("ring"), "article": partial("article")}
     partials["bar"] = sub(partial("bar"), partials, "partials/bar")
-    # The hero's bar ring follows the run: idle, working once the request is sent, done when it ends.
-    partials["bar_hero"] = partials["bar"].replace('class="bring"', 'class="bring is-done" data-ring="0:idle 5:work 6:done"')
     write(os.path.join(out, ".nojekyll"), "")
 
     for lang in LANGS:

@@ -18,7 +18,7 @@
     <p class="said ty" data-at="3">{{t_said}}</p>
     <div class="phone" role="img" aria-label="{{t_hero_alt}}">
       {{article}}
-      {{bar_hero}}
+      {{bar}}
       <div class="home">
         <div class="hsec">
           <p class="hh">{{t_ui_home}}</p>
@@ -34,12 +34,20 @@
         <p class="edit"><span class="ef"><span class="sel">news.example.com/harbour-ferries</span><span class="ty" data-at="3">{{t_typed}}</span><i class="caret"></i></span><span class="cancel">{{t_ui_cancel}}</span></p>
         <div class="kb"><i></i><i></i><i></i></div>
       </div>
+      <div class="drawer">
+        <p class="dh"><b>{{t_ui_agent}}</b><span>news.example.com</span></p>
+        <p class="ub" data-at="5">{{t_typed}}</p>
+        <div class="stack">
+          <ul class="tl">
+            <li class="is-done" data-at="5" data-ring="5:work 6:done">{{ring}}{{t_ui_reading}}</li>
+            <li class="is-done" data-at="5" data-ring="5:work 6:done">{{ring}}{{t_ui_running}}</li>
+          </ul>
+          <p class="fold">{{t_ui_steps}}<span class="gl">›</span></p>
+        </div>
+        <p class="at" data-at="6">{{t_hero_answer}}</p>
+        <p class="comp"><span class="fld">{{t_ui_askagent}}</span><span class="rb"></span></p>
+      </div>
     </div>
-    <ul class="lg">
-      <li class="is-idle">{{ring}}{{t_st_idle}}</li>
-      <li class="is-work">{{ring}}{{t_st_work}}</li>
-      <li class="is-done">{{ring}}{{t_st_done}}</li>
-    </ul>
     <figcaption>{{t_hero_cap}}</figcaption>
     <button class="pause" type="button">{{t_pause}}</button>
   </figure>

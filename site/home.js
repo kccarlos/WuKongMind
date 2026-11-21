@@ -40,7 +40,7 @@
     });
   }
 
-  // A stage with data-steps plays step by step while it is in view, holds its last
+  // A stage with data-steps plays step by step while half of its phone is in view, holds its last
   // frame, then starts again (data-loops, when set, rotates data-loop between plays).
   function makeStage(el) {
     const delays = el.dataset.steps.split(',').map(Number);
@@ -67,14 +67,14 @@
       clearTimeout(timer);
       if (visible && !paused) timer = setTimeout(tick, step === delays.length ? hold : delays[step]);
     }
-    return { el, schedule, show(on) { visible = on; schedule(); } };
+    return { el, watch: el.querySelector('.phone') || el, schedule, show(on) { visible = on; schedule(); } };
   }
 
   const stages = [...document.querySelectorAll('[data-steps]')].map(makeStage);
   const stageObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => stages.find(s => s.el === entry.target).show(entry.isIntersecting));
-  }, { threshold: 0.35 });
-  stages.forEach(stage => stageObserver.observe(stage.el));
+    entries.forEach(entry => stages.find(s => s.watch === entry.target).show(entry.isIntersecting));
+  }, { threshold: 0.5 });
+  stages.forEach(stage => stageObserver.observe(stage.watch));
 
   // One pause button under each looping demo; any of them pauses all of them.
   // The buttons are in the markup (shown only under html.anim), so adding them moves nothing.
