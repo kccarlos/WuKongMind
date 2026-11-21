@@ -53,6 +53,10 @@ final class AddressBarPerfUITests: DCUITestCase {
         XCTAssertTrue(waitForBarItem(titleButton, timeout: 15), "browserTitle did not appear")
         XCTAssertTrue(waitForHittable(titleButton, timeout: 5), "browserTitle not hittable")
         RunLoop.current.run(until: Date().addingTimeInterval(2.0))
+        if ProcessInfo.processInfo.environment["DC_PERF_TRACE"] == "1" {
+            print("XCTRACE-START tap_to_edit_bar")
+            RunLoop.current.run(until: Date().addingTimeInterval(8.0))
+        }
 
         tapBarItem(titleButton)
         if !pageApp.textFields["addressField"].waitForExistence(timeout: 5) {
