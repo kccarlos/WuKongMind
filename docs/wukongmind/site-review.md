@@ -21,7 +21,7 @@ to read now, the same fix on every visit) or what they get. "One box on every pa
 why anyone would want it. The hero picture is an abstract ring: it shows that something turns and finishes, not
 that a page got better. The first before-and-after is one screen further down.
 
-On a phone the fold is worse. The header wraps into three rows in English (brand, four links, three languages)
+On a phone the fold is worse. The header wraps into three rows in English and 繁體中文 (brand, four links, three languages)
 and uses 150 px before the headline starts. The quoted request is cut mid-typing when the page opens.
 
 There is nothing a visitor can do. `testflight_url` is still a placeholder, so the only buttons are "See how
