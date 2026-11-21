@@ -282,8 +282,26 @@ class Page(HTMLParser):
             self.title += data
 
 
+# State classes toggled by site/home.js; a bare CSS rule targeting one (e.g. `.in`) collides across the page.
+STATE_CLASS_RE = re.compile(r"^\.(?:in|on|still|paused|cur|anim|c|s\d+|is-(?:idle|work|ask|done))$")
+
+
+def check_css_state_classes():
+    problems = []
+    for name in sorted(os.listdir(SITE)):
+        if not name.endswith(".css"):
+            continue
+        css = re.sub(r"/\*.*?\*/", "", read(os.path.join(SITE, name)), flags=re.S)
+        for m in re.finditer(r"([^{}@]+)\{", css):
+            for sel in m.group(1).split(","):
+                s = sel.strip()
+                if STATE_CLASS_RE.match(s):
+                    problems.append("%s: bare state-class selector %r (scope it to a component)" % (name, s))
+    return problems
+
+
 def check(out):
-    parsed, problems = {}, []
+    parsed, problems = {}, check_css_state_classes()
     for dirpath, _, files in os.walk(out):
         for name in files:
             path = os.path.join(dirpath, name)
