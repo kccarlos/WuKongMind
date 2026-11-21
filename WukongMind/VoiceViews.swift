@@ -468,7 +468,7 @@ struct SettingsVoicePage: View {
                         Text(length.label).tag(length)
                     }
                 }
-                Picker("Read posts aloud", selection: $app.settings.voice.eyesFree) {
+                Picker("Read pages aloud", selection: $app.settings.voice.eyesFree) {
                     ForEach(VoiceEyesFree.allCases) { mode in
                         Text(mode.label).tag(mode)
                     }
@@ -481,7 +481,7 @@ struct SettingsVoicePage: View {
             } header: {
                 Text("Conversation")
             } footer: {
-                Text("Automatic reads posts aloud while headphones are connected; otherwise the voice points at the screen. Voice names and styles are Google’s.")
+                Text("Automatic reads pages aloud while headphones are connected; otherwise the voice points at the screen. Voice names and styles are Google’s.")
             }
 
             Section {

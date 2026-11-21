@@ -38,25 +38,8 @@
         }
       }
     },
-    "%@ doesn’t look like a supported site. WukongMind works with %@." : {
-      "comment" : "Add forum error; the first placeholder is a web address such as forum.example.com, the second the supported platforms such as Discourse and WordPress",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 看起来不是受支持的网站。WukongMind 适用于 %@。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 看起來不是受支援的網站。WukongMind 適用於 %@。"
-          }
-        }
-      }
-    },
     "%@ home" : {
-      "comment" : "Button label: the forum's home page (forum name)",
+      "comment" : "Button label: the site's home page (site name)",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -136,22 +119,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ 設定"
-          }
-        }
-      }
-    },
-    "%@ sites, including subfolder installs like example.com/forum. You can also paste a link to one of their pages." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 网站，包括 example.com/forum 这样的子目录安装。也可以粘贴其中某个页面的链接。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@ 網站，包括 example.com/forum 這類子目錄安裝。也可以貼上其中某個頁面的連結。"
           }
         }
       }
@@ -502,19 +469,19 @@
         }
       }
     },
-    "%@, current forum" : {
-      "comment" : "Accessibility value of a pinned forum tile; the placeholder is the forum's host",
+    "%@, current site" : {
+      "comment" : "Accessibility value of a pinned site tile; the placeholder is the site's host",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@，当前论坛"
+            "value" : "%@，当前网站"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@，目前的論壇"
+            "value" : "%@，目前網站"
           }
         }
       }
@@ -596,53 +563,6 @@
                 "stringUnit" : {
                   "state" : "translated",
                   "value" : "%lld 個錯誤"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "%lld forums" : {
-      "comment" : "Settings root, Sites row: number of saved forums",
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld forum"
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld forums"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld 个论坛"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hant" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "%lld 個論壇"
                 }
               }
             }
@@ -2067,7 +1987,7 @@
       }
     },
     "A 2,000-post topic takes about 10 seconds." : {
-      "comment" : "Forum requests footer for the Standard pace",
+      "comment" : "Reading pace footer for the Standard pace",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -2079,23 +1999,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "讀取一個 2,000 則貼文的話題約需 10 秒。"
-          }
-        }
-      }
-    },
-    "A Chinese-language community for technology, AI and open source." : {
-      "comment" : "Description of a suggested forum",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "关于技术、AI 与开源的中文社区。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "關於技術、AI 與開源的中文社群。"
           }
         }
       }
@@ -2168,22 +2071,6 @@
         }
       }
     },
-    "A forum topic’s web address. Leave empty to use the clipboard." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛话题的网址。留空则使用剪贴板中的链接。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇話題的網址。留空則使用剪貼簿中的連結。"
-          }
-        }
-      }
-    },
     "A good default is filled in. Tap the list button to see every model." : {
       "localizations" : {
         "zh-Hans" : {
@@ -2246,6 +2133,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "以錯誤結束的任務會被儲存，以供 TestFlight 回饋"
+          }
+        }
+      }
+    },
+    "A web page’s address. Leave empty to use the clipboard." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网页的地址。留空则使用剪贴板中的链接。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網頁的網址。留空則使用剪貼簿中的連結。"
           }
         }
       }
@@ -2590,22 +2493,6 @@
         }
       }
     },
-    "Add a forum" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "添加论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "加入論壇"
-          }
-        }
-      }
-    },
     "Add a model by name…" : {
       "comment" : "Provider settings › Models: row button that turns into an inline text field to add a model ID",
       "localizations" : {
@@ -2708,19 +2595,19 @@
         }
       }
     },
-    "Add as a forum" : {
-      "comment" : "This page popover action to add an unconfirmed forum site",
+    "Add as a site" : {
+      "comment" : "This page popover action to add an unconfirmed site",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "添加为论坛"
+            "value" : "添加为网站"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "加入為論壇"
+            "value" : "加入為網站"
           }
         }
       }
@@ -3058,7 +2945,7 @@
       }
     },
     "Agent" : {
-      "comment" : "AI model role: the tool-calling model used by the Agent\nBrowser bar button that opens the Agent panel\nHome Recent: a forum search the Agent ran\nHome Recent: a saved Agent answer\nSettings page: Agent step limits, safety, audit log, developer mode and forum search",
+      "comment" : "AI model role: the tool-calling model used by the Agent\nBrowser bar button that opens the Agent panel\nHome Recent: a forum search the Agent ran\nHome Recent: a saved Agent answer\nSettings page: Agent step limits, safety, audit log, developer mode and forum search\nSource badge on the script review sheet when the script was written by the Agent",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -3223,22 +3110,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "全部"
-          }
-        }
-      }
-    },
-    "All forums" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所有论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "所有論壇"
           }
         }
       }
@@ -3498,69 +3369,6 @@
         }
       }
     },
-    "Also delete saved summaries/chats for this forum?" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "同时删除此论坛已保存的摘要和聊天吗？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "同時刪除此論壇已儲存的摘要和聊天嗎？"
-          }
-        }
-      }
-    },
-    "Also delete saved summaries/chats for this forum? It has %lld saved items." : {
-      "comment" : "Remove forum confirmation; the count is the forum's saved summaries and chats",
-      "localizations" : {
-        "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Also delete saved summaries/chats for this forum? It has %lld saved item."
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Also delete saved summaries/chats for this forum? It has %lld saved items."
-                }
-              }
-            }
-          }
-        },
-        "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "同时删除此论坛已保存的摘要和聊天吗？共有 %lld 个已保存的项目。"
-                }
-              }
-            }
-          }
-        },
-        "zh-Hant" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "同時刪除此論壇已儲存的摘要和聊天嗎？共有 %lld 個已儲存的項目。"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "An agent for any web page" : {
       "comment" : "First-run step 1 title",
       "localizations" : {
@@ -3608,6 +3416,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "回答"
+          }
+        }
+      }
+    },
+    "Answer actions" : {
+      "comment" : "Accessibility label for an AI answer's menu",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回答操作"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回答操作"
           }
         }
       }
@@ -4096,18 +3921,34 @@
         }
       }
     },
-    "Ask a Forum" : {
+    "Ask a Site" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "问论坛"
+            "value" : "问网站"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "問論壇"
+            "value" : "問網站"
+          }
+        }
+      }
+    },
+    "Ask about this page" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "就此页面提问"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "就這個頁面提問"
           }
         }
       }
@@ -4163,52 +4004,51 @@
         }
       }
     },
-    "Ask the forum" : {
-      "comment" : "AI model role: the model used by Ask the forum (the research agent)\nAssistant mode: the research agent that searches the whole forum",
+    "Ask this site" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "问论坛"
+            "value" : "问这个网站"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "問論壇"
+            "value" : "問這個網站"
           }
         }
       }
     },
-    "Ask the forum is searching" : {
-      "comment" : "Accessibility value of the AI panel toggle while its ring shows an Ask the forum search running",
+    "Ask this site is searching" : {
+      "comment" : "Accessibility value of the AI panel toggle while its ring shows an Ask this site search running",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“问论坛”正在搜索"
+            "value" : "“问这个网站”正在搜索"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「問論壇」正在搜尋"
+            "value" : "「問這個網站」正在搜尋"
           }
         }
       }
     },
-    "Ask the forum searches, reads the most relevant topics and answers with numbered sources you can open." : {
+    "Ask this site searches, reads the most relevant pages and answers with numbered sources you can open." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "论坛问答会搜索并阅读最相关的主题，并附上可打开的编号来源作答。"
+            "value" : "“问这个网站”会搜索并阅读最相关的页面，并附上可打开的编号来源作答。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "論壇問答會搜尋並閱讀最相關的主題，並附上可開啟的編號來源作答。"
+            "value" : "「問這個網站」會搜尋並閱讀最相關的頁面，並附上可打開的編號來源作答。"
           }
         }
       }
@@ -4247,18 +4087,18 @@
         }
       }
     },
-    "Asking the forum" : {
+    "Asking this site" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在问论坛"
+            "value" : "正在问这个网站"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在問論壇"
+            "value" : "正在問這個網站"
           }
         }
       }
@@ -4297,18 +4137,18 @@
         }
       }
     },
-    "Asks one of your forums a question: WukongMind searches and reads its topics and answers with sources." : {
+    "Asks one of your sites a question: WukongMind searches and reads its pages and answers with sources." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "向你的某个论坛提问：WukongMind 会搜索并阅读其中的话题，给出附带来源的回答。"
+            "value" : "向你的某个网站提问：WukongMind 会搜索并阅读其中的页面，给出附带来源的回答。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "向你的某個論壇提問：WukongMind 會搜尋並閱讀其中的話題，給出附帶來源的回答。"
+            "value" : "向你的某個網站提問：WukongMind 會搜尋並閱讀其中的頁面，給出附帶來源的回答。"
           }
         }
       }
@@ -4397,18 +4237,18 @@
         }
       }
     },
-    "Automatic opens Home the first time each day, and otherwise the forum you read last. Links, notifications, Siri and shared pages always open what they point to." : {
+    "Automatic opens Home the first time each day, and otherwise the site you read last. Links, notifications, Siri and shared pages always open what they point to." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「自动」会在每天首次打开时进入主页，其余时间打开上次阅读的论坛。链接、通知、Siri 和分享的页面始终打开其指向的内容。"
+            "value" : "“自动”会在每天第一次打开时显示首页，否则打开你上次阅读的网站。链接、通知、Siri 和分享的页面总是打开它们指向的内容。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「自動」會在每天首次開啟時進入首頁，其餘時間開啟上次閱讀的論壇。連結、通知、Siri 與分享的頁面一律開啟其指向的內容。"
+            "value" : "「自動」會在每天第一次打開時顯示首頁，否則打開你上次閱讀的網站。連結、通知、Siri 和分享的頁面總是打開它們指向的內容。"
           }
         }
       }
@@ -4429,18 +4269,18 @@
         }
       }
     },
-    "Automatic reads posts aloud while headphones are connected; otherwise the voice points at the screen. Voice names and styles are Google’s." : {
+    "Automatic reads pages aloud while headphones are connected; otherwise the voice points at the screen. Voice names and styles are Google’s." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“自动”会在连接耳机时朗读帖子；否则语音会请你看屏幕。声音名称和风格来自 Google。"
+            "value" : "“自动”会在连接耳机时朗读页面；否则语音会请你看屏幕。声音名称和风格来自 Google。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「自動」會在連接耳機時朗讀貼文；否則語音會請你看螢幕。聲音名稱和風格來自 Google。"
+            "value" : "「自動」會在連接耳機時朗讀頁面；否則語音會請你看螢幕。聲音名稱和風格來自 Google。"
           }
         }
       }
@@ -4555,6 +4395,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "之前"
+          }
+        }
+      }
+    },
+    "Before you continue" : {
+      "comment" : "Terms gate title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续前请阅读"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "繼續前請閱讀"
           }
         }
       }
@@ -5147,22 +5004,6 @@
         }
       }
     },
-    "Chat about it" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "聊聊这个"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "聊聊這個"
-          }
-        }
-      }
-    },
     "Chat context" : {
       "localizations" : {
         "zh-Hans" : {
@@ -5244,6 +5085,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "查看 %lld 則新回覆"
+          }
+        }
+      }
+    },
+    "Check AI answers" : {
+      "comment" : "Terms of Use summary row title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "检查 AI 回答"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢查 AI 回答"
           }
         }
       }
@@ -5695,7 +5553,7 @@
       }
     },
     "Clear saved data for %@?" : {
-      "comment" : "Confirmation title; the argument is a forum name",
+      "comment" : "Confirmation title; the argument is a site name",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -5711,18 +5569,18 @@
         }
       }
     },
-    "Clear saved data for this forum?" : {
+    "Clear saved data for this site?" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "要清除此论坛的已保存数据吗？"
+            "value" : "要清除此网站的已保存数据吗？"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "要清除此論壇的已儲存資料嗎？"
+            "value" : "要清除此網站的已儲存資料嗎？"
           }
         }
       }
@@ -5762,7 +5620,7 @@
       }
     },
     "Cleared saved data for %@." : {
-      "comment" : "The argument is a forum name",
+      "comment" : "The argument is a site name",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -5778,18 +5636,18 @@
         }
       }
     },
-    "Clearing deletes saved summaries, chats, answers, and watched topics for that forum. The forum stays in your list." : {
+    "Clearing deletes saved summaries, chats, answers, and followed discussions for that site. The site stays in your list." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清除会删除该论坛已保存的摘要、聊天、回答和关注的话题。论坛仍保留在你的列表中。"
+            "value" : "清除会删除该网站已保存的摘要、聊天、回答和关注的讨论。网站仍保留在你的列表中。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "清除會刪除該論壇已儲存的摘要、聊天、回答和追蹤的話題。論壇仍會保留在你的列表中。"
+            "value" : "清除會刪除該網站已儲存的摘要、聊天、回答和追蹤的討論。網站仍保留在你的列表中。"
           }
         }
       }
@@ -6051,23 +5909,6 @@
         }
       }
     },
-    "Confirm before writes asks before the Agent sends a network request. Reading cookies, and sending your login to another site, always ask; cookie values stay hidden unless Give cookie values to the model is on." : {
-      "comment" : "Settings › Agent › Safety footer explaining the safety switches",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "“写入前确认”会在代理发送网络请求前先询问。读取 Cookie 和向其他网站发送你的登录状态时，一律会询问；除非开启“向模型提供 Cookie 值”，否则 Cookie 值会被隐藏。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "「寫入前確認」會在代理傳送網路請求前先詢問。讀取 Cookie 和向其他網站傳送你的登入狀態時，一律會詢問；除非開啟「向模型提供 Cookie 值」，否則 Cookie 值會被隱藏。"
-          }
-        }
-      }
-    },
     "Connect an AI provider" : {
       "localizations" : {
         "zh-Hans" : {
@@ -6150,6 +5991,22 @@
         }
       }
     },
+    "Context per page read" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次阅读页面的上下文"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每次閱讀頁面的上下文"
+          }
+        }
+      }
+    },
     "Context per summary batch" : {
       "localizations" : {
         "zh-Hans" : {
@@ -6162,22 +6019,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "每個摘要批次的上下文"
-          }
-        }
-      }
-    },
-    "Context per topic read" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次阅读话题的上下文"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "每次閱讀話題的上下文"
           }
         }
       }
@@ -6251,7 +6092,7 @@
       }
     },
     "Copy" : {
-      "comment" : "Button to copy code to clipboard\nButton to copy tool call result text",
+      "comment" : "Button to copy an AI answer\nButton to copy code to clipboard\nButton to copy tool call result text",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -6297,6 +6138,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "複製模型名稱"
+          }
+        }
+      }
+    },
+    "Copy or share the report to send it." : {
+      "comment" : "Report fallback footer when no report email is configured",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷贝或共享报告以发送。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷貝或分享報告以傳送。"
+          }
+        }
+      }
+    },
+    "Copy report" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷贝报告"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拷貝報告"
           }
         }
       }
@@ -6543,22 +6417,6 @@
         }
       }
     },
-    "Couldn’t reach that forum. Check the address and your connection." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法访问该论坛。请检查地址和网络连接。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法連線至該論壇。請檢查網址和網路連線。"
-          }
-        }
-      }
-    },
     "Couldn’t reach that site. Check the address and your connection." : {
       "comment" : "Add site error fallback",
       "localizations" : {
@@ -6637,23 +6495,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在產生摘要"
-          }
-        }
-      }
-    },
-    "Credit cards, travel rewards and personal finance in the US, in Chinese." : {
-      "comment" : "Description of a suggested forum",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "美国信用卡、旅行积分与个人理财的中文社区。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "美國信用卡、旅行積分與個人理財的中文社群。"
           }
         }
       }
@@ -7031,6 +6872,23 @@
         }
       }
     },
+    "Details (optional)" : {
+      "comment" : "Report form optional details field",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "详细信息（可选）"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詳細資訊（可選）"
+          }
+        }
+      }
+    },
     "Developer" : {
       "comment" : "Settings › Agent section header for developer diagnostics\nThis page popover group title, developer mode only",
       "localizations" : {
@@ -7061,23 +6919,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "開發者模式"
-          }
-        }
-      }
-    },
-    "Developers discussing the OpenAI API, models, and tools." : {
-      "comment" : "Description of a suggested forum",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "开发者交流 OpenAI API、模型和工具。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開發者交流 OpenAI API、模型和工具。"
           }
         }
       }
@@ -7184,19 +7025,34 @@
         }
       }
     },
-    "Discourse’s own community for features, support, and plugins." : {
-      "comment" : "Description of a suggested forum",
+    "Discussion context" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discourse 官方社区，讨论功能、支持和插件。"
+            "value" : "讨论上下文"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Discourse 官方社群，討論功能、支援和外掛程式。"
+            "value" : "討論上下文"
+          }
+        }
+      }
+    },
+    "Discussion context size" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "讨论上下文大小"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "討論上下文大小"
           }
         }
       }
@@ -7395,22 +7251,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下載 Ollama"
-          }
-        }
-      }
-    },
-    "Drag to reorder. Unpinned forums stay under Recent." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "拖移以重新排序。取消置顶的论坛会留在“最近”中。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "拖移以重新排序。取消釘選的論壇會留在「最近」中。"
           }
         }
       }
@@ -7667,23 +7507,6 @@
         }
       }
     },
-    "Enter a forum address such as meta.discourse.org." : {
-      "comment" : "Add forum error; keep the example address as is",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请输入论坛地址，例如 meta.discourse.org。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請輸入論壇網址，例如 meta.discourse.org。"
-          }
-        }
-      }
-    },
     "Enter a full HTTPS link to a .user.js file." : {
       "comment" : "Validation error when the user submits a blank or malformed link in Import from link",
       "localizations" : {
@@ -7734,6 +7557,38 @@
         }
       }
     },
+    "Enter a web address such as en.wikipedia.org or a full https:// link." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入网址（如 en.wikipedia.org）或完整的 https:// 链接。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入網址（如 en.wikipedia.org）或完整的 https:// 連結。"
+          }
+        }
+      }
+    },
+    "Enter a web address such as en.wikipedia.org or a full https:// link. A path such as /about opens on the current site." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "输入网址（如 en.wikipedia.org）或完整的 https:// 链接。/about 这样的路径会在当前网站中打开。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "輸入網址（如 en.wikipedia.org）或完整的 https:// 連結。如 /about 這樣的路徑會在目前網站中開啟。"
+          }
+        }
+      }
+    },
     "Enter a web address such as example.com." : {
       "comment" : "Add site error; keep the example address as is",
       "localizations" : {
@@ -7747,38 +7602,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請輸入網址，例如 example.com。"
-          }
-        }
-      }
-    },
-    "Enter a web address such as meta.discourse.org or a full https:// link." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "输入网址（如 meta.discourse.org）或完整的 https:// 链接。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "輸入網址（如 meta.discourse.org）或完整的 https:// 連結。"
-          }
-        }
-      }
-    },
-    "Enter a web address such as meta.discourse.org or a full https:// link. A path such as /about opens on the current forum." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "输入网址（如 meta.discourse.org）或完整的 https:// 链接。/about 这样的路径会在当前论坛中打开。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "輸入網址（如 meta.discourse.org）或完整的 https:// 連結。/about 這類路徑會在目前論壇中打開。"
           }
         }
       }
@@ -7900,18 +7723,18 @@
         }
       }
     },
-    "Every saved summary, chat, answer, and watched topic will be deleted. Your forums and settings stay." : {
+    "Every saved summary, chat, answer, and followed discussion will be deleted. Your sites and settings stay." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有已保存的摘要、聊天、回答和关注的话题都将被删除。你的论坛和设置会保留。"
+            "value" : "所有已保存的摘要、聊天、回答和关注的讨论都将被删除。你的网站和设置会保留。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "所有已儲存的摘要、聊天、回答和追蹤的話題都將被刪除。你的論壇和設定會保留。"
+            "value" : "所有已儲存的摘要、聊天、回答和追蹤的討論都將被刪除。你的網站和設定會保留。"
           }
         }
       }
@@ -8230,19 +8053,19 @@
         }
       }
     },
-    "Fast reads long topics quickest but puts the most load on the forum. Use it on forums you run or where you know it’s welcome." : {
-      "comment" : "Forum requests footer for the Fast pace",
+    "Fast reads long threads quickest but puts the most load on the site. Use it on sites you run or where you know it’s welcome." : {
+      "comment" : "Reading pace footer for the Fast pace",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "“快速”读取长话题最快，但给论坛带来的负载也最大。请在你自己运营的论坛，或确定欢迎这样做的论坛上使用。"
+            "value" : "“快速”读取长讨论最快，但给网站带来的负载也最大。请在你自己运营的网站，或确定欢迎这样做的网站上使用。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "「快速」讀取長話題最快，但對論壇造成的負載也最大。請在你自己經營的論壇，或確定歡迎這樣做的論壇上使用。"
+            "value" : "「快速」讀取長討論最快，但給網站帶來的負載也最大。請在你自己營運的網站，或確定歡迎這樣做的網站上使用。"
           }
         }
       }
@@ -8380,6 +8203,39 @@
         }
       }
     },
+    "Follow a discussion from the Assistant menu, or let the agent follow one." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从助手菜单中关注讨论，或让代理帮你关注。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "從助手選單中追蹤討論，或讓代理幫你追蹤。"
+          }
+        }
+      }
+    },
+    "Follow this discussion" : {
+      "comment" : "Suggestion above the Agent composer on a discussion page: follows it",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关注此讨论"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "追蹤此討論"
+          }
+        }
+      }
+    },
     "Following" : {
       "comment" : "History segment: followed topics\nSettings page: followed topics and new-reply checks\nThis page popover toggle: follow new replies on the open forum topic",
       "localizations" : {
@@ -8494,202 +8350,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已忘記"
-          }
-        }
-      }
-    },
-    "Forum" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇"
-          }
-        }
-      }
-    },
-    "Forum Login" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛登录"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇登入"
-          }
-        }
-      }
-    },
-    "Forum context" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛上下文"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇上下文"
-          }
-        }
-      }
-    },
-    "Forum context size" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛上下文大小"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇上下文大小"
-          }
-        }
-      }
-    },
-    "Forum session" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛会话"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇工作階段"
-          }
-        }
-      }
-    },
-    "Forum sign-in pages are never blocked." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛的登录页面永远不会被拦截。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇的登入頁面永遠不會被阻擋。"
-          }
-        }
-      }
-    },
-    "Forum tools" : {
-      "comment" : "Settings › Agent section header for the limits the forum tools read",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛工具"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇工具"
-          }
-        }
-      }
-    },
-    "Forum: %@" : {
-      "comment" : "Accessibility label of Manage's forum filter; the placeholder is a forum name",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛：%@"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇：%@"
-          }
-        }
-      }
-    },
-    "Forum: all forums" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛：所有论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇：所有論壇"
-          }
-        }
-      }
-    },
-    "Forums" : {
-      "comment" : "Home section: the pinned forums",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇"
-          }
-        }
-      }
-    },
-    "Forums and pins · summaries and kept chats · Ask the forum answers · watched topics · scripts · most settings" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛和置顶 · 摘要和保留的聊天 · “问论坛”的回答 · 关注的话题 · 脚本 · 大部分设置"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇和釘選 · 摘要和保留的聊天 · 「問論壇」的回答 · 追蹤的話題 · 指令碼 · 大部分設定"
-          }
-        }
-      }
-    },
-    "Forums are run by people and communities who pay for their servers. Reading a topic one page at a time keeps WukongMind a polite visitor and avoids being rate limited." : {
-      "comment" : "Settings › Summaries & chat › Forum requests footer",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "论坛由自掏服务器费用的个人和社区运营。一次读取一页，能让 WukongMind 做个礼貌的访客，也能避免被限速。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "論壇由自行負擔伺服器費用的個人和社群經營。一次讀取一頁，能讓 WukongMind 當個有禮貌的訪客，也能避免被限制速率。"
           }
         }
       }
@@ -9232,6 +8892,40 @@
         }
       }
     },
+    "Harassment or bullying" : {
+      "comment" : "AI output report reason",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "骚扰或欺凌"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "騷擾或霸凌"
+          }
+        }
+      }
+    },
+    "Hate speech" : {
+      "comment" : "AI output report reason",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仇恨言论"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仇恨言論"
+          }
+        }
+      }
+    },
     "Help & about" : {
       "localizations" : {
         "zh-Hans" : {
@@ -9244,23 +8938,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "說明與關於"
-          }
-        }
-      }
-    },
-    "Help, bug reports, and tips for the Cursor code editor." : {
-      "comment" : "Description of a suggested forum",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cursor 代码编辑器的帮助、问题反馈和使用技巧。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cursor 程式碼編輯器的說明、問題回報和使用技巧。"
           }
         }
       }
@@ -9398,23 +9075,6 @@
         }
       }
     },
-    "Home automation setups, integrations, and troubleshooting." : {
-      "comment" : "Description of a suggested forum",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "智能家居配置、集成和故障排除。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "智慧家庭設定、整合和疑難排解。"
-          }
-        }
-      }
-    },
     "Hosted — needs an API key" : {
       "localizations" : {
         "zh-Hans" : {
@@ -9464,34 +9124,34 @@
         }
       }
     },
-    "How much of a long topic is summarized at once." : {
+    "How much of a long page is summarized at once." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "长话题每次总结多少内容。"
+            "value" : "长页面每次总结多少内容。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "長話題每次摘要多少內容。"
+            "value" : "長頁面每次摘要多少內容。"
           }
         }
       }
     },
-    "How much of each topic it reads. Larger reads catch more detail in long threads." : {
+    "How much of each page it reads. Larger reads catch more detail in long discussions." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每个话题阅读多少内容。读得越多，越能捕捉长讨论中的细节。"
+            "value" : "每个页面阅读多少内容。读得越多，越能捕捉长讨论中的细节。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "每個話題閱讀多少內容。讀得越多，越能掌握長討論中的細節。"
+            "value" : "每個頁面閱讀多少內容。讀得越多，越能捕捉長討論中的細節。"
           }
         }
       }
@@ -9512,6 +9172,23 @@
         }
       }
     },
+    "I agree to the Terms of Use" : {
+      "comment" : "Toggle the user must turn on before using the app",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我同意使用条款"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我同意使用條款"
+          }
+        }
+      }
+    },
     "I didn't hear anything. Tap the microphone to try again." : {
       "comment" : "Dictation failure: nothing was said",
       "localizations" : {
@@ -9525,6 +9202,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有聽到聲音。點一下麥克風再試一次。"
+          }
+        }
+      }
+    },
+    "Illegal content" : {
+      "comment" : "AI output report reason",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "违法内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "違法內容"
           }
         }
       }
@@ -9642,6 +9336,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在「檔案」App 中：我的 iPhone › WukongMind"
+          }
+        }
+      }
+    },
+    "Inaccurate or misleading" : {
+      "comment" : "AI output report reason",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不准确或有误导性"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不準確或具誤導性"
           }
         }
       }
@@ -9847,18 +9558,18 @@
         }
       }
     },
-    "Its saved summaries, chats, agent runs, and watched topics can be kept or deleted." : {
+    "Its saved summaries, chats, agent runs, and followed discussions can be kept or deleted." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可以保留或删除它已保存的摘要、聊天、问论坛记录和关注的话题。"
+            "value" : "可以保留或删除它已保存的摘要、聊天、智能体记录和关注的讨论。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "可以保留或刪除它已儲存的摘要、聊天、問論壇記錄和追蹤的話題。"
+            "value" : "可以保留或刪除它已儲存的摘要、聊天、代理記錄和追蹤的討論。"
           }
         }
       }
@@ -10124,23 +9835,6 @@
         }
       }
     },
-    "Last forum" : {
-      "comment" : "When WukongMind opens: always on the forum read last",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "上次的论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "上次的論壇"
-          }
-        }
-      }
-    },
     "Last session" : {
       "localizations" : {
         "zh-Hans" : {
@@ -10153,6 +9847,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "上次對話"
+          }
+        }
+      }
+    },
+    "Last site" : {
+      "comment" : "When WukongMind opens: always on the site read last",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次的网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上次的網站"
           }
         }
       }
@@ -10307,35 +10018,35 @@
         }
       }
     },
-    "Let the Agent learn to read unfamiliar forums and use tools a page or script offers. A site's own tools always ask first." : {
+    "Let the Agent learn to read unfamiliar sites and use tools a page or script offers. A site's own tools always ask first." : {
       "comment" : "Settings › Agent footer explaining the Page tools switch",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "允许代理学习读取陌生的论坛，并使用页面或脚本提供的工具。网站自身的工具一律会先询问。"
+            "value" : "允许智能体学习读取陌生的网站，并使用页面或脚本提供的工具。网站自身的工具一律会先询问。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "允許代理學習讀取陌生的論壇，並使用頁面或指令碼提供的工具。網站自身的工具一律會先詢問。"
+            "value" : "允許代理學習讀取陌生的網站，並使用頁面或指令碼提供的工具。網站自身的工具一律會先詢問。"
           }
         }
       }
     },
-    "Lets Siri suggest topics you read" : {
+    "Lets Siri suggest pages you read" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "让 Siri 建议你读过的话题"
+            "value" : "让 Siri 建议你读过的页面"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "讓 Siri 建議你讀過的話題"
+            "value" : "讓 Siri 建議你讀過的頁面"
           }
         }
       }
@@ -10842,7 +10553,7 @@
       }
     },
     "Long topics take longer to read: a 2,000-post topic takes about 20 seconds." : {
-      "comment" : "Forum requests footer for the Gentle pace (20 pages of 100 posts at 1 per second)",
+      "comment" : "Reading pace footer for the Gentle pace (20 pages of 100 posts at 1 per second)",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -10904,6 +10615,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "郵件"
+          }
+        }
+      }
+    },
+    "Mail isn’t set up on this device. Send the report from any email app, or copy or share it." : {
+      "comment" : "Report fallback footer",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此设备尚未设置“邮件”。请通过任意邮件 App 发送报告，或拷贝/共享报告。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此裝置尚未設定「郵件」。請透過任何郵件 App 傳送報告，或拷貝／分享報告。"
           }
         }
       }
@@ -11555,6 +11283,22 @@
         }
       }
     },
+    "Next" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一步"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一步"
+          }
+        }
+      }
+    },
     "Next Result" : {
       "localizations" : {
         "zh-Hans" : {
@@ -11584,6 +11328,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "下一個結果"
+          }
+        }
+      }
+    },
+    "Next, you can copy or share the report. Reports are reviewed within 24 hours." : {
+      "comment" : "Report form footer when no report email is configured",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接下来你可以拷贝或共享报告。报告会在 24 小时内处理。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接下來你可以拷貝或分享報告。報告會在 24 小時內處理。"
+          }
+        }
+      }
+    },
+    "Next, your email app opens with the report filled in, or you can copy or share it. Reports are reviewed within 24 hours." : {
+      "comment" : "Report form footer",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接下来会打开你的邮件 App 并填好报告内容，你也可以拷贝或共享报告。报告会在 24 小時内处理。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "接下來會打開你的郵件 App 並填好報告內容，你也可以拷貝或分享報告。報告會在 24 小時內處理。"
           }
         }
       }
@@ -11701,22 +11479,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "無間隔，最多同時 4 個"
-          }
-        }
-      }
-    },
-    "No forum" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無論壇"
           }
         }
       }
@@ -11906,22 +11668,6 @@
         }
       }
     },
-    "No pinned forums" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "没有置顶的论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "沒有釘選的論壇"
-          }
-        }
-      }
-    },
     "No pinned sites" : {
       "localizations" : {
         "zh-Hans" : {
@@ -11934,22 +11680,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "沒有已釘選的網站"
-          }
-        }
-      }
-    },
-    "No posts are on screen" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "屏幕上没有帖子"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "螢幕上沒有貼文"
           }
         }
       }
@@ -12017,6 +11747,55 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "尚無指令碼"
+          }
+        }
+      }
+    },
+    "No site" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "無網站"
+          }
+        }
+      }
+    },
+    "No text is on screen" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "屏幕上没有可翻译的文本"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "畫面上沒有可翻譯的文字"
+          }
+        }
+      }
+    },
+    "No tolerance for abuse" : {
+      "comment" : "Terms of Use summary row title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "对滥用行为零容忍"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "對濫用行為零容忍"
           }
         }
       }
@@ -12524,18 +12303,18 @@
         }
       }
     },
-    "Nothing saved yet. Summaries, chats, and answers appear here by forum." : {
+    "Nothing saved yet. Summaries, chats, and answers appear here by site." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "还没有保存任何内容。摘要、聊天和回答会按论坛显示在这里。"
+            "value" : "还没有保存任何内容。摘要、聊天和回答会按网站显示在这里。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "還沒有儲存任何內容。摘要、聊天和回答會依論壇顯示在這裡。"
+            "value" : "尚未儲存任何內容。摘要、聊天和回答會按網站顯示在這裡。"
           }
         }
       }
@@ -12606,23 +12385,6 @@
         }
       }
     },
-    "Notify me of new replies" : {
-      "comment" : "Suggestion above the Agent composer on a forum thread: follows it",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有新回复时通知我"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有新回覆時通知我"
-          }
-        }
-      }
-    },
     "Now comes from %@, was %@" : {
       "comment" : "Danger warning in Update script when the update comes from a different host than the original install URL",
       "localizations" : {
@@ -12662,6 +12424,23 @@
         }
       }
     },
+    "Objectionable content and abusive behavior are not tolerated. Websites you open belong to their own owners." : {
+      "comment" : "Terms of Use summary row",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不允许出现令人反感的内容和滥用行为。你打开的网站归其各自所有者所有。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不允許出現令人反感的內容和濫用行為。你開啟的網站歸其各自擁有者所有。"
+          }
+        }
+      }
+    },
     "Off" : {
       "comment" : "State pill when a feature or script is disabled\nSync status, short value in the Settings row: sync is off",
       "localizations" : {
@@ -12679,19 +12458,19 @@
         }
       }
     },
-    "Off by default, out of respect for forum owners who rely on ads. Turn either switch on to block them in the built-in browser." : {
+    "Off by default, out of respect for site owners who rely on ads. Turn either switch on to block them in the built-in browser." : {
       "comment" : "Settings › Browser: why ad and tracker blocking starts off",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "默认关闭，以尊重依靠广告维持的论坛站长。打开任一开关，即可在内置浏览器中拦截。"
+            "value" : "默认关闭，以尊重依靠广告维持的网站所有者。打开任一开关，即可在内置浏览器中拦截。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "預設關閉，以尊重仰賴廣告維持的論壇站長。開啟任一開關，即可在內建瀏覽器中阻擋。"
+            "value" : "預設關閉，以尊重依靠廣告維持的網站擁有者。打開任一開關，即可在內建瀏覽器中攔截。"
           }
         }
       }
@@ -12777,6 +12556,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在 Vertex AI 上，Google 如何使用你傳送的內容由你的 Google Cloud 協議決定。"
+          }
+        }
+      }
+    },
+    "On any AI summary or answer, open its menu and choose Report this answer. Reports are reviewed within 24 hours." : {
+      "comment" : "Terms of Use summary row",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在任意 AI 摘要或回答上打开菜单并选择“举报此回答”。举报会在 24 小時内处理。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在任何 AI 摘要或回答上打開選單並選擇「檢舉此回答」。檢舉會在 24 小時內處理。"
           }
         }
       }
@@ -12995,70 +12791,6 @@
         }
       }
     },
-    "Open a forum first, or add the forum again." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请先打开一个论坛，或重新添加该论坛。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請先打開一個論壇，或重新加入該論壇。"
-          }
-        }
-      }
-    },
-    "Open a forum first, then enter a path such as /about." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "请先打开一个论坛，然后输入路径，例如 /about。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "請先打開一個論壇，然後輸入路徑，例如 /about。"
-          }
-        }
-      }
-    },
-    "Open a forum topic and WukongMind summarizes it; chat about it with the assistant." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开论坛主题，WukongMind 会为其生成摘要，你也可以与助手聊这个主题。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "開啟論壇主題，WukongMind 會為其產生摘要，你也可以與助理聊這個主題。"
-          }
-        }
-      }
-    },
-    "Open a forum topic in Safari or Chrome and tap **Share**. In Chrome, tap **⋯**, then **Share…**" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 Safari 浏览器或 Chrome 中打开论坛话题，然后轻点**共享**。在 Chrome 中，轻点 **⋯**，然后轻点**共享…**"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 Safari 或 Chrome 中打開論壇話題，然後點一下**分享**。在 Chrome 中，點一下 **⋯**，再點一下**分享⋯**"
-          }
-        }
-      }
-    },
     "Open a site" : {
       "comment" : "First-run step 2\nFirst-run step 2 title",
       "localizations" : {
@@ -13076,6 +12808,38 @@
         }
       }
     },
+    "Open a site first, or add the site again." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先打开一个网站，或重新添加该网站。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先打開一個網站，或重新加入該網站。"
+          }
+        }
+      }
+    },
+    "Open a site first, then enter a path such as /about." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请先打开一个网站，然后输入路径，例如 /about。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請先打開一個網站，然後輸入路徑，例如 /about。"
+          }
+        }
+      }
+    },
     "Open a topic or article first." : {
       "localizations" : {
         "zh-Hans" : {
@@ -13088,6 +12852,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "請先打開一個話題或文章。"
+          }
+        }
+      }
+    },
+    "Open a web page and WukongMind summarizes it; chat about it with the assistant." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开网页，WukongMind 会为其生成摘要，你也可以与助手聊这个页面。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打開網頁，WukongMind 會為其產生摘要，你也可以與助手聊這個頁面。"
+          }
+        }
+      }
+    },
+    "Open a web page in Safari or Chrome and tap **Share**. In Chrome, tap **⋯**, then **Share…**" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Safari 浏览器或 Chrome 中打开网页，然后轻点**共享**。在 Chrome 中，轻点 **⋯**，然后轻点**共享…**"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Safari 瀏覽器或 Chrome 中打開網頁，然後點一下**分享**。在 Chrome 中，點一下 **⋯**，然後點一下**分享…**"
           }
         }
       }
@@ -13126,22 +12922,6 @@
         }
       }
     },
-    "Open forum sign in" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打开论坛登录"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "打開論壇登入"
-          }
-        }
-      }
-    },
     "Open in app" : {
       "localizations" : {
         "zh-Hans" : {
@@ -13154,6 +12934,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在 App 中打開"
+          }
+        }
+      }
+    },
+    "Open in email app" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在邮件 App 中打开"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在郵件 App 中打開"
           }
         }
       }
@@ -13218,6 +13014,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在 Safari 中打開登入頁面"
+          }
+        }
+      }
+    },
+    "Open site sign in" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开网站登录"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "開啟網站登入"
           }
         }
       }
@@ -13353,22 +13165,6 @@
         }
       }
     },
-    "Opens a forum topic in WukongMind and summarizes it. Without a link, the link on the clipboard is used." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 WukongMind 中打开论坛话题并为它生成摘要。未提供链接时，使用剪贴板中的链接。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在 WukongMind 中打開論壇話題並為它產生摘要。未提供連結時，使用剪貼簿中的連結。"
-          }
-        }
-      }
-    },
     "Opens a topic you’ve read in WukongMind." : {
       "localizations" : {
         "zh-Hans" : {
@@ -13381,6 +13177,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "在 WukongMind 中打開你讀過的話題。"
+          }
+        }
+      }
+    },
+    "Opens a web page in WukongMind and summarizes it. Without a link, the link on the clipboard is used." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 WukongMind 中打开网页并为其生成摘要。未提供链接时，使用剪贴板中的链接。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 WukongMind 中打開網頁並為其產生摘要。未提供連結時，使用剪貼簿中的連結。"
           }
         }
       }
@@ -13481,22 +13293,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "或切換到已就緒的模型"
-          }
-        }
-      }
-    },
-    "Other forums you visited" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你访问过的其他论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你造訪過的其他論壇"
           }
         }
       }
@@ -13707,6 +13503,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "頁面工具"
+          }
+        }
+      }
+    },
+    "Pages to read: %lld" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "阅读页面数：%lld"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "閱讀頁面數：%lld"
+          }
+        }
+      }
+    },
+    "Pages you read and their saved summaries" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你读过的页面及其已保存的摘要"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你讀過的頁面及其已儲存的摘要"
           }
         }
       }
@@ -13959,22 +13787,6 @@
         }
       }
     },
-    "Pin forums to keep them on Home." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "置顶论坛，让它们显示在“主页”中。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "釘選論壇，讓它們顯示在「首頁」中。"
-          }
-        }
-      }
-    },
     "Pin it" : {
       "localizations" : {
         "zh-Hans" : {
@@ -14040,22 +13852,6 @@
         }
       }
     },
-    "Pinned Forums" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "置顶的论坛"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "釘選的論壇"
-          }
-        }
-      }
-    },
     "Pinned Sites" : {
       "localizations" : {
         "zh-Hans" : {
@@ -14085,22 +13881,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已釘選與造訪過的網站"
-          }
-        }
-      }
-    },
-    "Pinned forums are on Home, in this order." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "置顶的论坛会按此顺序显示在“主页”中。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "釘選的論壇會依此順序顯示在「首頁」中。"
           }
         }
       }
@@ -14135,6 +13915,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已釘選的網站會依此順序顯示在首頁上。"
+          }
+        }
+      }
+    },
+    "Please read and accept the Terms of Use. They explain what isn’t allowed and how to report AI output." : {
+      "comment" : "Terms gate subtitle",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请阅读并接受使用条款。其中说明了禁止事项以及如何举报 AI 输出。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "請閱讀並接受使用條款。其中說明了禁止事項以及如何檢舉 AI 輸出。"
           }
         }
       }
@@ -14499,23 +14296,6 @@
         }
       }
     },
-    "Python language ideas, packaging, and help." : {
-      "comment" : "Description of a suggested forum",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Python 语言构想、打包和求助。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Python 語言構想、封裝和求助。"
-          }
-        }
-      }
-    },
     "Question" : {
       "localizations" : {
         "zh-Hans" : {
@@ -14532,18 +14312,18 @@
         }
       }
     },
-    "Questions you ask the forum will appear here." : {
+    "Questions you ask a site will appear here." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你向论坛提出的问题会显示在这里。"
+            "value" : "你向网站提出的问题会显示在这里。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "你向論壇提出的問題會顯示在這裡。"
+            "value" : "你向網站提出的問題會顯示在這裡。"
           }
         }
       }
@@ -14913,7 +14693,7 @@
       }
     },
     "Read it to me" : {
-      "comment" : "Suggestion above the Agent composer on a forum thread: reads the summary aloud",
+      "comment" : "Suggestion above the Agent composer: reads the page or summary aloud",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -14984,18 +14764,18 @@
         }
       }
     },
-    "Read posts aloud" : {
+    "Read pages aloud" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "朗读帖子"
+            "value" : "朗读页面"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "朗讀貼文"
+            "value" : "朗讀頁面"
           }
         }
       }
@@ -15051,6 +14831,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "讀取量"
+          }
+        }
+      }
+    },
+    "Read the full Terms of Use" : {
+      "comment" : "Terms gate: link to full Terms of Use",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "阅读完整使用条款"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "閱讀完整使用條款"
           }
         }
       }
@@ -15122,18 +14919,18 @@
         }
       }
     },
-    "Reading a forum in another browser? Send the page to WukongMind in a couple of taps." : {
+    "Reading a page in another browser? Send the page to WukongMind in a couple of taps." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在其他浏览器里看论坛？轻点几下即可把页面发送到 WukongMind。"
+            "value" : "在其他浏览器里看网页？轻点几下即可把页面发送到 WukongMind。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在其他瀏覽器看論壇？點幾下就能把頁面傳送到 WukongMind。"
+            "value" : "在其他瀏覽器裡看網頁？點幾下即可把頁面傳送到 WukongMind。"
           }
         }
       }
@@ -15182,23 +14979,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在讀取檔案"
-          }
-        }
-      }
-    },
-    "Reading forum responses…" : {
-      "comment" : "Status while downloading a topic's replies",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在读取论坛回复…"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "正在讀取論壇回覆…"
           }
         }
       }
@@ -15293,6 +15073,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在讀取回覆第 %1$lld 頁（共 %2$lld 頁）…"
+          }
+        }
+      }
+    },
+    "Reading responses…" : {
+      "comment" : "Status while downloading a topic's replies",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在读取回复…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在讀取回覆…"
           }
         }
       }
@@ -15433,6 +15230,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "真實參數"
+          }
+        }
+      }
+    },
+    "Reason" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "原因"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "原因"
           }
         }
       }
@@ -15651,7 +15464,7 @@
       }
     },
     "Remove %@?" : {
-      "comment" : "Confirmation title; the argument is a site name\nConfirmation title; the placeholder is the forum name",
+      "comment" : "Confirmation title; the argument is a site name\nConfirmation title; the placeholder is the site name",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -15667,18 +15480,18 @@
         }
       }
     },
-    "Remove Forum" : {
+    "Remove Site" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移除论坛"
+            "value" : "移除网站"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "移除論壇"
+            "value" : "移除網站"
           }
         }
       }
@@ -15732,22 +15545,6 @@
         }
       }
     },
-    "Remove forum?" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "要移除论坛吗？"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "要移除論壇嗎？"
-          }
-        }
-      }
-    },
     "Remove from favorites" : {
       "localizations" : {
         "zh-Hans" : {
@@ -15760,6 +15557,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "從喜好項目中移除"
+          }
+        }
+      }
+    },
+    "Remove site?" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要移除网站吗？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "要移除網站嗎？"
           }
         }
       }
@@ -15895,6 +15708,39 @@
         }
       }
     },
+    "Report" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "举报"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢舉"
+          }
+        }
+      }
+    },
+    "Report AI output" : {
+      "comment" : "Terms of Use summary row title",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "举报 AI 输出"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢舉 AI 輸出"
+          }
+        }
+      }
+    },
     "Report a problem" : {
       "comment" : "Assistant more menu: save the last task for TestFlight feedback",
       "localizations" : {
@@ -15908,6 +15754,73 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "回報問題"
+          }
+        }
+      }
+    },
+    "Report answer" : {
+      "comment" : "Title of the form that reports an AI answer",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "举报回答"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢舉回答"
+          }
+        }
+      }
+    },
+    "Report summary" : {
+      "comment" : "Title of the form that reports an AI summary",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "举报摘要"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢舉摘要"
+          }
+        }
+      }
+    },
+    "Report this answer" : {
+      "comment" : "Answer menu action to report objectionable or inaccurate AI output",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "举报此回答"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢舉此回答"
+          }
+        }
+      }
+    },
+    "Report this summary" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "举报此摘要"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "檢舉此摘要"
           }
         }
       }
@@ -15929,19 +15842,19 @@
         }
       }
     },
-    "Requests are sent immediately without per-forum spacing or concurrency limits. Work that’s already running keeps its pace." : {
-      "comment" : "Settings › Summaries & chat › Forum requests footer when rate limiting is off",
+    "Requests are sent immediately without per-site spacing or concurrency limits. Work that’s already running keeps its pace." : {
+      "comment" : "Settings › Sites › Reading pace footer when rate limiting is off",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "请求会立即发送，不再按论坛限制请求间隔或并发数。正在进行的任务会保持原来的节奏。"
+            "value" : "请求会立即发送，不再按网站限制请求间隔或并发数。正在进行的任务会保持原来的节奏。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "請求會立即傳送，不再按論壇限制請求間隔或並行數。正在進行的工作會維持原本的節奏。"
+            "value" : "請求會立即發送，不再按網站限制請求間隔或並行數。正在進行的任務會保持原來的節奏。"
           }
         }
       }
@@ -16112,34 +16025,34 @@
         }
       }
     },
-    "Resetting settings keeps your forums and saved data. API keys are removed from this device." : {
+    "Resetting settings keeps your sites and saved data. API keys are removed from this device." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重置设置会保留你的论坛和已保存的数据。API 密钥将从此设备中移除。"
+            "value" : "重置设置会保留你的网站和已保存的数据。API 密钥将从此设备中移除。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重置設定會保留你的論壇和已儲存的資料。API 金鑰會從此裝置移除。"
+            "value" : "重置設定會保留你的網站和已儲存的資料。API 金鑰將從此裝置中移除。"
           }
         }
       }
     },
-    "Resetting settings keeps your forums and saved data. API keys are removed, including from iCloud Keychain on your other devices." : {
+    "Resetting settings keeps your sites and saved data. API keys are removed, including from iCloud Keychain on your other devices." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重置设置会保留你的论坛和已保存的数据。API 密钥将被移除，包括你其他设备上 iCloud 钥匙串中的密钥。"
+            "value" : "重置设置会保留你的网站和已保存的数据。API 密钥将被移除，包括你其他设备上 iCloud 钥匙串中的密钥。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重置設定會保留你的論壇和已儲存的資料。API 金鑰會被移除，包括你其他裝置上 iCloud 鑰匙圈中的金鑰。"
+            "value" : "重置設定會保留你的網站和已儲存的資料。API 金鑰將被移除，包括你其他裝置上 iCloud 鑰匙圈中的金鑰。"
           }
         }
       }
@@ -16806,18 +16719,18 @@
         }
       }
     },
-    "Saved data by forum" : {
+    "Saved data by site" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "按论坛查看已保存的数据"
+            "value" : "按网站查看已保存的数据"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "依論壇查看已儲存的資料"
+            "value" : "按網站檢視已儲存的資料"
           }
         }
       }
@@ -16868,23 +16781,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已儲存腳本"
-          }
-        }
-      }
-    },
-    "Saved sites, search & pins" : {
-      "comment" : "Settings › Sites › Forums row subtitle",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已保存站点、搜索与置顶"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已儲存網站、搜尋與釘選"
           }
         }
       }
@@ -17466,19 +17362,19 @@
         }
       }
     },
-    "Search this forum…" : {
-      "comment" : "Suggestion above the Agent composer on a forum: fills the box to finish the search",
+    "Search this site…" : {
+      "comment" : "Suggestion above the Agent composer on a site: fills the box to finish the search",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "搜索这个论坛…"
+            "value" : "搜索这个网站…"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "搜尋這個論壇…"
+            "value" : "搜尋這個網站…"
           }
         }
       }
@@ -17499,18 +17395,18 @@
         }
       }
     },
-    "Searched forum" : {
+    "Searched site" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已搜索论坛"
+            "value" : "已搜索网站"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已搜尋論壇"
+            "value" : "已搜尋網站"
           }
         }
       }
@@ -17531,18 +17427,18 @@
         }
       }
     },
-    "Searching forum" : {
+    "Searching site" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在搜索论坛"
+            "value" : "正在搜索网站"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "正在搜尋論壇"
+            "value" : "正在搜尋網站"
           }
         }
       }
@@ -17604,18 +17500,18 @@
         }
       }
     },
-    "Send any forum page from Safari, Chrome, or another app straight to WukongMind." : {
+    "Send any web page from Safari, Chrome, or another app straight to WukongMind." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "从 Safari 浏览器、Chrome 或其他 App 直接把任意论坛页面发送到 WukongMind。"
+            "value" : "从 Safari 浏览器、Chrome 或其他 App 直接把任意网页发送到 WukongMind。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "從 Safari、Chrome 或其他 App 直接把任何論壇頁面傳送到 WukongMind。"
+            "value" : "從 Safari 瀏覽器、Chrome 或其他 App 直接把任意網頁傳送到 WukongMind。"
           }
         }
       }
@@ -17650,6 +17546,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "傳送通知「%@」？"
+          }
+        }
+      }
+    },
+    "Send report" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送举报"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "傳送檢舉"
           }
         }
       }
@@ -17949,7 +17861,25 @@
         }
       }
     },
+    "Sexual content" : {
+      "comment" : "AI output report reason",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "色情内容"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "色情內容"
+          }
+        }
+      }
+    },
     "Share" : {
+      "comment" : "Button to share an AI answer",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -17977,6 +17907,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "從 Safari 或 Chrome 分享"
+          }
+        }
+      }
+    },
+    "Share report" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "共享举报"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分享檢舉"
           }
         }
       }
@@ -18346,18 +18292,18 @@
         }
       }
     },
-    "Sign in on the forum’s page with your username and password, email link, or the forum’s single sign-on. Your session stays in this app’s browser, so summaries and Ask the forum can read topics you can see." : {
+    "Sign in on the site’s page with your username and password, email link, or single sign-on. Your session stays in this app’s browser, so summaries and Ask this site can read pages you can see." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在论坛页面上用用户名和密码、邮件链接或论坛的单点登录进行登录。你的登录状态会保留在此 App 的浏览器中，因此摘要和问论坛可以读取你有权查看的话题。"
+            "value" : "在网站页面上用用户名和密码、邮件链接或单点登录进行登录。你的登录状态会保留在此 App 的浏览器中，因此摘要和“问这个网站”可以读取你有权查看的页面。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在論壇頁面上用使用者名稱和密碼、電子郵件連結或論壇的單一登入進行登入。你的登入狀態會保留在此 App 的瀏覽器中，因此摘要和問論壇可以讀取你能看到的話題。"
+            "value" : "在網站頁面上用使用者名稱和密碼、郵件連結或單一登入進行登入。你的登入狀態會保留在此 App 的瀏覽器中，因此摘要和「問這個網站」可以讀取你有權查看的頁面。"
           }
         }
       }
@@ -18411,6 +18357,22 @@
         }
       }
     },
+    "Sign-in pages are never blocked." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登录页面永远不会被拦截。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "登入頁面永遠不會被攔截。"
+          }
+        }
+      }
+    },
     "Signed in" : {
       "localizations" : {
         "zh-Hans" : {
@@ -18455,6 +18417,38 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Siri 建議"
+          }
+        }
+      }
+    },
+    "Site" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站"
+          }
+        }
+      }
+    },
+    "Site Login" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网站登录"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站登入"
           }
         }
       }
@@ -18509,6 +18503,22 @@
         }
       }
     },
+    "Site session" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网站会话"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站會話"
+          }
+        }
+      }
+    },
     "Site settings" : {
       "comment" : "This page popover button opening site settings",
       "localizations" : {
@@ -18522,6 +18532,56 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "網站設定"
+          }
+        }
+      }
+    },
+    "Site tools" : {
+      "comment" : "Settings › Agent section header for the limits the site tools read",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网站工具"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站工具"
+          }
+        }
+      }
+    },
+    "Site: %@" : {
+      "comment" : "Accessibility label of Manage's site filter; the placeholder is a site name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网站：%@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站：%@"
+          }
+        }
+      }
+    },
+    "Site: all sites" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网站：所有网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站：所有網站"
           }
         }
       }
@@ -18555,6 +18615,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "網站與瀏覽"
+          }
+        }
+      }
+    },
+    "Sites and pins · summaries and kept chats · Ask this site answers · followed discussions · scripts · most settings" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网站和置顶 · 摘要和保留的聊天 · “问这个网站”的回答 · 关注的讨论 · 脚本 · 大部分设置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站和釘選 · 摘要和保留的聊天 · 「問這個網站」的回答 · 追蹤的討論 · 指令碼 · 大部分設定"
+          }
+        }
+      }
+    },
+    "Sites are run by people who pay for their servers. Reading a long thread one page at a time keeps WukongMind a polite visitor and avoids being rate limited." : {
+      "comment" : "Settings › Sites › Reading pace footer",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "网站由自掏服务器费用的人运营。一次读取一页长讨论，能让 WukongMind 做个礼貌的访客，也能避免被限速。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "網站由自掏伺服器費用的人營運。一次讀取一頁長討論，能讓 WukongMind 做個禮貌的訪客，也能避免被限速。"
           }
         }
       }
@@ -18622,6 +18715,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已解決 · 答案在 #%lld"
+          }
+        }
+      }
+    },
+    "Something else" : {
+      "comment" : "AI output report reason",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他原因"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他原因"
           }
         }
       }
@@ -19298,6 +19408,22 @@
         }
       }
     },
+    "Subject" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主题"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主旨"
+          }
+        }
+      }
+    },
     "Suggested" : {
       "comment" : "First-run step 2: the list of suggested sites",
       "localizations" : {
@@ -19333,7 +19459,7 @@
       }
     },
     "Summaries" : {
-      "comment" : "AI model role: the model used for summaries and reply checks",
+      "comment" : "AI model role: the model used for summaries and reply checks\nAI model role: the model used for summaries, digests and reply checks",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -19362,6 +19488,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "摘要與聊天"
+          }
+        }
+      }
+    },
+    "Summaries and answers are written in this language." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要和回答均使用此语言。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要和回答皆使用此語言。"
+          }
+        }
+      }
+    },
+    "Summaries and answers come from your chosen AI provider and can be wrong. Verify important details on the page." : {
+      "comment" : "Terms of Use summary row",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要和回答来自你选择的 AI 提供方，可能会出错。请在页面上核实重要细节。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "摘要和回答來自你選擇的 AI 提供方，可能會出錯。請在頁面上核實重要細節。"
           }
         }
       }
@@ -19399,34 +19558,18 @@
         }
       }
     },
-    "Summaries, chats, answers, and watched topics for this forum will be deleted. This can’t be undone." : {
+    "Summaries, chats, answers, and followed discussions for this site will be deleted. This can’t be undone." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此论坛的摘要、聊天、解答和关注的话题都将被删除。此操作无法撤销。"
+            "value" : "此网站的摘要、聊天、回答和关注的讨论都将被删除。此操作无法撤销。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此論壇的摘要、聊天、解答和追蹤的話題都將被刪除。此動作無法還原。"
-          }
-        }
-      }
-    },
-    "Summaries, digests and answers are written in this language." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "摘要、每日精选和回答都会使用此语言撰写。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "摘要、每日精選與回答都會使用此語言撰寫。"
+            "value" : "此網站的摘要、聊天、回答和追蹤的討論都將被刪除。此操作無法復原。"
           }
         }
       }
@@ -19496,7 +19639,7 @@
       }
     },
     "Summarize this page" : {
-      "comment" : "Suggestion above the Agent composer on an ordinary web page",
+      "comment" : "Spoken label of the hint row's button on a page without a summary\nSuggestion above the Agent composer on a discussion page\nSuggestion above the Agent composer on an ordinary web page",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -19512,53 +19655,19 @@
         }
       }
     },
-    "Summarize this thread" : {
-      "comment" : "Spoken label of the hint row's button on a thread without a summary",
+    "Summarize this page? · Open assistant" : {
+      "comment" : "Hint row over the bar on a page without a summary",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "为此话题生成摘要"
+            "value" : "总结此页面？· 打开助手"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "為此話題產生摘要"
-          }
-        }
-      }
-    },
-    "Summarize this thread and replies" : {
-      "comment" : "Suggestion above the Agent composer on a forum thread",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "总结这个帖子和回复"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "總結這篇貼文和回覆"
-          }
-        }
-      }
-    },
-    "Summarize this thread? · Open assistant" : {
-      "comment" : "Hint row over the bar on a thread without a summary",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "为此话题生成摘要？· 打开助手"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "為此話題產生摘要？· 打開助理"
+            "value" : "摘要此頁面？· 開啟助手"
           }
         }
       }
@@ -19772,22 +19881,6 @@
         }
       }
     },
-    "Swipe left to remove a forum. You can keep or delete its saved summaries and chats." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "向左轻扫可移除论坛。可选择保留或删除它已保存的摘要和聊天。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "向左滑動可移除論壇。可選擇保留或刪除它已儲存的摘要和聊天。"
-          }
-        }
-      }
-    },
     "Swipe left to remove a site. You can keep or delete its saved data." : {
       "comment" : "Settings › Sites › Pinned sites section footer for unpinned sites",
       "localizations" : {
@@ -19805,18 +19898,18 @@
         }
       }
     },
-    "Swipe left to stop watching. Watch a topic from the drawer’s ⋯ menu or the forum menu." : {
+    "Swipe left to stop following. Follow a discussion from the Assistant menu." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "向左轻扫可停止关注。可在抽屉的 ⋯ 菜单或论坛菜单中关注话题。"
+            "value" : "向左轻扫可停止关注。可在助手菜单中关注讨论。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "向左滑動可停止追蹤。可在抽屜的 ⋯ 選單或論壇選單中追蹤話題。"
+            "value" : "向左滑動可停止追蹤。可在助手選單中追蹤討論。"
           }
         }
       }
@@ -20268,6 +20361,23 @@
         }
       }
     },
+    "Terms of Use" : {
+      "comment" : "Terms gate eyebrow",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用条款"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "使用條款"
+          }
+        }
+      }
+    },
     "Test & Save" : {
       "localizations" : {
         "zh-Hans" : {
@@ -20449,18 +20559,18 @@
         }
       }
     },
-    "The bar shrinks while you scroll down a forum page and comes back when you scroll up or tap it. Bottom keeps it within reach of your thumb." : {
+    "The bar shrinks while you scroll down a page and comes back when you scroll up or tap it. Bottom keeps it within reach of your thumb." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "向下滚动论坛页面时，浏览器栏会缩小；向上滚动或轻点它时会恢复。放在底部时，拇指更容易够到。"
+            "value" : "向下滚动页面时，浏览器栏会缩小；向上滚动或轻点它时会恢复。放在底部时，拇指更容易够到。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "向下捲動論壇頁面時，瀏覽器列會縮小；向上捲動或點一下它時會恢復。放在底部時，拇指更容易碰到。"
+            "value" : "向下捲動頁面時，瀏覽器列會縮小；向上捲動或點一下時會恢復。放在底部時，拇指更容易碰到。"
           }
         }
       }
@@ -21003,35 +21113,18 @@
         }
       }
     },
-    "There’s no web link to summarize. Copy a forum topic’s link first, or choose one." : {
+    "There’s no web link to summarize. Copy a link first, or choose one." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有可总结的网页链接。请先复制论坛话题的链接，或选择一个链接。"
+            "value" : "没有可总结的网页链接。请先复制一个链接，或选择一个链接。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "沒有可總結的網頁連結。請先拷貝論壇話題的連結，或選擇一個連結。"
-          }
-        }
-      }
-    },
-    "These posts are already in %@." : {
-      "comment" : "Translate Posts on Screen; the placeholder is a language name",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "这些帖子已经是%@。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "這些貼文已經是%@。"
+            "value" : "沒有可摘要的網頁連結。請先拷貝一個連結，或選擇一個連結。"
           }
         }
       }
@@ -21415,6 +21508,23 @@
         }
       }
     },
+    "This text is already in %@." : {
+      "comment" : "Translate text on screen; the placeholder is a language name",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此文本已经是%@。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此文字已經是%@。"
+          }
+        }
+      }
+    },
     "This topic" : {
       "comment" : "Ask box scope: questions about the open topic",
       "localizations" : {
@@ -21510,6 +21620,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "提示"
+          }
+        }
+      }
+    },
+    "To" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收件人"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收件人"
           }
         }
       }
@@ -21630,38 +21756,6 @@
         }
       }
     },
-    "Topics to read: %lld" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "阅读话题数：%lld"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "閱讀話題數：%lld"
-          }
-        }
-      }
-    },
-    "Topics you read and their saved summaries" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你读过的话题及其已保存的摘要"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你讀過的話題及其已儲存的摘要"
-          }
-        }
-      }
-    },
     "Touch and hold for history" : {
       "comment" : "Accessibility hint on the Back button when back or forward history is available",
       "localizations" : {
@@ -21729,18 +21823,18 @@
         }
       }
     },
-    "Translate posts" : {
+    "Translate text" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "翻译帖子"
+            "value" : "翻译文本"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "翻譯貼文"
+            "value" : "翻譯文字"
           }
         }
       }
@@ -21998,18 +22092,18 @@
         }
       }
     },
-    "Turn on Sync with iCloud to keep your forums, summaries and chats on your iPhone and iPad." : {
+    "Turn on Sync with iCloud to keep your sites, summaries and chats on your iPhone and iPad." : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "打开“与 iCloud 同步”，让你的论坛、摘要和聊天同时保存在 iPhone 和 iPad 上。"
+            "value" : "打开“与 iCloud 同步”，让你的网站、摘要和聊天同时保存在 iPhone 和 iPad 上。"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "開啟「與 iCloud 同步」，讓你的論壇、摘要和聊天同時保存在 iPhone 和 iPad 上。"
+            "value" : "打開「與 iCloud 同步」，讓你的網站、摘要和聊天同時儲存在 iPhone 和 iPad 上。"
           }
         }
       }
@@ -22954,48 +23048,24 @@
         }
       }
     },
-    "Used when the Agent searches and reads a forum. Defaults: %lld topics, %@ per topic." : {
+    "Used when the Agent searches and reads a site. Defaults: %lld pages, %@ per page." : {
       "localizations" : {
         "en" : {
-          "variations" : {
-            "plural" : {
-              "one" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Used when the Agent searches and reads a forum. Defaults: %1$lld topic, %2$@ per topic."
-                }
-              },
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "Used when the Agent searches and reads a forum. Defaults: %1$lld topics, %2$@ per topic."
-                }
-              }
-            }
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Used when the Agent searches and reads a site. Defaults: %1$lld pages, %2$@ per page."
           }
         },
         "zh-Hans" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "用于智能体搜索和阅读论坛时。默认值：%1$lld 个话题，每个话题 %2$@。"
-                }
-              }
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "智能体搜索并阅读网站时使用。默认：%1$lld 页，每页 %2$@。"
           }
         },
         "zh-Hant" : {
-          "variations" : {
-            "plural" : {
-              "other" : {
-                "stringUnit" : {
-                  "state" : "translated",
-                  "value" : "用於智慧代理搜尋和閱讀論壇時。預設值：%1$lld 個話題，每個話題 %2$@。"
-                }
-              }
-            }
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理搜尋並閱讀網站時使用。預設：%1$lld 頁，每頁 %2$@。"
           }
         }
       }
@@ -23313,6 +23383,23 @@
         }
       }
     },
+    "Violence or threats" : {
+      "comment" : "AI output report reason",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暴力或威胁"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暴力或威脅"
+          }
+        }
+      }
+    },
     "Voice" : {
       "comment" : "Settings page: the live voice conversation with Google Gemini",
       "localizations" : {
@@ -23596,22 +23683,6 @@
         }
       }
     },
-    "Watch a topic from the Assistant menu, or let the agent watch one." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "从助手菜单中关注话题，或让问论坛帮你关注。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "從助理選單中追蹤話題，或讓問論壇幫你追蹤。"
-          }
-        }
-      }
-    },
     "Watch this topic" : {
       "localizations" : {
         "zh-Hans" : {
@@ -23795,19 +23866,36 @@
         }
       }
     },
-    "What's worth reading today" : {
-      "comment" : "Suggestion above the Agent composer on a forum's topic list",
+    "What's new on this site" : {
+      "comment" : "Suggestion above the Agent composer on a site's listing page",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天有什么值得读"
+            "value" : "这个网站有什么新内容"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "今天有什麼值得讀"
+            "value" : "這個網站有什麼新內容"
+          }
+        }
+      }
+    },
+    "What’s wrong?" : {
+      "comment" : "Report form section header",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有什么问题？"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有什麼問題？"
           }
         }
       }
@@ -24014,7 +24102,7 @@
       }
     },
     "Work that’s already running keeps its pace." : {
-      "comment" : "Forum requests footer",
+      "comment" : "Reading pace footer",
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
@@ -24283,6 +24371,22 @@
         }
       }
     },
+    "Your AI-assisted web browser." : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的 AI 辅助网页浏览器。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的 AI 輔助網頁瀏覽器。"
+          }
+        }
+      }
+    },
     "Your API key, only to %@" : {
       "comment" : "AI data consent: what is sent; the placeholder is an AI provider's name",
       "localizations" : {
@@ -24296,22 +24400,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你的 API 金鑰，僅傳送至 %@"
-          }
-        }
-      }
-    },
-    "Your agent browser for the web and every forum." : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "面向网页与各个论坛的代理浏览器。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "專為網頁與各個論壇打造的代理瀏覽器。"
           }
         }
       }
@@ -24655,9 +24743,6 @@
           }
         }
       }
-    },
-    "forum.example.com" : {
-      "shouldTranslate" : false
     },
     "forumPill.prefixAndName" : {
       "comment" : "Pill with a forum's icon: an action (e.g. “Searching”), then the forum name",
@@ -25087,18 +25172,18 @@
         }
       }
     },
-    "the forum" : {
+    "the site" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "论坛"
+            "value" : "该网站"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "論壇"
+            "value" : "該網站"
           }
         }
       }

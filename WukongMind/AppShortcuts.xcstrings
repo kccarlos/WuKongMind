@@ -17,18 +17,18 @@
         }
       }
     },
-    "Ask a forum in ${applicationName}" : {
+    "Ask a site in ${applicationName}" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在${applicationName}中问论坛"
+            "value" : "在${applicationName}中问网站"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "在${applicationName}中問論壇"
+            "value" : "在${applicationName}中問網站"
           }
         }
       }

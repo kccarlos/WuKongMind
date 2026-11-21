@@ -469,7 +469,7 @@ final class SettingsNavigationUITests: DCUITestCase {
         capture("base_phone_addforum")
 
         let translateApp = launch(["-dc-sample", "-dc-test-present", "translate-posts", "-dc-test-present-after", "2"])
-        XCTAssertTrue(translateApp.navigationBars["Translate posts"].waitForExistence(timeout: 20))
+        XCTAssertTrue(translateApp.navigationBars["Translate text"].waitForExistence(timeout: 20))
         capture("base_phone_present-translate-posts")
 
         let summaryApp = launch(["-dc-sample", "-dc-drawer-detent", "large"])

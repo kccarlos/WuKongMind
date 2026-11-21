@@ -2554,7 +2554,8 @@ actor BrowserAgentDemoClient: AgentModelClient {
                 "summarize_topic"
             } else if prompt.localizedCaseInsensitiveContains("Read it to me") {
                 "read_aloud"
-            } else if prompt.localizedCaseInsensitiveContains("Notify me") {
+            } else if prompt.localizedCaseInsensitiveContains("Follow this discussion")
+                || prompt.localizedCaseInsensitiveContains("Notify me") {
                 "watch_topic"
             } else {
                 nil
@@ -2563,7 +2564,7 @@ actor BrowserAgentDemoClient: AgentModelClient {
                 let call = AgentModelToolCall(id: "call_sample_\(turn)", name: toolName, arguments: ["url": .string(url)])
                 return AgentModelTurnResponse(text: "", toolCalls: [call], stopReason: "tool_use", usage: usage)
             }
-            return AgentModelTurnResponse(text: "Searched the forum.", stopReason: "end_turn", usage: usage)
+            return AgentModelTurnResponse(text: "Searched the site.", stopReason: "end_turn", usage: usage)
         }
     }
 

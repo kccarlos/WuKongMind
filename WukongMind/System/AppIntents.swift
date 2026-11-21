@@ -13,12 +13,12 @@ import Foundation
 struct SummarizeLinkIntent: AppIntent {
     static let title: LocalizedStringResource = "Summarize Link"
     static let description = IntentDescription(
-        "Opens a forum topic in WukongMind and summarizes it. Without a link, the link on the clipboard is used.",
+        "Opens a web page in WukongMind and summarizes it. Without a link, the link on the clipboard is used.",
         categoryName: "Read"
     )
     static let openAppWhenRun = true
 
-    @Parameter(title: "Link", description: "A forum topic’s web address. Leave empty to use the clipboard.")
+    @Parameter(title: "Link", description: "A web page’s address. Leave empty to use the clipboard.")
     var url: URL?
 
     init() {}
@@ -40,14 +40,14 @@ struct SummarizeLinkIntent: AppIntent {
 }
 
 struct AskForumIntent: AppIntent {
-    static let title: LocalizedStringResource = "Ask a Forum"
+    static let title: LocalizedStringResource = "Ask a Site"
     static let description = IntentDescription(
-        "Asks one of your forums a question: WukongMind searches and reads its topics and answers with sources.",
+        "Asks one of your sites a question: WukongMind searches and reads its pages and answers with sources.",
         categoryName: "Read"
     )
     static let openAppWhenRun = true
 
-    @Parameter(title: "Forum")
+    @Parameter(title: "Site")
     var forum: ForumEntity
 
     @Parameter(title: "Question", requestValueDialog: IntentDialog("What do you want to ask?"))
@@ -113,7 +113,7 @@ struct OpenTopicIntent: OpenIntent {
 
 /// One of the user's forums.
 struct ForumEntity: AppEntity {
-    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Forum"
+    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Site"
     static let defaultQuery = ForumEntityQuery()
 
     /// The forum's site URL.
@@ -237,9 +237,9 @@ struct WukongMindShortcuts: AppShortcutsProvider {
             intent: AskForumIntent(),
             phrases: [
                 "Ask \(\.$forum) in \(.applicationName)",
-                "Ask a forum in \(.applicationName)"
+                "Ask a site in \(.applicationName)"
             ],
-            shortTitle: "Ask a Forum",
+            shortTitle: "Ask a Site",
             systemImageName: "text.bubble"
         )
         AppShortcut(

@@ -49,7 +49,7 @@ enum LaunchDestination: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .automatic: String(localized: "Automatic", comment: "When WukongMind opens: Home on the first launch of the day, else the last site")
         case .home: String(localized: "Home", comment: "When WukongMind opens: always on Home")
-        case .lastForum: String(localized: "Last forum", comment: "When WukongMind opens: always on the forum read last")
+        case .lastForum: String(localized: "Last site", comment: "When WukongMind opens: always on the site read last")
         }
     }
 }

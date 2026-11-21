@@ -37,7 +37,7 @@ enum SystemEntryError: Error, Equatable, CustomLocalizedStringResourceConvertibl
 
     var localizedStringResource: LocalizedStringResource {
         switch self {
-        case .noLink: "There’s no web link to summarize. Copy a forum topic’s link first, or choose one."
+        case .noLink: "There’s no web link to summarize. Copy a link first, or choose one."
         case .emptyQuestion: "Say or type a question to ask."
         }
     }

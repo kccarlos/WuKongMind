@@ -436,7 +436,7 @@ struct ShareHowToGuide: View {
         VStack(alignment: .leading, spacing: DCTheme.spacingL) {
             ShareSheetIllustration()
             VStack(alignment: .leading, spacing: DCTheme.spacingM) {
-                ShareStepRow(number: 1, symbol: "square.and.arrow.up", text: "Open a forum topic in Safari or Chrome and tap **Share**. In Chrome, tap **⋯**, then **Share…**")
+                ShareStepRow(number: 1, symbol: "square.and.arrow.up", text: "Open a web page in Safari or Chrome and tap **Share**. In Chrome, tap **⋯**, then **Share…**")
                 ShareStepRow(number: 2, symbol: "switch.2", text: "First time only: swipe the row of apps to the end, tap **More**, turn on **WukongMind** and add it to Favorites.")
                 ShareStepRow(number: 3, symbol: "hand.tap.fill", text: "Tap **WukongMind**, then pick what you want:")
             }
@@ -470,7 +470,7 @@ struct ShareHowToSheet: View {
                     OnboardingHeader(
                         eyebrow: String(localized: "Tip"),
                         title: String(localized: "Share from Safari or Chrome"),
-                        subtitle: String(localized: "Reading a forum in another browser? Send the page to WukongMind in a couple of taps.")
+                        subtitle: String(localized: "Reading a page in another browser? Send the page to WukongMind in a couple of taps.")
                     )
                     ShareHowToGuide()
                     Button("Done", action: onDone)
@@ -588,8 +588,8 @@ struct ShareActionsIllustration: View {
     private let actions: [(String, String, Color)] = [
         // The share extension's buttons (same wording as WukongMindShare).
         (String(localized: "Summarize"), "sparkles", .indigo),
-        (String(localized: "Chat about it"), "bubble.left.and.bubble.right.fill", .blue),
-        (String(localized: "Ask the forum"), "text.magnifyingglass", .teal),
+        (String(localized: "Ask about this page"), "bubble.left.and.bubble.right.fill", .blue),
+        (String(localized: "Ask this site"), "text.magnifyingglass", .teal),
         (String(localized: "Just open"), "safari.fill", .gray)
     ]
 

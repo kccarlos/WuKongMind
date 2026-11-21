@@ -56,9 +56,9 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(help.waitForExistence(timeout: 10))
         help.tap()
 
-        XCTAssertTrue(app.navigationBars["Forum Login"].waitForExistence(timeout: 10))
-        XCTAssertTrue(app.staticTexts["Forum session"].waitForExistence(timeout: 10))
-        let openSignIn = app.buttons["Open forum sign in"]
+        XCTAssertTrue(app.navigationBars["Site Login"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.staticTexts["Site session"].waitForExistence(timeout: 10))
+        let openSignIn = app.buttons["Open site sign in"]
         // List rows below the fold are not realized until scrolled into view.
         for _ in 0..<4 where !openSignIn.exists {
             app.swipeUp()
@@ -531,7 +531,7 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
             "Block Ads on This Site is missing from the account submenu."
         )
         help.tap()
-        XCTAssertTrue(app.navigationBars["Forum Login"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.navigationBars["Site Login"].waitForExistence(timeout: 10))
         app.buttons["Done"].tap()
 
         // Long-pressing Back lists the history.

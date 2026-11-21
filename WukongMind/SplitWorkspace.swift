@@ -34,7 +34,7 @@ struct SplitPanelToggle: View {
     private var showsNewRepliesDot: Bool { app.showsNewRepliesDot }
     private var ringState: AgentRingState { app.agentRingState(isAvailable: isAvailable) }
 
-    /// "Hidden, New replies, Ask the forum is searching": what the ring and
+    /// "Hidden, New replies, Ask this site is searching": what the ring and
     /// the dot show.
     private var accessibilityValue: String {
         var parts = [isShown ? String(localized: "Shown") : String(localized: "Hidden")]
@@ -42,7 +42,7 @@ struct SplitPanelToggle: View {
             parts.append(String(localized: "New replies", comment: "Accessibility value of the iPhone AI button while its dot says the topic has new replies"))
         }
         if ringState == .working, !browserAgent.isRunning, app.activeResearch != nil {
-            parts.append(String(localized: "Ask the forum is searching", comment: "Accessibility value of the AI panel toggle while its ring shows an Ask the forum search running"))
+            parts.append(String(localized: "Ask this site is searching", comment: "Accessibility value of the AI panel toggle while its ring shows an Ask this site search running"))
         } else if let stateWord = ringState.accessibilityValue {
             parts.append(stateWord)
         }
