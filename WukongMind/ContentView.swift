@@ -432,7 +432,7 @@ struct BrowserContent: View {
         .onChange(of: showsHomeOverlay, initial: true) { _, shown in
             if shown {
                 DispatchQueue.main.async {
-                    guard showsHomeWhileEditing, browser.isEditingAddress, !browser.showsForumsHome else { return }
+                    guard browser.isEditingAddress, !browser.showsForumsHome else { return }
                     isHomeOverlayMounted = true
                     if UIAccessibility.isVoiceOverRunning {
                         UIAccessibility.post(notification: .screenChanged, argument: nil)
