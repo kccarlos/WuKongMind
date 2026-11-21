@@ -204,7 +204,7 @@ def build(out):
             values = {
                 "root": root, "repo_url": repo, "privacy": link("privacy"),
                 "support_email": config["support_email"], "testflight_url": config["testflight_url"],
-                "testflight_button": "", "testflight_section": "", "email_line": "",
+                "testflight_button": "", "testflight_section": "", "email_line": "", "shots_lang": lang,
             }
             if not is_tbd(config["testflight_url"]):
                 values["testflight_button"] = "      " + sub(read(os.path.join(src, "testflight_button.html")), values, lang).strip() + "\n"

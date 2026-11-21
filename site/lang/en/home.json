@@ -80,5 +80,12 @@
  "end_h": "Just ask",
  "end_p": "Open any site and say what you want.",
  "pause": "Pause animations",
- "play": "Play animations"
+ "play": "Play animations",
+ "shots_h": "In the app",
+ "shots_p": "Screenshots from WukongMind on iPhone.",
+ "shot1": "Screenshot: an article turned dark after asking the Agent “Make it dark and hide the sidebar”.",
+ "shot2": "Screenshot: the Agent’s three steps listed in the conversation: Read page, Styled page, Ran script.",
+ "shot3": "Screenshot: the Add script sheet showing the sites a script runs on and its full code before it is added.",
+ "shot4": "Screenshot: the tab overview with four open pages.",
+ "shot5": "Screenshot: a page summary with the read aloud player."
 }
