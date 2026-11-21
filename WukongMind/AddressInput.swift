@@ -110,8 +110,7 @@ enum AddressInput {
         // Chinese question or instruction prefixes (no spaces required).
         // Must have content after the prefix, and must not match known noun/site compounds
         // (e.g. "什么值得买", "翻译软件").
-        if !chineseNonQuestionNames.contains(text),
-           !chineseNonQuestionSuffixes.contains(where: { text.hasSuffix($0) }) {
+        if !chineseNonQuestionNames.contains(text) {
             for prefix in chineseQuestionPrefixes where text.hasPrefix(prefix) && text.count > prefix.count {
                 return true
             }
@@ -153,10 +152,9 @@ enum AddressInput {
 
     private static let chineseNonQuestionNames: Set<String> = [
         "什么值得买", "什麼值得買",
-    ]
-
-    private static let chineseNonQuestionSuffixes: [String] = [
-        "软件", "軟件", "工具", "器", "网站", "網站", "官网", "官網",
+        "翻译软件", "翻譯軟件",
+        "翻译工具", "翻譯工具",
+        "翻译器", "翻譯器",
     ]
 
     private static let chineseQuestionPrefixes: [String] = [
