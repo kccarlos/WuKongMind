@@ -265,6 +265,7 @@ final class AppModel: ObservableObject {
             || value("-dc-m4-import-preview") != nil
             || value("-dc-bar-morph-fixture") != nil
             || value("-dc-seed-open-tabs") != nil
+            || arguments.contains("-dc-store-tabs")
             || value("-dc-fixture-model") != nil
             || arguments.contains("-dc-no-provider")
     }

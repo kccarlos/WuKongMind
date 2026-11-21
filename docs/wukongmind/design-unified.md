@@ -36,7 +36,7 @@ It follows roadmap v2, "Just ask" ([next-phase.md](next-phase.md), which v2 repl
   - With Reduce Motion it doesn't change pose mid-run; it shows `think` until the result.
 - **Motion.** Motion shows a live signal or a cause, never decoration. Continuous motion is allowed only where it displays something happening now: the turning ring (the Agent is working), the voice level meter (sound in or out), the composer's recording pulse (the microphone is on), and progress (the app's progress bar and the system's own activity spinner). Functional transitions (a suggestion into the input box, a result rising, the browser bar morph, Home appearing over the page, system sheets) finish within 250 ms with no bounce (section 6).
 
-**The end state in one line:** one input box and a mic on every page, no modes, no target switch, one Agent loop. Forum summary, search, podcast and voice become the Agent's tools. The boards draw that look, which the One panel milestone already ships. What changes between milestones is only what runs behind a tap (section 1, "Phases").
+**The end state in one line:** one input box and a mic on every page, no modes, no target switch, one Agent loop. Forum summary, search, read aloud and voice become the Agent's tools. The boards draw that look, which the One panel milestone already ships. What changes between milestones is only what runs behind a tap (section 1, "Phases").
 
 **Gold and the ring mean only the Agent.** That covers the bar's ring and its count, the composer's ring, Agent conversations in Recent and History, a running tool row and the "saved" note.
 - **Site type is internal state.** The This page seal shows the host and the script count ("talk.example.org · 2 scripts"), never "Forum". The forum's grey speech-bubble badge stays only on Home's site tiles; onboarding's site list no longer has it.
@@ -68,7 +68,7 @@ It follows roadmap v2, "Just ask" ([next-phase.md](next-phase.md), which v2 repl
 1. **One input box plus suggestions.** One panel (`AssistantPanel`) with one input box and one mic on every page. Its title is always **Agent**; the Agent's model is chosen in the panel's ⋯ menu. There are no modes and no target switch.
    - **Suggestions.** A row of suggestions sits right above the input box. Each is a full question you could type or say yourself, and a tap sends it. A suggestion that ends in "…" only fills the box with the start of a sentence for you to finish. Typing or saying the same thing must do the same. A suggestion shows when it applies and is absent otherwise, with no grey or disabled state. At most four fit on screen, and more scroll sideways (section 1).
    - **One conversation.** Every result lands in one conversation from one Agent, and the Agent remembers what came before. "Summarize first, then look up the model from point 2, then highlight it on the page" is three messages in a row, with nothing to switch.
-   - **Result kinds stay.** The summary card, the answer with numbered sources and the podcast row stay, drawn as the design system's ResultCard. They are now how Agent tool results display. Each tool call is one row by default, and a row expands.
+   - **Result kinds stay.** The summary card, the answer with numbered sources and the listen row (read aloud) stay, drawn as the design system's ResultCard. They are now how Agent tool results display. Each tool call is one row by default, and a row expands.
    - **Mic.** The trailing button is a mic while the box is empty and Send once you type. In One panel it dictates into the box. From One loop it opens the voice session (section 1, "Voice").
 2. **Capabilities follow the page.** The M1 context row's chip ("N scripts on this page") and the host pill merge into one ink **This page** seal, "talk.example.org · 3 scripts". It sits in the title row, right of "Agent", which saves the panel a row, and it opens the **This page** popover (`PageCapabilitiesView`, which grows from M2's `PageScriptsPopover`). The popover is the one place that shows what is saved for this site (roadmap rule 4). Its groups:
    - **This topic**: the **Following** switch (forum threads only).
@@ -182,7 +182,7 @@ Dashed links with double borders are **placeholders**: their place is reserved, 
 | M3 | Audit log, Workspace | Settings › Agent › Records; the panel's ⋯ › Audit log; "View in audit log" in an expanded tool row | The Records section on the Agent page, drawn dashed |
 | M3 | Confirm before writes | Settings › Agent › Safety | The Safety section, drawn dashed |
 | M3 | Developer mode, part 1 | Settings › Agent › Developer (the switch, default off). When it's on: the token count in the status line, tool code names and durations in tool rows, raw request and reply, tokens and model per step in an expanded tool row, ⋯ › Export task | The Developer section on the Agent page, drawn dashed |
-| One loop | Forum, summary, podcast and follow tools | The suggestion row (taps only send their text) and the conversation (tool rows and results look the same) | Nothing new on screen: the boards already draw it |
+| One loop | Forum, summary, read aloud and follow tools | The suggestion row (taps only send their text) and the conversation (tool rows and results look the same) | Nothing new on screen: the boards already draw it |
 | One loop | Voice session from the mic | The mic in the input box; voice turns join the conversation | The mic's place |
 | M4 | `GM_ai` model | Settings › Models, a third role row "Scripts" ("Same as Summaries") | A dashed row on Models |
 | Learn on ask | Page tool list | This page › Tools on this page; Settings › Scripts & tools › Tools; script detail "Registers N tools" | The group's place in This page |
@@ -223,7 +223,7 @@ AssistantPanel                         // replaces the four modes and their view
   |---|---|---|
   | Typed or spoken text | Goes to the Agent | Goes to the Agent |
   | Summarize this thread and replies (built-in forums) | Calls today's summary engine; the result shows as the summary card | Sends the text; the Agent calls the summary tool and shows the same card |
-  | Read it to me (built-in forums) | Calls today's podcast; the podcast row appears | Sends the text; the Agent calls the podcast tool |
+  | Read it to me (built-in forums) | Calls today's read aloud; the listen row appears | Sends the text; the Agent calls the read-aloud tool |
   | Search this forum… (built-in forums) | Once you finish the sentence, it runs today's Research loop; the answer shows with numbered sources | Sends the text; the Agent calls the forum's search and read tools |
   | Notify me of new replies (built-in forums) | Calls today's follow (`WatchSupport`) | Sends the text; the Agent calls the follow tool |
   | Suggestions on other sites | Send their text to the Agent | Same |
@@ -326,8 +326,7 @@ The seal reads "talk.example.org · 3 scripts", or just the host on a page with 
 
 ```
 HomeView (List, .insetGrouped, listSectionSpacing(.compact))
-├─ header: "Home" · History · Settings      (unchanged buttons; address entry lives in the browser bar)
-├─ TodayModule / PodcastHomeCard / DigestStrip   // unchanged, only when there is something
+├─ header: "Home" · History · Settings      (unchanged buttons; no address field: the browser bar's field is the one entry)
 ├─ Section "Sites": SiteGrid                 // LazyVGrid, 4 columns on iPhone, adaptive 88 pt on iPad
 │    SiteTile: tile in the site's own colour (forumPalette, unchanged), name; forum → grey speech-bubble badge (the only place it shows)
 │    pinned first, then most visited; last tile "Add" → AddSiteSheet; context menu Pin/Unpin, Remove
@@ -341,6 +340,11 @@ HomeView (List, .insetGrouped, listSectionSpacing(.compact))
   - **Recent.** Home's **Recent** is not a separate list: it is the newest History items, with a link to all of History. `HistoryView`'s segments become All, Conversations, Following (decided). Until M3, Conversations lists today's saved summaries and forum answers, each as a conversation of one result.
   - **Conversations.** They live in memory today (`BrowserAgentSession`). They join History once they are saved, which comes with M3's workspace (`tasks/`). Until then, Recent also shows this launch's current conversation, and the summaries in it are saved as today.
 - **The empty state** (no sites yet) is a card of three suggested ordinary web pages (no forums, no explanatory text and no forum badge); address entry lives in the browser bar. This replaces the forum-centred empty state and the suggested-forums list.
+- **Home in two places, one view** ([design-motion.md](design-motion.md) section 3; built for iPhone in Motion tasks 4 and 5).
+  - **The empty tab.** A new tab has no page, so Home is its content. The bar shows its address field ("Search or enter address"), never collapses, and has no Agent ring; the mic joins it once voice is set up. Boards `PhoneHome`, `IPadHome`.
+  - **Over a page.** Tapping the bar's address field (or ⌘L) shows the same `HomeList` over the current page on opaque `ground`, fading in within 200 ms, while the bar becomes the field and Cancel on the keyboard. The page underneath is untouched; Cancel returns to it. Typing replaces Home's sections with at most six local suggestion rows, the first being what Return does: open an address, "Ask the Agent" (a question or instruction, only with a page underneath), search this site, or search the web. Board `PhoneAddress`.
+  - **iPad.** In regular width Home covers the page column only, under the top bar, and the Agent side panel stays visible and usable; compact width behaves as iPhone. Board `IPadAddress`, drawn per design: the iPad build is pending (Motion task 6).
+- **No daily digest.** The Today module, the podcast card and the digest strip were removed on 2026-11-19 (WUKO-182); Home has nothing above Sites. Sites are pinned sites, not forums (WUKO-181): any address can be pinned.
 
 ### 4. Settings
 
@@ -355,9 +359,8 @@ SettingsRootView (Form .grouped)
 ├─ Section "Sites & browsing"
 │    Sites             globe          value: "N sites"
 │    Browser           safari.fill    value: the search engine, e.g. "Google"
-├─ Section "Voice & digest"
-│    Voice             waveform       value: On / Off               (the top-of-root Voice row goes)
-│    Daily digest & podcast  sun.max.fill   value: On / Off
+├─ Section "Voice"
+│    Voice             waveform       value: On / Off               (the top-of-root Voice row goes; Daily digest & podcast was removed on 2026-11-19, WUKO-182)
 ├─ Section "Your data"
 │    iCloud Sync · Data & privacy
 └─ Section
@@ -371,7 +374,7 @@ SettingsRootView (Form .grouped)
 | **Scripts & tools** (`.scripts`) | M2's `ScriptManagerView`, unchanged. Learn on ask adds a "Tools" section |
 | **Sites** (a new page) | Section "Saved": Pinned sites › (any address can be pinned to Home; a pinned site with no built-in reader is a `.web` favourite and nothing more; no Suggested forums list), Following › (the existing Watched topics page). Section "Reading pace": the rate-limit switch (cleanup task 1) and the existing pace picker. Section "Ads & trackers": `ContentBlockingSettingsSections` (moved from Browser). There are no separate Research or Summaries & chat pages |
 | **Browser** (`.browser`) | **Search engine** (new, owner point 7): a `Picker` with Google, DuckDuckGo, Bing and Ecosia, default Google. It is used by the address field on Home, in the bar and in onboarding step 2, wherever text isn't an address. Today's search runs only inside the current forum (`searchPageURL`). Then Browser bar position and Open at launch |
-| **Voice**, **Daily digest & podcast**, **iCloud Sync**, **Data & privacy** | Unchanged pages |
+| **Voice**, **iCloud Sync**, **Data & privacy** | Unchanged pages (the Daily digest & podcast page was removed on 2026-11-19, WUKO-182) |
 | **Help & about** (`.help`) | The existing page, which already links Licences (`.acknowledgements`), plus a row to Share from Safari or Chrome (`.sharing`, today on the root) |
 
 ### 5. Onboarding (`OnboardingFlow`, three steps)
@@ -381,14 +384,17 @@ Today onboarding is a full-screen cover on both devices (`RootPresentation.isFul
 ```
 OnboardingFlow
 ├─ 1 OnboardingModelPage     // the Logo mark (replaces BrandMark) with "WukongMind" beside it, "An agent for any web page"; OnboardingProviderPage's list for the Agent role
-│                            // (tool-calling models only), key field; footnote "Keys stay in the Keychain"; Continue / Later
+│                            // (tool-calling models only), key field with Get a key, model field; after a key test passes the row shows the ring's done once
+│                            // ("Connected — you're ready to go.", VoiceOver value "Saved"); footnotes "Keys stay in the Keychain", Privacy Policy and the Agent notice; Continue / Later
 ├─ 2 OnboardingSitePage      // AddressField + short mixed list of ordinary public web pages (no forums, no forum badge; subtitles say what the site is about); Open
 └─ 3 OnboardingTryPage       // the chosen page behind a medium drawer: the real AssistantPanel with two suggestions
                              // ("Make this page easier to read", "Hide everything but the article"); after a run or Skip:
-                             // a card with the cheer mascot, "You're set" and Done, and rows "iCloud sync: On" and "Daily digest: in Settings"
+                             // a card with the cheer mascot, "You're set" and Done, and the row "iCloud sync: On" (or Off)
 ```
 
 "Later" on step 1 still goes on. Step 3 then shows the panel's no-model card instead of the prompts.
+
+**Terms of Use and AI data consent** (App Store tasks, WUKO-175 and WUKO-179; board `PhoneTerms`). After step 2 and before step 3 a full-screen Terms of Use page shows once: three plain points, a link to the full text, one switch, and a Continue button that stays disabled until the switch is on. The first time a summary or the Agent would send page content to a provider, a full-screen consent page names the provider, says what is sent and that nothing passes through a WukongMind server, and offers Allow and Don't Allow; asking the Agent from the address bar meets the same page first. Both pages belong on `ground`; the build still shows the system background (a gap listed in [design-motion.md](design-motion.md) section 8).
 
 
 ### 6. Motion
@@ -407,7 +413,7 @@ OnboardingFlow
 | Job in progress | `AssistantProgressBar` sweeps (or fills determinately), and system `ProgressView()` spinners turn | `TimelineView(.animation(minimumInterval: 1 / 60))`; Reduce Motion: indeterminate bar keeps a slow opacity pulse |
 | A run ends | The ring stops and becomes the check. Success haptic; the mascot swaps to `cheer` for about 3 s (a swap, not an animation). With the panel closed, a collapsed bar springs open once no finger is on the page, and the Dock shows "Answer ready" | `DCHaptics.success()` |
 | A run fails or hits the step limit | Warning haptic. The explanation appears in the conversation and is announced | `DCHaptics.warning()` |
-| Open This page, Settings, the code sheet, Now playing | The system popover and sheet transitions; Settings push and pop | `.popover`, `.sheet`, `NavigationStack` |
+| Open This page, Settings, the code sheet | The system popover and sheet transitions; Settings push and pop | `.popover`, `.sheet`, `NavigationStack` |
 | The drawer moves between detents; the keyboard rises | System behaviour | `presentationDetents`, the keyboard |
 | Everything else | Changes in place without animation: the suggestion row changes with the page, the mic becomes Send, counts change | no `withAnimation` |
 
@@ -451,7 +457,7 @@ Per roadmap section 6: the four modes and their views become one conversation vi
 | `AIDrawer` (iPhone drawer), `WorkspaceView` (iPad side panel) | keep | The same two containers |
 | `AssistantPanel` (`SummaryPanel.swift`) | keep | The one panel. Its per-mode branches go |
 | Summary mode view | merge | The suggestion "Summarize this thread and replies" (or "Summarize this page") → the summary ResultCard in the conversation; ⤢ → `ExpandedPanel`. One panel: today's summary engine. One loop: the summary tool, same card |
-| Podcast from the panel | merge | The suggestion "Read it to me" → podcast row. One loop: the podcast tool |
+| Read aloud from the panel (was Podcast) | merge | The suggestion "Read it to me" → listen row. One loop: the read-aloud tool |
 | Ask the forum (`AgentPanel.swift`, `AssistantMode.agent`, `AgentEngine` with `AgentPlanner`, `AgentActionParser`, `AgentPrompt`, `AgentToolName`) | delete | One panel: runs behind "Search this forum…", with its answer shown with numbered sources. One loop: deleted; its rules become text added to the Agent's prompt, and the citation view stays |
 | Chat mode (`sendChat` in `AppModel`) | delete | No entry in One panel: questions about a thread go to the Agent, which reads the page. Engine deleted in One loop |
 | `BrowserAgentPanelView` | merge | The conversation itself: ToolRows (one per call, folding into "Steps N"), cards, status line, composer |
@@ -472,7 +478,7 @@ Per roadmap section 6: the four modes and their views become one conversation vi
 | Existing | Kind | Where it lands |
 |---|---|---|
 | `HomeView` header (History, Settings) | keep | Unchanged |
-| `TodayModule`, `PodcastHomeCard`, `DigestStrip` | keep | Below the address field, only when there is something |
+| `TodayModule`, `PodcastHomeCard`, `DigestStrip` | delete | Removed with the daily digest (2026-11-19, WUKO-182) |
 | Continue reading (`ContinueReadingRow`, `NewRepliesBadge`) | keep | Any site |
 | Pinned forums section | merge | The Sites grid (pinned first) |
 | Recent forums section | merge | The Sites grid (frequent) |
@@ -482,14 +488,14 @@ Per roadmap section 6: the four modes and their views become one conversation vi
 | `.pinnedForums` (all forums sheet), `ForumDirectory` | move | Settings › Sites › Forums |
 | `.shareHowTo` (`ShareHowToSheet`) | keep | Opened from Help & about |
 | `HistoryView` | keep | Holds all conversations and results. Segments: All, **Conversations**, **Following** (was Watching). Older summaries and forum answers stay as they are. Home's Recent shows its newest items |
-| `TodayPage`, `DigestHistoryPage`, `DigestCardView` | keep | Unchanged, from Home's Today card |
-| `NowPlayingView` (`.nowPlaying`) | keep | Unchanged |
+| `TodayPage`, `DigestHistoryPage`, `DigestCardView` | delete | Removed with the daily digest (2026-11-19, WUKO-182) |
+| `NowPlayingView` (`.nowPlaying`) | delete | Removed with the daily digest (2026-11-19, WUKO-182) |
 
 ### Settings, page by page
 
 | Existing `SettingsPage` / section | Kind | Where it lands |
 |---|---|---|
-| Root: the Voice row at the top | delete | It duplicated Voice & digest › Voice |
+| Root: the Voice row at the top | delete | It duplicated Voice › Voice |
 | Root: `ReadingLanguagePicker` | move | Models › Answer language |
 | `.provider` "AI models" | keep | Retitled **Models**, with two roles, Agent and Summaries (case name unchanged) |
 | `.summaries` summary batching, custom instructions | move | Models › Summaries |
@@ -499,8 +505,8 @@ Per roadmap section 6: the four modes and their views become one conversation vi
 | `.agent` "Browser agent" section (steps, truncation) | move | **Agent** (`.agent`) › Runs |
 | `.watched` Watched topics | move | Sites › Forums › **Following** |
 | `.forums` | move | Sites › Forums |
-| `.digest` (incl. `SettingsPodcastSections`) | keep | Voice & digest |
-| `.voice` | keep | Voice & digest |
+| `.digest` (incl. `SettingsPodcastSections`) | delete | Removed with the daily digest (2026-11-19, WUKO-182) |
+| `.voice` | keep | Voice |
 | `.browser` bar position, start page | keep | Browser, after the new Search engine setting |
 | `.browser` `ContentBlockingSettingsSections` (ads, trackers, allowed sites) | move | Sites › Ads & trackers |
 | `.sync`, `.data` | keep | Your data |
@@ -519,7 +525,7 @@ Per roadmap section 6: the four modes and their views become one conversation vi
 | `OnboardingWelcomePage` | merge | Step 1's header |
 | `OnboardingProviderPage` | keep | Step 1, for the Agent role |
 | `OnboardingForumsPage`, `OnboardingForumIcon` | merge | Step 2 (any site; no forum badge) |
-| `OnboardingDailyPage` | move | Settings › Daily digest & podcast (no step) |
+| `OnboardingDailyPage` | delete | Removed with the daily digest (2026-11-19, WUKO-182) |
 | `OnboardingSyncCard`, `OnboardingDoneSyncRow` | merge | Step 3's "You're set" card |
 | `OnboardingDonePage`, `ChecklistMark` | merge | Step 3's "You're set" card |
 | `OnboardingPrivacyPage`, `PrivacyPoints` | cleanup | Goes with consent. Step 1 keeps the one line about keys |
@@ -535,20 +541,20 @@ One word per thing, the same in the UI and the docs. The code column shows today
 
 | Word (UI) | Means | Not called | Code today |
 |---|---|---|---|
-| **Agent** | The one loop with tools behind the input box. It reads and changes pages, and from One loop it also summarizes, searches forums, makes podcasts and follows threads through tools. The only thing called Agent, and the only thing in gold or with the ring | browser agent (in the UI), assistant, Research | `BrowserAgent`, `ToolRegistry`, `ModelRole.browserAgent` |
+| **Agent** | The one loop with tools behind the input box. It reads and changes pages, and from One loop it also summarizes, searches forums, reads aloud and follows threads through tools. The only thing called Agent, and the only thing in gold or with the ring | browser agent (in the UI), assistant, Research | `BrowserAgent`, `ToolRegistry`, `ModelRole.browserAgent` |
 | **Assistant** (the panel) | The one panel beside the page: the conversation, the suggestion row and the input box. Its title is always "Agent" | AI drawer, mode | `AssistantPanel` |
 | **Suggestion** | A question above the input box that you could type or say yourself. A tap sends it; one ending in "…" fills the box for you to finish. Shown only where it applies, never greyed out | quick action, mode, shortcut | new |
 | **Conversation** | Everything in the panel: your messages, one row per tool call, the Agent's replies and the tool results. It holds one or more tasks. One Agent remembers it. In One panel, a tapped forum result reaches it as attached context | chat, mode, session | `BrowserAgentSession` |
 | **Task** | One request and the Agent's run for it, from your message to the final result. The unit of task export (M3, developer mode) | job, run | one run inside `BrowserAgentSession` |
 | **Summary** | A structured summary of a thread or page, shown as the summary card | | unchanged |
-| **Podcast** | A spoken version of a thread, an answer or Today. Asked for with "Read it to me" | Listen (as a button) | `Podcast/` |
+| **Read aloud** | A spoken version of a thread or an answer. Asked for with "Read it to me"; it shows as the listen row. (Was "Podcast"; the two-host podcast and the daily digest were removed on 2026-11-19, WUKO-182) | podcast, Listen (as a button) | `Podcast/` (`PodcastPlayer`) |
 | **Voice** | Talking to the Agent. In One panel the mic dictates into the box. From One loop the mic opens the voice session, which shares the Agent's tools, and its turns join the conversation | Listen | `Voice*` views |
 | **Follow** | Get told when a thread has new replies. Asked for with "Notify me of new replies". The state, the switch and the confirmation say **Following** | Watch | `watchedTopics` |
 | **Site** | Any website | | — |
 | **Forum** | A site with a built-in adapter (Discourse, WordPress, Hacker News), or, from Learn on ask, one the page check recognises (it then gets the forum suggestions). Its grey speech-bubble badge shows only on Home's site tiles | | `SiteAdapter`, `Forum` |
 | **This page** | What is saved for the current page and site: Following, scripts, tools, site switches. Its seal shows the host and script count | page info | new `PageCapabilitiesView` |
 | **Script** | Saved JavaScript/CSS in ScriptStore that runs on matching pages. It changes the page (M2) or registers tools (Learn on ask) | userscript (only in export/import), extension | `ScriptStore` |
-| **Tool** | A function the Agent can call. It comes from the app (built-in), a built-in adapter, a capability (summary, podcast, notify, follow), a script, or the site (WebMCP) | action, command | `ToolRegistry`; source prefixes per roadmap section 5 |
+| **Tool** | A function the Agent can call. It comes from the app (built-in), a built-in adapter, a capability (summary, read aloud, notify, follow), a script, or the site (WebMCP) | action, command | `ToolRegistry`; source prefixes per roadmap section 5 |
 | **History** | All conversations and results. Home's **Recent** shows its newest items | recent tasks | `HistoryView` |
 | **Home** | The browser's start page | | `HomeView` |
 | **Workspace** (M3) | The Agent's file folder, visible in Files | | — |
@@ -578,8 +584,8 @@ Every public `struct …: View` / `ViewModifier` under `WukongMind/` is named on
 | `SettingsWatchedPage` | move | Sites › Following |
 | `SettingsForumsPage`, `PinnedForumsEditor`, `ForumRow`, `ForumTile`, `ForumTileLabel`, `ForumSwitcherLabel` | move | Sites › Forums (tiles reused by Home's Sites grid) |
 | `SettingsBrowserPage` | keep | Browser, minus ads & trackers |
-| `SettingsDigestPage`, `PodcastTodaySection`, `PodcastDisclosure`, `DigestIcon` | keep | Voice & digest |
-| `SettingsVoicePage` | keep | Voice & digest › Voice |
+| `SettingsDigestPage`, `PodcastTodaySection`, `PodcastDisclosure`, `DigestIcon` | delete | Removed with the daily digest (2026-11-19, WUKO-182) |
+| `SettingsVoicePage` | keep | Voice › Voice |
 | `SettingsSyncPage`, `SettingsSyncRow`, `SyncStatusRow`, `SettingsDataPage` | keep | Your data |
 | `SettingsHelpPage`, `SettingsAcknowledgementsPage`, `SettingsSharingPage`, `ShareStepRow`, `ShareSheetIllustration`, `ShareActionsIllustration` | keep | Help & about |
 | `SettingsDestination`, `SettingsIconRow`, `SettingsRowLabel`, `SettingsStatusPill` | keep | Settings building blocks |

@@ -394,19 +394,28 @@ struct BrowserContent: View {
     /// Split layout with the panel hidden: the Dock floats bottom-right.
     var dockFloatsTrailing = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Defers mounting the Home overlay by one run-loop turn on tap so `AddressEditBar`
+    /// mounts and requests keyboard focus first without waiting on Home's first frame.
+    @State private var isHomeOverlayMounted = false
 
     var body: some View {
         let showsHomeOverlay = browser.isEditingAddress && !browser.showsForumsHome
-        let showsHome = browser.showsForumsHome || showsHomeOverlay
+        let showsHome = browser.showsForumsHome || (showsHomeOverlay && isHomeOverlayMounted)
+        let blocksWebView = browser.showsForumsHome || showsHomeOverlay
         ZStack {
             BrowserTabsWebHost(tabs: app.tabs, router: app.router)
                 .background(Color(uiColor: .systemBackground))
                 .ignoresSafeArea(.container, edges: webViewIgnoresBottomSafeArea ? .bottom : [])
                 .ignoresSafeArea(.keyboard, edges: .bottom)
-                .allowsHitTesting(!showsHome)
-                .accessibilityHidden(showsHome)
+                .allowsHitTesting(!blocksWebView)
+                .accessibilityHidden(blocksWebView)
             if showsHome {
-                HomeView(app: app, actions: actions)
+                HomeView(
+                    app: app,
+                    isEditingAddress: browser.isEditingAddress,
+                    currentURL: browser.currentURL,
+                    actions: actions
+                )
                     .safeAreaPadding(.top, floatingTopBarInset)
                     .safeAreaPadding(.bottom, homeBottomInset ?? cardsBottomInset)
                     .transition(.opacity)
@@ -419,10 +428,18 @@ struct BrowserContent: View {
                     }
             }
         }
-        .animation(UIView.areAnimationsEnabled ? .easeOut(duration: 0.18) : nil, value: showsHomeOverlay)
-        .onChange(of: showsHomeOverlay) { _, shown in
+        .animation(UIView.areAnimationsEnabled ? .easeOut(duration: 0.18) : nil, value: isHomeOverlayMounted)
+        .onChange(of: showsHomeOverlay, initial: true) { _, shown in
             if shown {
-                UIAccessibility.post(notification: .screenChanged, argument: nil)
+                DispatchQueue.main.async {
+                    guard showsHomeWhileEditing, browser.isEditingAddress, !browser.showsForumsHome else { return }
+                    isHomeOverlayMounted = true
+                    if UIAccessibility.isVoiceOverRunning {
+                        UIAccessibility.post(notification: .screenChanged, argument: nil)
+                    }
+                }
+            } else {
+                isHomeOverlayMounted = false
             }
         }
         .overlay(alignment: .top) {

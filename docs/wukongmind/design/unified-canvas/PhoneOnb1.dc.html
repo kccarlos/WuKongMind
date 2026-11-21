@@ -19,28 +19,91 @@ body{margin:0}
 .r{display:flex;align-items:center;gap:12px;min-height:52px;padding:0 14px;font-size:17px}
 .r+.r{border-top:1px solid var(--border)}
 .rad{width:22px;height:22px;border-radius:11px;border:2px solid var(--ter);box-sizing:border-box;flex-shrink:0}
+/*wuko200*/
+.lt{--glass:rgba(255,253,248,.66);--glassedge:rgba(255,255,255,.75);--glassfill:rgba(26,22,18,.06);--glassshadow:0 10px 32px rgba(20,17,14,.20);--sel:rgba(176,127,12,.28)}
+.dk{--glass:rgba(42,37,30,.62);--glassedge:rgba(255,255,255,.14);--glassfill:rgba(244,238,226,.08);--glassshadow:0 10px 32px rgba(0,0,0,.45);--sel:rgba(224,176,64,.36)}
+.w2 svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.w2 svg text{stroke:none;font-family:inherit}
+.w2 button{font-family:inherit}
+.w2h{display:flex;flex-direction:column;gap:14px;padding:0 16px;color:var(--label)}
+.w2top{display:flex;align-items:center;gap:4px}
+.w2top h1{margin:0;font-size:34px;font-weight:700;flex-grow:1}
+.w2ib{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;border-radius:22px;padding:0}
+.w2hd{font-size:20px;font-weight:600;padding:0 4px;display:flex;align-items:baseline}
+.w2hd a{margin-left:auto;font-size:15px;font-weight:400;color:var(--blue);text-decoration:none}
+.w2grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px 8px}
+.w2tile{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:12px;line-height:15px;text-align:center;color:var(--label);text-decoration:none}
+.w2ti{width:56px;height:56px;border-radius:15px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px;font-weight:700;position:relative}
+.w2bd{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:10px;background:#48484A;color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--page)}
+.w2card{background:var(--surface);border-radius:14px;overflow:hidden}
+.w2rw{display:flex;align-items:center;gap:12px;min-height:52px;padding:6px 14px;box-sizing:border-box}
+.w2rw+.w2rw{border-top:1px solid var(--border)}
+.w2rw .m{flex:1;min-width:0;display:flex;flex-direction:column}
+.w2rw .a{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w2rw .b{font-size:13px;color:var(--sec);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.w2new{font-size:12px;font-weight:600;padding:3px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0;background:var(--badgebg);color:var(--badgetx)}
+.w2glass{position:absolute;background:var(--glass);-webkit-backdrop-filter:blur(18px) saturate(1.7);backdrop-filter:blur(18px) saturate(1.7);border:1px solid var(--glassedge);box-shadow:var(--glassshadow);box-sizing:border-box;display:flex;align-items:center}
+.w2gb{width:44px;height:44px;border:0;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0}
+.w2gb.off{color:var(--ter)}
+.w2ad{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:42px;border-radius:21px;background:var(--glassfill);padding:0 12px 0 8px;font-size:15px;color:var(--ter);box-sizing:border-box;white-space:nowrap;overflow:hidden}
+.w2ad b{color:var(--label);font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.w2edit{position:absolute;left:0;right:0;height:52px;display:flex;align-items:center;gap:10px;padding:0 12px;background:var(--page);box-sizing:border-box}
+.w2ef{flex:1;min-width:0;height:40px;border-radius:20px;border:1.5px solid var(--gold);background:var(--fill);display:flex;align-items:center;gap:8px;padding:0 10px;font-size:15px;box-sizing:border-box;white-space:nowrap;overflow:hidden;color:var(--label)}
+.w2ef .tx{flex:1;min-width:0;overflow:hidden}
+.w2ef .sel{background:var(--sel);border-radius:3px;padding:2px 0}
+.w2ef .ph{color:var(--ter)}
+.w2cancel{border:0;background:none;font-size:16px;color:var(--blue);padding:0;min-height:44px;flex-shrink:0}
+.w2caret{display:inline-block;width:2px;height:18px;background:var(--gold);vertical-align:-3px;margin-left:1px}
+.w2kb{position:absolute;left:0;right:0;bottom:0;height:300px;background:var(--kb);display:flex;flex-direction:column;gap:10px;padding:10px 4px 0;box-sizing:border-box}
+.w2kr{display:flex;gap:6px;justify-content:center}
+.w2k{width:31px;height:42px;border-radius:6px;background:var(--key);box-shadow:0 1px 0 rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;font-size:19px;color:var(--label);flex-shrink:0}
+.w2sg{background:var(--surface);border-radius:14px;overflow:hidden}
+.w2sr{display:flex;align-items:center;gap:12px;min-height:44px;padding:9px 14px;font-size:15px;line-height:20px;color:var(--label);border:0;background:none;width:100%;text-align:left;box-sizing:border-box}
+.w2sr+.w2sr{border-top:1px solid var(--border)}
+.w2sr .ic{width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:var(--sec);flex-shrink:0}
+.w2sr .m{flex:1;min-width:0;display:flex;flex-direction:column}
+.w2sr .m small{font-size:13px;color:var(--sec)}
+.w2sr.first .m>span{font-weight:500}
+.w2sr.on{background:var(--goldwash)}
+.w2pend{display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:6px;border:1px dashed var(--strong);font-size:12px;font-weight:600;color:var(--sec);white-space:nowrap}
+.w2cap{font-size:15px;line-height:21px;color:var(--label)}
+.w2cap b{display:block;font-size:17px;margin-bottom:4px}
+.w2cap .k{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;color:var(--sec);margin-top:2px}
+.w2frame{width:390px;height:844px;position:relative;overflow:hidden;background:var(--page);border-radius:44px;flex-shrink:0}
+.w2pad{width:1194px;height:834px;position:relative;overflow:hidden;background:var(--page);border-radius:24px;flex-shrink:0}
+.w2ind{position:absolute;left:50%;bottom:8px;width:134px;height:5px;margin-left:-67px;border-radius:3px;background:var(--label);opacity:.85}
+.w2box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;box-sizing:border-box}
+.w2mono{font-family:ui-monospace,"SF Mono",Menlo,monospace}
+/*/wuko200*/
 </style>
 </helmet>
-<div class="sf {{theme}}" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: var(--page); display: flex; flex-direction: column;">
+<div class="sf {{theme}} w2" style="width: 390px; height: 844px; position: relative; overflow: hidden; background: var(--page); display: flex; flex-direction: column;">
   <div style="display: flex; justify-content: center; gap: 8px; padding: 62px 0 0;"><span class="dot" style="background: var(--gold); opacity: 1; width: 22px;"></span><span class="dot"></span><span class="dot"></span></div>
-  <div style="padding: 28px 24px 0; display: flex; flex-direction: column; gap: 10px; align-items: center; text-align: center;">
-    <div style="display: flex; align-items: center; gap: 10px;"><img src="../design-system/assets/Logo/mark.svg" alt="" style="width: 56px; height: 56px;"><span style="font-size: 22px; font-weight: 600;">WukongMind</span></div>
-    <h1 style="margin: 0; font-size: 28px; font-weight: 700;">An agent for any web page</h1>
-    <p style="margin: 0; font-size: 17px; line-height: 1.4; color: var(--sec);">Pick a model for the Agent.</p>
+  <div style="padding: 18px 24px 0; display: flex; flex-direction: column; gap: 6px; align-items: center; text-align: center;">
+    <div style="display: flex; align-items: center; gap: 10px;"><img src="../design-system/assets/Logo/mark.svg" alt="" style="width: 56px; height: 56px;"><span style="font-size: 26px; font-weight: 600;">WukongMind</span></div>
+    <h1 style="margin: 6px 0 0; font-size: 24px; font-weight: 700;">An agent for any web page</h1>
+    <p style="margin: 0; font-size: 15px; line-height: 1.4; color: var(--sec);">Pick a model for the Agent.</p>
   </div>
-  <div style="padding: 24px 16px 0; display: flex; flex-direction: column; gap: 10px;">
-    <div class="sec">
-      <div class="r"><span class="rad" style="border: 7px solid var(--gold);"></span><span style="flex-grow: 1;">Anthropic</span></div>
-      <div class="r" style="padding-left: 48px;"><label style="flex-grow: 1; display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; background: var(--fill);"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">API key</span><input type="password" value="••••••••••••••••" style="border: 0; background: none; font: inherit; font-size: 17px; outline: none; width: 100%; color: var(--label);"></label></div>
-      <div class="r" style="padding-left: 48px;"><span style="flex-grow: 1;">Model</span><span style="color: var(--sec);">Claude Sonnet 5.5</span></div>
-      <div class="r"><span class="rad"></span><span style="flex-grow: 1;">OpenRouter</span></div>
-      <div class="r"><span class="rad"></span><span style="flex-grow: 1;">OpenAI</span></div>
-      <div class="r"><span class="rad"></span><span style="flex-grow: 1;">Other provider…</span></div>
+  <div style="padding: 14px 16px 0; display: flex; flex-direction: column; gap: 10px;">
+    <div class="sec" style="border: 1px solid var(--border);">
+      <div style="padding: 10px 14px 12px; display: flex; flex-direction: column; gap: 8px;">
+        <div style="display: flex; align-items: center; gap: 12px; min-height: 32px; font-size: 17px;"><span class="rad" style="border: 7px solid var(--gold);"></span><span>Anthropic</span></div>
+        <div style="padding-left: 34px; display: flex; flex-direction: column; gap: 6px;">
+          <div style="display: flex; align-items: center; font-size: 13px; font-weight: 700;"><span style="flex: 1;">API key</span><a href="#" style="display: inline-flex; align-items: center; gap: 5px; color: var(--blue); text-decoration: none; font-size: 12px;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px;"><path d="M14 5h5v5M19 5l-8 8"/><path d="M18 14v5H5V6h5"/></svg>Get a key</a></div>
+          <label style="display: flex; align-items: center; min-height: 44px; padding: 0 8px 0 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border);"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">API key</span><input type="password" value="••••••••••••••••" style="border: 0; background: none; font: inherit; font-size: 17px; outline: none; width: 100%; min-width: 0; color: var(--label);"><span style="width: 32px; height: 28px; border-radius: 7px; background: var(--goldwash); color: var(--blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 15px; height: 15px;"><rect x="7" y="7" width="11" height="13" rx="2"/><path d="M5 16V6a2 2 0 0 1 2-2h8"/></svg></span></label>
+          <div style="display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--success);"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 13px; height: 13px;"><path d="M12 3l7 3v6c0 4.500-3 7.500-7 9-4-1.500-7-4.500-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>Stored securely in iCloud Keychain</div>
+          <div style="font-size: 13px; font-weight: 700; margin-top: 4px;">Model</div>
+          <div style="display: flex; align-items: center; min-height: 44px; padding: 0 8px 0 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); font-size: 17px;"><span style="flex: 1;">claude-sonnet-5-5</span><span style="width: 32px; height: 28px; border-radius: 7px; background: var(--goldwash); color: var(--blue); display: flex; align-items: center; justify-content: center; flex-shrink: 0;"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 15px; height: 15px;"><path d="M8 7h12M8 12h12M8 17h12M4 7h.01M4 12h.01M4 17h.01"/></svg></span></div>
+          <div role="status" aria-label="Connected. Saved" style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--sec);"><svg viewBox="0 0 14 14" aria-hidden="true" style="width: 14px; height: 14px; flex-shrink: 0;"><circle cx="7" cy="7" r="6.25" fill="none" stroke="var(--gold)" stroke-width="1.5"/><path d="M4.34 7.28l1.82 1.82L9.66 5.18" fill="none" stroke="var(--blue)" stroke-width="1.6"/></svg><span>Connected — you’re ready to go.</span></div>
+        </div>
+      </div>
+      <div class="r"><span class="rad"></span><span style="flex-grow: 1;">OpenRouter</span></div><div class="r"><span class="rad"></span><span style="flex-grow: 1;">OpenAI</span></div><div class="r"><span class="rad"></span><span style="flex-grow: 1;">Other provider…</span></div>
     </div>
-    <div style="display: flex; gap: 8px; align-items: flex-start; padding: 0 8px; font-size: 13px; line-height: 1.35; color: var(--sec);"><svg class="ico" viewBox="0 0 24 24" style="width: 15px; height: 15px; margin-top: 1px;" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>Keys stay in the Keychain</div>
+    <div style="display: flex; gap: 8px; align-items: center; padding: 0 8px; font-size: 12px; color: var(--sec);"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px;"><circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l3 3"/></svg><span style="flex: 1;">Keys stay in the Keychain</span><a href="#" style="color: var(--sec); text-decoration: none;">Privacy Policy</a></div>
+    <div style="display: flex; gap: 8px; align-items: flex-start; padding: 0 8px; font-size: 12px; line-height: 1.35; color: var(--sec);"><svg viewBox="0 0 24 24" aria-hidden="true" style="width: 14px; height: 14px; margin-top: 1px;"><circle cx="9" cy="8" r="3.500"/><path d="M3 20a6 6 0 0 1 12 0"/><path d="M17 11l2 2 3-4"/></svg><span>The Agent can read and act on pages you’re signed in to, and asks before saving scripts or sending requests.</span></div>
   </div>
   <div style="flex-grow: 1;"></div>
-  <div style="padding: 0 16px 34px; display: flex; flex-direction: column; gap: 4px;">
+  <div style="padding: 10px 16px 34px; display: flex; flex-direction: column; gap: 4px; border-top: 1px solid var(--border);">
     <button style="min-height: 50px; border: 0; border-radius: 10px; background: var(--gold); color: var(--ongold); font: inherit; font-size: 17px; font-weight: 600;">Continue</button>
     <button style="min-height: 44px; border: 0; background: none; color: var(--blue); font: inherit; font-size: 17px;">Later</button>
   </div>

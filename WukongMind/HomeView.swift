@@ -10,12 +10,21 @@ import SwiftUI
 
 struct HomeView: View {
     @ObservedObject var app: AppModel
-    @ObservedObject var browser: ForumBrowserModel
+    let browser: ForumBrowserModel
+    let isEditingAddress: Bool
+    let currentURL: URL?
     let actions: BrowserActions
 
-    init(app: AppModel, actions: BrowserActions) {
+    init(
+        app: AppModel,
+        isEditingAddress: Bool,
+        currentURL: URL?,
+        actions: BrowserActions
+    ) {
         self.app = app
-        browser = app.browser
+        self.browser = app.browser
+        self.isEditingAddress = isEditingAddress
+        self.currentURL = currentURL
         self.actions = actions
     }
 
@@ -24,6 +33,8 @@ struct HomeView: View {
             app: app,
             browser: browser,
             editState: browser.addressEditState,
+            isEditingAddress: isEditingAddress,
+            currentURL: currentURL,
             actions: actions
         )
     }
@@ -31,12 +42,14 @@ struct HomeView: View {
 
 private struct HomeOrSuggestions: View {
     let app: AppModel
-    @ObservedObject var browser: ForumBrowserModel
+    let browser: ForumBrowserModel
     @ObservedObject var editState: AddressEditState
+    let isEditingAddress: Bool
+    let currentURL: URL?
     let actions: BrowserActions
 
     var body: some View {
-        if browser.isEditingAddress, editState.showsSuggestions {
+        if isEditingAddress, editState.showsSuggestions {
             AddressSuggestionsList(
                 app: app,
                 browser: browser,
@@ -45,45 +58,58 @@ private struct HomeOrSuggestions: View {
                 actions: actions
             )
         } else {
-            HomeList(app: app, browser: browser, siteVisits: app.siteVisits, actions: actions)
+            HomeList(
+                app: app,
+                browser: browser,
+                siteVisits: app.siteVisits,
+                isEditingAddress: isEditingAddress,
+                currentURL: currentURL,
+                actions: actions
+            )
         }
     }
 }
 
 private struct HomeList: View {
     @ObservedObject var app: AppModel
-    @ObservedObject var browser: ForumBrowserModel
+    let browser: ForumBrowserModel
     @ObservedObject var siteVisits: SiteVisitStore
+    let isEditingAddress: Bool
+    let currentURL: URL?
     let actions: BrowserActions
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @State private var forumToRemove: Forum?
 
-    private var tiles: [HomeSite] { HomeSites.tiles(forums: app.forums, visits: siteVisits.shownVisits) }
+    private var tiles: [HomeSite] {
+        PerfProbe.time("HomeSites.tiles") {
+            HomeSites.tiles(forums: app.forums, visits: siteVisits.shownVisits)
+        }
+    }
 
     var body: some View {
         let _ = PerfProbe.hit("HomeList.body")
         let tiles = tiles
-        List {
-            header
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: DCTheme.spacingS, leading: 4, bottom: 0, trailing: 4))
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: DCTheme.spacingL) {
+                header
+                    .padding(.horizontal, 4)
 
-            if tiles.isEmpty {
-                suggestedCard
-            } else {
-                sitesSection(tiles)
+                if tiles.isEmpty {
+                    suggestedCard
+                } else {
+                    sitesSection(tiles)
+                }
+                recentSection
+                continueReadingSection
+                followingSection
             }
-            recentSection
-            continueReadingSection
-            followingSection
+            .padding(.horizontal, 20)
+            .padding(.top, DCTheme.spacingS)
+            .padding(.bottom, DCTheme.spacingM)
         }
-        .listStyle(.insetGrouped)
-        .listSectionSpacing(.compact)
         .scrollDismissesKeyboard(.immediately)
-        .modifier(HomeScrollKeyboardDismiss(isEditingAddress: browser.isEditingAddress))
-        .contentMargins(.top, DCTheme.spacingXS, for: .scrollContent)
+        .modifier(HomeScrollKeyboardDismiss(isEditingAddress: isEditingAddress))
         .scrollContentBackground(.hidden)
         .frame(maxWidth: 760)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -138,7 +164,9 @@ private struct HomeList: View {
     }
 
     private func sitesSection(_ tiles: [HomeSite]) -> some View {
-        Section {
+        VStack(alignment: .leading, spacing: DCTheme.spacingS) {
+            sectionTitle("Sites", comment: "Home section: pinned and most visited sites")
+                .padding(.horizontal, 16)
             LazyVGrid(columns: columns, alignment: .center, spacing: DCTheme.spacingL) {
                 ForEach(tiles) { site in
                     siteButton(site)
@@ -159,10 +187,7 @@ private struct HomeList: View {
                 .accessibilityLabel("Add a site")
                 .accessibilityIdentifier("homeAddSite")
             }
-            .listRowBackground(Color.clear)
-            .listRowInsets(EdgeInsets(top: DCTheme.spacingXS, leading: 0, bottom: DCTheme.spacingXS, trailing: 0))
-        } header: {
-            sectionTitle("Sites", comment: "Home section: pinned and most visited sites")
+            .padding(.vertical, DCTheme.spacingXS)
         }
     }
 
@@ -213,9 +238,9 @@ private struct HomeList: View {
     }
 
     private func isCurrent(_ site: HomeSite) -> Bool {
-        guard browser.currentURL != nil else { return false }
+        guard currentURL != nil else { return false }
         if let forum = site.forum, forum.hasReader { return app.isCurrent(forum) }
-        return HomeSites.originOf(browser.currentURL) == site.siteURL
+        return HomeSites.originOf(currentURL) == site.siteURL
     }
 
     private func togglePin(_ site: HomeSite) {
@@ -264,31 +289,30 @@ private struct HomeList: View {
     private var suggestedCard: some View {
         let suggestions = Array(AppModel.onboardingSuggestions().prefix(3))
         if !suggestions.isEmpty {
-            Section {
-                ForEach(suggestions) { suggested in
-                    Button { app.openSuggestedSite(suggested) } label: {
-                        HStack(spacing: DCTheme.spacingM) {
-                            ForumIcon(suggested: suggested, size: 40)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(suggested.name)
-                                    .font(.body.weight(.semibold))
-                                    .foregroundStyle(DCTheme.ink)
-                                    .lineLimit(1)
-                                Text(suggested.description)
-                                    .font(.footnote)
-                                    .foregroundStyle(DCTheme.inkMuted)
-                                    .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
-                            }
-                            Spacer(minLength: 0)
+            homeCard(suggestions) { suggested in
+                Button { app.openSuggestedSite(suggested) } label: {
+                    HStack(spacing: DCTheme.spacingM) {
+                        ForumIcon(suggested: suggested, size: 40)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(suggested.name)
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(DCTheme.ink)
+                                .lineLimit(1)
+                            Text(suggested.description)
+                                .font(.footnote)
+                                .foregroundStyle(DCTheme.inkMuted)
+                                .lineLimit(dynamicTypeSize.isAccessibilitySize ? 3 : 1)
                         }
-                        .contentShape(Rectangle())
+                        Spacer(minLength: 0)
                     }
-                    .buttonStyle(.plain)
-                    .listRowBackground(DCTheme.surface)
-                    .accessibilityElement(children: .combine)
-                    .accessibilityHint("Opens \(suggested.host)")
-                    .accessibilityIdentifier("suggestedSite-\(suggested.host)")
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 14)
+                    .contentShape(Rectangle())
                 }
+                .buttonStyle(.plain)
+                .accessibilityElement(children: .combine)
+                .accessibilityHint("Opens \(suggested.host)")
+                .accessibilityIdentifier("suggestedSite-\(suggested.host)")
             }
         }
     }
@@ -297,23 +321,16 @@ private struct HomeList: View {
 
     /// The newest History items: saved summaries, chats and answers.
     private var recentItems: [HomeRecentItem] {
-        HomeRecent.items(sessions: Array(app.sessions.values), runs: app.agentRuns)
+        PerfProbe.time("HomeRecent.items") {
+            HomeRecent.items(sessions: Array(app.sessions.values), runs: app.agentRuns)
+        }
     }
 
     @ViewBuilder
     private var recentSection: some View {
         let items = recentItems
         if !items.isEmpty {
-            Section {
-                ForEach(items) { item in
-                    Button { openRecent(item) } label: {
-                        RecentRow(item: item)
-                    }
-                    .buttonStyle(.plain)
-                    .listRowBackground(DCTheme.surface)
-                    .accessibilityIdentifier("recent-\(item.id)")
-                }
-            } header: {
+            VStack(alignment: .leading, spacing: DCTheme.spacingS) {
                 HStack(alignment: .firstTextBaseline) {
                     sectionTitle("Recent", comment: "Home section: the newest conversations and results")
                     Spacer()
@@ -329,6 +346,16 @@ private struct HomeList: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("recentHistoryLink")
+                }
+                .padding(.horizontal, 16)
+                homeCard(items) { item in
+                    Button { openRecent(item) } label: {
+                        RecentRow(item: item)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("recent-\(item.id)")
                 }
             }
         }
@@ -347,22 +374,25 @@ private struct HomeList: View {
 
     @ViewBuilder
     private var continueReadingSection: some View {
-        let sessions = HomeSections.continueReading(Array(app.sessions.values))
+        let sessions = PerfProbe.time("HomeSections.continueReading") {
+            HomeSections.continueReading(Array(app.sessions.values))
+        }
         if !sessions.isEmpty {
-            Section {
-                ForEach(sessions) { session in
+            VStack(alignment: .leading, spacing: DCTheme.spacingS) {
+                sectionTitle("Continue reading", comment: "Home section: the topics read last")
+                    .padding(.horizontal, 16)
+                homeCard(sessions) { session in
                     Button {
                         DCHaptics.tap()
                         app.openTopic(topicKey: session.topicKey)
                     } label: {
                         ContinueReadingRow(session: session, forum: app.forumInfo(siteURL: session.siteURL))
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
                     }
                     .tint(.primary)
-                    .listRowBackground(DCTheme.surface)
                     .accessibilityIdentifier("continueReading-\(session.topicID)")
                 }
-            } header: {
-                sectionTitle("Continue reading", comment: "Home section: the topics read last")
             }
         }
     }
@@ -371,10 +401,14 @@ private struct HomeList: View {
 
     @ViewBuilder
     private var followingSection: some View {
-        let following = HomeSections.watching(app.watchedTopics)
+        let following = PerfProbe.time("HomeSections.watching") {
+            HomeSections.watching(app.watchedTopics)
+        }
         if !following.isEmpty {
-            Section {
-                ForEach(following) { watched in
+            VStack(alignment: .leading, spacing: DCTheme.spacingS) {
+                sectionTitle("Following", comment: "Home section: followed topics with new replies")
+                    .padding(.horizontal, 16)
+                homeCard(following) { watched in
                     Button {
                         DCHaptics.tap()
                         app.openWatched(watched)
@@ -393,16 +427,31 @@ private struct HomeList: View {
                             Spacer(minLength: DCTheme.spacingS)
                             NewRepliesBadge(text: String(localized: "\(watched.newReplies) new", comment: "Badge: number of new replies in a followed topic"))
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
                         .contentShape(Rectangle())
                     }
                     .tint(.primary)
-                    .listRowBackground(DCTheme.surface)
                     .accessibilityIdentifier("following-\(watched.topicID)")
                 }
-            } header: {
-                sectionTitle("Following", comment: "Home section: followed topics with new replies")
             }
         }
+    }
+
+    private func homeCard<Item: Identifiable, Row: View>(
+        _ items: [Item],
+        @ViewBuilder row: @escaping (Item) -> Row
+    ) -> some View {
+        VStack(spacing: 0) {
+            ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                row(item)
+                if index < items.count - 1 {
+                    Divider()
+                        .padding(.horizontal, 20)
+                }
+            }
+        }
+        .background(DCTheme.surface, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
     }
 
     private func sectionTitle(_ key: LocalizedStringKey, comment: StaticString) -> some View {
