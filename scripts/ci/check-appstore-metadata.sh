@@ -199,38 +199,49 @@ def image_size(path):
 
 shots = os.path.join(root, "screenshots")
 count = 0
+
+
+def screenshot_kind(path, locale_root):
+    rel = os.path.relpath(path, locale_root)
+    parts = rel.split(os.sep)
+    if len(parts) >= 2 and parts[0].lower() in SIZES:
+        return parts[0].lower()
+    name = os.path.basename(path)
+    return next((k for k in SIZES if name.lower().startswith(k)), None)
+
+
 if os.path.isdir(shots):
-    for dirpath, _, files in os.walk(shots):
-        for name in sorted(files):
-            if name.startswith(".") or name.endswith((".md", ".txt")):
-                continue
-            path = os.path.join(dirpath, name)
-            size = image_size(path)
-            if size is None:
-                fail(path, "not a PNG or JPEG")
-                continue
-            kind = next((k for k in SIZES if name.lower().startswith(k)), None)
-            if kind is None:
-                fail(path, "file name must start with 'iphone' or 'ipad'")
-                continue
-            w, h = size
-            if (w, h) not in SIZES[kind] and (h, w) not in SIZES[kind]:
-                fail(path, f"{w}x{h} is not an accepted {kind} screenshot size")
-            if png_has_alpha(path):
-                fail(path, "PNG has an alpha channel; screenshots must be opaque")
-            count += 1
     for locale in sorted(os.listdir(shots)):
         folder = os.path.join(shots, locale)
         if not os.path.isdir(folder):
             continue
         if locale not in locales:
             fail(folder, f"screenshot locale {locale!r} has no metadata/{locale}/ folder")
-        for kind in SIZES:
-            n = sum(1 for _, _, fs in os.walk(folder) for f in fs if f.lower().startswith(kind))
+        per_kind = {k: 0 for k in SIZES}
+        for dirpath, _, files in os.walk(folder):
+            for name in sorted(files):
+                if name.startswith(".") or name.endswith((".md", ".txt")):
+                    continue
+                path = os.path.join(dirpath, name)
+                size = image_size(path)
+                if size is None:
+                    fail(path, "not a PNG or JPEG")
+                    continue
+                kind = screenshot_kind(path, folder)
+                if kind is None:
+                    fail(path, "place under iphone/ or ipad/ subfolder, or prefix file name with 'iphone' or 'ipad'")
+                    continue
+                w, h = size
+                if (w, h) not in SIZES[kind] and (h, w) not in SIZES[kind]:
+                    fail(path, f"{w}x{h} is not an accepted {kind} screenshot size")
+                if png_has_alpha(path):
+                    fail(path, "PNG has an alpha channel; screenshots must be opaque")
+                per_kind[kind] += 1
+                count += 1
+        for kind, n in per_kind.items():
             if n > 10:
                 fail(folder, f"{n} {kind} screenshots; the limit is 10 per locale")
-        print(f"screenshots/{locale}: " + ", ".join(
-            f"{sum(1 for f in os.listdir(folder) if f.lower().startswith(k))} {k}" for k in SIZES))
+        print(f"screenshots/{locale}: " + ", ".join(f"{per_kind[k]} {k}" for k in SIZES))
 print(f"screenshots checked: {count}")
 
 if errors:

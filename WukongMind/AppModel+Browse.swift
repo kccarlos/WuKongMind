@@ -214,6 +214,41 @@ extension AppModel {
             // Kept over the restored forum's first load.
             browser.showForumsHome(overPendingLoad: true)
         }
+        if arguments.contains("-dc-store-tabs") {
+            settings.hasCompletedOnboarding = true
+            let content = StoreScreenshotContent.current
+            let firstTab = tabs.currentTab
+            firstTab.browser.onPageContextChanged = { _ in }
+            firstTab.browser.ignoresNavigationFailures = true
+            firstTab.browser.hideForumsHome()
+            firstTab.browser.loadSamplePage(content.articleHTML, at: content.articleURL)
+            firstTab.browser.setPageContext(PageContext(url: content.articleURL, state: .notForum))
+            var seededTabs: [BrowserTab] = []
+            for page in content.extraTabs {
+                if let tab = tabs.openTab(inFront: false) {
+                    tab.browser.onPageContextChanged = { _ in }
+                    tab.browser.ignoresNavigationFailures = true
+                    tab.browser.hideForumsHome()
+                    tab.browser.loadSamplePage(page.html, at: page.url)
+                    tab.browser.setPageContext(PageContext(url: page.url, state: .notForum))
+                    seededTabs.append(tab)
+                }
+            }
+            // Cycle each extra tab briefly on screen so WKWebView paints and captures
+            // a real thumbnail snapshot before the overview opens.
+            Task { @MainActor [weak self] in
+                try? await Task.sleep(for: .milliseconds(350))
+                guard let self else { return }
+                for tab in seededTabs {
+                    _ = self.tabs.switchToTab(id: tab.id)
+                    try? await Task.sleep(for: .milliseconds(450))
+                    _ = await tab.captureSnapshotIfAvailable()
+                }
+                _ = self.tabs.switchToTab(id: firstTab.id)
+                try? await Task.sleep(for: .milliseconds(350))
+                _ = await firstTab.captureSnapshotIfAvailable()
+            }
+        }
         if let index = arguments.firstIndex(of: "-dc-seed-open-tabs"),
            index + 1 < arguments.count,
            let targetCount = Int(arguments[index + 1]),
@@ -315,9 +350,20 @@ extension AppModel {
         let usesCustomOpenPage = hasCustomOpenURL
             && !AssistantDebug.has("-dc-browser-agent-fixture-page")
             && (livePrompt != nil || hasLiveKey || demoMode != nil)
+        let isStoreDemo = demoMode == "store-dark"
+            || demoMode == "store-script"
+            || demoMode == "store-summarize"
+            || demoMode == "store-empty"
         if usesCustomOpenPage {
             browser.ignoresNavigationFailures = true
             browser.hideForumsHome()
+        } else if isStoreDemo {
+            let content = StoreScreenshotContent.current
+            browser.onPageContextChanged = { _ in }
+            browser.ignoresNavigationFailures = true
+            browser.hideForumsHome()
+            browser.loadSamplePage(content.articleHTML, at: content.articleURL)
+            browser.setPageContext(PageContext(url: content.articleURL, state: .notForum))
         } else {
             loadBrowserAgentFixturePage()
         }
@@ -395,9 +441,15 @@ extension AppModel {
                         self.router.drawerDetent = detent
                     }
                 }
-                guard let self, demoMode != "no-model", demoMode != "empty", demoMode != "run-limit" else { return }
+                guard let self, demoMode != "no-model", demoMode != "empty", demoMode != "store-empty", demoMode != "run-limit" else { return }
                 let demoPrompt: String
-                if demoMode == "saved-script" {
+                if demoMode == "store-dark" {
+                    demoPrompt = StoreScreenshotContent.current.darkPrompt
+                } else if demoMode == "store-script" {
+                    demoPrompt = StoreScreenshotContent.current.saveScriptPrompt
+                } else if demoMode == "store-summarize" {
+                    demoPrompt = StoreScreenshotContent.current.summarizePrompt
+                } else if demoMode == "saved-script" {
                     demoPrompt = "Keep only the original poster's posts and hide the sidebar on every visit"
                 } else if demoMode == "tabs-open" {
                     demoPrompt = "Find the companion schedule and keep it open in a new tab"

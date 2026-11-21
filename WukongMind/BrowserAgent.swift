@@ -2198,6 +2198,9 @@ actor BrowserAgentDemoClient: AgentModelClient {
         case error
         case screenshot
         case tabsOpen = "tabs-open"
+        case storeDark = "store-dark"
+        case storeScript = "store-script"
+        case storeSummarize = "store-summarize"
     }
 
     let mode: Mode
@@ -2537,6 +2540,176 @@ actor BrowserAgentDemoClient: AgentModelClient {
                     toolCalls: [],
                     stopReason: "end_turn",
                     usage: AgentTokenUsage(inputTokens: 940, outputTokens: 46)
+                )
+            }
+
+        case .storeDark:
+            let content = StoreScreenshotContent.current
+            switch turn {
+            case 1:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_store_read_1",
+                            name: "read_page",
+                            arguments: ["mode": .string("structure")]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 480, outputTokens: 64)
+                )
+            case 2:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_store_css_2",
+                            name: "inject_css",
+                            arguments: [
+                                "id": .string("store-dark-reader"),
+                                "css": .string("""
+                                html, body, header.masthead, article { background: #0f172a !important; color: #e2e8f0 !important; }
+                                header.masthead { border-bottom-color: #334155 !important; }
+                                h1, .brand { color: #f8fafc !important; }
+                                .byline { color: #94a3b8 !important; }
+                                .lead { color: #cbd5e1 !important; }
+                                blockquote { background: #1e293b !important; color: #99f6e4 !important; border-left-color: #2dd4bf !important; }
+                                .sidebar, #newsletter-aside { display: none !important; }
+                                """)
+                            ]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 680, outputTokens: 110)
+                )
+            case 3:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_store_js_3",
+                            name: "run_js",
+                            arguments: [
+                                "code": .string("""
+                                const sidebar = document.querySelector('.sidebar');
+                                return {
+                                  sidebarHidden: sidebar ? getComputedStyle(sidebar).display === 'none' : true,
+                                  theme: 'dark'
+                                };
+                                """),
+                                "environment": .string("isolated")
+                            ]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 790, outputTokens: 82)
+                )
+            default:
+                return AgentModelTurnResponse(
+                    text: content.darkReply,
+                    toolCalls: [],
+                    stopReason: "end_turn",
+                    usage: AgentTokenUsage(inputTokens: 880, outputTokens: 48)
+                )
+            }
+
+        case .storeScript:
+            let content = StoreScreenshotContent.current
+            switch turn {
+            case 1:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_store_script_read_1",
+                            name: "read_page",
+                            arguments: ["mode": .string("structure")]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 490, outputTokens: 62)
+                )
+            case 2:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_store_script_save_2",
+                            name: "script_save",
+                            arguments: [
+                                "name": .string(content.saveScriptName),
+                                "match_rules": .array([
+                                    .string("*://dispatch.example.org/*")
+                                ]),
+                                "css": .string("""
+                                html, body, header.masthead, article {
+                                  background: #0f172a !important;
+                                  color: #e2e8f0 !important;
+                                }
+                                .sidebar, #newsletter-aside {
+                                  display: none !important;
+                                }
+                                article {
+                                  max-width: 68ch;
+                                  margin-inline: auto;
+                                }
+                                """),
+                                "js": .string("""
+                                document.documentElement.dataset.theme = 'dark';
+                                """),
+                                "injection_time": .string("document-end"),
+                                "environment": .string("isolated")
+                            ]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 740, outputTokens: 132)
+                )
+            default:
+                return AgentModelTurnResponse(
+                    text: content.saveScriptReply,
+                    toolCalls: [],
+                    stopReason: "end_turn",
+                    usage: AgentTokenUsage(inputTokens: 900, outputTokens: 44)
+                )
+            }
+
+        case .storeSummarize:
+            let content = StoreScreenshotContent.current
+            switch turn {
+            case 1:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_store_sum_read_1",
+                            name: "read_page",
+                            arguments: ["mode": .string("structure")]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 520, outputTokens: 58)
+                )
+            case 2:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_store_sum_audio_2",
+                            name: "read_aloud",
+                            arguments: ["text": .string(content.summarizeReadAloudText)]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 640, outputTokens: 74)
+                )
+            default:
+                return AgentModelTurnResponse(
+                    text: content.summarizeReply,
+                    toolCalls: [],
+                    stopReason: "end_turn",
+                    usage: AgentTokenUsage(inputTokens: 820, outputTokens: 96)
                 )
             }
 
