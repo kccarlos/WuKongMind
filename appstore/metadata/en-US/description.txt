@@ -1,0 +1,40 @@
+WukongMind Browser is a web browser for iPhone and iPad with an AI agent that reads, changes, and automates any web page.
+
+OPEN ANY WEBSITE
+Browse the open web with tabs, a tab overview, an address bar, history, and pinned sites. Designed for iPhone and iPad, with the page and the assistant side by side on iPad.
+
+ASK THE AGENT TO CHANGE ANY PAGE
+Open the assistant on any site and say what you want: "Make this page dark," "Hide the sidebar," "Make the text larger," or "Pull the table into a clean list." The Agent writes JavaScript and CSS, runs them inside WebKit on the page you are viewing, and shows every step it takes. A Stop button stays visible throughout every run.
+
+KEEP CHANGES AS SCRIPTS YOU APPROVE
+Like a tweak the Agent made? Ask it to keep that change for future visits. Before anything is saved or updated, WukongMind shows the full source code, matching sites, and requested permissions for your approval. Manage, read, toggle, or delete every script in Settings > Scripts.
+
+USER SCRIPTS
+Import standard .user.js user scripts from any HTTPS link. WukongMind shows the full source and capabilities before you add or enable a script. Optional daily update checks only notify you when a newer version is available so you can review changes first.
+
+LEARN ON ASK
+When you ask a question about a site, the Agent can learn a small read-only reader for that site (with your approval first) and reuse it later to search the site and answer questions faster.
+
+SUMMARIZE AND READ ALOUD
+Summarize long articles or discussions on any page, ask follow-up questions, search across a site, and listen with Read aloud using device voices or your own voice provider.
+
+TALK TO THE PAGE
+Live voice lets you speak with the assistant about the page you are reading using your own API key. It asks for separate consent before sending microphone audio and ends automatically when you leave the app.
+
+TRANSLATE AND FOLLOW DISCUSSIONS
+Translate on-screen text or summaries on your device (iOS 18 or later). Choose to follow a discussion page to receive notifications when new replies arrive.
+
+SIRI, SHORTCUTS, AND SPOTLIGHT
+Use Siri and Shortcuts to summarize a link, ask a site, or start a voice session. Pages you read can optionally appear in Spotlight.
+
+YOUR CHOICE OF AI (BRING YOUR OWN KEY)
+Connect your own API key from popular cloud AI providers, or point to a local model server on your own network. On supported devices, Apple Intelligence can run page summaries with no key required. Before anything is sent to a third-party AI service for the first time, WukongMind explains what is sent and asks for your permission; you can withdraw consent in Settings or report any AI answer at any time.
+
+SAFE DEFAULTS AND PRIVACY
+- Confirm before writes is on by default, cookie values are hidden from the model by default, and scripts wait for your approval before saving or changing.
+- No WukongMind accounts, no ads, no analytics, no tracking, and no WukongMind servers.
+- API keys stay in your Keychain, and optional iCloud sync uses your own private iCloud account.
+- Optional ad and tracker blocking (EasyList and EasyPrivacy, CC BY-SA 3.0) is off by default, and polite site request pacing is built in.
+
+FREE AND OPEN SOURCE
+WukongMind Browser is free and open source under the Apache License 2.0. If you use a third-party AI provider, that provider may charge you for usage. WukongMind is an independent app and is not affiliated with or endorsed by any website or AI provider.

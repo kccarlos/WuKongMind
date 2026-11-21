@@ -51,6 +51,8 @@ jobs:
       - uses: actions/checkout@v7
       - name: Lint property lists
         run: scripts/ci/lint-plists.sh
+      - name: Check App Store metadata
+        run: scripts/ci/check-appstore-metadata.sh
       - name: ShellCheck CI scripts
         run: shellcheck scripts/audit-release-binary.sh scripts/ci/*.sh scripts/adblock/*.sh
       - name: Fastfile syntax
