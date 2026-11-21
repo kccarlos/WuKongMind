@@ -1,33 +1,62 @@
 <section class="hero">
   <div>
+    <p class="eyebrow">{{t_eyebrow}}</p>
     <h1>{{t_h1}}</h1>
-    <p class="sub">{{t_sub}}</p>
     <p class="lead">{{t_lead}}</p>
     <div class="actions">
-{{testflight_button}}      <a class="button secondary" href="#ask">{{t_see}}</a>
+{{testflight_button}}      <a class="button secondary" href="#how">{{t_see}}</a>
       <a class="button secondary" href="{{repo_url}}">{{t_source}}</a>
     </div>
+    <ul class="facts">
+      <li>{{t_fact1}}</li>
+      <li>{{t_fact2}}</li>
+      <li>{{t_fact3}}</li>
+    </ul>
   </div>
-  <figure class="hero-ring st" data-steps="700,1300,2400" data-hold="2600" data-loops="3">
-    <div class="hero-art" role="img" aria-label="{{t_hero_alt}}">
-      <div class="asks">
-        <p class="ask ty" data-at="1" data-l="0">{{t_ask1}}</p>
-        <p class="ask ty" data-at="1" data-l="1">{{t_ask2}}</p>
-        <p class="ask ty" data-at="1" data-l="2">{{t_ask3}}</p>
+  <figure class="herodemo st" data-steps="900,800,900,1700,700,1800" data-hold="3600">
+    <div class="was"><div class="mini" aria-hidden="true">{{article}}</div><p>{{t_before}}</p></div>
+    <p class="said ty" data-at="3">{{t_said}}</p>
+    <div class="phone" role="img" aria-label="{{t_hero_alt}}">
+      {{article}}
+      {{bar_hero}}
+      <div class="home">
+        <div class="hsec">
+          <p class="hh">{{t_ui_home}}</p>
+          <p class="hd">{{t_ui_sites}}</p>
+          <p class="tiles"><span><b style="background:#7A2E1F">N</b>Northwind</span><span><b style="background:#3A5BE0">D</b>Docs</span><span><b style="background:#5E5E66">M</b>Maps</span><span><b class="plus">+</b>{{t_ui_add}}</span></p>
+          <p class="hd">{{t_ui_recent}}</p>
+          <p class="hrow is-idle">{{ring}}<span>{{t_ask_dark}}<small>{{t_ui_agent}} · news.example.com</small></span></p>
+        </div>
+        <div class="sugg">
+          <p class="r1 tap is-idle">{{ring}}<span>{{t_ui_ask_row}}</span></p>
+          <p><span class="mag"></span><span>{{t_ui_search_row}}</span></p>
+        </div>
+        <p class="edit"><span class="ef"><span class="sel">news.example.com/harbour-ferries</span><span class="ty" data-at="3">{{t_typed}}</span><i class="caret"></i></span><span class="cancel">{{t_ui_cancel}}</span></p>
+        <div class="kb"><i></i><i></i><i></i></div>
       </div>
-      <div class="bigring is-done" data-ring="0:idle 2:work 3:done">{{ring}}</div>
-      <ul class="lg">
-        <li class="is-idle">{{ring}}{{t_st_idle}}</li>
-        <li class="is-work">{{ring}}{{t_st_work}}</li>
-        <li class="is-done">{{ring}}{{t_st_done}}</li>
-      </ul>
     </div>
+    <ul class="lg">
+      <li class="is-idle">{{ring}}{{t_st_idle}}</li>
+      <li class="is-work">{{ring}}{{t_st_work}}</li>
+      <li class="is-done">{{ring}}{{t_st_done}}</li>
+    </ul>
     <figcaption>{{t_hero_cap}}</figcaption>
     <button class="pause" type="button">{{t_pause}}</button>
   </figure>
 </section>
 
-<section class="scrolly" id="ask">
+<section id="features">
+  <h2 class="rv">{{t_pain_h}}</h2>
+  <p class="rv">{{t_pain_p}}</p>
+  <div class="cards">
+    <div class="card rv"><h3>{{t_p1_h}}</h3><p class="q">{{t_p1_q}}</p><p>{{t_p1_p}}</p></div>
+    <div class="card rv"><h3>{{t_p2_h}}</h3><p class="q">{{t_p2_q}}</p><p>{{t_p2_p}}</p></div>
+    <div class="card rv"><h3>{{t_p3_h}}</h3><p class="q">{{t_p3_q}}</p><p>{{t_p3_p}}</p></div>
+    <div class="card rv"><h3>{{t_p4_h}}</h3><p class="q">{{t_p4_q}}</p><p>{{t_p4_p}}</p></div>
+  </div>
+</section>
+
+<section class="scrolly" id="how">
   <div class="intro rv">
     <h2>{{t_ask_h}}</h2>
     <p>{{t_ask_p}}</p>
@@ -58,41 +87,7 @@
   </ol>
 </section>
 
-<section class="demo flip">
-  <div class="rv">
-    <h2>{{t_addr_h}}</h2>
-    <p>{{t_addr_p}}</p>
-    <ul>
-      <li>{{t_addr_l1}}</li>
-      <li>{{t_addr_l2}}</li>
-      <li>{{t_addr_l3}}</li>
-    </ul>
-  </div>
-  <figure>
-    <div class="phone addrdemo st" data-steps="1100,900,1500,1500" data-hold="3200" role="img" aria-label="{{t_addr_alt}}">
-      {{article}}
-      {{bar}}
-      <div class="home">
-        <div class="hsec">
-          <p class="hh">{{t_ui_home}}</p>
-          <p class="hd">{{t_ui_sites}}</p>
-          <p class="tiles"><span><b style="background:#7A2E1F">N</b>Northwind</span><span><b style="background:#3A5BE0">D</b>Docs</span><span><b style="background:#5E5E66">M</b>Maps</span><span><b class="plus">+</b>{{t_ui_add}}</span></p>
-          <p class="hd">{{t_ui_recent}}</p>
-          <p class="hrow is-idle">{{ring}}<span>{{t_ask_dark}}<small>{{t_ui_agent}} · news.example.com</small></span></p>
-        </div>
-        <div class="sugg">
-          <p class="r1 tap is-idle">{{ring}}<span>{{t_ui_ask_row}}</span></p>
-          <p><span class="mag"></span><span>{{t_ui_search_row}}</span></p>
-        </div>
-        <p class="edit"><span class="ef"><span class="sel">news.example.com/harbour-ferries</span><span class="ty" data-at="3">{{t_typed}}</span><i class="caret"></i></span><span class="cancel">{{t_ui_cancel}}</span></p>
-        <div class="kb"><i></i><i></i><i></i></div>
-      </div>
-    </div>
-    <button class="pause" type="button">{{t_pause}}</button>
-  </figure>
-</section>
-
-<section class="demo">
+<section class="demo flip" id="keep">
   <div class="rv">
     <h2>{{t_script_h}}</h2>
     <p>{{t_script_p}}</p>
@@ -133,28 +128,35 @@
   </div>
 </section>
 
-<h2 id="features" class="rv">{{t_features}}</h2>
-<div class="cards">
-  <div class="card rv"><h3>{{t_c1_h}}</h3><p>{{t_c1_p}}</p></div>
-  <div class="card rv"><h3>{{t_c2_h}}</h3><p>{{t_c2_p}}</p></div>
-  <div class="card rv"><h3>{{t_c3_h}}</h3><p>{{t_c3_p}}</p></div>
-  <div class="card rv"><h3>{{t_c4_h}}</h3><p>{{t_c4_p}}</p></div>
-  <div class="card rv"><h3>{{t_c5_h}}</h3><p>{{t_c5_p}}</p></div>
-  <div class="card rv"><h3>{{t_c6_h}}</h3><p>{{t_c6_p}}</p></div>
-  <div class="card rv"><h3>{{t_c7_h}}</h3><p>{{t_c7_p}}</p></div>
-</div>
+<section id="trust">
+  <h2 class="rv">{{t_trust_h}}</h2>
+  <p class="rv">{{t_trust_p}}</p>
+  <ul class="states rv">
+    <li class="is-idle">{{ring}}<b>{{t_st_idle}}</b><span>{{t_st_idle_p}}</span></li>
+    <li class="is-work">{{ring}}<b>{{t_st_work}}</b><span>{{t_st_work_p}}</span></li>
+    <li class="is-ask">{{ring}}<b>{{t_st_ask}}</b><span>{{t_st_ask_p}}</span></li>
+    <li class="is-done">{{ring}}<b>{{t_st_done}}</b><span>{{t_st_done_p}}</span></li>
+  </ul>
+  <div class="cards">
+    <div class="card rv"><h3>{{t_t1_h}}</h3><p>{{t_t1_p}}</p></div>
+    <div class="card rv"><h3>{{t_t2_h}}</h3><p>{{t_t2_p}}</p></div>
+    <div class="card rv"><h3>{{t_t3_h}}</h3><p>{{t_t3_p}}</p></div>
+    <div class="card rv"><h3>{{t_t4_h}}</h3><p>{{t_t4_p}}</p></div>
+  </div>
+  <div class="note warn rv"><p><b>{{t_note_w}}</b> {{t_note}}</p></div>
+</section>
 
-<h2 id="careful" class="rv">{{t_careful}}</h2>
-<ul class="rv">
-  <li>{{t_safe1}}</li>
-  <li>{{t_safe2}}</li>
-  <li>{{t_safe3}}</li>
-  <li>{{t_safe4}}</li>
-</ul>
-<div class="note rv"><p>{{t_note}}</p></div>
-
-<h2 id="data" class="rv">{{t_data}}</h2>
-<p class="rv">{{t_data_p}}</p>
+<section id="also">
+  <h2 class="rv">{{t_also_h}}</h2>
+  <ul class="also rv">
+    <li>{{t_a1}}</li>
+    <li>{{t_a2}}</li>
+    <li>{{t_a3}}</li>
+    <li>{{t_a4}}</li>
+    <li>{{t_a5}}</li>
+    <li>{{t_a6}}</li>
+  </ul>
+</section>
 
 {{testflight_section}}
 <section class="end rv">

@@ -192,6 +192,8 @@ def build(out):
     partial = lambda name: read(os.path.join(SITE, "partials", name + ".html")).strip()
     partials = {"ring": partial("ring"), "article": partial("article")}
     partials["bar"] = sub(partial("bar"), partials, "partials/bar")
+    # The hero's bar ring follows the run: idle, working once the request is sent, done when it ends.
+    partials["bar_hero"] = partials["bar"].replace('class="bring"', 'class="bring is-done" data-ring="0:idle 5:work 6:done"')
     write(os.path.join(out, ".nojekyll"), "")
 
     for lang in LANGS:
@@ -237,7 +239,8 @@ def build(out):
                 target = directory(other, page)
                 cur = ' aria-current="page"' if other == lang else ""
                 om = json.loads(read(os.path.join(SITE, "lang", other, "meta.json")))
-                langs.append('    <a href="%s" hreflang="%s" lang="%s"%s>%s</a>' % (href(here, target), om["html_lang"], om["html_lang"], cur, om["label"]))
+                # The short label shows on phones, so the header stays two rows; the full name is the link's name.
+                langs.append('    <a href="%s" hreflang="%s" lang="%s"%s aria-label="%s"><span class="lf">%s</span><span class="ls">%s</span></a>' % (href(here, target), om["html_lang"], om["html_lang"], cur, om["label"], om["label"], om["short"]))
                 alternates.append('<link rel="alternate" hreflang="%s" href="%s">' % (om["html_lang"], config["base_url"] + (target + "/" if target else "")))
             alternates.append('<link rel="alternate" hreflang="x-default" href="%s">' % (config["base_url"] + (directory("en", page) + "/" if directory("en", page) else "")))
             page_meta = meta["pages"][page]

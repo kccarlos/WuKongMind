@@ -1,6 +1,7 @@
 {
   "html_lang": "zh-Hant",
   "label": "繁體中文",
+  "short": "繁",
   "skip": "跳到內文",
   "nav_label": "頁面",
   "lang_label": "語言",
@@ -16,7 +17,7 @@
   "pages": {
     "home": {
       "title": "WukongMind 瀏覽器：任何網頁上的 AI 代理",
-      "description": "適用於 iPhone 與 iPad 的瀏覽器，AI 代理可以讀取、修改並自動化任何網頁。無帳號、無分析，使用你自己的 AI。"
+      "description": "網頁太亂、看得吃力、太長？在 iPhone 和 iPad 上用 WukongMind 瀏覽器，說一句話，讓代理當面把網頁改好。不用帳號、沒有追蹤，使用你自己的 AI。"
     },
     "privacy": {
       "title": "隱私權 | WukongMind 瀏覽器",

@@ -34,14 +34,14 @@
         if (Number(at) <= n) state = name;
       });
       if (!ring.classList.contains('is-' + state)) {
-        ring.classList.remove('is-idle', 'is-work', 'is-done');
+        ring.classList.remove('is-idle', 'is-work', 'is-ask', 'is-done');
         ring.classList.add('is-' + state);
       }
     });
   }
 
   // A stage with data-steps plays step by step while it is in view, holds its last
-  // frame, then starts again (data-loops rotates data-loop, for the hero's three asks).
+  // frame, then starts again (data-loops, when set, rotates data-loop between plays).
   function makeStage(el) {
     const delays = el.dataset.steps.split(',').map(Number);
     const hold = Number(el.dataset.hold || 3000);

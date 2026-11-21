@@ -73,7 +73,7 @@ Cut:
   belongs in the hero demo, shown once.
 - The seven-card "What it does" grid. It repeats the demos ("Just ask", "Keep what works") and lists the rest
   in engineer's words. Problems the visitor has replace it; the rest becomes one short list.
-- Three of the four "Pause animations" buttons. One fewer looping demo, so one fewer button.
+- One of the three "Pause animations" buttons: one fewer looping demo.
 
 Missing:
 

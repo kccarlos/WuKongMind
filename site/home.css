@@ -17,12 +17,12 @@ main h2 { font-size: 28px; line-height: 1.2; margin-top: 56px; }
 main section h2 { margin-top: 0; }
 figure { margin: 0; }
 
-/* The ring: one drawing, three of the app's six states (idle, working, done). */
+/* The ring: one drawing, four of the app's six states (idle, working, needs you, done). */
 .ring { width: var(--rs, 44px); height: var(--rs, 44px); flex: none; fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
 .ring .rt { stroke: var(--hairline); opacity: 0; }
 .ring .ra { stroke: var(--gold); stroke-dasharray: 100 0; transform: rotate(-90deg); transform-origin: 22px 22px; }
-.ring .rc { stroke: var(--gold-ink); opacity: 0; }
-.is-work > .ring .rt, .is-done > .ring .rc { opacity: 1; }
+.ring .rc, .ring .rq { stroke: var(--gold-ink); opacity: 0; }
+.is-work > .ring .rt, .is-done > .ring .rc, .is-ask > .ring .rq { opacity: 1; }
 .is-work > .ring .ra { stroke-dasharray: 42.5 57.5; }
 .anim [data-ring].is-work > .ring { animation: turn 1.1s linear infinite; }
 .anim [data-ring].is-done > .ring .ra { animation: close .25s ease-out; }
@@ -36,21 +36,43 @@ figure { margin: 0; }
 @keyframes check { from { opacity: 0; } }
 @keyframes tap { from { opacity: .4; transform: scale(.4); } to { opacity: 0; transform: scale(1.7); } }
 
-/* Hero */
-.hero { display: grid; grid-template-columns: 1fr; gap: 40px; margin-top: 0; padding: 32px 0 8px; align-items: center; }
-.hero-ring { display: grid; justify-items: center; gap: 12px; text-align: center; }
-.hero-art { display: grid; justify-items: center; gap: 18px; }
-.asks { display: grid; align-items: end; min-height: 2.5em; font-size: 20px; font-weight: 600; line-height: 1.25; }
-.ask { grid-area: 1 / 1; margin: 0; }
-.ask + .ask { visibility: hidden; }
-.anim .ask { visibility: hidden; }
-.anim [data-loop="0"] .ask[data-l="0"], .anim [data-loop="1"] .ask[data-l="1"], .anim [data-loop="2"] .ask[data-l="2"] { visibility: visible; }
-.bigring { --rs: 168px; display: flex; }
-.lg { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; list-style: none; margin: 0; padding: 0; font-size: 14px; font-weight: 600; color: var(--muted); }
+/* Hero: the pitch, then the app's real flow on a page that needs fixing. The request is typed in
+   the address field, Home closes, the bar ring turns (the panel is closed, so the bar ring is the
+   one that turns) and closes into a check when the run ends. */
+.hero { display: grid; grid-template-columns: 1fr; gap: 32px; margin-top: 0; padding: 20px 0 8px; align-items: center; }
+.herodemo { display: grid; justify-items: center; gap: 12px; text-align: center; }
+.said { margin: 0; min-height: 1.3em; font-size: 22px; font-weight: 700; line-height: 1.3; }
+.was { display: flex; align-items: center; gap: 12px; max-width: 280px; color: var(--muted); font-size: 13px; text-align: left; }
+.was p { margin: 0; }
+.anim .was { display: none; }
+.mini { position: relative; flex: none; width: 118px; height: 150px; overflow: hidden; border: 1px solid var(--hairline); border-radius: var(--md); }
+.mini .web { inset: 0 auto auto 0; width: 280px; height: 357px; padding-top: 14px; zoom: .42; }
+.lg { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 18px; list-style: none; margin: 0; padding: 0; font-size: 13px; font-weight: 600; color: var(--muted); }
 .lg li { display: flex; align-items: center; gap: 6px; margin: 0; --rs: 18px; transition: color .2s; }
-.anim .hero-ring .lg li { color: var(--faint); }
-.anim .hero-ring:not(.s2) .lg li:nth-child(1), .anim .hero-ring.s2:not(.s3) .lg li:nth-child(2), .anim .hero-ring.s3 .lg li:nth-child(3) { color: var(--ink); }
-figcaption { color: var(--muted); font-size: 14px; max-width: 30em; }
+.anim .herodemo .lg li { color: var(--faint); }
+.anim .herodemo:not(.s5) .lg li:nth-child(1), .anim .herodemo.s5:not(.s6) .lg li:nth-child(2), .anim .herodemo.s6 .lg li:nth-child(3) { color: var(--ink); }
+figcaption { color: var(--muted); font-size: 15px; max-width: 26em; }
+
+/* What is wrong with the page: the website's own banners, in the website's own colours */
+.cl { display: none; position: absolute; left: 0; right: 0; gap: 6px; padding: 10px 14px; font: 600 11px/1.3 var(--font); transition: opacity .35s ease; }
+.cl span { justify-self: start; padding: 4px 10px; border-radius: 4px; font-size: 10px; }
+.c1 { bottom: 0; padding-bottom: 70px; background: #7a2e1f; color: #fff; }
+.c1 span { background: #fff; color: #7a2e1f; }
+.c2 { top: 150px; left: 14px; right: 14px; border: 1px solid #c9c2b6; border-radius: 6px; background: #fff; color: #1e1e1e; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+.c2 span { background: #1e1e1e; color: #fff; }
+.anim .herodemo .cl, .mini .cl { display: grid; }
+.anim .herodemo.s6 .cl { opacity: 0; }
+
+/* What gets in your way: each card is a problem and the sentence you would say (the user's bubble) */
+.card .q { display: inline-block; margin: 4px 0 8px; padding: 6px 10px; border-radius: 12px 12px 4px 12px; background: var(--raised); color: var(--ink); }
+
+/* The ring's four states a person meets, each a still picture and its word */
+.states { display: grid; grid-template-columns: 1fr; gap: 12px; list-style: none; margin: 16px 0 20px; padding: 0; }
+.states li { display: grid; grid-template-columns: auto 1fr; gap: 0 12px; align-items: center; margin: 0; --rs: 32px; }
+.states .ring { grid-row: span 2; }
+.states b { font-size: 15px; }
+.states span { grid-column: 2; color: var(--muted); font-size: 13px; line-height: 1.4; }
+.also { padding-left: 20px; }
 
 /* Typed text and stepped children */
 .anim .ty:not([data-split]) { visibility: hidden; }
@@ -82,7 +104,7 @@ figcaption { color: var(--muted); font-size: 14px; max-width: 30em; }
 .anim .sticky .phone { zoom: .72; }
 .anim .step { min-height: 46vh; margin: 0; }
 .anim .step.cur { border-color: var(--gold); }
-.pause { display: none; min-height: 44px; margin: 4px auto 0; padding: 0 12px; border: 0; background: none; color: var(--gold-ink); font: 600 14px var(--font); cursor: pointer; }
+.pause { display: none; min-height: 44px; margin: 4px auto 0; padding: 0 12px; border: 0; background: none; color: var(--gold-ink); font: 600 15px var(--font); cursor: pointer; }
 .anim .pause { display: block; }
 .pause:focus-visible { outline: 2px solid var(--gold-ink); outline-offset: 2px; border-radius: var(--sm); }
 
@@ -103,7 +125,7 @@ figcaption { color: var(--muted); font-size: 14px; max-width: 30em; }
 .wimg { height: 92px; margin: 8px 0; border-radius: 4px; background: var(--wi); }
 
 /* The browser bar: the one glass capsule, with the Agent ring */
-.bbar { position: absolute; left: 10px; right: 10px; bottom: 14px; height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 5px 0 12px; border: 1px solid var(--hairline); border-radius: 22px; background: var(--glass); box-shadow: 0 8px 24px rgba(20,17,14,.2); }
+.bbar { position: absolute; left: 10px; right: 10px; bottom: 14px; height: 44px; display: flex; align-items: center; gap: 6px; padding: 0 5px 0 12px; border: 1px solid var(--hairline); border-radius: 22px; background: var(--glass); box-shadow: 0 12px 40px rgba(20,17,14,.22); }
 .addr { flex: 1; min-width: 0; height: 32px; display: flex; align-items: center; justify-content: space-between; gap: 6px; padding: 0 10px; border-radius: 16px; background: var(--fill); font-size: 12px; }
 .tabs { width: 13px; height: 13px; margin: 0 4px; border: 1.5px solid var(--ink); border-radius: 3px; box-shadow: -3px -3px 0 -1.5px var(--glass), -3px -3px 0 0 var(--ink); }
 .bring { position: relative; display: flex; --rs: 34px; }
@@ -111,7 +133,7 @@ figcaption { color: var(--muted); font-size: 14px; max-width: 30em; }
 .scriptdemo .seal { display: block; }
 
 /* Demo 1: the Agent panel over the page */
-.drawer { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 16px; border-radius: 18px 18px 0 0; background: var(--surface); box-shadow: 0 -8px 24px rgba(20,17,14,.18); transition: transform .3s ease-out; }
+.drawer { position: absolute; left: 0; right: 0; bottom: 0; height: 50%; display: flex; flex-direction: column; gap: 8px; padding: 12px 12px 16px; border-radius: 18px 18px 0 0; background: var(--surface); box-shadow: 0 -8px 30px rgba(20,17,14,.16); transition: transform .3s ease-out; }
 .anim .restyle:not(.s1) .drawer { transform: translateY(104%); }
 .dh { display: flex; align-items: baseline; gap: 6px; font-size: 13px; }
 .dh span { font-size: 10px; color: var(--muted); }
@@ -132,13 +154,14 @@ figcaption { color: var(--muted); font-size: 14px; max-width: 30em; }
 .anim .restyle.s2:not(.s3) .rb { background: var(--cin); border-color: var(--cin); }
 .anim .restyle.s2:not(.s3) .rb::after { opacity: 1; }
 
-/* Demo 2: Home over the page, then the suggestion rows */
+/* The hero flow: Home over the page, then the suggestion rows, then back to the page */
 .home { position: absolute; inset: 0; padding: 40px 14px 0; background: var(--ground); transition: opacity .2s linear; }
-.anim .addrdemo:not(.s2) .home { opacity: 0; }
-.anim .addrdemo.s1:not(.s2) .addr::after, .anim .addrdemo.s4 .r1::after, .anim .scriptdemo.s3:not(.s4) .pb::after { animation: tap .5s ease-out; }
+html:not(.anim) .herodemo .home { display: none; }
+.anim .herodemo:not(.s2) .home, .anim .herodemo.s5 .home { opacity: 0; }
+.anim .herodemo.s1:not(.s2) .addr::after, .anim .herodemo.s4:not(.s5) .r1::after, .anim .scriptdemo.s3:not(.s4) .pb::after { animation: tap .5s ease-out; }
 .hsec { visibility: hidden; }
-.anim .addrdemo:not(.s3) .hsec { visibility: visible; }
-.anim .addrdemo:not(.s3) .sugg { visibility: hidden; }
+.anim .herodemo:not(.s3) .hsec { visibility: visible; }
+.anim .herodemo:not(.s3) .sugg { visibility: hidden; }
 .hh { font-size: 24px; font-weight: 700; }
 .hd { margin: 12px 0 6px !important; font-size: 13px; font-weight: 700; }
 .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; font-size: 9px; }
@@ -148,15 +171,15 @@ figcaption { color: var(--muted); font-size: 14px; max-width: 30em; }
 .hrow { border-radius: 12px; background: var(--surface); }
 .sugg { position: absolute; top: 40px; left: 10px; right: 10px; overflow: hidden; border-radius: 14px; background: var(--surface); font-size: 12px; }
 .sugg p + p { border-top: 1px solid var(--hairline); }
-.anim .addrdemo.s4 .r1 { background: var(--raised); }
+.anim .herodemo.s4 .r1 { background: var(--raised); }
 .mag { position: relative; flex: none; width: 15px; height: 15px; }
 .mag::before { content: ""; position: absolute; left: 1px; top: 1px; width: 8px; height: 8px; border: 1.5px solid var(--ink); border-radius: 50%; }
 .mag::after { content: ""; position: absolute; left: 10px; top: 9px; width: 1.5px; height: 6px; background: var(--ink); transform: rotate(-45deg); }
 .edit { position: absolute; left: 10px; right: 10px; bottom: 164px; display: flex; align-items: center; gap: 10px; }
 .ef { flex: 1; min-width: 0; display: flex; align-items: center; height: 34px; padding: 0 12px; overflow: hidden; border: 1.5px solid var(--gold); border-radius: 17px; background: var(--raised); font-size: 12px; white-space: nowrap; }
 .sel { display: none; background: var(--gold-wash); }
-.anim .addrdemo:not(.s3) .sel { display: inline; }
-.anim .addrdemo:not(.s3) .ef .ty { display: none; }
+.anim .herodemo:not(.s3) .sel { display: inline; }
+.anim .herodemo:not(.s3) .ef .ty { display: none; }
 .caret { width: 1.5px; height: 15px; margin-left: 1px; background: var(--gold); }
 .cancel { color: var(--gold-ink); font-size: 12.5px; }
 .kb { position: absolute; left: 0; right: 0; bottom: 0; height: 154px; display: grid; align-content: start; gap: 7px; padding: 8px 5px; background: var(--kb); }
@@ -164,9 +187,9 @@ figcaption { color: var(--muted); font-size: 14px; max-width: 30em; }
 .kb i:nth-child(2) { margin: 0 13px; }
 .kb i:nth-child(3) { margin: 0 39px; }
 .edit, .kb { transition: transform .25s ease-out; }
-.anim .addrdemo:not(.s2) .edit, .anim .addrdemo:not(.s2) .kb { transform: translateY(210px); }
+.anim .herodemo:not(.s2) .edit, .anim .herodemo:not(.s2) .kb, .anim .herodemo.s5 .edit, .anim .herodemo.s5 .kb { transform: translateY(210px); }
 
-/* Demo 3: the Add script sheet */
+/* Demo 2: the Add script sheet */
 .scrim { position: absolute; inset: 0; background: var(--scrim); transition: opacity .25s linear; }
 .sheet { position: absolute; inset: 34px 0 0; display: flex; flex-direction: column; gap: 7px; padding: 14px 12px 16px; border-radius: 18px 18px 0 0; background: var(--ground); transition: transform .3s ease-out; }
 .anim .scriptdemo:not(.s1) .sheet, .anim .scriptdemo.s4 .sheet { transform: translateY(104%); }
@@ -202,11 +225,11 @@ figcaption { color: var(--muted); font-size: 14px; max-width: 30em; }
 @media (min-width: 720px) {
   main section { margin-top: 112px; }
   main h2 { font-size: 34px; margin-top: 88px; }
-  .hero { grid-template-columns: 1.15fr .85fr; gap: 32px; margin-top: 0; padding-top: 64px; }
-  .bigring { --rs: 200px; }
+  .hero { grid-template-columns: 1.1fr .9fr; gap: 40px; margin-top: 0; padding-top: 16px; }
+  .states { grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .also { columns: 2; column-gap: 48px; }
   .shots { justify-content: space-between; gap: 12px; }
   .shots img { width: 172px; }
-  .asks { font-size: 22px; }
   .demo { grid-template-columns: 1fr 320px; gap: 48px; }
   .demo.flip { grid-template-columns: 320px 1fr; }
   .demo.flip figure { order: -1; }
@@ -219,3 +242,4 @@ figcaption { color: var(--muted); font-size: 14px; max-width: 30em; }
   .anim .step { min-height: 62vh; display: flex; flex-direction: column; justify-content: center; }
   .anim .step:last-child { min-height: 80vh; }
 }
+@media (min-width: 720px) and (max-height: 900px) { .herodemo .phone { zoom: .88; } }
