@@ -33,7 +33,7 @@ flowchart LR
 
 | Job | Runner | What it does |
 | --- | --- | --- |
-| `lint` | `ubuntu-latest` | Validates tracked `.plist`, `.entitlements`, and `.xcprivacy` files (`lint-plists.sh`); ShellChecks `scripts/ci` and `scripts/adblock`; checks `fastlane/Fastfile` syntax; runs the ad-blocking converter tests; runs `actionlint`. |
+| `lint` | `ubuntu-latest` | Validates tracked `.plist`, `.entitlements`, and `.xcprivacy` files (`lint-plists.sh`); validates App Store metadata limits and banned terms (`check-appstore-metadata.sh`); ShellChecks `scripts/ci` and `scripts/adblock`; checks `fastlane/Fastfile` syntax; runs the ad-blocking converter tests; runs `actionlint`. |
 | `project-drift` | `ubuntu-latest` | Runs `scripts/generate_project.rb` in a temporary copy and fails if the committed `WukongMind.xcodeproj` differs (`check-project-drift.sh`); checks the site-adapter layering boundary (`check-site-layering.sh`). |
 | `changes` ("Plan (tier, docs-only)") | `ubuntu-latest` | `scripts/ci/plan.sh`: picks the tier and the test matrix, and sets `code=false` for a pull request that only touches `*.md`, `docs/**` or images. |
 | `build` ("Build for testing") | `xcode-27` | `scripts/ci/build-for-testing.sh`: one unsigned `xcodebuild build-for-testing` for the runner's simulator, then zips `Debug-iphonesimulator/` and the `.xctestrun` (about 35 MB) as a three-day artifact named `test-products-<run id>` (no attempt number, so "Re-run failed jobs" finds it). 25 min timeout. |

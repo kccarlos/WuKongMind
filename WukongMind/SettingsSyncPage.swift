@@ -49,7 +49,7 @@ struct SyncStatusPresentation: Equatable {
         case .off:
             self.init(
                 title: String(localized: "Sync is off"),
-                detail: String(localized: "Turn on Sync with iCloud to keep your forums, summaries and chats on your iPhone and iPad."),
+                detail: String(localized: "Turn on Sync with iCloud to keep your sites, summaries and chats on your iPhone and iPad."),
                 symbol: "icloud.slash",
                 tint: .secondary,
                 shortLabel: String(localized: "Off", comment: "Sync status, short value in the Settings row: sync is off")
@@ -204,7 +204,7 @@ struct SettingsSyncPage: View {
             }
 
             Section("What syncs") {
-                Text("Forums and pins · summaries and kept chats · Ask the forum answers · watched topics · scripts · most settings")
+                Text("Sites and pins · summaries and kept chats · Ask this site answers · followed discussions · scripts · most settings")
                     .font(.subheadline)
             }
             Section("Stays on this device") {

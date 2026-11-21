@@ -130,9 +130,7 @@ private struct PageCard: View {
                 Spacer(minLength: 0)
             }
 
-            if let page {
-                DetectionBadge(detection: page.detection)
-            } else if isLoading {
+            if page == nil && isLoading {
                 HStack(spacing: 8) {
                     ProgressView()
                     Text("Checking page…")
@@ -168,51 +166,6 @@ private struct AppGlyph: View {
     }
 }
 
-private struct DetectionBadge: View {
-    let detection: SharedPage.Detection
-
-    var body: some View {
-        Label {
-            Text(text)
-                .fixedSize(horizontal: false, vertical: true)
-        } icon: {
-            Image(systemName: symbol)
-        }
-        .font(.footnote.weight(.medium))
-        .foregroundStyle(tint)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 6)
-        .background(tint.opacity(0.12), in: Capsule())
-    }
-
-    private var text: String {
-        switch detection {
-        case .site(let match):
-            return String(localized: "\(match.platformName) site detected · \(match.forumName)", comment: "The first argument is the platform's name such as Discourse or WordPress, the second the site's name")
-        case .notDetected:
-            return String(localized: "Couldn't confirm this is a supported site")
-        case .unknown:
-            return String(localized: "Supported site? WukongMind will check when it opens")
-        }
-    }
-
-    private var symbol: String {
-        switch detection {
-        case .site: return "checkmark.seal.fill"
-        case .notDetected: return "exclamationmark.circle.fill"
-        case .unknown: return "questionmark.circle.fill"
-        }
-    }
-
-    private var tint: Color {
-        switch detection {
-        case .site: return .green
-        case .notDetected: return .orange
-        case .unknown: return .secondary
-        }
-    }
-}
-
 // MARK: - Actions
 
 private struct ShareAction: Identifiable {
@@ -228,21 +181,21 @@ private struct ShareAction: Identifiable {
         ShareAction(
             kind: .summary,
             title: "Summarize",
-            detail: "Key points of this topic",
+            detail: "Key points of this page",
             symbol: "sparkles",
             tint: .indigo
         ),
         ShareAction(
             kind: .chat,
-            title: "Chat about it",
+            title: "Ask about this page",
             detail: "Ask questions about this page",
             symbol: "bubble.left.and.bubble.right.fill",
             tint: .blue
         ),
         ShareAction(
             kind: .agent,
-            title: "Ask the forum",
-            detail: "Research across the whole forum",
+            title: "Ask this site",
+            detail: "Search and answer across this site",
             symbol: "text.magnifyingglass",
             tint: .teal
         ),

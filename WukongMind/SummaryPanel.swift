@@ -491,6 +491,11 @@ struct AssistantPanel: View {
             )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .onReceive(app.router.$pendingProviderSetup) { pending in
+            guard pending else { return }
+            requestedProviderSetup = true
+            app.router.pendingProviderSetup = false
+        }
         .overlay(alignment: .bottom) { FeedbackToastObserver(slice: relay.feedbackToast, app: app) }
         .background { PanelCommandsObserver(slice: relay.commands, app: app) }
         .background(Color.clear)
@@ -2201,7 +2206,7 @@ private struct ContextLimitControl: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
-                Label("Forum context", systemImage: "text.append")
+                Label("Discussion context", systemImage: "text.append")
                 Spacer()
                 Text(formattedLimit)
                     .foregroundStyle(.secondary)
@@ -2219,7 +2224,7 @@ private struct ContextLimitControl: View {
             .onChange(of: app.settings.forumContextLimit) {
                 app.saveSettings()
             }
-            .accessibilityLabel("Forum context size")
+            .accessibilityLabel("Discussion context size")
             .accessibilityValue(formattedLimit)
         }
     }
@@ -2792,7 +2797,7 @@ struct WorkProgressCard: View {
         case .summary: String(localized: "Creating summary")
         case .pull: String(localized: "Pulling post + replies")
         case .chat: String(localized: "Answering")
-        case .agent: String(localized: "Asking the forum")
+        case .agent: String(localized: "Asking this site")
         }
     }
 }

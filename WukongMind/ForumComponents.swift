@@ -109,7 +109,7 @@ struct ForumTile: View {
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(forum.displayName)
-        .accessibilityValue(isCurrent ? String(localized: "\(forum.host), current forum", comment: "Accessibility value of a pinned forum tile; the placeholder is the forum's host") : forum.host)
+        .accessibilityValue(isCurrent ? String(localized: "\(forum.host), current site", comment: "Accessibility value of a pinned site tile; the placeholder is the site's host") : forum.host)
         .accessibilityAddTraits(.isButton)
     }
 }
@@ -211,7 +211,7 @@ struct ForumSwitcherLabel: View {
                     .foregroundStyle(DCTheme.ink)
                     .frame(width: 22, height: 22)
             }
-            Text(forum?.displayName ?? String(localized: "Forums"))
+            Text(forum?.displayName ?? String(localized: "Sites"))
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.primary)
                 .lineLimit(1)
@@ -397,8 +397,8 @@ extension View {
     /// points at its tile or row instead of the middle of the list.
     func forumRemovalDialog(_ forum: Binding<Forum?>, app: AppModel, for target: Forum? = nil) -> some View {
         confirmationDialog(
-            forum.wrappedValue.map { String(localized: "Remove \($0.displayName)?", comment: "Confirmation title; the placeholder is the forum name") }
-                ?? String(localized: "Remove forum?"),
+            forum.wrappedValue.map { String(localized: "Remove \($0.displayName)?", comment: "Confirmation title; the placeholder is the site name") }
+                ?? String(localized: "Remove site?"),
             isPresented: Binding(
                 get: { forum.wrappedValue.map { target == nil || $0.siteURL == target?.siteURL } ?? false },
                 set: { if !$0 { forum.wrappedValue = nil } }
@@ -406,7 +406,7 @@ extension View {
             titleVisibility: .visible,
             presenting: forum.wrappedValue
         ) { target in
-            Button("Remove Forum", role: .destructive) {
+            Button("Remove Site", role: .destructive) {
                 app.removeForum(target, deleteData: false)
             }
             Button("Remove and Delete Its Data", role: .destructive) {
@@ -414,7 +414,7 @@ extension View {
             }
             Button("Cancel", role: .cancel) {}
         } message: { _ in
-            Text("Its saved summaries, chats, agent runs, and watched topics can be kept or deleted.")
+            Text("Its saved summaries, chats, agent runs, and followed discussions can be kept or deleted.")
         }
     }
 }

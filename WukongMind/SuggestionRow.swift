@@ -48,11 +48,11 @@ enum PageSuggestion: String, CaseIterable, Identifiable {
     /// Exactly what gets sent (or, for `fillsComposer`, put in the box).
     var text: String {
         switch self {
-        case .summarizeThread: String(localized: "Summarize this thread and replies", comment: "Suggestion above the Agent composer on a forum thread")
-        case .readAloud: String(localized: "Read it to me", comment: "Suggestion above the Agent composer on a forum thread: reads the summary aloud")
-        case .searchForum: String(localized: "Search this forum…", comment: "Suggestion above the Agent composer on a forum: fills the box to finish the search")
-        case .followReplies: String(localized: "Notify me of new replies", comment: "Suggestion above the Agent composer on a forum thread: follows it")
-        case .worthReadingToday: String(localized: "What's worth reading today", comment: "Suggestion above the Agent composer on a forum's topic list")
+        case .summarizeThread: String(localized: "Summarize this page", comment: "Suggestion above the Agent composer on a discussion page")
+        case .readAloud: String(localized: "Read it to me", comment: "Suggestion above the Agent composer: reads the page or summary aloud")
+        case .searchForum: String(localized: "Search this site…", comment: "Suggestion above the Agent composer on a site: fills the box to finish the search")
+        case .followReplies: String(localized: "Follow this discussion", comment: "Suggestion above the Agent composer on a discussion page: follows it")
+        case .worthReadingToday: String(localized: "What's new on this site", comment: "Suggestion above the Agent composer on a site's listing page")
         case .summarizePage: String(localized: "Summarize this page", comment: "Suggestion above the Agent composer on an ordinary web page")
         case .makeDark: String(localized: "Make it dark", comment: "Suggestion above the Agent composer on an ordinary web page")
         case .removeDistractions: String(localized: "Remove distractions", comment: "Suggestion above the Agent composer on an ordinary web page")
@@ -129,7 +129,7 @@ enum PageSuggestions {
         case .forumList:
             [.worthReadingToday, .searchForum]
         case .ordinaryPage:
-            [.summarizePage, .makeDark, .removeDistractions]
+            [.summarizePage, .readAloud, .makeDark, .removeDistractions]
         case .learnedThread(let search):
             (isSummarizing ? [] : [.summarizeThread]) + [.readAloud] + (search ? [.searchForum] : [])
         case .learnedList(let search):

@@ -342,10 +342,10 @@ private struct PhoneBarObserverHost: View {
 private struct AddressEditBar: View {
     let app: AppModel
     let browser: ForumBrowserModel
+    @ObservedObject var editState: AddressEditState
     let addressFocusRequest: Int
     let browserAddressFocusRequest: Int
 
-    @State private var addressDraft: String
     @State private var addressError: AddressError?
     @FocusState private var addressFocused: Bool
 
@@ -357,10 +357,9 @@ private struct AddressEditBar: View {
     ) {
         self.app = app
         self.browser = browser
+        self.editState = browser.addressEditState
         self.addressFocusRequest = addressFocusRequest
         self.browserAddressFocusRequest = browserAddressFocusRequest
-        let initial = browser.showsForumsHome ? "" : (browser.currentURL?.absoluteString ?? "")
-        _addressDraft = State(initialValue: initial)
     }
 
     var body: some View {
@@ -371,7 +370,7 @@ private struct AddressEditBar: View {
                     .font(.system(size: 15, weight: .medium))
                     .foregroundStyle(.secondary)
                     .accessibilityHidden(true)
-                TextField("Search or enter address", text: $addressDraft)
+                TextField("Search or enter address", text: $editState.draft)
                     .textContentType(.URL)
                     .keyboardType(.webSearch)
                     .autocorrectionDisabled()
@@ -379,7 +378,7 @@ private struct AddressEditBar: View {
                     .submitLabel(.go)
                     .focused($addressFocused)
                     .onSubmit(commitAddress)
-                    .onChange(of: addressDraft) { _, _ in
+                    .onChange(of: editState.draft) { _, _ in
                         PerfProbe.mark("address.keystroke")
                     }
                     .accessibilityIdentifier("addressField")
@@ -402,9 +401,9 @@ private struct AddressEditBar: View {
                             }
                         }
                     }
-                if !addressDraft.isEmpty {
+                if !editState.draft.isEmpty {
                     Button {
-                        addressDraft = ""
+                        editState.draft = ""
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 17))
@@ -466,18 +465,15 @@ private struct AddressEditBar: View {
         app.router.addressEditRevision &+= 1
     }
 
-    /// An address opens; other words search the current forum.
+    /// Runs row 1 of the classified actions (open address, ask Agent, or search).
     private func commitAddress() {
-        let context = AddressInput.Context(
-            currentSiteURL: browser.homeSiteURL,
-            forumSearchURL: { app.searchPageURL(query: $0) },
-            webSearchURL: { app.webSearchURL(query: $0) }
-        )
-        if let action = AddressInput.actions(for: addressDraft, context: context).first {
-            browser.load(action.url)
-            closeAddressBar()
+        let draft = editState.draft
+        let context = app.addressInputContext(for: browser)
+        if let action = AddressInput.actions(for: draft, context: context).first {
+            addressFocused = false
+            app.performAddressAction(action, in: browser)
         } else {
-            addressError = AddressError(address: addressDraft, hasForum: browser.homeSiteURL != nil)
+            addressError = AddressError(address: draft, hasForum: browser.homeSiteURL != nil)
         }
     }
 }
@@ -2282,8 +2278,8 @@ struct ForumMenuButton: View {
     // MARK: Actions
 
     private var homeLabel: String {
-        forum.map { String(localized: "\($0.displayName) home", comment: "Button label: the forum's home page (forum name)") }
-            ?? String(localized: "Forums")
+        forum.map { String(localized: "\($0.displayName) home", comment: "Button label: the site's home page (site name)") }
+            ?? String(localized: "Sites")
     }
 
     private func accountLine(for forum: Forum) -> String {

@@ -43,7 +43,7 @@ final class DrawerHintTests: XCTestCase {
         // A topic without a summary: only as the one-time tip.
         XCTAssertEqual(row(.topic, tip: true), DrawerHint.Row(action: .summarize, isTip: true))
         XCTAssertNil(row(.topic, tip: false))
-        XCTAssertEqual(row(.topic, tip: true)?.text, "Summarize this thread? · Open assistant")
+        XCTAssertEqual(row(.topic, tip: true)?.text, "Summarize this page? · Open assistant")
         // New replies since the summary, tip or not.
         let stale = row(.topic) { $0.hasSummary = true; $0.totalPosts = 26; $0.summaryPostCount = 14 }
         XCTAssertEqual(stale, DrawerHint.Row(action: .checkNew(12), isTip: false))

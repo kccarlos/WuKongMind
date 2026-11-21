@@ -130,20 +130,20 @@ private struct ForumRequestPaceSection: View {
 
     private var footer: String {
         guard app.settings.forumRateLimitingEnabled else {
-            return String(localized: "Requests are sent immediately without per-forum spacing or concurrency limits. Work that’s already running keeps its pace.", comment: "Settings › Summaries & chat › Forum requests footer when rate limiting is off")
+            return String(localized: "Requests are sent immediately without per-site spacing or concurrency limits. Work that’s already running keeps its pace.", comment: "Settings › Sites › Reading pace footer when rate limiting is off")
         }
         var sentences = [
-            String(localized: "Forums are run by people and communities who pay for their servers. Reading a topic one page at a time keeps WukongMind a polite visitor and avoids being rate limited.", comment: "Settings › Summaries & chat › Forum requests footer")
+            String(localized: "Sites are run by people who pay for their servers. Reading a long thread one page at a time keeps WukongMind a polite visitor and avoids being rate limited.", comment: "Settings › Sites › Reading pace footer")
         ]
         switch app.settings.forumRequestPace {
         case .gentle:
-            sentences.append(String(localized: "Long topics take longer to read: a 2,000-post topic takes about 20 seconds.", comment: "Forum requests footer for the Gentle pace (20 pages of 100 posts at 1 per second)"))
+            sentences.append(String(localized: "Long topics take longer to read: a 2,000-post topic takes about 20 seconds.", comment: "Reading pace footer for the Gentle pace (20 pages of 100 posts at 1 per second)"))
         case .standard:
-            sentences.append(String(localized: "A 2,000-post topic takes about 10 seconds.", comment: "Forum requests footer for the Standard pace"))
+            sentences.append(String(localized: "A 2,000-post topic takes about 10 seconds.", comment: "Reading pace footer for the Standard pace"))
         case .fast:
-            sentences.append(String(localized: "Fast reads long topics quickest but puts the most load on the forum. Use it on forums you run or where you know it’s welcome.", comment: "Forum requests footer for the Fast pace"))
+            sentences.append(String(localized: "Fast reads long threads quickest but puts the most load on the site. Use it on sites you run or where you know it’s welcome.", comment: "Reading pace footer for the Fast pace"))
         }
-        sentences.append(String(localized: "Work that’s already running keeps its pace.", comment: "Forum requests footer"))
+        sentences.append(String(localized: "Work that’s already running keeps its pace.", comment: "Reading pace footer"))
         return sentences.joined(separator: " ")
     }
 }
@@ -259,7 +259,7 @@ struct SettingsAgentPage: View {
                 .accessibilityIdentifier("agentPageToolsEnabled")
             } footer: {
                 Text(
-                    "Let the Agent learn to read unfamiliar forums and use tools a page or script offers. A site's own tools always ask first.",
+                    "Let the Agent learn to read unfamiliar sites and use tools a page or script offers. A site's own tools always ask first.",
                     comment: "Settings › Agent footer explaining the Page tools switch"
                 )
             }
@@ -313,7 +313,7 @@ struct SettingsAgentPage: View {
 
             Section {
                 Stepper(
-                    "Topics to read: \(app.settings.agentMaxTopicReads)",
+                    "Pages to read: \(app.settings.agentMaxTopicReads)",
                     value: Binding(
                         get: { app.settings.agentMaxTopicReads },
                         set: { app.settings.agentMaxTopicReads = AgentLimits.clampTopicReads($0) }
@@ -326,7 +326,7 @@ struct SettingsAgentPage: View {
                     SettingExplanation(
                         title: "Read size",
                         value: characters(app.settings.agentReadLimit),
-                        detail: "How much of each topic it reads. Larger reads catch more detail in long threads."
+                        detail: "How much of each page it reads. Larger reads catch more detail in long discussions."
                     )
                     Slider(
                         value: Binding(
@@ -337,14 +337,14 @@ struct SettingsAgentPage: View {
                         step: 5_000
                     )
                     .tint(DCTheme.goldInk)
-                    .accessibilityLabel("Context per topic read")
+                    .accessibilityLabel("Context per page read")
                     .accessibilityValue(characters(app.settings.agentReadLimit))
                     .accessibilityIdentifier("agentReadLimit")
                 }
             } header: {
-                Text("Forum tools", comment: "Settings › Agent section header for the limits the forum tools read")
+                Text("Site tools", comment: "Settings › Agent section header for the limits the site tools read")
             } footer: {
-                Text("Used when the Agent searches and reads a forum. Defaults: \(AgentLimits.defaultMaxTopicReads) topics, \(characters(AgentLimits.defaultReadLimit)) per topic.")
+                Text("Used when the Agent searches and reads a site. Defaults: \(AgentLimits.defaultMaxTopicReads) pages, \(characters(AgentLimits.defaultReadLimit)) per page.")
             }
 
             if app.settings.agentMaxTopicReads != AgentLimits.defaultMaxTopicReads
@@ -822,7 +822,7 @@ struct SettingsWatchedPage: View {
                     }
                 }
             } footer: {
-                Text("Swipe left to stop watching. Watch a topic from the drawer’s ⋯ menu or the forum menu.")
+                Text("Swipe left to stop following. Follow a discussion from the Assistant menu.")
             }
         }
         .formStyle(.grouped)
@@ -875,7 +875,7 @@ struct SettingsBrowserPage: View {
                 Text("Browser bar")
             } footer: {
                 VStack(alignment: .leading, spacing: DCTheme.spacingXS) {
-                    Text("The bar shrinks while you scroll down a forum page and comes back when you scroll up or tap it. Bottom keeps it within reach of your thumb.")
+                    Text("The bar shrinks while you scroll down a page and comes back when you scroll up or tap it. Bottom keeps it within reach of your thumb.")
                     Text("Automatic puts it at the bottom on iPhone and in narrow windows, and at the top when the assistant is beside the page.")
                     if UIDevice.current.userInterfaceIdiom == .pad {
                         Text("With the assistant beside the page, the bar is always at the top: Top and Bottom apply to the single-column layout.", comment: "Settings › Browser footer on iPad: the bar position setting has no effect in the side-by-side layout")
@@ -892,7 +892,7 @@ struct SettingsBrowserPage: View {
                 }
                 .accessibilityIdentifier("launchDestination")
             } footer: {
-                Text("Automatic opens Home the first time each day, and otherwise the forum you read last. Links, notifications, Siri and shared pages always open what they point to.")
+                Text("Automatic opens Home the first time each day, and otherwise the site you read last. Links, notifications, Siri and shared pages always open what they point to.")
             }
         }
         .formStyle(.grouped)
@@ -961,7 +961,7 @@ private struct ContentBlockingSettingsSections: View {
     /// Whole sentences, each its own localizable string, joined by spaces.
     private var footer: String {
         var sentences = [
-            String(localized: "Off by default, out of respect for forum owners who rely on ads. Turn either switch on to block them in the built-in browser.", comment: "Settings › Browser: why ad and tracker blocking starts off"),
+            String(localized: "Off by default, out of respect for site owners who rely on ads. Turn either switch on to block them in the built-in browser.", comment: "Settings › Browser: why ad and tracker blocking starts off"),
             String(localized: "Uses EasyList and EasyPrivacy filter lists.")
         ]
         if let date = rules.manifest?.generatedDate {
@@ -973,7 +973,7 @@ private struct ContentBlockingSettingsSections: View {
         if rules.phase == .compiling, app.settings.contentBlockingEnabled || app.settings.blockTrackers {
             sentences.append(String(localized: "Preparing the lists…"))
         }
-        sentences.append(String(localized: "Forum sign-in pages are never blocked."))
+        sentences.append(String(localized: "Sign-in pages are never blocked."))
         return sentences.joined(separator: " ")
     }
 }

@@ -28,7 +28,7 @@ final class SuggestionRoutingTests: XCTestCase {
     func testSuggestionsPerPageKind() {
         XCTAssertEqual(PageSuggestions.suggestions(for: .forumThread), [.summarizeThread, .readAloud, .searchForum, .followReplies])
         XCTAssertEqual(PageSuggestions.suggestions(for: .forumList), [.worthReadingToday, .searchForum])
-        XCTAssertEqual(PageSuggestions.suggestions(for: .ordinaryPage), [.summarizePage, .makeDark, .removeDistractions])
+        XCTAssertEqual(PageSuggestions.suggestions(for: .ordinaryPage), [.summarizePage, .readAloud, .makeDark, .removeDistractions])
         XCTAssertEqual(PageSuggestions.suggestions(for: nil), [])
     }
 
@@ -45,8 +45,8 @@ final class SuggestionRoutingTests: XCTestCase {
             XCTAssertLessThanOrEqual(PageSuggestions.suggestions(for: kind).count, 4)
         }
         XCTAssertEqual(PageSuggestion.allCases.filter(\.fillsComposer), [.searchForum])
-        XCTAssertEqual(PageSuggestion.searchForum.composerText, "Search this forum ")
-        XCTAssertEqual(PageSuggestion.summarizeThread.text, "Summarize this thread and replies")
+        XCTAssertEqual(PageSuggestion.searchForum.composerText, "Search this site ")
+        XCTAssertEqual(PageSuggestion.summarizeThread.text, "Summarize this page")
     }
 
     // MARK: Learn on ask 8
@@ -175,7 +175,7 @@ final class SuggestionRoutingTests: XCTestCase {
         XCTAssertEqual(PageSuggestions.route(for: .searchForum), .fill)
         let completed = PageSuggestion.searchForum.composerText + "dark mode bugs"
         let request = try await firstRequest(sending: completed)
-        XCTAssertTrue(Self.userText(request.messages.last).hasSuffix("\n\nThe user's message:\nSearch this forum dark mode bugs"))
+        XCTAssertTrue(Self.userText(request.messages.last).hasSuffix("\n\nThe user's message:\nSearch this site dark mode bugs"))
     }
 
     private static func userText(_ turn: AgentModelTurn?) -> String {
@@ -258,7 +258,7 @@ final class SuggestionRoutingTests: XCTestCase {
         // Last when active scripts have no recorded errors.
         XCTAssertEqual(
             PageSuggestions.suggestions(for: .ordinaryPage, hasActiveScripts: true, hasScriptErrors: false),
-            [.summarizePage, .makeDark, .removeDistractions, .pageBroken]
+            [.summarizePage, .readAloud, .makeDark, .removeDistractions, .pageBroken]
         )
         XCTAssertEqual(
             PageSuggestions.suggestions(for: .forumThread, hasActiveScripts: true, hasScriptErrors: false).last,
@@ -268,7 +268,7 @@ final class SuggestionRoutingTests: XCTestCase {
         // First only when the current page's scripts have recorded errors.
         XCTAssertEqual(
             PageSuggestions.suggestions(for: .ordinaryPage, hasActiveScripts: true, hasScriptErrors: true),
-            [.pageBroken, .summarizePage, .makeDark, .removeDistractions]
+            [.pageBroken, .summarizePage, .readAloud, .makeDark, .removeDistractions]
         )
         XCTAssertEqual(
             PageSuggestions.suggestions(for: .forumThread, hasActiveScripts: true, hasScriptErrors: true).first,

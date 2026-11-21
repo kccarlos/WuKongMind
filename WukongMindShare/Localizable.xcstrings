@@ -1,19 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "%@ site detected · %@" : {
-      "comment" : "The first argument is the platform's name such as Discourse or WordPress, the second the site's name",
+    "Ask about this page" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已检测到 %@ 网站 · %@"
+            "value" : "就此页面提问"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "已偵測到 %@ 網站 · %@"
+            "value" : "就這個頁面提問"
           }
         }
       }
@@ -34,18 +33,18 @@
         }
       }
     },
-    "Ask the forum" : {
+    "Ask this site" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "问论坛"
+            "value" : "问这个网站"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "問論壇"
+            "value" : "問這個網站"
           }
         }
       }
@@ -66,22 +65,6 @@
         }
       }
     },
-    "Chat about it" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "聊聊这个"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "聊聊這個"
-          }
-        }
-      }
-    },
     "Checking page…" : {
       "localizations" : {
         "zh-Hans" : {
@@ -94,22 +77,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正在檢查頁面…"
-          }
-        }
-      }
-    },
-    "Couldn't confirm this is a supported site" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "无法确认这是受支持的网站"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "無法確認這是受支援的網站"
           }
         }
       }
@@ -162,18 +129,18 @@
         }
       }
     },
-    "Key points of this topic" : {
+    "Key points of this page" : {
       "localizations" : {
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "这个话题的要点"
+            "value" : "这个页面的要点"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "這個話題的重點"
+            "value" : "這個頁面的重點"
           }
         }
       }
@@ -243,22 +210,6 @@
         }
       }
     },
-    "Research across the whole forum" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在整个论坛中研究"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "在整個論壇中研究"
-          }
-        }
-      }
-    },
     "Saved — open WukongMind to continue" : {
       "localizations" : {
         "zh-Hans" : {
@@ -271,6 +222,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已儲存 — 打開 WukongMind 繼續"
+          }
+        }
+      }
+    },
+    "Search and answer across this site" : {
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在整个网站中搜索并作答"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在整個網站中搜尋並作答"
           }
         }
       }
@@ -303,22 +270,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "摘要"
-          }
-        }
-      }
-    },
-    "Supported site? WukongMind will check when it opens" : {
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "是受支持的网站吗？打开时 WukongMind 会进行检查"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "是受支援的網站嗎？打開時 WukongMind 會進行檢查"
           }
         }
       }

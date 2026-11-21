@@ -1,0 +1,8 @@
+First App Store release of WukongMind Browser (1.6.0).
+
+- General web browser for iPhone and iPad with tabs, address bar, history, and pinned sites.
+- AI Agent that reads, explains, and modifies any web page using JavaScript and CSS inside WebKit, with a Stop button always visible.
+- Save Agent changes as per-site user scripts after reviewing the source code, matching sites, and permissions; import .user.js scripts with full source review.
+- Learn on ask: let the Agent learn a read-only reader for a site (with your approval) for faster site search and Q&A.
+- Summarize and read aloud any page, talk to the page with live voice, translate on device (iOS 18+), follow discussions, and use Siri, Shortcuts, and Spotlight.
+- Bring your own API key (or a local server on your LAN), explicit per-provider AI data consent, safe defaults (Confirm before writes on, cookie values hidden by default), optional iCloud sync, and optional bundled ad and tracker blocking.

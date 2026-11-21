@@ -216,7 +216,7 @@ final class ForumToolsTests: XCTestCase {
         XCTAssertTrue(badPageType.isError && badPageType.output.contains("parameter 'page' must be an integer"))
 
         for (tool, runningLabel, doneLabel) in [
-            ("search_forum", String(localized: "Searching forum"), String(localized: "Searched forum")),
+            ("search_forum", String(localized: "Searching site"), String(localized: "Searched site")),
             ("search_comments", String(localized: "Searching comments"), String(localized: "Searched comments")),
             ("list_latest", String(localized: "Listing latest"), String(localized: "Listed latest")),
             ("read_topic", String(localized: "Reading thread"), String(localized: "Read thread"))

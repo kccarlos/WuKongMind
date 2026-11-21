@@ -1332,6 +1332,8 @@ final class BrowserAgentSession {
     /// In-memory ID of the last finished run the user has seen (panel open when it ended or opened afterwards).
     /// Restored conversations initialize this to the last restored run's ID so they never show as unseen.
     private(set) var seenRunID: UUID?
+    /// Run IDs whose saved-script note has already played (or was restored from disk) so the done one-shot fires once.
+    private(set) var doneShownRunIDs: Set<UUID> = []
 
     var toolCalls: [BrowserAgentToolCallRow] { runs.flatMap(\.toolCalls) }
     var runState: BrowserAgentRunState { runs.last?.state ?? .idle }
@@ -1630,6 +1632,7 @@ final class BrowserAgentSession {
         wireSizes = [:]
         runLimitNotice = nil
         seenRunID = normalizedRuns.last?.id
+        doneShownRunIDs = Set(normalizedRuns.map(\.id))
         healDanglingToolCallsInHistory()
     }
 
@@ -1716,7 +1719,12 @@ final class BrowserAgentSession {
         pageBaselineImage = nil
         runLimitNotice = nil
         seenRunID = nil
+        doneShownRunIDs = []
         onConversationReset?()
+    }
+
+    func markSavedNoteDoneShown(for runID: UUID) {
+        doneShownRunIDs.insert(runID)
     }
 
     // MARK: - Private Turn Execution
@@ -2554,7 +2562,8 @@ actor BrowserAgentDemoClient: AgentModelClient {
                 "summarize_topic"
             } else if prompt.localizedCaseInsensitiveContains("Read it to me") {
                 "read_aloud"
-            } else if prompt.localizedCaseInsensitiveContains("Notify me") {
+            } else if prompt.localizedCaseInsensitiveContains("Follow this discussion")
+                || prompt.localizedCaseInsensitiveContains("Notify me") {
                 "watch_topic"
             } else {
                 nil
@@ -2563,7 +2572,7 @@ actor BrowserAgentDemoClient: AgentModelClient {
                 let call = AgentModelToolCall(id: "call_sample_\(turn)", name: toolName, arguments: ["url": .string(url)])
                 return AgentModelTurnResponse(text: "", toolCalls: [call], stopReason: "tool_use", usage: usage)
             }
-            return AgentModelTurnResponse(text: "Searched the forum.", stopReason: "end_turn", usage: usage)
+            return AgentModelTurnResponse(text: "Searched the site.", stopReason: "end_turn", usage: usage)
         }
     }
 

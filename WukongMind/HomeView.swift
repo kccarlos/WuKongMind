@@ -29,14 +29,44 @@ struct HomeView: View {
     }
 
     var body: some View {
-        HomeList(
+        HomeOrSuggestions(
             app: app,
             browser: browser,
-            siteVisits: app.siteVisits,
+            editState: browser.addressEditState,
             isEditingAddress: isEditingAddress,
             currentURL: currentURL,
             actions: actions
         )
+    }
+}
+
+private struct HomeOrSuggestions: View {
+    let app: AppModel
+    let browser: ForumBrowserModel
+    @ObservedObject var editState: AddressEditState
+    let isEditingAddress: Bool
+    let currentURL: URL?
+    let actions: BrowserActions
+
+    var body: some View {
+        if isEditingAddress, editState.showsSuggestions {
+            AddressSuggestionsList(
+                app: app,
+                browser: browser,
+                editState: editState,
+                siteVisits: app.siteVisits,
+                actions: actions
+            )
+        } else {
+            HomeList(
+                app: app,
+                browser: browser,
+                siteVisits: app.siteVisits,
+                isEditingAddress: isEditingAddress,
+                currentURL: currentURL,
+                actions: actions
+            )
+        }
     }
 }
 
@@ -433,7 +463,7 @@ private struct HomeList: View {
     }
 }
 
-private struct HomeScrollKeyboardDismiss: ViewModifier {
+struct HomeScrollKeyboardDismiss: ViewModifier {
     let isEditingAddress: Bool
 
     func body(content: Content) -> some View {

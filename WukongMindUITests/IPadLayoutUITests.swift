@@ -173,7 +173,7 @@ final class IPadLayoutUITests: DCUITestCase {
         let app = launch(sample + ["-dc-agent-running"], orientation: .landscapeLeft)
         let toggle = app.buttons["aiPanelToggle"]
         XCTAssertTrue(waitOrDump(toggle, timeout: 20, in: app))
-        XCTAssertTrue(wait(timeout: 10) { (toggle.value as? String)?.contains("Ask the forum is searching") == true }
+        XCTAssertTrue(wait(timeout: 10) { (toggle.value as? String)?.contains("Ask this site is searching") == true }
                       || !(Locale.preferredLanguages.first?.hasPrefix("en") ?? true),
                       "No research ring on the panel toggle: \(toggle.value ?? "")")
     }
@@ -264,7 +264,7 @@ final class IPadLayoutUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(remove, timeout: 5, in: app), "The tile's context menu has no Remove….")
         snapshot("remove-context-menu")
         remove.tap()
-        let confirm = app.buttons["Remove Forum"]
+        let confirm = app.buttons["Remove Site"]
         XCTAssertTrue(waitOrDump(confirm, timeout: 5, in: app), "The removal dialog did not appear.")
         snapshot("remove-dialog")
         confirm.tap()
