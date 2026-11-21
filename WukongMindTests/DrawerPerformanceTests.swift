@@ -754,7 +754,7 @@ final class DrawerPerformanceTests: XCTestCase {
             // Warm-up pass (not recorded) to eliminate one-time SwiftUI/UIKit lazy initialization.
             do {
                 let warm = UIHostingController(rootView: AnyView(
-                    NavigationStack { HomeView(app: app, actions: actions) }.environment(\.colorScheme, .light)
+                    NavigationStack { HomeView(app: app, isEditingAddress: false, currentURL: nil, actions: actions) }.environment(\.colorScheme, .light)
                 ))
                 window.rootViewController = warm
                 window.makeKeyAndVisible()
@@ -769,7 +769,7 @@ final class DrawerPerformanceTests: XCTestCase {
                 var host: UIHostingController<AnyView>!
                 let elapsed = mainThreadMilliseconds(settle: 0.25) {
                     host = UIHostingController(rootView: AnyView(
-                        NavigationStack { HomeView(app: app, actions: actions) }.environment(\.colorScheme, .light)
+                        NavigationStack { HomeView(app: app, isEditingAddress: false, currentURL: nil, actions: actions) }.environment(\.colorScheme, .light)
                     ))
                     window.rootViewController = host
                     window.makeKeyAndVisible()

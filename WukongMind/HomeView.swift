@@ -17,14 +17,14 @@ struct HomeView: View {
 
     init(
         app: AppModel,
-        isEditingAddress: Bool? = nil,
-        currentURL: URL? = nil,
+        isEditingAddress: Bool,
+        currentURL: URL?,
         actions: BrowserActions
     ) {
         self.app = app
         self.browser = app.browser
-        self.isEditingAddress = isEditingAddress ?? app.browser.isEditingAddress
-        self.currentURL = currentURL ?? app.browser.currentURL
+        self.isEditingAddress = isEditingAddress
+        self.currentURL = currentURL
         self.actions = actions
     }
 

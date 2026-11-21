@@ -165,7 +165,7 @@ What changes against today's rule ("the turning ring is the only continuous anim
 - **No number exists today,** so the first address-bar task (task 3) adds the measurement and records today's tap-to-edit-bar and Home-field keystroke times.
 - **Budgets:** first frame within 200 ms of the tap on iPhone 13 (the drawer's budget) and not slower than today's tap-to-edit-bar plus one frame; a keystroke's main-thread pass under one frame (16.7 ms) with 40 sites.
 - **Why opaque, not blurred:** a live blur over a `WKWebView` is composited every frame while the page under it scrolls or plays. It adds cost and no information. Cut.
-- **Home is built when first shown,** not kept mounted over the page; its list is lazy.
+- **Home is built when first shown,** not kept mounted over the page; its list is lazy (`ScrollView` + `LazyVStack` with inset-grouped cards, avoiding `List`/`UICollectionView`'s ~52 ms first-mount cost and post-focus layout hitch on iPhone 13). On tap, the Home overlay mounts one run-loop turn after `AddressEditBar` so keyboard focus does not wait on Home's first frame while Home still fades in within 180 ms; `HomeList` and `AddressEditBar` read plain values instead of observing `ForumBrowserModel` so `isSystemKeyboardVisible` and keystrokes do not trigger extra body passes.
 
 ### Against the App Store tasks
 
@@ -217,6 +217,10 @@ Ordered by felt value per effort. Each is one pull request with its own check. S
 - **Address-bar baseline (task 3, Mac mini, iPhone 18 Pro simulator, Debug, `-dc-perf-probe`, `AddressBarPerfUITests`):**
   - `tap_to_edit_bar` (`browserTitle` tap on `-dc-bar-morph-fixture short`): `m:addressEdit.tap=88` ms, `f:addressEdit.tap=89` ms, `h:AddressEditBar.body=97/394x3`, `m:addressEdit.focus=280` ms, `f:addressEdit.focus=391` ms, `busy_ms=405` ms (main-thread pass `p:87+338` ms for bar + keyboard).
   - `home_keystrokes` (20 characters typed in `homeAddress` with `-dc-forums-home -dc-seed-forums`): `busy_ms=1116` (`55.80` ms/key), `passes=427` (`21.35`/key), `over16=24` (`1.20`/key), `over33=7` (`0.35`/key), `over50=0`, `n:HomeList.body=20` (`1.00`/key), `n:HomeSites.matches=20` (`1.00`/key), `us:HomeSites.matches=712` (`35.60` µs/key).
+- **Tap-to-edit recovery after Motion 4 (WUKO-197, iPhone 13 via `scripts/device-check.sh`, Debug, `-dc-perf-probe`, `AddressBarPerfUITests`, 5 runs each, no runs dropped):**
+  - Before (`77f0134`): `tap busy_ms` 718, 599, 557, 586, 582 (median **586 ms**); `f:addressEdit.focus` 507, 380, 379, 384, 383 (median **383 ms**); `HomeList.body` first hit 86, 87, 99, 95, 94 (2× per tap); `home_keystrokes busy_ms` 6280, 6420, 6320, 6344, 6319 (median **6320 ms**, `HomeList.body` 40).
+  - A/B check keeping `List(.insetGrouped)` with deferred mount + observation narrowing (3 runs): `tap busy_ms` 574, 511, 505 (median **511 ms**, +16% vs 440 ms, with a 52–76 ms post-focus display-link gap); `home_keystrokes busy_ms` 6070, 6084, 6145 (median **6084 ms**).
+  - After (`ScrollView` + `LazyVStack` + deferred mount + observation narrowing, 5 runs): `tap busy_ms` 609, 474, 481, 486, 472 (median **481 ms**, -105 ms, +9.3% vs pre-Motion-4's 440 ms); `f:addressEdit.focus` 423, 322, 318, 337, 320 (median **322 ms**, -61 ms); `HomeList.body` first hit 377, 285, 280, 301, 282 (1× per tap, after focus, zero post-focus hitch); `home_keystrokes busy_ms` 5499, 5555, 5486, 5600, 5553 (median **5553 ms**, -767 ms, `HomeList.body` 0).
 
 ## 7. Not proven
 
