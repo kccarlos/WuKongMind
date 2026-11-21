@@ -7,7 +7,14 @@ import UIKit
 /// not republish `ForumBrowserModel` and re-evaluate unrelated browser chrome.
 @MainActor
 final class AddressEditState: ObservableObject {
-    @Published var draft: String = ""
+    @Published var draft: String = "" {
+        didSet {
+            if draft != oldValue, selectedSuggestionIndex != nil {
+                selectedSuggestionIndex = nil
+            }
+        }
+    }
+    @Published var selectedSuggestionIndex: Int?
     /// The page URL string when editing began (empty on an empty tab).
     /// Suggestions show only once `draft` is non-empty and differs from this.
     var initialText: String = ""
@@ -19,6 +26,7 @@ final class AddressEditState: ObservableObject {
 
     func begin(initialText: String) {
         self.initialText = initialText
+        selectedSuggestionIndex = nil
         if draft != initialText {
             draft = initialText
         }
@@ -26,8 +34,27 @@ final class AddressEditState: ObservableObject {
 
     func end() {
         initialText = ""
+        selectedSuggestionIndex = nil
         if !draft.isEmpty {
             draft = ""
+        }
+    }
+
+    /// Moves keyboard selection across suggestion rows. Starting from `nil`
+    /// (Row 1 is already the default), pressing down selects Row 2 when one
+    /// exists, and pressing up highlights Row 1.
+    func moveSelection(delta: Int, rowCount: Int) {
+        guard rowCount > 0, delta != 0 else { return }
+        let current = selectedSuggestionIndex ?? 0
+        let next = min(max(0, current + delta), rowCount - 1)
+        if selectedSuggestionIndex != next {
+            selectedSuggestionIndex = next
+        }
+    }
+
+    func resetSelection() {
+        if selectedSuggestionIndex != nil {
+            selectedSuggestionIndex = nil
         }
     }
 }
@@ -121,6 +148,11 @@ struct AddressSuggestionsList: View {
     var body: some View {
         let _ = PerfProbe.hit("AddressSuggestionsList.body")
         let currentRows = rows
+        let selectedIndex: Int? = if let idx = editState.selectedSuggestionIndex, !currentRows.isEmpty {
+            min(max(0, idx), currentRows.count - 1)
+        } else {
+            nil
+        }
         let currentDefaultKind: AddressInput.ActionKind? = if case .action(let action) = currentRows.first {
             action.kind
         } else {
@@ -141,15 +173,18 @@ struct AddressSuggestionsList: View {
                         rowButton(
                             row,
                             isDefault: index == 0,
+                            isSelected: index == selectedIndex,
                             query: query,
                             forumName: forumName,
                             engineName: engineName
                         )
                         .padding(.horizontal, DCTheme.spacingM)
                         .padding(.vertical, 10)
+                        .background(index == selectedIndex ? DCTheme.goldWash : Color.clear)
                     }
                 }
                 .background(DCTheme.surface, in: RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous))
                 .padding(.horizontal, DCTheme.spacingM)
                 .padding(.top, DCTheme.spacingS)
                 .padding(.bottom, DCTheme.spacingM)
@@ -158,8 +193,8 @@ struct AddressSuggestionsList: View {
         .scrollDismissesKeyboard(.immediately)
         .modifier(HomeScrollKeyboardDismiss(isEditingAddress: browser.isEditingAddress))
         .frame(maxWidth: 760)
-        .frame(maxWidth: .infinity)
-        .background(DCTheme.pageBackground)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(DCTheme.pageBackground.ignoresSafeArea())
         .accessibilityIdentifier("addressSuggestions")
         .onChange(of: currentDefaultKind, initial: true) { _, next in
             if let message = AddressSuggestionAnnouncement.message(from: lastDefaultKind, to: next) {
@@ -173,6 +208,7 @@ struct AddressSuggestionsList: View {
     private func rowButton(
         _ row: AddressSuggestionRow,
         isDefault: Bool,
+        isSelected: Bool,
         query: String,
         forumName: String,
         engineName: String
@@ -182,7 +218,7 @@ struct AddressSuggestionsList: View {
             let title = actionTitle(for: action, query: query, forumName: forumName, engineName: engineName)
             Button {
                 DCHaptics.tap()
-                app.performAddressAction(action, in: browser)
+                app.performSuggestionRow(row, in: browser, actions: actions)
             } label: {
                 HStack(spacing: DCTheme.spacingM) {
                     actionIcon(for: action)
@@ -201,12 +237,13 @@ struct AddressSuggestionsList: View {
             .buttonStyle(.plain)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(title)
-            .accessibilityAddTraits(.isButton)
+            .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
             .accessibilityIdentifier(actionIdentifier(for: action))
 
         case .site(let site):
             Button {
-                openSite(site)
+                DCHaptics.tap()
+                app.performSuggestionRow(row, in: browser, actions: actions)
             } label: {
                 HStack(spacing: DCTheme.spacingM) {
                     ForumIcon(siteURL: site.siteURL, name: site.name, iconURL: site.iconURL, size: 24)
@@ -229,7 +266,7 @@ struct AddressSuggestionsList: View {
             .buttonStyle(.plain)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(String(localized: "Open \(site.name)", comment: "Address bar suggestion: open a matching site"))
-            .accessibilityAddTraits(.isButton)
+            .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
             .accessibilityIdentifier("addressSuggestion-site-\(site.host)")
         }
     }
@@ -278,18 +315,6 @@ struct AddressSuggestionsList: View {
         case .webSearch: "addressSuggestion-webSearch"
         }
     }
-
-    private func openSite(_ site: HomeSite) {
-        DCHaptics.tap()
-        browser.setEditingAddress(false)
-        app.router.addressEditRevision &+= 1
-        if let forum = site.forum {
-            actions.openForum(forum)
-        } else if let url = site.url {
-            siteVisits.noteVisit(siteURL: site.siteURL, name: site.name, isForum: false)
-            app.browser.load(url)
-        }
-    }
 }
 
 extension AppModel {
@@ -308,6 +333,22 @@ extension AppModel {
             return forum.displayName
         }
         return HomeSites.displayName(forOrigin: siteURL)
+    }
+
+    func performSuggestionRow(_ row: AddressSuggestionRow, in browser: ForumBrowserModel, actions: BrowserActions) {
+        switch row {
+        case .action(let action):
+            performAddressAction(action, in: browser)
+        case .site(let site):
+            browser.setEditingAddress(false)
+            router.addressEditRevision &+= 1
+            if let forum = site.forum {
+                actions.openForum(forum)
+            } else if let url = site.url {
+                siteVisits.noteVisit(siteURL: site.siteURL, name: site.name, isForum: false)
+                browser.load(url)
+            }
+        }
     }
 
     func performAddressAction(_ action: AddressInput.Action, in browser: ForumBrowserModel) {

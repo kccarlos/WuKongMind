@@ -245,6 +245,91 @@ final class IPadLayoutUITests: DCUITestCase {
         XCTAssertTrue(waitForGone(any(app, "home"), timeout: 5), "⌘[ should go back to the page.")
     }
 
+    /// Motion task 6: ⌘L shows Home over the page column while the AI panel stays
+    /// visible; typing shows suggestions; ↓ + Return opens the second row; Esc/⌘.
+    /// returns to the page; compact width uses the same overlay.
+    func testAddressBarShowsHomeOverPageAndKeyboardNavigation() throws {
+        try skipUnlessPad("Motion task 6 iPad Home over the page")
+        let app = launch(sample + ["-dc-seed-forums"], orientation: .landscapeLeft)
+        let panel = any(app, "aiPanel")
+        let drawerTitle = any(app, "drawerTitle")
+        XCTAssertTrue(waitOrDump(panel, timeout: 20, in: app), "Split AI panel did not appear")
+        XCTAssertTrue(drawerTitle.waitForExistence(timeout: 10), "AI panel content not visible")
+        XCTAssertTrue(app.buttons.matching(label(contains: "meta.discourse.org")).firstMatch.waitForExistence(timeout: 20))
+        RunLoop.current.run(until: Date().addingTimeInterval(2))
+
+        // Warm up the simulator hardware keyboard path.
+        any(app, "panelResizeHandle").doubleTap()
+        RunLoop.current.run(until: Date().addingTimeInterval(1))
+
+        // 1. ⌘L shows Home over the page column while the AI panel stays visible.
+        app.typeKey("l", modifierFlags: .command)
+        let field = app.textFields["addressField"]
+        let home = any(app, "home")
+        XCTAssertTrue(waitOrDump(field, timeout: 5, in: app), "⌘L should open addressField")
+        XCTAssertTrue(waitOrDump(home, timeout: 5, in: app), "Home should appear over the page column on iPad split")
+        XCTAssertTrue(panel.exists, "AI panel must stay visible while Home covers the page column")
+        XCTAssertTrue(drawerTitle.exists, "AI panel content must stay visible and usable")
+        snapshot("ipad-split-home-overlay")
+
+        // 2. Typing replaces Home with suggestions; ↓ highlights row 2; Return opens row 2 (web search).
+        field.typeText("what is swift?")
+        let askRow = app.buttons["addressSuggestion-askAgent"]
+        let webRow = app.buttons["addressSuggestion-webSearch"]
+        XCTAssertTrue(waitOrDump(askRow, timeout: 5, in: app), "Ask the Agent should be row 1")
+        XCTAssertTrue(webRow.exists, "Search the web should be row 2")
+        XCTAssertFalse(home.exists, "Suggestions must replace Home while typing")
+        snapshot("ipad-split-suggestions")
+
+        app.typeKey(.downArrow, modifierFlags: [])
+        XCTAssertTrue(
+            wait(timeout: 3) { webRow.isSelected },
+            "Pressing ↓ should select the second suggestion row"
+        )
+        snapshot("ipad-split-suggestions-second-selected")
+
+        field.typeText("\n")
+        XCTAssertTrue(waitForGone(field, timeout: 5), "Return should close address editing")
+        XCTAssertTrue(waitForGone(any(app, "addressSuggestions"), timeout: 5), "Suggestions should close after Return")
+        let barTitle = app.buttons["browserTitle"]
+        XCTAssertTrue(
+            wait(timeout: 10) {
+                barTitle.exists && (
+                    barTitle.label.localizedCaseInsensitiveContains("duckduckgo")
+                        || barTitle.label.localizedCaseInsensitiveContains("google")
+                )
+            },
+            "Expected second row (web search) to open on ↓ + Return, got: \(barTitle.label)"
+        )
+        XCTAssertTrue(panel.exists, "AI panel must remain visible after opening suggestion")
+
+        // 3. ⌘L then Esc (or ⌘. fallback if XCUITest drops Esc) returns to the page.
+        app.typeKey("l", modifierFlags: .command)
+        XCTAssertTrue(waitOrDump(field, timeout: 5, in: app), "⌘L should reopen addressField")
+        XCTAssertTrue(waitOrDump(home, timeout: 5, in: app), "Home should reappear over the page")
+        app.typeKey(.escape, modifierFlags: [])
+        if !waitForGone(field, timeout: 2) {
+            app.typeKey(".", modifierFlags: .command)
+        }
+        XCTAssertTrue(waitForGone(field, timeout: 5), "Esc / ⌘. should close addressField")
+        XCTAssertTrue(waitForGone(home, timeout: 5), "Esc / ⌘. should dismiss Home overlay")
+        XCTAssertTrue(panel.exists, "AI panel must remain visible after Esc")
+
+        // 4. Compact width (portrait): tapping browserTitle shows Home over the page.
+        app.terminate()
+        let compactApp = launch(sample + ["-dc-drawer-first-run", "-dc-seed-forums"], orientation: .portrait)
+        let compactTitle = compactApp.buttons["browserTitle"]
+        XCTAssertTrue(waitForBarItem(compactTitle, timeout: 15), "Compact barTitle did not appear")
+        XCTAssertFalse(any(compactApp, "aiPanel").exists, "Portrait should use compact layout")
+        tapBarItem(compactTitle)
+        let compactField = compactApp.textFields["addressField"]
+        XCTAssertTrue(waitOrDump(compactField, timeout: 5, in: compactApp), "Compact addressField did not appear")
+        XCTAssertTrue(waitOrDump(any(compactApp, "home"), timeout: 5, in: compactApp), "Home should appear over the page in compact width")
+        snapshot("ipad-compact-home-overlay")
+        compactApp.buttons["addressCancel"].tap()
+        XCTAssertTrue(waitForGone(compactField, timeout: 5), "Cancel should dismiss addressField in compact width")
+    }
+
     // MARK: Forums home
 
     /// "Remove…" from a pinned tile's context menu shows the dialog after the

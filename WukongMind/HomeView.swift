@@ -86,8 +86,8 @@ private struct HomeList: View {
         .contentMargins(.top, DCTheme.spacingXS, for: .scrollContent)
         .scrollContentBackground(.hidden)
         .frame(maxWidth: 760)
-        .frame(maxWidth: .infinity)
-        .background(DCTheme.pageBackground)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(DCTheme.pageBackground.ignoresSafeArea())
         .accessibilityIdentifier("home")
     }
 

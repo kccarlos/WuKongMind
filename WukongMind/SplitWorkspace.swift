@@ -185,7 +185,7 @@ private struct WorkspaceSplitRow: View {
     var body: some View {
         let split = isSplit
         let showsPanel = panelVisible
-        let showsHomeOverlay = !split && browser.isEditingAddress && !browser.showsForumsHome
+        let showsHomeOverlay = browser.isEditingAddress && !browser.showsForumsHome
         let showsHome = browser.showsForumsHome || showsHomeOverlay
         let showsWebView = !browser.showsForumsHome
         let resolvedPosition = split ? BrowserBarPosition.top : app.settings.browserBarPosition.resolved(isSplit: false)
@@ -214,7 +214,7 @@ private struct WorkspaceSplitRow: View {
                     ? (split ? BrowserBarMorphMetrics.expandedWebViewTopInset(isSplit: true, isLandscape: verticalSizeClass == .compact) : 64)
                     : 0,
                 webViewIgnoresBottomSafeArea: showsWebView,
-                showsHomeWhileEditing: !split,
+                showsHomeWhileEditing: true,
                 dockFloatsTrailing: split && !showsPanel
             )
             .ignoresSafeArea(.keyboard, edges: !showsHome ? .bottom : [])

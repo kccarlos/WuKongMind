@@ -343,15 +343,17 @@ private struct AddressEditBar: View {
     let app: AppModel
     @ObservedObject var browser: ForumBrowserModel
     @ObservedObject var editState: AddressEditState
+    let actions: BrowserActions
     let addressFocusRequest: Int
 
     @State private var addressError: AddressError?
     @FocusState private var addressFocused: Bool
 
-    init(app: AppModel, browser: ForumBrowserModel, addressFocusRequest: Int) {
+    init(app: AppModel, browser: ForumBrowserModel, actions: BrowserActions, addressFocusRequest: Int) {
         self.app = app
         self.browser = browser
         self.editState = browser.addressEditState
+        self.actions = actions
         self.addressFocusRequest = addressFocusRequest
     }
 
@@ -371,6 +373,26 @@ private struct AddressEditBar: View {
                     .submitLabel(.go)
                     .focused($addressFocused)
                     .onSubmit(commitAddress)
+                    .onKeyPress(.downArrow) {
+                        let rows = currentSuggestionRows
+                        guard !rows.isEmpty else { return .ignored }
+                        DispatchQueue.main.async {
+                            editState.moveSelection(delta: 1, rowCount: rows.count)
+                        }
+                        return .handled
+                    }
+                    .onKeyPress(.upArrow) {
+                        let rows = currentSuggestionRows
+                        guard !rows.isEmpty else { return .ignored }
+                        DispatchQueue.main.async {
+                            editState.moveSelection(delta: -1, rowCount: rows.count)
+                        }
+                        return .handled
+                    }
+                    .onKeyPress(.return) {
+                        commitAddress()
+                        return .handled
+                    }
                     .onChange(of: editState.draft) { _, _ in
                         PerfProbe.mark("address.keystroke")
                     }
@@ -452,14 +474,33 @@ private struct AddressEditBar: View {
         }
     }
 
+    private var currentSuggestionRows: [AddressSuggestionRow] {
+        guard editState.showsSuggestions else { return [] }
+        let tiles = HomeSites.tiles(forums: app.forums, visits: app.siteVisits.shownVisits)
+        return AddressSuggestionsBuilder.rows(
+            for: editState.draft,
+            context: app.addressInputContext(for: browser),
+            tiles: tiles
+        )
+    }
+
     private func closeAddressBar() {
         addressFocused = false
         browser.setEditingAddress(false)
         app.router.addressEditRevision &+= 1
     }
 
-    /// Runs row 1 of the classified actions (open address, ask Agent, or search).
+    /// Runs the selected suggestion row (default row 1) or the classified action.
     private func commitAddress() {
+        guard browser.isEditingAddress else { return }
+        let rows = currentSuggestionRows
+        if !rows.isEmpty {
+            let index = min(max(0, editState.selectedSuggestionIndex ?? 0), rows.count - 1)
+            addressFocused = false
+            DCHaptics.tap()
+            app.performSuggestionRow(rows[index], in: browser, actions: actions)
+            return
+        }
         let draft = editState.draft
         let context = app.addressInputContext(for: browser)
         if let action = AddressInput.actions(for: draft, context: context).first {
@@ -598,12 +639,12 @@ private struct PhoneOnlyMorphingBarHost: View {
                 Group {
                     if position == .top {
                         VStack(spacing: 0) {
-                            AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
+                            AddressEditBar(app: app, browser: browser, actions: actions, addressFocusRequest: addressFocusRequest)
                             Divider()
                         }
                         .background(.bar)
                     } else {
-                        AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
+                        AddressEditBar(app: app, browser: browser, actions: actions, addressFocusRequest: addressFocusRequest)
                             .background(.bar)
                     }
                 }
@@ -822,12 +863,12 @@ struct PhoneMorphingBar: View {
         if isEditing {
             if position == .top {
                 VStack(spacing: 0) {
-                    AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
+                    AddressEditBar(app: app, browser: browser, actions: actions, addressFocusRequest: addressFocusRequest)
                     Divider()
                 }
                 .background(.bar)
             } else {
-                AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
+                AddressEditBar(app: app, browser: browser, actions: actions, addressFocusRequest: addressFocusRequest)
                     .background(.bar)
             }
         } else {
