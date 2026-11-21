@@ -108,16 +108,21 @@ enum AddressInput {
         }
 
         // Chinese question or instruction prefixes (no spaces required).
-        for prefix in chineseQuestionPrefixes where text.hasPrefix(prefix) {
-            if prefix == "请" || prefix == "請" || prefix == "可以" {
-                if text.count > prefix.count { return true }
-            } else {
+        // Must have content after the prefix, and must not match known noun/site compounds
+        // (e.g. "什么值得买", "翻译软件").
+        if !chineseNonQuestionNames.contains(text),
+           !chineseNonQuestionSuffixes.contains(where: { text.hasSuffix($0) }) {
+            for prefix in chineseQuestionPrefixes where text.hasPrefix(prefix) && text.count > prefix.count {
                 return true
             }
         }
 
-        // English question / instruction starters (require at least two words
-        // so single words like "make", "find", "who", or "what.cd" stay searches).
+        // English question / instruction starters:
+        // - wh-words require at least 2 words (excluding "how to ..." without "?").
+        // - auxiliaries and instruction verbs require at least 3 words (or 2 words
+        //   when an unambiguous instruction verb is followed by CJK text, which has no spaces)
+        //   so ordinary two-word searches like "will smith", "list price", "show hn",
+        //   "can opener", or "change management" stay searches.
         let lowered = text.lowercased()
         let words = lowered.split(whereSeparator: \.isWhitespace)
         guard words.count >= 2 else { return false }
@@ -125,14 +130,33 @@ enum AddressInput {
         let first = String(words[0])
         let second = String(words[1])
         if first == "how" && second == "to" {
-            // "how to geek", "how to tie a tie", etc. without "?" stay searches.
             return false
         }
-        return englishStarters.contains(first)
+        if englishWhStarters.contains(first) {
+            return true
+        }
+        if englishAuxAndVerbStarters.contains(first) {
+            if words.count >= 3 {
+                return true
+            }
+            if englishUnambiguousVerbs.contains(first),
+               second.unicodeScalars.contains(where: { $0.value >= 0x4E00 }) {
+                return true
+            }
+        }
+        return false
     }
 
     private static let chineseQuestionSuffixes: [String] = [
         "吗", "嗎", "呢", "什么", "什麼",
+    ]
+
+    private static let chineseNonQuestionNames: Set<String> = [
+        "什么值得买", "什麼值得買",
+    ]
+
+    private static let chineseNonQuestionSuffixes: [String] = [
+        "软件", "軟件", "工具", "器", "网站", "網站", "官网", "官網",
     ]
 
     private static let chineseQuestionPrefixes: [String] = [
@@ -159,8 +183,7 @@ enum AddressInput {
         "比较", "比較",
     ]
 
-    private static let englishStarters: Set<String> = [
-        // Question words
+    private static let englishWhStarters: Set<String> = [
         "what", "what's", "what’s",
         "why", "why's", "why’s",
         "how", "how's", "how’s",
@@ -168,6 +191,16 @@ enum AddressInput {
         "who", "who's", "who’s",
         "where", "where's", "where’s",
         "when", "when's", "when’s",
+    ]
+
+    private static let englishUnambiguousVerbs: Set<String> = [
+        "summarize", "summarise",
+        "explain",
+        "translate",
+    ]
+
+    private static let englishAuxAndVerbStarters: Set<String> = [
+        // Auxiliaries
         "is", "are", "was", "were",
         "can", "could", "will", "would", "should",
         "do", "does", "did",

@@ -303,6 +303,15 @@ final class AddressInputTests: XCTestCase {
             ("what.cd", false),
             ("how to geek", false),
             ("how to tie a tie", false),
+            ("will smith", false),
+            ("list price", false),
+            ("show hn", false),
+            ("can opener", false),
+            ("change management", false),
+            ("什么值得买", false),
+            ("翻译", false),
+            ("总结", false),
+            ("翻译软件", false),
             ("https://example.com/search?q=what", false),
             ("http://localhost:3000/?foo=bar", false),
             ("swift concurrency", false),
@@ -394,5 +403,28 @@ final class AddressInputTests: XCTestCase {
         XCTAssertNil(AddressSuggestionAnnouncement.message(from: .askAgent, to: .askAgent))
         XCTAssertNotNil(AddressSuggestionAnnouncement.message(from: .askAgent, to: .open))
         XCTAssertNil(AddressSuggestionAnnouncement.message(from: .open, to: nil))
+    }
+
+    @MainActor
+    func testAskAgentWhileRunInProgressPreservesPromptInComposerDraft() {
+        let app = AppModel()
+        app.browser.load(URL(string: "https://example.com/article")!)
+        var cfg = app.settings.configuration(for: .ollama)
+        cfg.baseURL = "http://127.0.0.1:11434"
+        cfg.model = "test-model"
+        app.settings.setConfiguration(cfg, for: .ollama)
+        app.settings.setModel(ModelSelection(provider: .ollama, model: "test-model"), for: .browserAgent)
+
+        // Start a run that stays active via `BrowserAgentDemoClient(mode: .running)`.
+        app.browserAgent.configureDebugModelClient(BrowserAgentDemoClient(mode: .running))
+        app.browserAgent.send("first question")
+        XCTAssertTrue(app.browserAgent.isRunning)
+
+        app.browser.setEditingAddress(true)
+        app.askAgentFromAddressBar("follow up question", in: app.browser)
+
+        XCTAssertFalse(app.browser.isEditingAddress, "Address editing closes")
+        XCTAssertEqual(app.drafts.goal, "follow up question", "Prompt must be preserved in composer draft while a run is active")
+        app.browserAgent.stop()
     }
 }

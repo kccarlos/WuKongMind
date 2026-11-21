@@ -118,16 +118,14 @@ struct AddressSuggestionsList: View {
         )
     }
 
-    private var defaultKind: AddressInput.ActionKind? {
-        if case .action(let action) = rows.first {
-            return action.kind
-        }
-        return nil
-    }
-
     var body: some View {
         let _ = PerfProbe.hit("AddressSuggestionsList.body")
         let currentRows = rows
+        let currentDefaultKind: AddressInput.ActionKind? = if case .action(let action) = currentRows.first {
+            action.kind
+        } else {
+            nil
+        }
         let query = trimmedDraft
         let forumName = app.currentForumDisplayName(for: browser)
         let engineName = app.settings.searchEngine.displayName
@@ -163,7 +161,7 @@ struct AddressSuggestionsList: View {
         .frame(maxWidth: .infinity)
         .background(DCTheme.pageBackground)
         .accessibilityIdentifier("addressSuggestions")
-        .onChange(of: defaultKind, initial: true) { _, next in
+        .onChange(of: currentDefaultKind, initial: true) { _, next in
             if let message = AddressSuggestionAnnouncement.message(from: lastDefaultKind, to: next) {
                 UIAccessibility.post(notification: .announcement, argument: message)
             }
@@ -325,7 +323,9 @@ extension AppModel {
 
     /// Closes address editing, opens the AI panel, and sends `prompt` through
     /// the composer's normal send path (provider setup card when unconfigured,
-    /// run-limit check, and AI data consent backstop).
+    /// run-limit check, and AI data consent backstop). If a run is already in
+    /// progress (or cannot start yet), preserves `prompt` in the composer draft
+    /// instead of dropping it.
     func askAgentFromAddressBar(_ prompt: String, in browser: ForumBrowserModel) {
         let trimmed = prompt.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty, !browser.showsForumsHome else { return }
@@ -333,10 +333,16 @@ extension AppModel {
         router.addressEditRevision &+= 1
         showAIView()
         guard isProviderReady(for: .browserAgent) else {
+            drafts.goal = trimmed
             router.pendingProviderSetup = true
             return
         }
+        guard !browserAgent.isRunning else {
+            drafts.goal = trimmed
+            return
+        }
         guard browserAgent.checkRunStartGate() else {
+            drafts.goal = trimmed
             if let notice = browserAgent.runLimitNotice {
                 UIAccessibility.post(notification: .announcement, argument: notice)
             }
