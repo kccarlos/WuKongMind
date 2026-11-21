@@ -151,8 +151,8 @@ figcaption { color: var(--muted); font-size: 15px; max-width: 26em; }
 .anim .restyle:not(.s3) .chips, .anim .herodemo.s3:not(.s6) .chips { opacity: 0; }
 .comp { display: flex; align-items: center; gap: 8px; transition: transform .25s ease-out; }
 .fld { position: relative; flex: 1; display: flex; align-items: center; height: 34px; padding: 0 10px; border: 1px solid var(--border); border-radius: 10px; color: var(--faint); font-size: 12px; }
-.in { position: absolute; inset: 0 10px; display: flex; align-items: center; visibility: hidden; color: var(--ink); }
-.anim .herodemo.s3:not(.s5) .in { visibility: visible; }
+.herodemo .typed { position: absolute; inset: 0 10px; display: flex; align-items: center; visibility: hidden; color: var(--ink); }
+.anim .herodemo.s3:not(.s5) .typed { visibility: visible; }
 .anim .herodemo.s3:not(.s5) .fld > :first-child { visibility: hidden; }
 .caret { width: 1.5px; height: 15px; margin-left: 1px; background: var(--gold); }
 .rb { display: grid; place-items: center; width: 34px; height: 34px; border: 2px solid var(--gold); border-radius: 50%; color: var(--on-gold); font: 700 15px/1 var(--font); transition: background-color .15s, border-color .15s; }
