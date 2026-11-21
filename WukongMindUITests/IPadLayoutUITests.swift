@@ -303,15 +303,12 @@ final class IPadLayoutUITests: DCUITestCase {
         )
         XCTAssertTrue(panel.exists, "AI panel must remain visible after opening suggestion")
 
-        // 3. ⌘L then Esc (or ⌘. fallback if XCUITest drops Esc) returns to the page.
+        // 3. ⌘L then ⌘. (XCUITest does not deliver Esc; both use .cancelAction) returns to the page.
         app.typeKey("l", modifierFlags: .command)
         XCTAssertTrue(waitOrDump(field, timeout: 5, in: app), "⌘L should reopen addressField")
         XCTAssertTrue(waitOrDump(home, timeout: 5, in: app), "Home should reappear over the page")
-        app.typeKey(.escape, modifierFlags: [])
-        if !waitForGone(field, timeout: 2) {
-            app.typeKey(".", modifierFlags: .command)
-        }
-        XCTAssertTrue(waitForGone(field, timeout: 5), "Esc / ⌘. should close addressField")
+        app.typeKey(".", modifierFlags: .command)
+        XCTAssertTrue(waitForGone(field, timeout: 5), "⌘. should close addressField")
         XCTAssertTrue(waitForGone(home, timeout: 5), "Esc / ⌘. should dismiss Home overlay")
         XCTAssertTrue(panel.exists, "AI panel must remain visible after Esc")
 

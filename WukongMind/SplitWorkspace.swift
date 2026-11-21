@@ -214,7 +214,6 @@ private struct WorkspaceSplitRow: View {
                     ? (split ? BrowserBarMorphMetrics.expandedWebViewTopInset(isSplit: true, isLandscape: verticalSizeClass == .compact) : 64)
                     : 0,
                 webViewIgnoresBottomSafeArea: showsWebView,
-                showsHomeWhileEditing: true,
                 dockFloatsTrailing: split && !showsPanel
             )
             .ignoresSafeArea(.keyboard, edges: !showsHome ? .bottom : [])

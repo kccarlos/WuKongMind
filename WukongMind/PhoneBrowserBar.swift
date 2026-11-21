@@ -389,10 +389,6 @@ private struct AddressEditBar: View {
                         }
                         return .handled
                     }
-                    .onKeyPress(.return) {
-                        commitAddress()
-                        return .handled
-                    }
                     .onChange(of: editState.draft) { _, _ in
                         PerfProbe.mark("address.keystroke")
                     }
