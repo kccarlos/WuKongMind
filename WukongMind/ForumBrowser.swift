@@ -254,6 +254,8 @@ final class ForumBrowserModel: NSObject, ObservableObject {
     var drawerPageFacts: DrawerPageFacts { drawerFacts.facts }
     /// Dedicated live progress publisher (`0` expanded … `1` collapsed) observed only by the morphing bar.
     let barProgressModel = BrowserBarProgressModel()
+    /// Isolated draft state for the address bar so typing updates only the edit bar and suggestions list.
+    let addressEditState = AddressEditState()
     var barProgress: CGFloat { barProgressModel.progress }
     var barMorphState: BrowserBarMorphState { barMorph.state }
     #if DEBUG
@@ -344,7 +346,10 @@ final class ForumBrowserModel: NSObject, ObservableObject {
             holdsHomeOverLoad = true
         }
         if !isForumsHomeRequested { isForumsHomeRequested = true }
-        if isEditingAddress { isEditingAddress = false }
+        if isEditingAddress {
+            isEditingAddress = false
+            addressEditState.end()
+        }
         if isPageFormInputFocused { isPageFormInputFocused = false }
         syncPageKeyboardFreeze()
     }
@@ -355,9 +360,14 @@ final class ForumBrowserModel: NSObject, ObservableObject {
 
     func setEditingAddress(_ editing: Bool) {
         if editing {
+            if !isEditingAddress {
+                let initial = showsForumsHome ? "" : (currentURL?.absoluteString ?? "")
+                addressEditState.begin(initialText: initial)
+            }
             allocatedWebView?.endEditing(true)
             _ = allocatedWebView?.resignFirstResponder()
         } else if isEditingAddress {
+            addressEditState.end()
             UIApplication.shared.sendAction(
                 #selector(UIResponder.resignFirstResponder),
                 to: nil,

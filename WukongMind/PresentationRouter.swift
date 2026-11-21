@@ -213,6 +213,8 @@ final class PresentationRouter: ObservableObject {
     @Published var splitPanelDragWidth: CGFloat?
     /// Incremented when ⌘L requests address bar editing so the bar host updates immediately.
     @Published var addressEditRevision = 0
+    /// Armed when "Ask the Agent" is triggered from outside the composer without a ready model.
+    @Published var pendingProviderSetup = false
     /// Whether a narrow-window drawer is wide enough for a two-column medium summary.
     @Published var usesWideDrawerSummary = false
 
