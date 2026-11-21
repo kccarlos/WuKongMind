@@ -3,12 +3,14 @@
 
     python3 scripts/site/build.py [--out DIR]
 
-Standard library only. Pages: home and support (hand-written per language under
+Standard library only. Pages: home (one template, site/home.html, with its text per
+language in site/lang/<code>/home.json and shared pieces in site/partials/; home.css and
+home.js load on this page only), support (hand-written per language under
 site/lang/<code>/), privacy (rendered from PRIVACY.md) and terms (rendered from
 TERMS.md, only when that file exists). Languages: en at the root, zh-Hans/ and
 zh-Hant/. Values that are not known yet live in site/config.json; while one is a
 "*_TBD" placeholder, the part of the page that needs it is not rendered.
-After building, every page is checked: internal links and anchors resolve,
+After building, every page is checked: internal links, scripts and anchors resolve,
 images have alt text, <html lang> and <title> are set, no placeholder or
 {{template}} text leaked, no big files. Any failure exits 1.
 """
@@ -142,6 +144,13 @@ def render_list(items, blob):
 
 # --- Pages ---
 
+# Home only. The inline script runs before first paint, so a demo is never drawn finished and then
+# reset; without JavaScript or with reduced motion the class is never set and the finished frames show.
+HOME_HEAD = """<script>if(!matchMedia("(prefers-reduced-motion: reduce)").matches&&"IntersectionObserver"in window)document.documentElement.classList.add("anim")</script>
+<link rel="stylesheet" href="%shome.css">
+"""
+HOME_SCRIPT = '<script src="%shome.js" defer data-play="%s"></script>\n'
+
 def sub(template, values, where):
     def one(m):
         if m.group(1) not in values:
@@ -177,7 +186,12 @@ def build(out):
 
     shutil.rmtree(out, ignore_errors=True)
     shutil.copytree(os.path.join(SITE, "assets"), os.path.join(out, "assets"))
-    shutil.copy(os.path.join(SITE, "styles.css"), out)
+    for name in ("styles.css", "home.css", "home.js"):
+        shutil.copy(os.path.join(SITE, name), out)
+    home_template = read(os.path.join(SITE, "home.html"))
+    partial = lambda name: read(os.path.join(SITE, "partials", name + ".html")).strip()
+    partials = {"ring": partial("ring"), "article": partial("article")}
+    partials["bar"] = sub(partial("bar"), partials, "partials/bar")
     write(os.path.join(out, ".nojekyll"), "")
 
     for lang in LANGS:
@@ -190,17 +204,24 @@ def build(out):
             values = {
                 "root": root, "repo_url": repo, "privacy": link("privacy"),
                 "support_email": config["support_email"], "testflight_url": config["testflight_url"],
-                "testflight_button": "", "testflight_section": "", "email_line": "",
+                "testflight_button": "", "testflight_section": "", "email_line": "", "shots_lang": lang,
             }
             if not is_tbd(config["testflight_url"]):
                 values["testflight_button"] = "      " + sub(read(os.path.join(src, "testflight_button.html")), values, lang).strip() + "\n"
                 values["testflight_section"] = sub(read(os.path.join(src, "testflight.html")), values, lang)
             if not is_tbd(config["support_email"]):
                 values["email_line"] = sub(read(os.path.join(src, "email.html")), values, lang)
+            head_extra = body_end = ""
             if page in docs:
                 note = sub(read(os.path.join(src, "privacy_note.html")), values, lang).strip()
                 inner = '<div class="doc"%s>\n%s\n</div>' % (' lang="en"' if lang != "en" else "", docs[page])
                 body = (note + "\n" if note else "") + inner
+            elif page == "home":
+                strings = json.loads(read(os.path.join(src, "home.json")))
+                texts = {"t_" + k: sub(v, values, lang + "/home.json") for k, v in strings.items()}
+                body = sub(home_template, dict(values, **partials, **texts), lang + "/home")
+                head_extra = HOME_HEAD % root
+                body_end = HOME_SCRIPT % (root, html.escape(strings["play"]))
             else:
                 body = sub(read(os.path.join(src, page + ".html")), values, lang + "/" + page)
 
@@ -223,7 +244,7 @@ def build(out):
             layout_values = {
                 "lang": meta["html_lang"], "title": html.escape(page_meta["title"]), "description": html.escape(page_meta["description"]),
                 "canonical": config["base_url"] + (here + "/" if here else ""), "alternates": "\n".join(alternates),
-                "root": root, "skip": meta["skip"], "home": link("home"), "nav_label": meta["nav_label"], "nav": "\n".join(nav),
+                "root": root, "head_extra": head_extra, "body_end": body_end, "skip": meta["skip"], "home": link("home"), "nav_label": meta["nav_label"], "nav": "\n".join(nav),
                 "lang_label": meta["lang_label"], "langs": "\n".join(langs), "body": body, "footer_label": meta["footer_label"],
                 "footer_nav": "\n".join(footer_nav), "footer_note": sub(meta["footer_note"], {"repo_url": repo}, "footer"),
             }
@@ -249,7 +270,7 @@ class Page(HTMLParser):
         if tag == "img" and a.get("alt") is None:
             self.problems.append("<img src=%s> has no alt" % a.get("src"))
         for attr in ("href", "src"):
-            if tag in ("a", "link", "img") and a.get(attr):
+            if tag in ("a", "link", "img", "script") and a.get(attr):
                 self.links.append(a[attr])
 
     def handle_endtag(self, tag):

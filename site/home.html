@@ -1,0 +1,167 @@
+<section class="hero">
+  <div>
+    <h1>{{t_h1}}</h1>
+    <p class="sub">{{t_sub}}</p>
+    <p class="lead">{{t_lead}}</p>
+    <div class="actions">
+{{testflight_button}}      <a class="button secondary" href="#ask">{{t_see}}</a>
+      <a class="button secondary" href="{{repo_url}}">{{t_source}}</a>
+    </div>
+  </div>
+  <figure class="hero-ring st" data-steps="700,1300,2400" data-hold="2600" data-loops="3">
+    <div class="hero-art" role="img" aria-label="{{t_hero_alt}}">
+      <div class="asks">
+        <p class="ask ty" data-at="1" data-l="0">{{t_ask1}}</p>
+        <p class="ask ty" data-at="1" data-l="1">{{t_ask2}}</p>
+        <p class="ask ty" data-at="1" data-l="2">{{t_ask3}}</p>
+      </div>
+      <div class="bigring is-done" data-ring="0:idle 2:work 3:done">{{ring}}</div>
+      <ul class="lg">
+        <li class="is-idle">{{ring}}{{t_st_idle}}</li>
+        <li class="is-work">{{ring}}{{t_st_work}}</li>
+        <li class="is-done">{{ring}}{{t_st_done}}</li>
+      </ul>
+    </div>
+    <figcaption>{{t_hero_cap}}</figcaption>
+    <button class="pause" type="button">{{t_pause}}</button>
+  </figure>
+</section>
+
+<section class="scrolly" id="ask">
+  <div class="intro rv">
+    <h2>{{t_ask_h}}</h2>
+    <p>{{t_ask_p}}</p>
+  </div>
+  <figure class="sticky">
+    <div class="phone restyle st" role="img" aria-label="{{t_ask_alt}}">
+      {{article}}
+      {{bar}}
+      <div class="drawer">
+        <p class="dh"><b>{{t_ui_agent}}</b><span>news.example.com</span></p>
+        <p class="ub ty" data-at="1">{{t_ask_dark}}</p>
+        <div class="stack">
+          <ul class="tl">
+            <li class="is-done" data-at="2" data-ring="2:work 3:done">{{ring}}{{t_ui_reading}}</li>
+            <li class="is-done" data-at="2" data-ring="2:work 3:done">{{ring}}{{t_ui_running}}</li>
+          </ul>
+          <p class="fold">{{t_ui_steps}}<span class="gl">›</span></p>
+        </div>
+        <p class="at" data-at="3">{{t_demo_answer}}</p>
+        <p class="comp"><span class="fld">{{t_ui_askagent}}</span><span class="rb"></span></p>
+      </div>
+    </div>
+  </figure>
+  <ol class="steps">
+    <li class="step"><h3>{{t_step1_h}}</h3><p>{{t_step1_p}}</p></li>
+    <li class="step"><h3>{{t_step2_h}}</h3><p>{{t_step2_p}}</p></li>
+    <li class="step"><h3>{{t_step3_h}}</h3><p>{{t_step3_p}}</p></li>
+  </ol>
+</section>
+
+<section class="demo flip">
+  <div class="rv">
+    <h2>{{t_addr_h}}</h2>
+    <p>{{t_addr_p}}</p>
+    <ul>
+      <li>{{t_addr_l1}}</li>
+      <li>{{t_addr_l2}}</li>
+      <li>{{t_addr_l3}}</li>
+    </ul>
+  </div>
+  <figure>
+    <div class="phone addrdemo st" data-steps="1100,900,1500,1500" data-hold="3200" role="img" aria-label="{{t_addr_alt}}">
+      {{article}}
+      {{bar}}
+      <div class="home">
+        <div class="hsec">
+          <p class="hh">{{t_ui_home}}</p>
+          <p class="hd">{{t_ui_sites}}</p>
+          <p class="tiles"><span><b style="background:#7A2E1F">N</b>Northwind</span><span><b style="background:#3A5BE0">D</b>Docs</span><span><b style="background:#5E5E66">M</b>Maps</span><span><b class="plus">+</b>{{t_ui_add}}</span></p>
+          <p class="hd">{{t_ui_recent}}</p>
+          <p class="hrow is-idle">{{ring}}<span>{{t_ask_dark}}<small>{{t_ui_agent}} · news.example.com</small></span></p>
+        </div>
+        <div class="sugg">
+          <p class="r1 tap is-idle">{{ring}}<span>{{t_ui_ask_row}}</span></p>
+          <p><span class="mag"></span><span>{{t_ui_search_row}}</span></p>
+        </div>
+        <p class="edit"><span class="ef"><span class="sel">news.example.com/harbour-ferries</span><span class="ty" data-at="3">{{t_typed}}</span><i class="caret"></i></span><span class="cancel">{{t_ui_cancel}}</span></p>
+        <div class="kb"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+    <button class="pause" type="button">{{t_pause}}</button>
+  </figure>
+</section>
+
+<section class="demo">
+  <div class="rv">
+    <h2>{{t_script_h}}</h2>
+    <p>{{t_script_p}}</p>
+  </div>
+  <figure>
+    <div class="phone scriptdemo st" data-steps="800,900,2200,900" data-hold="2600" role="img" aria-label="{{t_script_alt}}">
+      {{article}}
+      {{bar}}
+      <div class="scrim"></div>
+      <div class="sheet">
+        <p class="sh"><span class="cancel">{{t_ui_cancel}}</span><b>{{t_ui_addscript}}</b></p>
+        <p class="sid" data-at="2"><b class="tile">{}</b><span><b>Tidy Pages</b><small>{{t_ui_by}}</small><em>scripts.example.org</em></span></p>
+        <p class="cap" data-at="2">{{t_ui_runs}}</p>
+        <p class="crow mono" data-at="2">https://news.example.com/*</p>
+        <p class="cap" data-at="2">{{t_ui_canuse}}</p>
+        <p class="crow" data-at="2">{{t_ui_keeps}}</p>
+        <p class="cap" data-at="2">{{t_ui_code}}<span>{{t_ui_lines}}</span></p>
+        <p class="crow mono code" data-at="2" lang="en">// ==UserScript==<br>// @name   Tidy Pages<br>// @match  https://news.example.com/*<br>// @grant  GM_setValue<br>// ==/UserScript==</p>
+        <p class="pb tap">{{t_ui_addon}}</p>
+        <p class="sb">{{t_ui_addoff}}</p>
+      </div>
+    </div>
+    <button class="pause" type="button">{{t_pause}}</button>
+  </figure>
+</section>
+
+<section class="gallery">
+  <div class="rv">
+    <h2>{{t_shots_h}}</h2>
+    <p>{{t_shots_p}}</p>
+  </div>
+  <div class="shots rv" tabindex="0" role="group" aria-label="{{t_shots_h}}">
+    <img src="{{root}}assets/shots/{{shots_lang}}/01.webp" alt="{{t_shot1}}" width="440" height="956" loading="lazy" decoding="async">
+    <img src="{{root}}assets/shots/{{shots_lang}}/02.webp" alt="{{t_shot2}}" width="440" height="956" loading="lazy" decoding="async">
+    <img src="{{root}}assets/shots/{{shots_lang}}/03.webp" alt="{{t_shot3}}" width="440" height="956" loading="lazy" decoding="async">
+    <img src="{{root}}assets/shots/{{shots_lang}}/04.webp" alt="{{t_shot4}}" width="440" height="956" loading="lazy" decoding="async">
+    <img src="{{root}}assets/shots/{{shots_lang}}/05.webp" alt="{{t_shot5}}" width="440" height="956" loading="lazy" decoding="async">
+  </div>
+</section>
+
+<h2 id="features" class="rv">{{t_features}}</h2>
+<div class="cards">
+  <div class="card rv"><h3>{{t_c1_h}}</h3><p>{{t_c1_p}}</p></div>
+  <div class="card rv"><h3>{{t_c2_h}}</h3><p>{{t_c2_p}}</p></div>
+  <div class="card rv"><h3>{{t_c3_h}}</h3><p>{{t_c3_p}}</p></div>
+  <div class="card rv"><h3>{{t_c4_h}}</h3><p>{{t_c4_p}}</p></div>
+  <div class="card rv"><h3>{{t_c5_h}}</h3><p>{{t_c5_p}}</p></div>
+  <div class="card rv"><h3>{{t_c6_h}}</h3><p>{{t_c6_p}}</p></div>
+  <div class="card rv"><h3>{{t_c7_h}}</h3><p>{{t_c7_p}}</p></div>
+</div>
+
+<h2 id="careful" class="rv">{{t_careful}}</h2>
+<ul class="rv">
+  <li>{{t_safe1}}</li>
+  <li>{{t_safe2}}</li>
+  <li>{{t_safe3}}</li>
+  <li>{{t_safe4}}</li>
+</ul>
+<div class="note rv"><p>{{t_note}}</p></div>
+
+<h2 id="data" class="rv">{{t_data}}</h2>
+<p class="rv">{{t_data_p}}</p>
+
+{{testflight_section}}
+<section class="end rv">
+  <div class="endring is-idle">{{ring}}</div>
+  <h2>{{t_end_h}}</h2>
+  <p>{{t_end_p}}</p>
+  <div class="actions">
+{{testflight_button}}      <a class="button secondary" href="{{repo_url}}">{{t_source}}</a>
+  </div>
+</section>
