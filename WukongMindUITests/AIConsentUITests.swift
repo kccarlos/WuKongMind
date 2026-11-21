@@ -106,4 +106,47 @@ final class AIConsentUITests: DCUITestCase {
         app.buttons["voiceConsentDecline"].tap()
         XCTAssertTrue(waitForGone(page, timeout: 10), "Don't Allow did not close voice consent page.")
     }
+
+    /// WUKO-205: Agent on one provider (Google Vertex AI) and Summaries on another
+    /// (Anthropic). After allowing the Agent's provider, `summarize_topic` shows the
+    /// consent page for the second provider, and Allow completes the summary card.
+    func testAgentToolOnSecondProviderAsksForConsentAndProceedsAfterAllow() throws {
+        try skipUnlessPhone("The AI drawer is an iPhone behavior.")
+        let app = launch(
+            sample + [
+                "-dc-no-summary",
+                "-dc-fake-summary",
+                "-dc-agent-model", "vertexai:gemini-2.5-flash",
+                "-dc-ask-ai-consent"
+            ]
+        )
+        let state = drawerState(in: app)
+        XCTAssertTrue(waitOrDump(state, timeout: 20, in: app), "The sample did not open the drawer.")
+
+        let summarize = app.buttons["suggestion-summarizeThread"].firstMatch
+        XCTAssertTrue(waitForHittable(summarize, timeout: 15), "Summarize suggestion is missing.")
+        summarize.tap()
+
+        // 1. Agent's provider (Google Vertex AI) asks first.
+        let page = any(app, "aiConsentPage")
+        XCTAssertTrue(waitOrDump(page, timeout: 10, in: app), "Consent page for the Agent's provider did not appear.")
+        let title = any(app, "aiConsentTitle")
+        XCTAssertTrue(title.waitForExistence(timeout: 5))
+        XCTAssertEqual(title.label, "Send web page content to Google Vertex AI?")
+        app.buttons["aiConsentAllow"].tap()
+
+        // 2. `summarize_topic` uses Summaries' provider (Anthropic), which asks next.
+        let secondTitle = app.staticTexts["Send web page content to Anthropic?"].firstMatch
+        XCTAssertTrue(
+            waitOrDump(secondTitle, timeout: 15, in: app),
+            "Consent page for the tool's second provider (Anthropic) did not appear."
+        )
+        capture("wuko205-second-provider-consent")
+        XCTAssertFalse(any(app, "capabilityThreadSummaryCard").exists, "Summary must not run before allowing the second provider.")
+
+        app.buttons["aiConsentAllow"].tap()
+        XCTAssertTrue(waitForGone(page, timeout: 10), "Allow did not close the second consent page.")
+        XCTAssertTrue(waitOrDump(any(app, "capabilityThreadSummaryCard"), timeout: 30, in: app), "Summary card did not appear after allowing the second provider.")
+        capture("wuko205-after-allow-summary")
+    }
 }
