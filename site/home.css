@@ -24,10 +24,13 @@ figure { margin: 0; }
 .ring .rc { stroke: var(--gold-ink); opacity: 0; }
 .is-work > .ring .rt, .is-done > .ring .rc { opacity: 1; }
 .is-work > .ring .ra { stroke-dasharray: 42.5 57.5; }
-.anim .is-work > .ring { animation: turn 1.1s linear infinite; }
+.anim [data-ring].is-work > .ring { animation: turn 1.1s linear infinite; }
 .anim [data-ring].is-done > .ring .ra { animation: close .25s ease-out; }
 .anim [data-ring].is-done > .ring .rc { animation: check .12s linear .25s both; }
 .paused .ring { animation-play-state: paused; }
+/* Before home.js has set step 0, a stage's rings show idle, never a done that did not happen. */
+.anim [data-steps]:not([data-loop]) [data-ring] > .ring .rc { opacity: 0; }
+.anim [data-steps]:not([data-loop]) [data-ring] > .ring * { animation: none; }
 @keyframes turn { to { transform: rotate(360deg); } }
 @keyframes close { from { stroke-dasharray: 74 26; } }
 @keyframes check { from { opacity: 0; } }
@@ -79,7 +82,8 @@ figcaption { color: var(--muted); font-size: 14px; max-width: 30em; }
 .anim .sticky .phone { zoom: .72; }
 .anim .step { min-height: 46vh; margin: 0; }
 .anim .step.cur { border-color: var(--gold); }
-.pause { display: block; min-height: 44px; margin: 4px auto 0; padding: 0 12px; border: 0; background: none; color: var(--gold-ink); font: 600 14px var(--font); cursor: pointer; }
+.pause { display: none; min-height: 44px; margin: 4px auto 0; padding: 0 12px; border: 0; background: none; color: var(--gold-ink); font: 600 14px var(--font); cursor: pointer; }
+.anim .pause { display: block; }
 .pause:focus-visible { outline: 2px solid var(--gold-ink); outline-offset: 2px; border-radius: var(--sm); }
 
 /* The phone frame and the page inside it (an invented article, as on the design boards) */

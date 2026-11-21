@@ -77,20 +77,15 @@
   stages.forEach(stage => stageObserver.observe(stage.el));
 
   // One pause button under each looping demo; any of them pauses all of them.
-  const buttons = stages.map(stage => {
-    const button = document.createElement('button');
-    button.type = 'button';
-    button.className = 'pause';
-    button.textContent = labels.pause;
-    button.addEventListener('click', () => {
-      paused = !paused;
-      root.classList.toggle('paused', paused);
-      buttons.forEach(b => { b.textContent = paused ? labels.play : labels.pause; });
-      stages.forEach(s => s.schedule());
-    });
-    stage.el.closest('figure').append(button);
-    return button;
-  });
+  // The buttons are in the markup (shown only under html.anim), so adding them moves nothing.
+  const buttons = [...document.querySelectorAll('.pause')];
+  const pauseLabel = buttons[0].textContent;
+  buttons.forEach(button => button.addEventListener('click', () => {
+    paused = !paused;
+    root.classList.toggle('paused', paused);
+    buttons.forEach(b => { b.textContent = paused ? labels.play : pauseLabel; });
+    stages.forEach(s => s.schedule());
+  }));
 
   // The scroll-driven demo: its step is the number of text steps scrolled into view.
   document.querySelectorAll('.scrolly').forEach(section => {

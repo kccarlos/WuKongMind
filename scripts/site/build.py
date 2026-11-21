@@ -149,7 +149,7 @@ def render_list(items, blob):
 HOME_HEAD = """<script>if(!matchMedia("(prefers-reduced-motion: reduce)").matches&&"IntersectionObserver"in window)document.documentElement.classList.add("anim")</script>
 <link rel="stylesheet" href="%shome.css">
 """
-HOME_SCRIPT = '<script src="%shome.js" defer data-pause="%s" data-play="%s"></script>\n'
+HOME_SCRIPT = '<script src="%shome.js" defer data-play="%s"></script>\n'
 
 def sub(template, values, where):
     def one(m):
@@ -221,7 +221,7 @@ def build(out):
                 texts = {"t_" + k: sub(v, values, lang + "/home.json") for k, v in strings.items()}
                 body = sub(home_template, dict(values, **partials, **texts), lang + "/home")
                 head_extra = HOME_HEAD % root
-                body_end = HOME_SCRIPT % (root, html.escape(strings["pause"]), html.escape(strings["play"]))
+                body_end = HOME_SCRIPT % (root, html.escape(strings["play"]))
             else:
                 body = sub(read(os.path.join(src, page + ".html")), values, lang + "/" + page)
 
