@@ -27,7 +27,12 @@
 {{nav}}
   </nav>
   <nav class="langs" aria-label="{{lang_label}}">
+    <details>
+      <summary><svg class="globe" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3.6 9h16.8M3.6 15h16.8M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span class="sr-only">{{lang_label}}: </span><span>{{lang_short}}</span><svg class="chev" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg></summary>
+      <div class="lang-menu">
 {{langs}}
+      </div>
+    </details>
   </nav>
 </header>
 <main id="main">
@@ -39,5 +44,6 @@
   </nav>
   <p>{{footer_note}}</p>
 </footer>
+<script>(function(){var d=document.querySelector(".langs details");if(!d)return;document.addEventListener("keydown",function(e){if(e.key==="Escape"&&d.open){d.open=false;d.querySelector("summary").focus()}});document.addEventListener("click",function(e){if(d.open&&!d.contains(e.target))d.open=false})})();</script>
 {{body_end}}</body>
 </html>
