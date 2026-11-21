@@ -97,5 +97,6 @@ final class TermsAndReportUITests: DCUITestCase {
             settingsApp.swipeUp()
         }
         XCTAssertTrue(waitOrDump(aboutTerms, timeout: 10, in: settingsApp), "Terms of Use link missing in Settings › About.")
+        capture("settings-about")
     }
 }
