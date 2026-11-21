@@ -256,6 +256,8 @@ final class VoiceToolBridge {
     /// The voice registry for the page as it is now (AppModel); without
     /// one, the browse tools alone.
     var registryBuilder: ((BrowseToolContext) -> ToolRegistry)?
+    /// Checked before a voice-triggered tool sends content to an undecided provider.
+    var authorizeProvider: (@MainActor @Sendable (AIProvider, String) async throws -> Void)?
     /// The names the session declared when it connected; a call outside them
     /// is refused, even after a resume (spike Q2). Nil until declared.
     private(set) var declaredNames: Set<String>?
@@ -352,7 +354,10 @@ final class VoiceToolBridge {
                 args = Self.defaultingToPageText(args, text: text)
             }
         }
-        guard let result = try? await registry.dispatch(toolName: name, arguments: args) else {
+        let result = try? await AIConsentAuthorization.$authorize.withValue(authorizeProvider) {
+            try await registry.dispatch(toolName: name, arguments: args)
+        }
+        guard let result else {
             return refusal("The tool was stopped.")
         }
         if name == "read_page", !result.isError { linkState.clearDropped() }

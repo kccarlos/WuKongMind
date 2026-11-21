@@ -594,9 +594,20 @@ final class AppModel: ObservableObject {
             taskRecords: taskRecordStore
         )
         sessionBox.value = agentSession
-        agentSession.authorizeProvider = { [weak appBox] provider, baseURL in
+        agentSession.authorizeProvider = { [weak appBox, weak sessionBox] provider, baseURL in
             guard let app = appBox?.value else { throw AssistantError.aiConsentRequired(provider) }
-            try await app.authorizeSending(to: provider, baseURL: baseURL, mayAsk: true)
+            let session = sessionBox?.value
+            defer {
+                if session?.awaitingConsentProvider == provider {
+                    session?.setWaitingForConsent(nil)
+                }
+            }
+            try await app.authorizeSending(
+                to: provider,
+                baseURL: baseURL,
+                mayAsk: true,
+                whileAsking: { session?.setWaitingForConsent(provider) }
+            )
         }
         agentSession.onAnswer = { [weak appBox] answer in
             _ = appBox?.value?.saveAgentAnswer(answer)
@@ -3450,16 +3461,20 @@ final class AppModel: ObservableObject {
         do {
             if record.type != .pull {
                 try context.requireReadyProvider()
-                try await authorizeSending(
-                    to: context.provider,
-                    baseURL: context.configuration.baseURL,
-                    mayAsk: record.origin == .user,
-                    whileAsking: {
-                        mutateRecord(recordID) {
-                            $0.statusText = String(localized: "Waiting for permission to use \(context.provider.displayName)…", comment: "Status while the AI data consent page is waiting for an answer; the placeholder is an AI provider's name")
+                let authorize = AIConsentAuthorization.authorize ?? { [weak self] provider, baseURL in
+                    guard let self else { throw AssistantError.aiConsentRequired(provider) }
+                    try await self.authorizeSending(
+                        to: provider,
+                        baseURL: baseURL,
+                        mayAsk: record.origin == .user,
+                        whileAsking: {
+                            self.mutateRecord(recordID) {
+                                $0.statusText = AIConsentAuthorization.waitingStatusText(for: provider)
+                            }
                         }
-                    }
-                )
+                    )
+                }
+                try await authorize(context.provider, context.configuration.baseURL)
             }
             switch record.type {
             case .summary:

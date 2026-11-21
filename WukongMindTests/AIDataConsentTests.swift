@@ -406,6 +406,175 @@ final class AIDataConsentTests: XCTestCase {
         }
         XCTAssertEqual(AppVersion.repositoryURL.absoluteString, "https://github.com/kccarlos/WuKongMind")
     }
+
+    // MARK: - Multi-provider tool consent (WUKO-205)
+
+    private func configureSplitProviders(_ app: AppModel, agent: AIProvider, summaries: AIProvider) {
+        app.settings.hasCompletedOnboarding = true
+        app.settings.acceptedTermsVersion = TermsOfUse.currentVersion
+        var agentConfig = app.settings.configuration(for: agent)
+        agentConfig.apiKey = "agent-key"
+        app.settings.setConfiguration(agentConfig, for: agent)
+        app.settings.setModel(ModelSelection(provider: agent, model: "agent-model"), for: .browserAgent)
+
+        var summariesConfig = app.settings.configuration(for: summaries)
+        summariesConfig.apiKey = "summaries-key"
+        app.settings.setConfiguration(summariesConfig, for: summaries)
+        app.settings.setModel(ModelSelection(provider: summaries, model: "summaries-model"), for: .assistant)
+
+        // Agent provider is already allowed; Summaries provider stays undecided.
+        app.settings.aiConsent[agent.rawValue] = .allowed(Date())
+        app.settings.aiConsent.removeValue(forKey: summaries.rawValue)
+    }
+
+    private func waitUntil(timeoutSeconds: Double = 5, _ condition: @MainActor () -> Bool) async throws -> Bool {
+        let deadline = Date().addingTimeInterval(timeoutSeconds)
+        while Date() < deadline {
+            if condition() { return true }
+            try await Task.sleep(for: .milliseconds(15))
+        }
+        return condition()
+    }
+
+    /// Agent on Anthropic (allowed) calls `summarize_topic` backed by Vertex AI (undecided):
+    /// the Vertex AI consent page appears, the Agent ring enters `.needsYou`, the step shows
+    /// "Waiting for permission to use Google Vertex AI…", and Allow completes the same call
+    /// with exactly one request to Vertex AI.
+    func testAgentToolOnUndecidedProviderAsksShowsNeedsYouAndAllowSendsOnce() async throws {
+        let app = makeApp(aiService: AIService(session: ConsentAIRequestStub.session()))
+        configureSplitProviders(app, agent: .anthropic, summaries: .vertexAI)
+        app.browserAgent.configureDebugModelClient(RecordedSummarizeAgentClient())
+
+        app.browserAgent.send("Summarize this page")
+
+        let asked = try await waitUntil { app.aiConsent.asking == .vertexAI }
+        XCTAssertTrue(asked, "Consent page for Google Vertex AI did not appear during summarize_topic")
+        XCTAssertEqual(app.rootPresentation, .aiConsent(.vertexAI))
+        XCTAssertEqual(app.agentRingState(isAvailable: true), .needsYou)
+        let runningRow = app.browserAgent.runs.last?.toolCalls.last(where: \.isRunning)
+        XCTAssertEqual(runningRow?.toolName, "summarize_topic")
+        XCTAssertEqual(runningRow?.statusText, AIConsentAuthorization.waitingStatusText(for: .vertexAI))
+        XCTAssertEqual(ConsentAIRequestStub.count, 0, "Nothing may be sent to Vertex AI before Allow")
+
+        app.answerAIConsent(.vertexAI, allow: true)
+
+        let finished = try await waitUntil { !app.browserAgent.isRunning }
+        XCTAssertTrue(finished, "Agent run did not finish after Allow")
+        XCTAssertNil(app.browserAgent.awaitingConsentProvider)
+        XCTAssertEqual(ConsentAIRequestStub.count, 1, "Allow must continue the same tool call with exactly one request")
+        let completedRow = app.browserAgent.runs.last?.toolCalls.first(where: { $0.toolName == "summarize_topic" })
+        XCTAssertEqual(completedRow?.isError, false)
+        XCTAssertEqual(completedRow?.resultText, "OK")
+        XCTAssertNil(completedRow?.statusText)
+        XCTAssertTrue(app.browserAgent.runs.last?.assistantText.contains("OK") == true)
+    }
+
+    /// Don't Allow on the tool's provider fails that tool call with the declined text,
+    /// sends nothing to Vertex AI, and lets the Agent report it plainly.
+    func testAgentToolOnUndecidedProviderDeclineFailsToolWithoutSending() async throws {
+        let app = makeApp(aiService: AIService(session: ConsentAIRequestStub.session()))
+        configureSplitProviders(app, agent: .anthropic, summaries: .vertexAI)
+        app.browserAgent.configureDebugModelClient(RecordedSummarizeAgentClient())
+
+        app.browserAgent.send("Summarize this page")
+
+        let asked = try await waitUntil { app.aiConsent.asking == .vertexAI }
+        XCTAssertTrue(asked, "Consent page for Google Vertex AI did not appear")
+        XCTAssertEqual(app.agentRingState(isAvailable: true), .needsYou)
+
+        app.answerAIConsent(.vertexAI, allow: false)
+
+        let finished = try await waitUntil { !app.browserAgent.isRunning }
+        XCTAssertTrue(finished, "Agent run did not finish after Don't Allow")
+        XCTAssertNil(app.browserAgent.awaitingConsentProvider)
+        XCTAssertEqual(ConsentAIRequestStub.count, 0, "Nothing may be sent to Vertex AI after Don't Allow")
+        let failedRow = app.browserAgent.runs.last?.toolCalls.first(where: { $0.toolName == "summarize_topic" })
+        XCTAssertEqual(failedRow?.isError, true)
+        let declinedText = AssistantError.aiConsentDeclined(.vertexAI).localizedDescription
+        XCTAssertTrue(failedRow?.resultText.contains(declinedText) == true, "Expected declined message, got: \(failedRow?.resultText ?? "nil")")
+        XCTAssertTrue(app.browserAgent.runs.last?.assistantText.contains(declinedText) == true)
+    }
+
+    /// Unattended summary refreshes (`origin: .automatic`) with an undecided provider
+    /// never open the consent page and fail quietly.
+    func testUnattendedSummaryRefreshNeverAsksAndFailsQuietly() async throws {
+        let app = makeApp(aiService: AIService(session: ConsentAIRequestStub.session()))
+        configureSplitProviders(app, agent: .anthropic, summaries: .vertexAI)
+        let topic = ForumTopic(
+            siteURL: "https://meta.discourse.org",
+            topicID: "99",
+            url: URL(string: "https://meta.discourse.org/t/test/99")!,
+            title: "Test topic"
+        )
+        XCTAssertTrue(app.enqueueSummary(for: topic, origin: .automatic))
+        let recordID = try XCTUnwrap(app.activities.first?.id)
+
+        let terminal = try await waitUntil {
+            app.activities.first(where: { $0.id == recordID })?.status.isTerminal == true
+        }
+        XCTAssertTrue(terminal, "Unattended summary job did not finish")
+        XCTAssertNil(app.aiConsent.asking, "Unattended refresh must never show the consent page")
+        XCTAssertEqual(app.activities.first(where: { $0.id == recordID })?.status, .failed)
+        XCTAssertEqual(ConsentAIRequestStub.count, 0)
+    }
+
+    /// Summary card Retry (`startSummary(regenerate: true)`) asks for consent when
+    /// the Summaries provider is undecided.
+    func testSummaryCardRetryAsksForUndecidedProvider() async throws {
+        let app = makeApp(aiService: AIService(session: ConsentAIRequestStub.session()))
+        configureSplitProviders(app, agent: .anthropic, summaries: .vertexAI)
+        let topic = ForumTopic(
+            siteURL: "https://meta.discourse.org",
+            topicID: "42",
+            url: URL(string: "https://meta.discourse.org/t/retry-test/42")!,
+            title: "Retry test"
+        )
+        let context = PageContext(url: topic.url, siteURL: topic.siteURL, topic: topic, state: .topic)
+        app.browser.setPageContext(context)
+        app.browser.onPageContextChanged?(context)
+
+        app.startSummary(regenerate: true)
+
+        let asked = try await waitUntil { app.aiConsent.asking == .vertexAI }
+        XCTAssertTrue(asked, "Summary Retry did not show the consent page for Google Vertex AI")
+        XCTAssertEqual(app.rootPresentation, .aiConsent(.vertexAI))
+        XCTAssertEqual(ConsentAIRequestStub.count, 0)
+
+        app.answerAIConsent(.vertexAI, allow: true)
+        let resolved = try await waitUntil { app.aiConsent.asking == nil }
+        XCTAssertTrue(resolved)
+        if case .allowed = app.aiConsentState(for: .vertexAI) {
+        } else {
+            XCTFail("Expected Vertex AI to be allowed after answering Retry's consent page")
+        }
+    }
+}
+
+private final class RecordedSummarizeAgentClient: AgentModelClient, @unchecked Sendable {
+    func completeToolTurn(
+        system: String,
+        messages: [AgentModelTurn],
+        tools: [AgentToolDefinition],
+        configuration: ProviderConfiguration,
+        provider: AIProvider,
+        maxTokens: Int
+    ) async throws -> AgentModelTurnResponse {
+        if case .toolResults(let results) = messages.last, let first = results.first {
+            let reply = first.isError ? "Could not summarize: \(first.content)" : "Summary ready: \(first.content)"
+            return AgentModelTurnResponse(text: reply, stopReason: "end_turn")
+        }
+        return AgentModelTurnResponse(
+            text: "",
+            toolCalls: [
+                AgentModelToolCall(
+                    id: "call_sum_1",
+                    name: "summarize_topic",
+                    arguments: ["text": .string("Ferries run every 30 minutes across the bay.")]
+                )
+            ],
+            stopReason: "tool_use"
+        )
+    }
 }
 
 // MARK: - Network stub
@@ -453,7 +622,11 @@ private final class ConsentAIRequestStub: URLProtocol {
         let body: String
         switch currentMode {
         case .sse:
-            body = "data: {\"choices\":[{\"delta\":{\"content\":\"OK\"}}]}\n\ndata: [DONE]\n\n"
+            if request.url?.absoluteString.contains("GenerateContent") == true {
+                body = "data: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"OK\"}]}}]}\n\n"
+            } else {
+                body = "data: {\"choices\":[{\"delta\":{\"content\":\"OK\"}}]}\n\ndata: [DONE]\n\n"
+            }
         case .toolTurn:
             body = "{\"choices\":[{\"message\":{\"role\":\"assistant\",\"content\":\"OK\"},\"finish_reason\":\"stop\"}],\"usage\":{\"prompt_tokens\":1,\"completion_tokens\":1}}"
         }

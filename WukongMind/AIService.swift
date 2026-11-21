@@ -53,6 +53,15 @@ class AIService: @unchecked Sendable {
         }
     }
 
+    /// Authorizes user-initiated requests via the task-local hook (if any), then
+    /// enforces the non-asking backstop as the last line of defence.
+    private func authorizeAndCheckConsent(provider: AIProvider, configuration: ProviderConfiguration) async throws {
+        if let authorize = AIConsentAuthorization.authorize {
+            try await authorize(provider, configuration.baseURL)
+        }
+        try await consentCheck(provider, configuration)
+    }
+
     init(
         session: URLSession = .shared,
         appleIntelligence: AppleIntelligenceServing = AppleIntelligenceClient.shared
@@ -485,7 +494,7 @@ class AIService: @unchecked Sendable {
             )
         }
         // Every streamed/completed third-party request (summaries, GM_ai, podcast scripts) comes here.
-        try await consentCheck(provider, configuration)
+        try await authorizeAndCheckConsent(provider: provider, configuration: configuration)
         try validate(configuration: configuration, provider: provider)
         var tokenBudgets: [Int] = [
             maxTokens,
@@ -820,7 +829,7 @@ class AIService: @unchecked Sendable {
             )
         }
         // Every streamed/completed third-party request (summaries, GM_ai, podcast scripts) comes here.
-        try await consentCheck(provider, configuration)
+        try await authorizeAndCheckConsent(provider: provider, configuration: configuration)
         try validate(configuration: configuration, provider: provider)
 
         let request = try makeToolRequest(

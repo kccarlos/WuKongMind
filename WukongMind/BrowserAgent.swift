@@ -651,6 +651,8 @@ struct BrowserAgentToolCallRow: Codable, Identifiable, Equatable, Sendable {
     }
     /// The model turn that asked for this call (developer mode's "Model step").
     var modelTurn: AgentTurnInfo?
+    /// Transient live status while `isRunning` (e.g. waiting for AI data consent).
+    var statusText: String? = nil
 
     init(
         id: UUID = UUID(),
@@ -1367,7 +1369,16 @@ final class BrowserAgentSession {
     /// Checked before starting a turn; returns a user-facing refusal message when disallowed, or `nil` when allowed.
     @ObservationIgnored var runStartGate: (@MainActor () -> String?)?
     /// Checked before sending web page content to a third-party provider; shows the AI data consent page if undecided.
-    @ObservationIgnored var authorizeProvider: (@MainActor (AIProvider, String) async throws -> Void)?
+    @ObservationIgnored var authorizeProvider: (@MainActor @Sendable (AIProvider, String) async throws -> Void)?
+    /// Provider whose AI data consent page is currently blocking this session.
+    private(set) var awaitingConsentProvider: AIProvider?
+
+    func setWaitingForConsent(_ provider: AIProvider?) {
+        awaitingConsentProvider = provider
+        guard let runIdx = runs.indices.last,
+              let rowIdx = runs[runIdx].toolCalls.lastIndex(where: \.isRunning) else { return }
+        runs[runIdx].toolCalls[rowIdx].statusText = provider.map(AIConsentAuthorization.waitingStatusText(for:))
+    }
     /// Fired whenever `isRunning` changes (`true` on start, `false` when finished, stopped or failed).
     @ObservationIgnored var onRunStateChanged: (@MainActor (Bool) -> Void)?
     /// Fired when persisted conversation state changes.
@@ -1686,6 +1697,7 @@ final class BrowserAgentSession {
         let task = activeTask
         activeTask = nil
         task?.cancel()
+        setWaitingForConsent(nil)
 
         if let lastID = runs.last?.id {
             finish(run: lastID, as: .stopped(step: currentStep))
@@ -2002,18 +2014,22 @@ final class BrowserAgentSession {
             }
 
             do {
-                if let authorizeProvider {
-                    try await authorizeProvider(selection.provider, configuration.baseURL)
-                    guard self.activeGeneration == generation, !Task.isCancelled else { return }
+                guard let result = try await AIConsentAuthorization.$authorize.withValue(authorizeProvider, operation: { () async throws -> AgentLoopTurnResult? in
+                    if let authorizeProvider {
+                        try await authorizeProvider(selection.provider, configuration.baseURL)
+                        guard self.activeGeneration == generation, !Task.isCancelled else { return nil }
+                    }
+                    return try await loop.run(
+                        runID: runID,
+                        systemPrompt: systemPrompt,
+                        initialHistory: startingHistory,
+                        configuration: configuration,
+                        provider: selection.provider,
+                        events: events
+                    )
+                }) else {
+                    return
                 }
-                let result = try await loop.run(
-                    runID: runID,
-                    systemPrompt: systemPrompt,
-                    initialHistory: startingHistory,
-                    configuration: configuration,
-                    provider: selection.provider,
-                    events: events
-                )
                 guard self.activeGeneration == generation else { return }
                 self.history = result.history
                 self.activeTask = nil

@@ -164,7 +164,7 @@ extension AppModel {
     func agentRingState(isAvailable: Bool) -> AgentRingState {
         AgentRingState.resolve(
             isAvailable: isAvailable,
-            hasPendingConfirmation: !agentConfirmations.pending.isEmpty,
+            hasPendingConfirmation: !agentConfirmations.pending.isEmpty || browserAgent.awaitingConsentProvider != nil,
             runState: browserAgent.runState,
             lastRunID: browserAgent.runs.last?.id,
             seenRunID: browserAgent.seenRunID,

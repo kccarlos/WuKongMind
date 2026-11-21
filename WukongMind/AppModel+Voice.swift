@@ -235,6 +235,10 @@ extension AppModel: VoiceNavigator {
             session.tools.registryBuilder = { [weak self] browse in
                 self?.voiceToolRegistry(browse: browse) ?? ToolRegistry(tools: ToolRegistry.browseTools(browse: browse))
             }
+            session.tools.authorizeProvider = { [weak self] provider, baseURL in
+                guard let self else { throw AssistantError.aiConsentRequired(provider) }
+                try await self.authorizeSending(to: provider, baseURL: baseURL, mayAsk: true)
+            }
             // Voice turns join the one conversation (design-one-loop.md "Voice").
             session.onTranscript = { [weak self] role, text, date in self?.browserAgent.appendVoiceTurn(role, text: text, at: date) }
             let subscription = pageChanges.sink { [weak session] page in session?.pageChanged(page) }

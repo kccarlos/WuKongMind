@@ -745,14 +745,15 @@ private struct AgentRunSectionView: View, Equatable {
             let expanded = model.expandedRowIDs.contains(row.id)
             let showableTabID: String? = row.openedTabID.flatMap { model.showableTabIDs.contains($0) ? $0 : nil }
             VStack(alignment: .leading, spacing: inlineCapabilityCards ? 8 : 0) {
+                let waitingStatus = row.isRunning ? row.statusText : nil
                 DCToolRow(
-                    label: DCToolLabel.browser(
+                    label: waitingStatus ?? DCToolLabel.browser(
                         row.toolName,
                         argumentsJSON: row.argumentsJSON,
                         openedTabID: row.openedTabID,
                         running: row.isRunning
                     ),
-                    codeName: developerMode ? row.toolName : nil,
+                    codeName: developerMode && waitingStatus == nil ? row.toolName : nil,
                     duration: developerMode ? row.duration.map(BrowserAgentPanelView.formatDuration) : nil,
                     summary: row.isRunning ? "" : row.resultSummary,
                     state: row.isRunning ? .running : (row.isError ? .error : (row.isPageWarning ? .warning : .done)),

@@ -18,6 +18,9 @@ import Foundation
 // - `AIConsentGate`            who is waiting for an answer (not saved).
 // - `AppModel.authorizeSending(to:baseURL:mayAsk:whileAsking:)`
 //                              interactive check at the start of user work.
+// - `AIConsentAuthorization`   TaskLocal interactive hook bound around Agent
+//                              runs and Voice tool calls, inherited by every
+//                              async tool and summary job they invoke.
 // - `AIService.consentCheck`   the request-layer backstop before every
 //                              third-party request (streamText & tool turns),
 //                              including `GM_ai`, summaries, and the Agent.
@@ -178,6 +181,23 @@ struct AIProviderPolicy: Equatable {
         case .nvidia:
             return make("https://www.nvidia.com/en-us/about-nvidia/terms-of-service/", "https://www.nvidia.com/en-us/about-nvidia/privacy-policy/")
         }
+    }
+}
+
+/// Interactive AI data consent hook inherited across async work started by
+/// the user (such as an Agent run and every tool or summary job it invokes).
+/// Unattended work (watched-topic refreshes, background tasks, autonomous page
+/// scripts) leaves this nil so `AIService.consentCheck` remains a non-asking backstop.
+enum AIConsentAuthorization {
+    @TaskLocal static var authorize: (@MainActor @Sendable (AIProvider, String) async throws -> Void)?
+
+    /// Shared status text shown while waiting for the person to answer the
+    /// consent page for `provider`.
+    static func waitingStatusText(for provider: AIProvider) -> String {
+        String(
+            localized: "Waiting for permission to use \(provider.displayName)…",
+            comment: "Status while the AI data consent page is waiting for an answer; the placeholder is an AI provider's name"
+        )
     }
 }
 
