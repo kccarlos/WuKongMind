@@ -117,6 +117,9 @@ podcast scripts and built-in forum readers. That text needs its own task.
    (design-motion.md section 3, step 6: "Ask the Agent" closes Home and opens the panel).* The bar ring stays
    still here, as in the app: with the panel open, the panel's tool rows are the ring that turns, and "Answer
    ready" shows on the bar only when a run ends with the panel closed.
+   *Corrected by WUKO-206 (2026-11-20, owner): the Agent starts from the gold ring, not the address field. The
+   hero now taps the bar ring, types in the panel's composer and sends; the address-field "Ask the Agent" row
+   (design-motion.md section 3) is a second way in and is named once, in "Say what you want".*
 3. **Three trust facts under the buttons.** Every step shown with Stop; your own AI; no accounts, no tracking,
    open source. *Because "an AI that changes web pages" raises the worry before the interest.*
 4. **Replace the feature grid with "What gets in your way?"** Four problems, each with the sentence you would
