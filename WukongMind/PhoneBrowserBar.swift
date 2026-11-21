@@ -341,17 +341,24 @@ private struct PhoneBarObserverHost: View {
 
 private struct AddressEditBar: View {
     let app: AppModel
-    @ObservedObject var browser: ForumBrowserModel
+    let browser: ForumBrowserModel
     let addressFocusRequest: Int
+    let browserAddressFocusRequest: Int
 
     @State private var addressDraft: String
     @State private var addressError: AddressError?
     @FocusState private var addressFocused: Bool
 
-    init(app: AppModel, browser: ForumBrowserModel, addressFocusRequest: Int) {
+    init(
+        app: AppModel,
+        browser: ForumBrowserModel,
+        addressFocusRequest: Int,
+        browserAddressFocusRequest: Int
+    ) {
         self.app = app
         self.browser = browser
         self.addressFocusRequest = addressFocusRequest
+        self.browserAddressFocusRequest = browserAddressFocusRequest
         let initial = browser.showsForumsHome ? "" : (browser.currentURL?.absoluteString ?? "")
         _addressDraft = State(initialValue: initial)
     }
@@ -384,7 +391,7 @@ private struct AddressEditBar: View {
                         PerfProbe.mark("addressEdit.focus")
                         textField.selectAll(nil)
                     }
-                    .task(id: browser.addressFocusRequest) {
+                    .task(id: browserAddressFocusRequest) {
                         for delayMs in [0, 50, 150, 350] {
                             if delayMs > 0 {
                                 try? await Task.sleep(for: .milliseconds(delayMs))
@@ -434,7 +441,7 @@ private struct AddressEditBar: View {
         .onChange(of: addressFocusRequest) {
             addressFocused = true
         }
-        .onChange(of: browser.addressFocusRequest) {
+        .onChange(of: browserAddressFocusRequest) {
             addressFocused = true
         }
         .alert(
@@ -602,12 +609,22 @@ private struct PhoneOnlyMorphingBarHost: View {
                 Group {
                     if position == .top {
                         VStack(spacing: 0) {
-                            AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
+                            AddressEditBar(
+                                app: app,
+                                browser: browser,
+                                addressFocusRequest: addressFocusRequest,
+                                browserAddressFocusRequest: browser.addressFocusRequest
+                            )
                             Divider()
                         }
                         .background(.bar)
                     } else {
-                        AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
+                        AddressEditBar(
+                            app: app,
+                            browser: browser,
+                            addressFocusRequest: addressFocusRequest,
+                            browserAddressFocusRequest: browser.addressFocusRequest
+                        )
                             .background(.bar)
                     }
                 }
@@ -826,12 +843,22 @@ struct PhoneMorphingBar: View {
         if isEditing {
             if position == .top {
                 VStack(spacing: 0) {
-                    AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
+                    AddressEditBar(
+                        app: app,
+                        browser: browser,
+                        addressFocusRequest: addressFocusRequest,
+                        browserAddressFocusRequest: browser.addressFocusRequest
+                    )
                     Divider()
                 }
                 .background(.bar)
             } else {
-                AddressEditBar(app: app, browser: browser, addressFocusRequest: addressFocusRequest)
+                AddressEditBar(
+                    app: app,
+                    browser: browser,
+                    addressFocusRequest: addressFocusRequest,
+                    browserAddressFocusRequest: browser.addressFocusRequest
+                )
                     .background(.bar)
             }
         } else {
