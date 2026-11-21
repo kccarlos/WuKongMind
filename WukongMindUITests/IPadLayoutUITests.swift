@@ -309,8 +309,8 @@ final class IPadLayoutUITests: DCUITestCase {
         XCTAssertTrue(waitOrDump(home, timeout: 5, in: app), "Home should reappear over the page")
         app.typeKey(".", modifierFlags: .command)
         XCTAssertTrue(waitForGone(field, timeout: 5), "⌘. should close addressField")
-        XCTAssertTrue(waitForGone(home, timeout: 5), "Esc / ⌘. should dismiss Home overlay")
-        XCTAssertTrue(panel.exists, "AI panel must remain visible after Esc")
+        XCTAssertTrue(waitForGone(home, timeout: 5), "⌘. should dismiss Home overlay")
+        XCTAssertTrue(panel.exists, "AI panel must remain visible after ⌘.")
 
         // 4. Compact width (portrait): tapping browserTitle shows Home over the page.
         app.terminate()
