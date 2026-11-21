@@ -38,11 +38,11 @@ renderVals() {
   const P = 'color:#8a6200', B = 'color:#8a6200', N = '';
   const t = (word, means, not, code, color) => ({ word, means, not, code, color: color || N });
   return { terms: [
-    t('Agent', 'The one loop with tools behind the input box. It reads and changes pages, and (from One loop) summarizes, searches forums and makes podcasts with tools. The only thing called Agent; the only thing in gold with the ring.', 'browser agent (in the UI), assistant', 'BrowserAgent, ToolRegistry, ModelRole.browserAgent', P),
+    t('Agent', 'The one loop with tools behind the input box. It reads and changes pages, and (from One loop) summarizes, searches forums and reads aloud with tools. The only thing called Agent; the only thing in gold with the ring.', 'browser agent (in the UI), assistant', 'BrowserAgent, ToolRegistry, ModelRole.browserAgent', P),
     t('Suggestion', 'A question above the input box that you could type or say yourself. A tap sends it; one ending in … fills the box. Shown only where it applies.', 'quick action, mode, shortcut', 'new'),
-    t('Conversation', 'Everything in the panel: your messages, the Agent’s tool rows and replies, and tool results (summary card, answer with numbered sources, podcast row). Holds one or more tasks. One Agent remembers it; in One panel a tapped forum result reaches it as attached context.', 'mode, chat, session', 'BrowserAgentSession'),
+    t('Conversation', 'Everything in the panel: your messages, the Agent’s tool rows and replies, and tool results (summary card, answer with numbered sources, listen row). Holds one or more tasks. One Agent remembers it; in One panel a tapped forum result reaches it as attached context.', 'mode, chat, session', 'BrowserAgentSession'),
     t('Summary', 'A structured summary of a thread or page, shown as the summary card.', '', 'unchanged'),
-    t('Podcast', 'A spoken version of a thread, answer or Today. Asked for with “Read it to me”.', 'Listen (as a button)', 'Podcast/'),
+    t('Read aloud', 'A spoken version of a thread or an answer. Asked for with “Read it to me”; it shows as the listen row.', 'podcast, Listen (as a button)', 'Podcast/ (PodcastPlayer)'),
     t('Voice', 'Talking to the Agent. One panel: the mic dictates into the box. One loop: the mic opens the voice session, which shares the Agent’s tools; its turns join the conversation.', 'Listen', 'Voice*'),
     t('Follow', 'Get told when a topic has new replies.', 'Watch', 'watchedTopics'),
     t('Site', 'Any website.', '', ''),

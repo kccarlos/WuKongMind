@@ -326,8 +326,7 @@ The seal reads "talk.example.org · 3 scripts", or just the host on a page with 
 
 ```
 HomeView (List, .insetGrouped, listSectionSpacing(.compact))
-├─ header: "Home" · History · Settings      (unchanged buttons; address entry lives in the browser bar)
-├─ TodayModule / PodcastHomeCard / DigestStrip   // unchanged, only when there is something
+├─ header: "Home" · History · Settings      (unchanged buttons; no address field: the browser bar's field is the one entry)
 ├─ Section "Sites": SiteGrid                 // LazyVGrid, 4 columns on iPhone, adaptive 88 pt on iPad
 │    SiteTile: tile in the site's own colour (forumPalette, unchanged), name; forum → grey speech-bubble badge (the only place it shows)
 │    pinned first, then most visited; last tile "Add" → AddSiteSheet; context menu Pin/Unpin, Remove
@@ -341,6 +340,11 @@ HomeView (List, .insetGrouped, listSectionSpacing(.compact))
   - **Recent.** Home's **Recent** is not a separate list: it is the newest History items, with a link to all of History. `HistoryView`'s segments become All, Conversations, Following (decided). Until M3, Conversations lists today's saved summaries and forum answers, each as a conversation of one result.
   - **Conversations.** They live in memory today (`BrowserAgentSession`). They join History once they are saved, which comes with M3's workspace (`tasks/`). Until then, Recent also shows this launch's current conversation, and the summaries in it are saved as today.
 - **The empty state** (no sites yet) is a card of three suggested ordinary web pages (no forums, no explanatory text and no forum badge); address entry lives in the browser bar. This replaces the forum-centred empty state and the suggested-forums list.
+- **Home in two places, one view** ([design-motion.md](design-motion.md) section 3; built for iPhone in Motion tasks 4 and 5).
+  - **The empty tab.** A new tab has no page, so Home is its content. The bar shows its address field ("Search or enter address"), never collapses, and has no Agent ring; the mic joins it once voice is set up. Boards `PhoneHome`, `IPadHome`.
+  - **Over a page.** Tapping the bar's address field (or ⌘L) shows the same `HomeList` over the current page on opaque `ground`, fading in within 200 ms, while the bar becomes the field and Cancel on the keyboard. The page underneath is untouched; Cancel returns to it. Typing replaces Home's sections with at most six local suggestion rows, the first being what Return does: open an address, "Ask the Agent" (a question or instruction, only with a page underneath), search this site, or search the web. Board `PhoneAddress`.
+  - **iPad.** In regular width Home covers the page column only, under the top bar, and the Agent side panel stays visible and usable; compact width behaves as iPhone. Board `IPadAddress`, drawn per design: the iPad build is pending (Motion task 6).
+- **No daily digest.** The Today module, the podcast card and the digest strip were removed on 2026-11-19 (WUKO-182); Home has nothing above Sites. Sites are pinned sites, not forums (WUKO-181): any address can be pinned.
 
 ### 4. Settings
 
@@ -355,9 +359,8 @@ SettingsRootView (Form .grouped)
 ├─ Section "Sites & browsing"
 │    Sites             globe          value: "N sites"
 │    Browser           safari.fill    value: the search engine, e.g. "Google"
-├─ Section "Voice & digest"
-│    Voice             waveform       value: On / Off               (the top-of-root Voice row goes)
-│    Daily digest & podcast  sun.max.fill   value: On / Off
+├─ Section "Voice"
+│    Voice             waveform       value: On / Off               (the top-of-root Voice row goes; Daily digest & podcast was removed on 2026-11-19, WUKO-182)
 ├─ Section "Your data"
 │    iCloud Sync · Data & privacy
 └─ Section
@@ -371,7 +374,7 @@ SettingsRootView (Form .grouped)
 | **Scripts & tools** (`.scripts`) | M2's `ScriptManagerView`, unchanged. Learn on ask adds a "Tools" section |
 | **Sites** (a new page) | Section "Saved": Pinned sites › (any address can be pinned to Home; a pinned site with no built-in reader is a `.web` favourite and nothing more; no Suggested forums list), Following › (the existing Watched topics page). Section "Reading pace": the rate-limit switch (cleanup task 1) and the existing pace picker. Section "Ads & trackers": `ContentBlockingSettingsSections` (moved from Browser). There are no separate Research or Summaries & chat pages |
 | **Browser** (`.browser`) | **Search engine** (new, owner point 7): a `Picker` with Google, DuckDuckGo, Bing and Ecosia, default Google. It is used by the address field on Home, in the bar and in onboarding step 2, wherever text isn't an address. Today's search runs only inside the current forum (`searchPageURL`). Then Browser bar position and Open at launch |
-| **Voice**, **Daily digest & podcast**, **iCloud Sync**, **Data & privacy** | Unchanged pages |
+| **Voice**, **iCloud Sync**, **Data & privacy** | Unchanged pages (the Daily digest & podcast page was removed on 2026-11-19, WUKO-182) |
 | **Help & about** (`.help`) | The existing page, which already links Licences (`.acknowledgements`), plus a row to Share from Safari or Chrome (`.sharing`, today on the root) |
 
 ### 5. Onboarding (`OnboardingFlow`, three steps)
@@ -381,14 +384,17 @@ Today onboarding is a full-screen cover on both devices (`RootPresentation.isFul
 ```
 OnboardingFlow
 ├─ 1 OnboardingModelPage     // the Logo mark (replaces BrandMark) with "WukongMind" beside it, "An agent for any web page"; OnboardingProviderPage's list for the Agent role
-│                            // (tool-calling models only), key field; footnote "Keys stay in the Keychain"; Continue / Later
+│                            // (tool-calling models only), key field with Get a key, model field; after a key test passes the row shows the ring's done once
+│                            // ("Connected — you're ready to go.", VoiceOver value "Saved"); footnotes "Keys stay in the Keychain", Privacy Policy and the Agent notice; Continue / Later
 ├─ 2 OnboardingSitePage      // AddressField + short mixed list of ordinary public web pages (no forums, no forum badge; subtitles say what the site is about); Open
 └─ 3 OnboardingTryPage       // the chosen page behind a medium drawer: the real AssistantPanel with two suggestions
                              // ("Make this page easier to read", "Hide everything but the article"); after a run or Skip:
-                             // a card with the cheer mascot, "You're set" and Done, and rows "iCloud sync: On" and "Daily digest: in Settings"
+                             // a card with the cheer mascot, "You're set" and Done, and the row "iCloud sync: On" (or Off)
 ```
 
 "Later" on step 1 still goes on. Step 3 then shows the panel's no-model card instead of the prompts.
+
+**Terms of Use and AI data consent** (App Store tasks, WUKO-175 and WUKO-179; board `PhoneTerms`). After step 2 and before step 3 a full-screen Terms of Use page shows once: three plain points, a link to the full text, one switch, and a Continue button that stays disabled until the switch is on. The first time a summary or the Agent would send page content to a provider, a full-screen consent page names the provider, says what is sent and that nothing passes through a WukongMind server, and offers Allow and Don't Allow; asking the Agent from the address bar meets the same page first. Both pages belong on `ground`; the build still shows the system background (a gap listed in [design-motion.md](design-motion.md) section 8).
 
 
 ### 6. Motion

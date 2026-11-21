@@ -1,4 +1,4 @@
-<!-- @dsCard group="Navigation" height=230 -->
+<!-- @dsCard group="Navigation" height=720 -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -27,6 +27,17 @@ button{font-family:inherit}
 .lk{width:13px;height:13px;color:var(--ink-muted);fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 .mr{width:16px;height:16px;border-radius:var(--radius-full);border:2.5px solid var(--gold);border-right-color:transparent;flex-shrink:0}
 .ps{min-width:18px;height:18px;border-radius:5px;background:var(--ink);color:var(--ground);font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;padding:0 5px}
+.rs{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;color:var(--ink-muted);width:56px;text-align:center}
+.ad .ph{font-weight:400;color:var(--ink-faint)}
+.ed{display:flex;align-items:center;gap:10px;width:100%;max-width:366px}
+.ef{flex:1;min-width:0;height:40px;border-radius:var(--radius-full);border:1.5px solid var(--gold);background:var(--surface-raised);display:flex;align-items:center;gap:8px;padding:0 10px;font-size:15px;color:var(--ink);white-space:nowrap;overflow:hidden}
+.ef .sel{background:color-mix(in srgb,var(--gold) 30%,transparent);border-radius:3px;padding:2px 0}
+.cn{border:0;background:none;font-size:16px;color:var(--gold-ink);padding:0;min-height:44px}
+.sg{background:var(--surface);border-radius:var(--radius-lg);overflow:hidden;width:100%;max-width:366px}
+.sr{display:flex;align-items:center;gap:12px;min-height:44px;padding:9px 14px;font-size:15px;line-height:20px;color:var(--ink);border:0;background:none;width:100%;text-align:left}
+.sr+.sr{border-top:var(--hairline-width) solid var(--hairline)}
+.sr .ic{width:24px;height:24px;display:flex;align-items:center;justify-content:center;color:var(--ink-muted);flex-shrink:0}
+.sr small{display:block;font-size:13px;color:var(--ink-muted)}
 </style>
 </head>
 <body>
@@ -38,6 +49,14 @@ button{font-family:inherit}
 <button class="glass pill" aria-label="Show browser bar, news.example.com"><svg class="lk" viewBox="0 0 24 24" aria-hidden="true"><rect x="5.5" y="11" width="13" height="9" rx="2"/><path d="M8.5 11V8a3.5 3.5 0 0 1 7 0v3"/></svg><span>news.example.com</span></button>
 <button class="glass pill" aria-label="Show browser bar, news.example.com, Agent working"><span class="mr" aria-hidden="true"></span><span>news.example.com</span><span class="ps" aria-hidden="true">2</span></button>
 </div>
+<div class="l">The ring's six states (bar ring and iPad panel toggle); the word is the button's accessibility value</div>
+<div class="r" style="gap:6px"><div class="rs"><svg viewBox="0 0 44 44" role="img" aria-label="Agent" style="width: 44px; height: 44px; flex-shrink: 0;"><circle cx="22" cy="22" r="20.5" fill="none" stroke="var(--gold)" stroke-width="3"/></svg><span>idle</span></div><div class="rs"><svg viewBox="0 0 44 44" role="img" aria-label="Agent, working" style="width: 44px; height: 44px; flex-shrink: 0;"><circle cx="22" cy="22" r="20.5" fill="none" stroke="var(--hairline)" stroke-width="3"/><circle cx="22" cy="22" r="20.5" fill="none" stroke="var(--gold)" stroke-width="3" stroke-dasharray="95.32 128.81" stroke-linecap="round" transform="rotate(-90 22 22)"/></svg><span>working</span></div><div class="rs"><svg viewBox="0 0 44 44" role="img" aria-label="Agent, needs your answer" style="width: 44px; height: 44px; flex-shrink: 0;"><circle cx="22" cy="22" r="20.5" fill="none" stroke="var(--gold)" stroke-width="3"/><text x="22" y="22" text-anchor="middle" dominant-baseline="central" font-size="22" font-weight="700" fill="var(--gold-ink)" stroke="none">?</text></svg><span>needs you</span></div><div class="rs"><svg viewBox="0 0 44 44" role="img" aria-label="Agent, answer ready" style="width: 44px; height: 44px; flex-shrink: 0;"><circle cx="22" cy="22" r="20.5" fill="none" stroke="var(--gold)" stroke-width="3"/><path d="M13.64 22.88l5.72 5.72L30.36 16.28" fill="none" stroke="var(--gold-ink)" stroke-width="3.3"/></svg><span>done</span></div><div class="rs"><svg viewBox="0 0 44 44" role="img" aria-label="Agent, stopped with a problem" style="width: 44px; height: 44px; flex-shrink: 0;"><circle cx="22" cy="22" r="20.5" fill="none" stroke="var(--warning)" stroke-width="3"/><text x="22" y="22" text-anchor="middle" dominant-baseline="central" font-size="22" font-weight="700" fill="var(--warning)" stroke="none">!</text></svg><span>failed</span></div><div class="rs"><svg viewBox="0 0 44 44" role="img" aria-label="Agent, unavailable" style="width: 44px; height: 44px; flex-shrink: 0;"><circle cx="22" cy="22" r="20.5" fill="none" stroke="var(--ink-faint)" stroke-width="3"/></svg><span>unavailable</span></div></div>
+<div class="l">Home, the empty tab: the bar shows its field; no ring without a page</div>
+<nav class="glass bar" aria-label="Browser bar on Home"><button class="ib" aria-label="Back" style="color:var(--ink-faint)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px"><path d="M15 18l-6-6 6-6"/></svg></button><div class="ad"><button class="ab" aria-label="Page menu" style="margin-left:-4px"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:19px;height:19px"><circle cx="12" cy="12" r="9.5"/><circle cx="8" cy="12" r=".7" fill="currentColor"/><circle cx="12" cy="12" r=".7" fill="currentColor"/><circle cx="16" cy="12" r=".7" fill="currentColor"/></svg></button><button class="dom ph" aria-label="Address field">Search or enter address</button></div><button class="ib" aria-label="Tabs"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:20px;height:20px"><rect x="8.5" y="8.5" width="12" height="12" rx="2.5"/><path d="M15.5 8.5V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7.5a2 2 0 0 0 2 2h2.5"/></svg></button></nav>
+<div class="l">Editing: the field and Cancel ride on the keyboard; Home shows over the page</div>
+<div class="ed"><div class="ef" role="group" aria-label="Address field"><span style="display:flex;color:var(--ink-muted)"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:15px;height:15px"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><span style="flex:1;min-width:0;overflow:hidden"><span class="sel">news.example.com/harbour-towns-night-ferries</span></span></div><button class="cn">Cancel</button></div>
+<div class="l">Typing: suggestions replace Home; row 1 is what Return does</div>
+<div class="sg"><button class="sr"><span class="ic"><svg viewBox="0 0 16 16" aria-hidden="true" style="width: 16px; height: 16px; flex-shrink: 0;"><circle cx="8" cy="8" r="7" fill="none" stroke="var(--gold)" stroke-width="2"/></svg></span><span style="font-weight:500">Ask the Agent: “which towns start next summer?”</span></button><button class="sr"><span class="ic"><svg class="i" viewBox="0 0 24 24" aria-hidden="true" style="width:18px;height:18px"><circle cx="10.5" cy="10.5" r="6"/><path d="M20 20l-5-5"/></svg></span><span>Search Google for “which towns start next summer?”</span></button><button class="sr"><span class="ic"><span style="width:22px;height:22px;border-radius:6px;background:#7A2E1F;color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center">N</span></span><span>Northwind<small>news.example.com</small></span></button></div>
 </div>
 </body>
 </html>
