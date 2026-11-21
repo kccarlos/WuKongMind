@@ -391,8 +391,6 @@ struct BrowserContent: View {
     /// iPhone: the page runs under the bottom toolbar and the home indicator
     /// (WKWebView insets its own scroll view); the cards stay above them.
     var webViewIgnoresBottomSafeArea = false
-    /// iPhone / compact width: editing the address bar shows Home over the page.
-    var showsHomeWhileEditing = false
     /// Split layout with the panel hidden: the Dock floats bottom-right.
     var dockFloatsTrailing = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -401,7 +399,7 @@ struct BrowserContent: View {
     @State private var isHomeOverlayMounted = false
 
     var body: some View {
-        let showsHomeOverlay = showsHomeWhileEditing && browser.isEditingAddress && !browser.showsForumsHome
+        let showsHomeOverlay = browser.isEditingAddress && !browser.showsForumsHome
         let showsHome = browser.showsForumsHome || (showsHomeOverlay && isHomeOverlayMounted)
         let blocksWebView = browser.showsForumsHome || showsHomeOverlay
         ZStack {
@@ -434,7 +432,7 @@ struct BrowserContent: View {
         .onChange(of: showsHomeOverlay, initial: true) { _, shown in
             if shown {
                 DispatchQueue.main.async {
-                    guard showsHomeWhileEditing, browser.isEditingAddress, !browser.showsForumsHome else { return }
+                    guard browser.isEditingAddress, !browser.showsForumsHome else { return }
                     isHomeOverlayMounted = true
                     if UIAccessibility.isVoiceOverRunning {
                         UIAccessibility.post(notification: .screenChanged, argument: nil)

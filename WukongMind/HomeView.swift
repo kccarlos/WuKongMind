@@ -112,8 +112,8 @@ private struct HomeList: View {
         .modifier(HomeScrollKeyboardDismiss(isEditingAddress: isEditingAddress))
         .scrollContentBackground(.hidden)
         .frame(maxWidth: 760)
-        .frame(maxWidth: .infinity)
-        .background(DCTheme.pageBackground)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(DCTheme.pageBackground.ignoresSafeArea())
         .accessibilityIdentifier("home")
     }
 

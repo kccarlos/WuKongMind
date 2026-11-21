@@ -432,4 +432,46 @@ final class AddressInputTests: XCTestCase {
         XCTAssertEqual(app.drafts.goal, "follow up question", "Prompt must be preserved in composer draft while a run is active")
         app.browserAgent.stop()
     }
+
+    @MainActor
+    func testAddressEditStateSelectionNavigation() {
+        let state = AddressEditState()
+        state.begin(initialText: "https://example.com")
+        XCTAssertNil(state.selectedSuggestionIndex)
+
+        state.draft = "what is swift?"
+        XCTAssertNil(state.selectedSuggestionIndex)
+
+        // Pressing down from nil selects row 2 (index 1) when multiple rows exist.
+        state.moveSelection(delta: 1, rowCount: 3)
+        XCTAssertEqual(state.selectedSuggestionIndex, 1)
+
+        state.moveSelection(delta: 1, rowCount: 3)
+        XCTAssertEqual(state.selectedSuggestionIndex, 2)
+
+        // Clamps at last row.
+        state.moveSelection(delta: 1, rowCount: 3)
+        XCTAssertEqual(state.selectedSuggestionIndex, 2)
+
+        // Pressing up moves back to row 1 (index 0) and clamps at 0.
+        state.moveSelection(delta: -1, rowCount: 3)
+        XCTAssertEqual(state.selectedSuggestionIndex, 1)
+        state.moveSelection(delta: -1, rowCount: 3)
+        XCTAssertEqual(state.selectedSuggestionIndex, 0)
+        state.moveSelection(delta: -1, rowCount: 3)
+        XCTAssertEqual(state.selectedSuggestionIndex, 0)
+
+        // Typing resets selection back to nil (row 1 default).
+        state.draft = "what is swift concurrency?"
+        XCTAssertNil(state.selectedSuggestionIndex)
+
+        // Pressing up from nil highlights row 1 (index 0); down on 1-row list clamps to 0.
+        state.moveSelection(delta: -1, rowCount: 1)
+        XCTAssertEqual(state.selectedSuggestionIndex, 0)
+        state.moveSelection(delta: 1, rowCount: 1)
+        XCTAssertEqual(state.selectedSuggestionIndex, 0)
+
+        state.end()
+        XCTAssertNil(state.selectedSuggestionIndex)
+    }
 }
