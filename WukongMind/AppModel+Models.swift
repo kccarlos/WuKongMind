@@ -660,7 +660,7 @@ enum ModelSetupAction: Equatable {
         switch self {
         case .addKey(let provider): String(localized: "Add \(provider.displayName) Key", comment: "Model not ready: opens the API key setup. The placeholder is the provider's name, e.g. Google Gemini.")
         case .chooseModel: String(localized: "Choose a Model", comment: "Model not ready: opens model setup")
-        case .aiModels: String(localized: "AI models…")
+        case .aiModels: String(localized: "Models…")
         }
     }
 }

@@ -331,6 +331,22 @@ final class ModelSwitchingTests: XCTestCase {
     }
 
     @MainActor
+    func testProviderSetupModelSaysAgentNeedsAKey() {
+        let app = makeApp()
+        app.selectModel(ModelSelection(provider: .appleIntelligence, model: "Automatic"), for: .role(.assistant))
+
+        let withAI = ProviderSetupModel(app: app, role: .browserAgent, appleIntelligence: .available(.onDevice))
+        XCTAssertTrue(withAI.detail.contains("API key"), "Got: \(withAI.detail)")
+        XCTAssertTrue(withAI.detail.contains("Apple Intelligence"), "Got: \(withAI.detail)")
+        XCTAssertTrue(withAI.detail.contains("Settings › Models"), "Got: \(withAI.detail)")
+
+        let withoutAI = ProviderSetupModel(app: app, role: .browserAgent, appleIntelligence: .unavailable(.deviceNotEligible))
+        XCTAssertTrue(withoutAI.detail.contains("API key"), "Got: \(withoutAI.detail)")
+        XCTAssertFalse(withoutAI.detail.contains("Apple Intelligence"), "Got: \(withoutAI.detail)")
+        XCTAssertTrue(withoutAI.detail.contains("Settings › Models"), "Got: \(withoutAI.detail)")
+    }
+
+    @MainActor
     private func makeApp() -> AppModel {
         let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent(UUID().uuidString, isDirectory: true)

@@ -196,7 +196,7 @@ WukongMind is a web browser for iPhone and iPad with an AI assistant ("Agent") t
 
 TEST KEY
 The Agent uses an AI service the user connects with their own key. For review, please use this temporary key (limited spend, revoked after review):
-Settings > AI models > Providers > [provider] > API key: [PASTE KEY]
+Settings > Models > Providers & keys > [provider] > API key: [PASTE KEY]
 The attached screen recording (real iPhone, from launch) shows every step below.
 
 HOW TO TEST
@@ -324,12 +324,16 @@ The owner's principles (2026-11-19) apply to every task: speed first (a task tha
 - **Files:** `TERMS.md`, `WukongMind/TermsAndReporting.swift`, `WukongMind/TermsAndReportingViews.swift`, `WukongMind/Models.swift`, `WukongMind/AppModel.swift`, `WukongMind/AppModel+Onboarding.swift`, `WukongMind/AppModel+Assistant.swift`, `WukongMind/PresentationRouter.swift`, `WukongMind/AgentPanel.swift`, `WukongMind/SummaryPanel.swift`, `WukongMind/SettingsDataHelpPages.swift`, `WukongMindTests/TermsAndReportingTests.swift`, `WukongMindUITests/TermsAndReportUITests.swift`, `WukongMindUITests/OnboardingUITests.swift`.
 - **Check:** `TermsAndReportingTests` (5 tests: terms acceptance, backward-compatible decoding, `resetSettings()` preservation, report draft formatting/truncation/`mailto:`, empty-reply guard), `TermsAndReportUITests` (2 tests: first-run Terms gate waits for agreement before Step 3; Agent answer menu has "Report this answer" and opens report form/fallback, Summary menu has "Report this summary", Settings › About has Terms link), and `OnboardingUITests` (6 tests) all pass on `scripts/remote-test.sh`.
 
-### Task 6: reviewers and new users are never stuck without a model
+### Task 6: reviewers and new users are never stuck without a model (done, WUKO-180)
 
+- **Done (2026-11-20, WUKO-180):**
+  - Updated `ProviderSetupModel` in `WukongMind/AssistantStates.swift` so when the Agent has no ready model or key, the card states plainly that the Agent needs an API key or a local server (and when Apple Intelligence is supported on device, that Apple Intelligence only runs Summaries), pointing to `Settings › Models`.
+  - Updated the setup card and `ModelSetupAction.aiModels` button label from `AI models…` to `Models…` (`WukongMind/AssistantStates.swift`, `WukongMind/AppModel+Models.swift`, `WukongMind/Localizable.xcstrings` in en, zh-Hans, zh-Hant) to match `Settings › Models`, and updated section 4.2's `TEST KEY` path to `Settings > Models > Providers & keys > [provider] > API key: [PASTE KEY]`.
+  - Added unit test `ModelSwitchingTests/testProviderSetupModelSaysAgentNeedsAKey`, first-run UI test `OnboardingUITests/testNoKeyFirstRunReachesPageAndSetupCard`, and key-path UI test `SettingsNavigationUITests/testDocumentedReviewKeyPathSavesAPIKey` (which walks the exact documented path so the review notes and UI cannot drift).
 - **What:** check and fix the no-key first run: onboarding can be skipped, the browser works, and the assistant shows a clear "connect a model" card with a working path to Settings. Apple Intelligence serves the Summaries role but not the Agent: check on a device that a summary really works with it and no key, and make the card say plainly that the Agent needs a key. Write the exact key path used in the review notes into a UI test so it cannot drift.
 - **Why:** 2.1; a reviewer whose key fails must still see a complete, non-broken app.
-- **Files:** `WukongMind/Onboarding.swift`, `WukongMind/OnboardingSteps.swift`, `WukongMind/AppModel+Models.swift` (around 276-347, 520-530), `WukongMindUITests`.
-- **Check:** a UI test from a clean launch with no key reaches a page and the setup card; a second pastes a fake key along the documented path.
+- **Files:** `WukongMind/AssistantStates.swift`, `WukongMind/AppModel+Models.swift`, `WukongMind/Localizable.xcstrings`, `WukongMindTests/ModelSwitchingTests.swift`, `WukongMindUITests/OnboardingUITests.swift`, `WukongMindUITests/SettingsNavigationUITests.swift`, `docs/wukongmind/app-store-review.md`.
+- **Check:** `ModelSwitchingTests` (with `testProviderSetupModelSaysAgentNeedsAKey`), `OnboardingUITests/testNoKeyFirstRunReachesPageAndSetupCard`, and `SettingsNavigationUITests/testDocumentedReviewKeyPathSavesAPIKey` all pass on `scripts/remote-test.sh`. Live on-device Apple Intelligence summary with no key was not run (no Apple Intelligence-eligible device attached; simulator `AppleIntelligenceTests` unit tests pass with `FakeAppleIntelligence`).
 
 ### Task 7: privacy manifest, purpose strings, background modes (done)
 
