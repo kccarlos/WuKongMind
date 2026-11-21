@@ -226,10 +226,10 @@ struct StoreScreenshotContent {
 extension StoreScreenshotContent {
     static let english = StoreScreenshotContent(
         languageCode: "en",
-        articleURL: URL(string: "https://dispatch.example.org/story/quiet-grids")!,
+        articleURL: URL(string: "https://chronicle.example.org/story/quiet-grids")!,
         articleHTML: makeArticleHTML(
             lang: "en",
-            masthead: "Morning Dispatch",
+            masthead: "Harborline Chronicle",
             section: "Cities & Energy",
             headline: "How Neighborhood Microgrids Keep Lights On After Storms",
             byline: "By Clara Lin · 5 min read",
@@ -285,7 +285,7 @@ extension StoreScreenshotContent {
         darkReply: "Applied a dark reading palette (`#0f172a` background, `#e2e8f0` text) and hid the newsletter sidebar.",
         saveScriptPrompt: "Keep this dark theme and clean layout on every visit",
         saveScriptName: "Dark reader & clean layout",
-        saveScriptReply: "Saved **Dark reader & clean layout** for `dispatch.example.org`.",
+        saveScriptReply: "Saved **Dark reader & clean layout** for `chronicle.example.org`.",
         summarizePrompt: "Summarize this page and read it aloud",
         summarizeReadAloudText: "How Neighborhood Microgrids Keep Lights On After Storms. Three coastal towns paired rooftop solar with shared block batteries so clinics and transit shelters stay powered during outages. Harborview recorded 94 percent uptime across fourteen blocks during winter storms and cut peak evening grid demand by nearly a third.",
         summarizeReply: """
@@ -298,10 +298,10 @@ extension StoreScreenshotContent {
 
     static let simplifiedChinese = StoreScreenshotContent(
         languageCode: "zh-Hans",
-        articleURL: URL(string: "https://dispatch.example.org/story/quiet-grids")!,
+        articleURL: URL(string: "https://chronicle.example.org/story/quiet-grids")!,
         articleHTML: makeArticleHTML(
             lang: "zh-Hans",
-            masthead: "晨报 · 城市",
+            masthead: "海港纪事 · 城市",
             section: "能源与设计",
             headline: "社区微电网如何在风暴后保持供电",
             byline: "林清禾 · 阅读约 5 分钟",
@@ -357,7 +357,7 @@ extension StoreScreenshotContent {
         darkReply: "已应用深色阅读配色（`#0f172a` 背景、`#e2e8f0` 文字），并隐藏了侧边栏订阅卡片。",
         saveScriptPrompt: "每次访问都保持深色主题和精简布局",
         saveScriptName: "深色阅读与精简布局",
-        saveScriptReply: "已为 `dispatch.example.org` 保存 **深色阅读与精简布局**。",
+        saveScriptReply: "已为 `chronicle.example.org` 保存 **深色阅读与精简布局**。",
         summarizePrompt: "总结这个页面并朗读给我听",
         summarizeReadAloudText: "社区微电网如何在风暴后保持供电。三座沿海小镇将屋顶光伏与街区共享储能电池结合，让诊所和候车亭在停电期间持续供电。海湾镇在连续两夜风暴中实现 94% 供电可用率，并将晚高峰负荷降低近三分之一。",
         summarizeReply: """
@@ -370,10 +370,10 @@ extension StoreScreenshotContent {
 
     static let traditionalChinese = StoreScreenshotContent(
         languageCode: "zh-Hant",
-        articleURL: URL(string: "https://dispatch.example.org/story/quiet-grids")!,
+        articleURL: URL(string: "https://chronicle.example.org/story/quiet-grids")!,
         articleHTML: makeArticleHTML(
             lang: "zh-Hant",
-            masthead: "晨報 · 城市",
+            masthead: "海港紀事 · 城市",
             section: "能源與設計",
             headline: "社區微電網如何在風暴後維持供電",
             byline: "林清禾 · 閱讀約 5 分鐘",
@@ -429,7 +429,7 @@ extension StoreScreenshotContent {
         darkReply: "已套用深色閱讀配色（`#0f172a` 背景、`#e2e8f0` 文字），並隱藏了側邊欄訂閱卡片。",
         saveScriptPrompt: "每次造訪都保持深色主題與精簡版面",
         saveScriptName: "深色閱讀與精簡版面",
-        saveScriptReply: "已為 `dispatch.example.org` 儲存 **深色閱讀與精簡版面**。",
+        saveScriptReply: "已為 `chronicle.example.org` 儲存 **深色閱讀與精簡版面**。",
         summarizePrompt: "摘要這個頁面並朗讀給我聽",
         summarizeReadAloudText: "社區微電網如何在風暴後維持供電。三座沿海小鎮將屋頂光電與街區共享儲能電池結合，讓診所與候車亭在停電期間持續供電。海灣鎮在連續兩夜風暴中實現 94% 供電可用率，並將晚間尖峰負載降低近三分之一。",
         summarizeReply: """

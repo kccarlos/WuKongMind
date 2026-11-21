@@ -35,9 +35,9 @@ Per `docs/wukongmind/store-positioning.md` section 3, WukongMind's screenshots a
 1. `01-change-page.png` — **Change any page:** News-style article with the ask box ("Make it dark and hide the sidebar") and the changed dark page.
 2. `02-agent-steps.png` — **Agent steps:** The Agent's expanded tool steps in the conversation while modifying the page.
 3. `03-script-approval.png` — **Script approval:** The shared script approval sheet when saving a reusable page change.
-4. `04-tabs-navigation.png` — **Browser navigation:** The tab overview with four invented non-forum web pages.
+4. `04-tabs-navigation.png` — **Browser navigation:** The tab overview and the address bar (paired with `06-browser-bar.png` on iPhone so the bottom address bar is shown directly; iPad shows the top address bar across the workspace shots).
 5. `05-summarize-read-aloud.png` — **Summarize & read aloud:** "Summarize this page" with Read aloud on an ordinary article.
-6. `06-ipad-split.png` *(iPad only)* — **iPad split workspace:** A web page and the Agent panel side by side.
+6. `06-browser-bar.png` *(iPhone)* / `06-ipad-split.png` *(iPad)* — **Address bar & iPad split workspace:** An ordinary web page with the iPhone browser address bar, and a web page and the Agent panel side by side on iPad.
 
 Final opaque RGB PNGs live under `appstore/screenshots/<locale>/<device>/NN-name.png` (`en-US`, `zh-Hans`, `zh-Hant`; `iphone` at `1320×2868` for 6.9" iPhone, `ipad` at `2752×2064` landscape for 13" iPad).
 

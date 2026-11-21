@@ -2567,7 +2567,7 @@ actor BrowserAgentDemoClient: AgentModelClient {
                             id: "call_store_css_2",
                             name: "inject_css",
                             arguments: [
-                                "id": .string("store-dark-reader"),
+                                "id": .string("dark-reader"),
                                 "css": .string("""
                                 html, body, header.masthead, article { background: #0f172a !important; color: #e2e8f0 !important; }
                                 header.masthead { border-bottom-color: #334155 !important; }
@@ -2635,12 +2635,36 @@ actor BrowserAgentDemoClient: AgentModelClient {
                     text: "",
                     toolCalls: [
                         AgentModelToolCall(
-                            id: "call_store_script_save_2",
+                            id: "call_store_script_css_2",
+                            name: "inject_css",
+                            arguments: [
+                                "id": .string("dark-reader"),
+                                "css": .string("""
+                                html, body, header.masthead, article { background: #0f172a !important; color: #e2e8f0 !important; }
+                                header.masthead { border-bottom-color: #334155 !important; }
+                                h1, .brand { color: #f8fafc !important; }
+                                .byline { color: #94a3b8 !important; }
+                                .lead { color: #cbd5e1 !important; }
+                                blockquote { background: #1e293b !important; color: #99f6e4 !important; border-left-color: #2dd4bf !important; }
+                                .sidebar, #newsletter-aside { display: none !important; }
+                                """)
+                            ]
+                        )
+                    ],
+                    stopReason: "tool_use",
+                    usage: AgentTokenUsage(inputTokens: 640, outputTokens: 108)
+                )
+            case 3:
+                return AgentModelTurnResponse(
+                    text: "",
+                    toolCalls: [
+                        AgentModelToolCall(
+                            id: "call_store_script_save_3",
                             name: "script_save",
                             arguments: [
                                 "name": .string(content.saveScriptName),
                                 "match_rules": .array([
-                                    .string("*://dispatch.example.org/*")
+                                    .string("*://chronicle.example.org/*")
                                 ]),
                                 "css": .string("""
                                 html, body, header.masthead, article {

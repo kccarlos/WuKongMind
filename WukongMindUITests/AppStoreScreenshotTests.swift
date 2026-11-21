@@ -8,9 +8,9 @@ import XCTest
 /// 1. `01-change-page` — News-style article with the ask box ("Make it dark") and the changed page.
 /// 2. `02-agent-steps` — The Agent's tool steps in the conversation while modifying a page.
 /// 3. `03-script-approval` — The script approval sheet when saving a reusable page change.
-/// 4. `04-tabs-navigation` — The tab overview and browser bar with invented non-forum tabs.
+/// 4. `04-tabs-navigation` — The tab overview with four invented non-forum tabs.
 /// 5. `05-summarize-read-aloud` — "Summarize this page" with Read aloud on an ordinary article.
-/// 6. `06-ipad-split` (iPad only) — A web page and the Agent side by side in the split workspace.
+/// 6. `06-browser-bar` (iPhone) / `06-ipad-split` (iPad) — Address bar on iPhone; page and Agent side by side on iPad.
 ///
 /// All pages, prompts, and responses are invented offline `#if DEBUG` fixtures
 /// (`StoreScreenshotContent`); no network, API keys, real people, or forum content.
@@ -52,7 +52,7 @@ final class AppStoreScreenshotTests: DCUITestCase {
     private func captureSet(for locale: LocaleConfig) throws {
         let base = locale.launchArguments
 
-        // 1 & 2. Change any page ("Make it dark and hide the sidebar") + Agent tool steps.
+        // 1. Change any page ("Make it dark and hide the sidebar").
         do {
             let app = launch(
                 base + ["-dc-browser-agent-demo", "store-dark", "-dc-drawer-detent", "medium"],
@@ -63,12 +63,35 @@ final class AppStoreScreenshotTests: DCUITestCase {
                 waitOrDump(reply, timeout: 30, in: app),
                 "[\(locale.code)] Agent reply did not appear for 01-change-page."
             )
+            if usesDrawerLayout(app) {
+                let state = drawerState(in: app)
+                XCTAssertTrue(
+                    wait(timeout: 10) { state.exists && state.label.contains("detent=medium") },
+                    "[\(locale.code)] Drawer did not settle at medium for 01-change-page."
+                )
+            }
             settle(0.6)
             captureUpright("\(locale.code)__\(deviceTag)__01-change-page")
+            app.terminate()
+        }
 
-            // Expand the drawer on iPhone and expand the Steps fold to show all tool steps.
+        // 2. Agent tool steps in the conversation (pinned at large detent on iPhone).
+        do {
+            let app = launch(
+                base + ["-dc-browser-agent-demo", "store-dark", "-dc-drawer-detent", "large"],
+                orientation: shotOrientation
+            )
+            let reply = any(app, "agentAssistantReply")
+            XCTAssertTrue(
+                waitOrDump(reply, timeout: 30, in: app),
+                "[\(locale.code)] Agent reply did not appear for 02-agent-steps."
+            )
             if usesDrawerLayout(app) {
-                dragDrawer(in: app, to: 0.12, settle: 0.5)
+                let state = drawerState(in: app)
+                XCTAssertTrue(
+                    wait(timeout: 10) { state.exists && state.label.contains("detent=large") },
+                    "[\(locale.code)] Drawer did not reach large detent for 02-agent-steps."
+                )
             }
             let stepsButton = app.buttons["agentStepsSummary"].firstMatch
             XCTAssertTrue(
@@ -97,7 +120,7 @@ final class AppStoreScreenshotTests: DCUITestCase {
             app.terminate()
         }
 
-        // 4. Tab overview and browser bar with 4 invented non-forum tabs.
+        // 4. Tab overview (and on iPhone, 06-browser-bar showing the bottom address bar).
         do {
             let app = launch(
                 base + ["-dc-store-tabs"],
@@ -110,6 +133,9 @@ final class AppStoreScreenshotTests: DCUITestCase {
             )
             // Let all four tabs finish cycling and capturing live WKWebView thumbnails.
             settle(3.0)
+            if isPhone {
+                captureUpright("\(locale.code)__\(deviceTag)__06-browser-bar")
+            }
             tabsButton.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
             let overview = any(app, "tabOverview")
             XCTAssertTrue(
@@ -141,7 +167,21 @@ final class AppStoreScreenshotTests: DCUITestCase {
                 waitOrDump(listenRow, timeout: 15, in: app),
                 "[\(locale.code)] Read aloud listen row did not appear for 05-summarize-read-aloud."
             )
-            settle(0.6)
+            if usesDrawerLayout(app) {
+                let state = drawerState(in: app)
+                XCTAssertTrue(
+                    wait(timeout: 10) { state.exists && state.label.contains("detent=large") },
+                    "[\(locale.code)] Drawer did not reach large detent for 05-summarize-read-aloud."
+                )
+            }
+            // Pause silent playback so iOS clears any Dynamic Island audio pill and all
+            // locales keep an identical clean 9:41 status bar while showing the Read aloud card.
+            if listenRow.isHittable {
+                listenRow.tap()
+            } else {
+                listenRow.coordinate(withNormalizedOffset: CGVector(dx: 0.15, dy: 0.5)).tap()
+            }
+            settle(0.8)
             captureUpright("\(locale.code)__\(deviceTag)__05-summarize-read-aloud")
             app.terminate()
         }
