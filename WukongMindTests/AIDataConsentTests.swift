@@ -378,6 +378,34 @@ final class AIDataConsentTests: XCTestCase {
             }
         }
     }
+
+    func testAppVersionWebsiteURLsPerLanguage() {
+        let cases: [(language: String, prefix: String)] = [
+            ("en", ""),
+            ("zh-Hans", "zh-Hans/"),
+            ("zh-Hant", "zh-Hant/"),
+            ("fr", ""),
+        ]
+        for (language, prefix) in cases {
+            XCTAssertEqual(
+                AppVersion.siteURL(language: language).absoluteString,
+                "https://kccarlos.github.io/WuKongMind/\(prefix)"
+            )
+            XCTAssertEqual(
+                AppVersion.siteURL(path: "support/", language: language).absoluteString,
+                "https://kccarlos.github.io/WuKongMind/\(prefix)support/"
+            )
+            XCTAssertEqual(
+                AppVersion.siteURL(path: "privacy/", language: language).absoluteString,
+                "https://kccarlos.github.io/WuKongMind/\(prefix)privacy/"
+            )
+            XCTAssertEqual(
+                AppVersion.siteURL(path: "terms/", language: language).absoluteString,
+                "https://kccarlos.github.io/WuKongMind/\(prefix)terms/"
+            )
+        }
+        XCTAssertEqual(AppVersion.repositoryURL.absoluteString, "https://github.com/kccarlos/WuKongMind")
+    }
 }
 
 // MARK: - Network stub
