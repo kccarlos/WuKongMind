@@ -543,12 +543,12 @@ final class PhysicalDeviceSmokeTests: DCUITestCase {
         XCTAssertTrue(history.waitForExistence(timeout: 5), "Long-pressing Back shows no history menu.")
         dismissMenu(in: app)
 
-        // Home over the page: Home renders its own search/address bar while
-        // keeping the bottom switcher + AI button for the open page; Back returns.
+        // Home over the page: the bar keeps its address field, switcher and AI
+        // button for the open page; Back returns.
         openForumsHomeFromSwitcher(in: app)
         XCTAssertTrue(any(app, "home").waitForExistence(timeout: 10))
         XCTAssertTrue(any(app, "homeSettings").exists)
-        XCTAssertTrue(any(app, "homeAddress").waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["browserTitle"].waitForExistence(timeout: 5))
         XCTAssertTrue(any(app, "aiButton").exists, "Home over an open page keeps the AI button.")
         openForumMenu(in: app)
         let menuBack = app.collectionViews.buttons["Back"].firstMatch
