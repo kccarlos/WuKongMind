@@ -402,6 +402,35 @@ final class SettingsNavigationUITests: DCUITestCase {
         XCTAssertEqual(field.value as? String, "••••••", "Typing into a saved key's field should replace the key.")
     }
 
+    /// Mirrors the exact path in `docs/wukongmind/app-store-review.md` §4.2:
+    /// `Settings > Models > Providers & keys > [provider] > API key`
+    /// so the review notes and the UI cannot drift apart.
+    func testDocumentedReviewKeyPathSavesAPIKey() throws {
+        let app = launch(["-dc-sample", "-dc-no-provider", "-dc-show-settings", "root"])
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 20))
+
+        let modelsRow = app.buttons["settingsRow-provider"]
+        XCTAssertTrue(revealRow(modelsRow, in: app), "Settings › Models row is missing.")
+        modelsRow.tap()
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 10), "Models page did not open.")
+        XCTAssertTrue(reveal(app.staticTexts["Providers & keys"], in: app, swipes: 3), "Providers & keys section header is missing.")
+
+        let anthropic = app.buttons["providerRow-anthropic"]
+        XCTAssertTrue(reveal(anthropic, in: app), "Anthropic provider row is missing.")
+        anthropic.tap()
+        XCTAssertTrue(app.navigationBars["Anthropic"].waitForExistence(timeout: 10), "Anthropic provider page did not open.")
+        XCTAssertTrue(app.staticTexts["API key"].waitForExistence(timeout: 5), "API key section header is missing.")
+
+        let field = app.secureTextFields["apiKeyField"]
+        XCTAssertTrue(waitForHittable(field, timeout: 5))
+        field.tap()
+        field.typeText("sk-ant-test-key-12345\n")
+
+        let storedStatus = app.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Keychain'")).firstMatch
+        XCTAssertTrue(storedStatus.waitForExistence(timeout: 5), "Keychain saved status did not appear after entering the API key.")
+        capture("documented-review-key-path-saved")
+    }
+
     func testSettingsReadingLanguageSyncErrorAndSavedAPIKeyLayout() throws {
         let app = launch(["-dc-sample", "-dc-forums-home", "-dc-show-settings", "root"])
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 20))

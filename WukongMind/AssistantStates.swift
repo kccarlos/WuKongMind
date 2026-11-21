@@ -170,8 +170,20 @@ struct ProviderSetupModel: Equatable {
         var lines: [String] = []
         if case .appleIntelligence(let reason) = readiness {
             lines.append(reason.title)
+        } else if role == .browserAgent {
+            if !ModelFavorites.hidesAppleIntelligence(ai) {
+                lines.append(String(
+                    localized: "The Agent needs an API key or a local server—Apple Intelligence only runs Summaries. Add one in Settings › Models.",
+                    comment: "Browser agent not ready card: explains that the Agent needs an API key (or local server) and Apple Intelligence only runs Summaries"
+                ))
+            } else {
+                lines.append(String(
+                    localized: "The Agent needs an API key or a local server. Add one in Settings › Models.",
+                    comment: "Browser agent not ready card: explains that the Agent needs an API key or a local server"
+                ))
+            }
         } else {
-            lines.append(String(localized: "Pick a model or add its key in Settings › AI models.", comment: "Model not ready card: how to fix it"))
+            lines.append(String(localized: "Pick a model or add its key in Settings › Models.", comment: "Model not ready card: how to fix it"))
         }
         let other = app.selection(for: role.other)
         if other != selection, app.settings.readiness(of: other, appleIntelligence: ai) == .ready {
@@ -254,7 +266,7 @@ struct ProviderSetupCardBody: View, Equatable {
                 }
             }
             if model.action != .aiModels {
-                Button("AI models…") { app.requestedSettingsPage = .provider }
+                Button("Models…") { app.requestedSettingsPage = .provider }
                     .font(.subheadline)
                     .frame(minHeight: DCTheme.controlHeight)
                     .accessibilityIdentifier("providerSetupSettings")

@@ -199,4 +199,73 @@ final class OnboardingUITests: DCUITestCase {
         XCTAssertFalse(any(app, "providerTestSuccess").exists, "Failed key test must not show the saved ring.")
         capture("onboarding-key-test-failed")
     }
+
+    /// Clean launch with no key: skip model selection, open a page, pass Terms,
+    /// reach the setup card saying the Agent needs a key, open Settings › Models,
+    /// and still browse normally after skipping step 3.
+    func testNoKeyFirstRunReachesPageAndSetupCard() throws {
+        let server = FixtureWordPressServer()
+        try server.start()
+        defer { server.stop() }
+        let app = launch(["-dc-reset", "-dc-no-provider", "-dc-apple-intelligence", "on-device"])
+
+        XCTAssertTrue(any(app, "onboarding").waitForExistence(timeout: 20), "The walkthrough did not appear.")
+        let later = app.buttons["onboardingSkipStep"]
+        XCTAssertTrue(waitForHittable(later))
+        later.tap()
+
+        let field = app.textFields["onboardingSiteAddress"]
+        XCTAssertTrue(waitForHittable(field))
+        field.tap()
+        field.typeText(server.baseURL + "\n")
+
+        XCTAssertTrue(waitForGone(any(app, "onboarding"), timeout: 10))
+        let termsGate = any(app, "termsGate")
+        XCTAssertTrue(waitOrDump(termsGate, timeout: 15, in: app), "Terms of Use gate did not appear.")
+        let agree = app.switches["termsAgree"].firstMatch
+        XCTAssertTrue(waitForHittable(agree))
+        agree.tap()
+        app.buttons["termsContinue"].tap()
+        XCTAssertTrue(waitForGone(termsGate, timeout: 10))
+
+        let panel = any(app, "onboardingTryPanel")
+        XCTAssertTrue(waitOrDump(panel, timeout: 20, in: app), "Step 3 did not show.")
+
+        let setupCard = any(app, "providerSetupCard")
+        if !setupCard.waitForExistence(timeout: 5) {
+            let suggestion = app.buttons["suggestion-tryReadable"]
+            XCTAssertTrue(waitForHittable(suggestion, timeout: 5))
+            suggestion.tap()
+        }
+        XCTAssertTrue(waitOrDump(setupCard, timeout: 10, in: app), "Provider setup card did not appear without a key.")
+        XCTAssertTrue(
+            setupCard.staticTexts.matching(NSPredicate(format: "label CONTAINS 'API key'")).firstMatch.exists,
+            "Setup card should state plainly that the Agent needs an API key."
+        )
+        XCTAssertTrue(
+            setupCard.staticTexts.matching(NSPredicate(format: "label CONTAINS 'Apple Intelligence only runs Summaries'")).firstMatch.exists,
+            "Setup card should explain that Apple Intelligence only runs Summaries."
+        )
+        capture("no-key-setup-card")
+
+        let settingsButton = app.buttons["providerSetupSettings"]
+        XCTAssertTrue(waitForHittable(settingsButton))
+        settingsButton.tap()
+        XCTAssertTrue(app.navigationBars["Models"].waitForExistence(timeout: 10), "Tapping Models… did not open Settings › Models.")
+        capture("no-key-settings-models")
+
+        tapNavigationBack(in: app)
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 10), "Back from Models did not return to Settings.")
+        closeSettings(in: app)
+        XCTAssertTrue(waitOrDump(panel, timeout: 10, in: app))
+
+        let skip = app.buttons["onboardingTrySkip"]
+        XCTAssertTrue(waitForHittable(skip))
+        skip.tap()
+        let done = app.buttons["onboardingTryDone"]
+        XCTAssertTrue(waitForHittable(done))
+        done.tap()
+        XCTAssertTrue(waitForGone(panel, timeout: 5))
+        XCTAssertTrue(app.webViews.firstMatch.waitForExistence(timeout: 10), "Browser web view should remain usable with no key.")
+    }
 }

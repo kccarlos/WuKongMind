@@ -530,7 +530,7 @@ struct ProviderSetupForm: View {
                 .dcCard()
             }
             .buttonStyle(.plain)
-            Text(app.appleIntelligenceStatus.isAvailable
+            Text(scope != .role(.browserAgent) && app.appleIntelligenceStatus.isAvailable
                 ? "Not sure? Apple Intelligence works right away. If you already pay for a provider, you can use it instead."
                 : "Not sure? If you already pay for one, use it. OpenRouter is an easy start.")
                 .font(.caption)
