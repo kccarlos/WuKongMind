@@ -182,7 +182,6 @@ final class GMBridge {
     @ObservationIgnored weak var webView: WKWebView?
     @ObservationIgnored var httpClient: AgentHTTPClient = AgentHTTPClient()
     @ObservationIgnored var aiService: GMAiService?
-    @ObservationIgnored var consentAuthorizer: (@MainActor () -> (@MainActor @Sendable (AIProvider, String) async throws -> Void)?)?
     @ObservationIgnored var auditLog: AuditLog?
     @ObservationIgnored var resolveScript: ((String) -> UserScript?)?
     @ObservationIgnored var onValuesMutated: ((String) -> Void)?
@@ -473,19 +472,18 @@ final class GMBridge {
             defer { self?.inFlightRequests.removeValue(forKey: taskKey) }
             do {
                 let format = try GMAiFormat.parse(mode: formatMode, schemaJSON: schemaJSON)
-                let value: JSONValue = try await AIConsentAuthorization.$authorize.withValue(self?.consentAuthorizer?()) {
-                    if isMap {
-                        guard let rawItems else { throw GMAiError(.invalidOutput, "GM_ai.map items must be an array of {id, text} objects.") }
-                        let items = try rawItems.map { raw -> GMAiMapItem in
-                            guard let id = raw["id"] as? String, !id.isEmpty else {
-                                throw GMAiError(.invalidOutput, "Each GM_ai.map item must have a non-empty id.")
-                            }
-                            return GMAiMapItem(id: id, text: (raw["text"] as? String) ?? "")
+                let value: JSONValue
+                if isMap {
+                    guard let rawItems else { throw GMAiError(.invalidOutput, "GM_ai.map items must be an array of {id, text} objects.") }
+                    let items = try rawItems.map { raw -> GMAiMapItem in
+                        guard let id = raw["id"] as? String, !id.isEmpty else {
+                            throw GMAiError(.invalidOutput, "Each GM_ai.map item must have a non-empty id.")
                         }
-                        return .object(try await service.map(script: script, pageKey: pageKey, pageURL: pageURLString, items: items, instruction: instruction, format: format))
-                    } else {
-                        return try await service.call(script: script, pageKey: pageKey, pageURL: pageURLString, prompt: prompt, format: format)
+                        return GMAiMapItem(id: id, text: (raw["text"] as? String) ?? "")
                     }
+                    value = .object(try await service.map(script: script, pageKey: pageKey, pageURL: pageURLString, items: items, instruction: instruction, format: format))
+                } else {
+                    value = try await service.call(script: script, pageKey: pageKey, pageURL: pageURLString, prompt: prompt, format: format)
                 }
                 replyHandler(["ok": true, "rawJSON": GMAiFormat.encodeJSON(value)], nil)
             } catch let aiErr as GMAiError {

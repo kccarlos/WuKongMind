@@ -1697,6 +1697,7 @@ final class BrowserAgentSession {
         let task = activeTask
         activeTask = nil
         task?.cancel()
+        setWaitingForConsent(nil)
 
         if let lastID = runs.last?.id {
             finish(run: lastID, as: .stopped(step: currentStep))

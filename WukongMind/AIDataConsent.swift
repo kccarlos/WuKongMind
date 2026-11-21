@@ -18,8 +18,9 @@ import Foundation
 // - `AIConsentGate`            who is waiting for an answer (not saved).
 // - `AppModel.authorizeSending(to:baseURL:mayAsk:whileAsking:)`
 //                              interactive check at the start of user work.
-// - `AIConsentAuthorization`   TaskLocal interactive hook inherited by tools
-//                              and jobs started on behalf of a user action.
+// - `AIConsentAuthorization`   TaskLocal interactive hook bound around Agent
+//                              runs and Voice tool calls, inherited by every
+//                              async tool and summary job they invoke.
 // - `AIService.consentCheck`   the request-layer backstop before every
 //                              third-party request (streamText & tool turns),
 //                              including `GM_ai`, summaries, and the Agent.
