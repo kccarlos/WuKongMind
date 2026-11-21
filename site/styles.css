@@ -1,5 +1,6 @@
 /* WukongMind site. Tokens from docs/wukongmind/design/design-system/tokens.json: ink, gold, jade on warm paper / lacquer black.
-   System fonts only, no gradients, hairlines instead of shadows, seals not capsules. No JavaScript. */
+   System fonts only, no gradients, hairlines instead of shadows, seals not capsules. No JavaScript on these pages;
+   the home page adds home.css and home.js for its demos. */
 :root {
   color-scheme: light dark;
   --ground: #f7f3ea; --surface: #fffdf8; --raised: #efe9dc;
@@ -44,8 +45,6 @@ h3 { font-size: 17px; margin: 24px 0 4px; }
 p, ul { margin: 0 0 14px; }
 li { margin-bottom: 6px; }
 
-.hero { display: grid; grid-template-columns: 1fr; gap: 24px; padding: 32px 0 8px; align-items: start; }
-.hero img { width: 96px; height: 96px; }
 .hero .sub { font-size: 22px; font-weight: 600; margin: 0 0 12px; }
 .hero .lead { font-size: 19px; color: var(--muted); max-width: 36em; }
 .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
@@ -73,8 +72,6 @@ footer p { margin: 4px 0 24px; }
 
 @media (min-width: 720px) {
   .langs { border-left: 1px solid var(--hairline); padding-left: 12px; }
-  .hero { grid-template-columns: 120px 1fr; gap: 32px; padding-top: 56px; }
-  .hero img { width: 120px; height: 120px; }
   h1 { font-size: 44px; }
   .cards { grid-template-columns: 1fr 1fr; }
 }
