@@ -77,8 +77,7 @@ It follows roadmap v2, "Just ask" ([next-phase.md](next-phase.md), which v2 repl
    - **This site**: block ads here, and a link to the site's settings.
    - **Developer**: a placeholder for the site inspector, which comes with Learn on ask and shows only in developer mode.
    The toolbar badge keeps its M1/M2 meaning (the script count) and opens the panel.
-3. **Home is the browser's start page.** From top to bottom:
-   - an address field ("Search or enter address"). It is the only address field on Home; the bottom bar shows no address field there;
+3. **Home is the browser's start page.** From top to bottom (address entry lives in the browser bar; tapping the bar's field shows Home over the page):
    - **Sites**: a grid of pinned and frequent sites, with an Add tile;
    - **Recent**: the newest History items, with a History link;
    - Continue reading;
@@ -327,9 +326,7 @@ The seal reads "talk.example.org · 3 scripts", or just the host on a page with 
 
 ```
 HomeView (List, .insetGrouped, listSectionSpacing(.compact))
-├─ header: "Home" · History · Settings      (unchanged buttons)
-├─ AddressField                              // 44 pt field (surface-raised, radius-md), "Search or enter address" (searches with Browser › Search engine); focus shows suggestions
-│                                            // the only address entry on Home: the bottom bar hides its address field while Home shows
+├─ header: "Home" · History · Settings      (unchanged buttons; address entry lives in the browser bar)
 ├─ TodayModule / PodcastHomeCard / DigestStrip   // unchanged, only when there is something
 ├─ Section "Sites": SiteGrid                 // LazyVGrid, 4 columns on iPhone, adaptive 88 pt on iPad
 │    SiteTile: tile in the site's own colour (forumPalette, unchanged), name; forum → grey speech-bubble badge (the only place it shows)
@@ -343,7 +340,7 @@ HomeView (List, .insetGrouped, listSectionSpacing(.compact))
   - **What it holds.** History holds all conversations and their results (roadmap section 4). Summaries, forum answers and topic chats saved before this design stay in History as they are.
   - **Recent.** Home's **Recent** is not a separate list: it is the newest History items, with a link to all of History. `HistoryView`'s segments become All, Conversations, Following (decided). Until M3, Conversations lists today's saved summaries and forum answers, each as a conversation of one result.
   - **Conversations.** They live in memory today (`BrowserAgentSession`). They join History once they are saved, which comes with M3's workspace (`tasks/`). Until then, Recent also shows this launch's current conversation, and the summaries in it are saved as today.
-- **The empty state** (no sites yet) is the address field plus a card: three suggested ordinary web pages (no forums, no explanatory text and no forum badge). This replaces the forum-centred empty state and the suggested-forums list.
+- **The empty state** (no sites yet) is a card of three suggested ordinary web pages (no forums, no explanatory text and no forum badge); address entry lives in the browser bar. This replaces the forum-centred empty state and the suggested-forums list.
 
 ### 4. Settings
 

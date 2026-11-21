@@ -872,6 +872,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
             scrollPosition = .zero
         }
         let startedFromHome = showsForumsHome || loadStartedFromForumsHome
+        if isEditingAddress { setEditingAddress(false) }
         hideForumsHome()
         expandChrome(deferIfTracking: true)
         loadStartedFromForumsHome = startedFromHome
@@ -1012,6 +1013,7 @@ final class ForumBrowserModel: NSObject, ObservableObject {
 
     func go(to item: WKBackForwardListItem) {
         let startedFromHome = showsForumsHome || loadStartedFromForumsHome
+        if isEditingAddress { setEditingAddress(false) }
         hideForumsHome()
         expandChrome(deferIfTracking: true)
         loadStartedFromForumsHome = startedFromHome

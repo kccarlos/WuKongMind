@@ -49,7 +49,7 @@ Looks come from the design system (https://claude.ai/artifact/5fGhnS4fmcmWYZbPoK
   | Expanded, on a page | The gold ring at the trailing end. Tap opens the panel | Hold the ring (today's long press) |
   | Collapsed | No Agent button. A tap on the pill expands the bar first, then the ring opens the panel. While the Agent works, the pill's lock becomes a 16 pt turning ring and the ink scripts seal sits after the domain, so work stays visible | Expand first |
   | Collapsed, panel closed, and the Agent finishes or needs an answer | The bar springs open, once no finger is on the page. The ring then shows today's state: done, or the confirmation waiting. A tap opens the panel at the card. There is no separate pill state | — |
-  | Home | The ring shows only when a page is loaded under Home (as today) | The mic button replaces the ring. Home never collapses (it has its own address field) |
+  | Home | The ring shows only when a page is loaded under Home (as today) | The mic button replaces the ring. Home has no field of its own; the bar shows its address field and stays expanded |
   | Panel open | The bar is under the panel, and the panel's input box has its own mic | Panel mic |
   | Voice session | The voice Dock replaces the bar (today's rule) and the bar doesn't collapse | Dock |
   | Editing the address | The field rides on the keyboard (today's rule) | — |

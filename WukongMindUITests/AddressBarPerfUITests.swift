@@ -59,17 +59,21 @@ final class AddressBarPerfUITests: DCUITestCase {
             attachTree(pageApp, named: "no-address-field")
             XCTFail("addressField did not appear (titleButton frame=\(titleButton.frame))")
         }
+        XCTAssertTrue(any(pageApp, "home").waitForExistence(timeout: 5), "Home overlay did not appear")
         RunLoop.current.run(until: Date().addingTimeInterval(3.5))
         note("tap_to_edit_bar " + timeline(pageApp))
 
         let cancel = pageApp.buttons["addressCancel"]
         if cancel.exists { cancel.tap() }
 
-        // 2. Per-keystroke in Home's address field.
+        // 2. Per-keystroke in the bar's address field on Home.
         let homeApp = launch(["-dc-perf-probe", "-dc-forums-home", "-dc-seed-forums"])
-        let homeField = homeApp.textFields["homeAddress"]
-        XCTAssertTrue(waitForHittable(homeField, timeout: 15), "homeAddress did not appear")
-        homeField.tap()
+        let homeBarTitle = homeApp.buttons["browserTitle"]
+        XCTAssertTrue(waitForBarItem(homeBarTitle, timeout: 15), "browserTitle did not appear on Home")
+        XCTAssertTrue(waitForHittable(homeBarTitle, timeout: 5), "browserTitle not hittable on Home")
+        tapBarItem(homeBarTitle)
+        let homeField = homeApp.textFields["addressField"]
+        XCTAssertTrue(homeField.waitForExistence(timeout: 5), "addressField did not appear on Home")
         XCTAssertTrue(homeApp.keyboards.firstMatch.waitForExistence(timeout: 5), "Keyboard did not appear")
         RunLoop.current.run(until: Date().addingTimeInterval(1.0))
 

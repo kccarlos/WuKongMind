@@ -134,6 +134,7 @@ extension AppModel {
     /// layout. Settings: a sheet everywhere (one host; in the split panel its
     /// navigation stack would sit inside the page's and lose its bar).
     func openPanelRoute(_ route: ExpandedPanelRoute) {
+        browser.setEditingAddress(false)
         if route == .history, !router.usesDrawer, !browser.showsForumsHome {
             panelRoute = .history
             showAIView()
