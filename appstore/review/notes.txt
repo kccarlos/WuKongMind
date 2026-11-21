@@ -1,0 +1,43 @@
+WukongMind Browser is an iPhone/iPad web browser with an AI assistant ("Agent") that reads and changes any web page. No account, no login, no in-app purchases, no ads, no analytics, and no server of ours.
+
+OUR OTHER APP
+We also develop Forumind (Apple ID 6816718686). The two apps share some code but are different products. Forumind is a discussion reader only (Discourse, WordPress, Hacker News) with no page-editing agent and no scripts. WukongMind is a general web browser: it opens any site in tabs, its Agent modifies pages via JavaScript in WebKit, and it saves changes as user scripts you review and approve. Summarizing or reading aloud any page (including discussions) is one browser feature, not its purpose.
+
+TEST KEY
+The Agent connects to an AI service using the user's own key. For review, use this spend-capped temporary key (revoked after review):
+Settings > Models > Providers & keys > [PROVIDER_TBD] > API key: REVIEWER_KEY_TBD
+The attached real-iPhone screen recording shows every step below, including Terms acceptance and Report this answer.
+
+HOW TO TEST
+1. Launch and accept Terms of Use.
+2. Paste the key above and pick [MODEL_TBD].
+3. Open https://en.wikipedia.org/wiki/Apple, open the assistant, accept the AI data notice, ask "Summarize this page", and try Read aloud.
+4. Ask "Make the text larger on this page" (Agent runs JS in WebKit and shows steps).
+5. Ask to keep that change. A review sheet shows source, sites, and permissions before saving (manage in Settings > Scripts).
+6. Report an AI answer: answer menu > Report this answer (or Report this summary).
+
+SCRIPTS (2.5.2, 4.7)
+All pages render in WKWebView; all scripts run in WebKit JS and modify web pages only (no app changes; no camera, location, contacts, files, or clipboard APIs).
+- No script catalogue. Importing a .user.js HTTPS link fetches the script and @require libraries, shows full source and capabilities, and requires user action to add/enable.
+- GM_xmlhttpRequest (listed hosts) and rate-limited GM_ai are shown before enabling.
+- Optional daily update checks only notify; nothing replaces without review.
+- Agent-saved scripts, script updates (including imported), and "Learn on ask" read-only readers all require review-sheet approval unless Settings > Agent > Safety > Save scripts without asking (default off) is on.
+- No remote config or feature flags. Optional ad/tracker blocking (bundled EasyList/EasyPrivacy) is off by default.
+
+BROWSER BEHAVIOUR (2.5.6, 2.5.9)
+Web views send Safari's standard OS user agent (public customUserAgent) so sites render normal web pages instead of degraded in-app views. Tapped links stay in the browser unless the visible setting "Open links in apps" is enabled.
+
+NOTHING IS HIDDEN (2.5.19, 5.6)
+One codebase and one build everywhere (App Store, TestFlight, source). "Developer mode" (Settings > Agent) is a visible switch (default off) showing request details.
+
+LOGIN (4.8)
+No app login. Any website sign-in button (e.g. "Continue with Google") belongs to the website. Account deletion does not apply.
+
+DATA (5.1.1, 5.1.2)
+Page content and questions go directly to the user's chosen AI provider after per-provider explicit consent. Live voice sends microphone audio to Google Gemini while active, after separate consent. Optional iCloud sync uses the user's private CloudKit database. We receive no data.
+
+BACKGROUND MODES (2.5.4)
+audio: Read aloud continues in the background; live voice runs in the foreground only and ends automatically on background. fetch: refreshes followed discussions (at most every 30 min). remote-notification: silent CloudKit sync pushes (CloudKit builds only).
+
+OTHER
+Free, open source (https://github.com/kccarlos/WuKongMind). Excludes China mainland. Not affiliated with any website or AI provider. EasyList/EasyPrivacy under CC BY-SA 3.0.
