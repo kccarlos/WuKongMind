@@ -40,7 +40,7 @@
     });
   }
 
-  // A stage with data-steps plays step by step while half of its phone is in view, holds its last
+  // A stage with data-steps plays step by step while a third of its phone is in view, holds its last
   // frame, then starts again (data-loops, when set, rotates data-loop between plays).
   function makeStage(el) {
     const delays = el.dataset.steps.split(',').map(Number);
@@ -73,7 +73,7 @@
   const stages = [...document.querySelectorAll('[data-steps]')].map(makeStage);
   const stageObserver = new IntersectionObserver(entries => {
     entries.forEach(entry => stages.find(s => s.watch === entry.target).show(entry.isIntersecting));
-  }, { threshold: 0.5 });
+  }, { threshold: 0.35 });
   stages.forEach(stage => stageObserver.observe(stage.watch));
 
   // One pause button under each looping demo; any of them pauses all of them.
