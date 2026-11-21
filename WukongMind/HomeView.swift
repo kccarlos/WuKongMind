@@ -74,7 +74,7 @@ private struct HomeList: View {
                 continueReadingSection
                 followingSection
             }
-            .padding(.horizontal, DCTheme.spacingM)
+            .padding(.horizontal, 20)
             .padding(.top, DCTheme.spacingS)
             .padding(.bottom, DCTheme.spacingM)
         }
@@ -136,7 +136,7 @@ private struct HomeList: View {
     private func sitesSection(_ tiles: [HomeSite]) -> some View {
         VStack(alignment: .leading, spacing: DCTheme.spacingS) {
             sectionTitle("Sites", comment: "Home section: pinned and most visited sites")
-                .padding(.horizontal, 4)
+                .padding(.horizontal, 16)
             LazyVGrid(columns: columns, alignment: .center, spacing: DCTheme.spacingL) {
                 ForEach(tiles) { site in
                     siteButton(site)
@@ -275,8 +275,8 @@ private struct HomeList: View {
                         }
                         Spacer(minLength: 0)
                     }
-                    .padding(.horizontal, DCTheme.spacingM)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 14)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
@@ -317,12 +317,12 @@ private struct HomeList: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("recentHistoryLink")
                 }
-                .padding(.horizontal, 4)
+                .padding(.horizontal, 16)
                 homeCard(items) { item in
                     Button { openRecent(item) } label: {
                         RecentRow(item: item)
-                            .padding(.horizontal, DCTheme.spacingM)
-                            .padding(.vertical, 10)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
                     }
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("recent-\(item.id)")
@@ -350,15 +350,15 @@ private struct HomeList: View {
         if !sessions.isEmpty {
             VStack(alignment: .leading, spacing: DCTheme.spacingS) {
                 sectionTitle("Continue reading", comment: "Home section: the topics read last")
-                    .padding(.horizontal, 4)
+                    .padding(.horizontal, 16)
                 homeCard(sessions) { session in
                     Button {
                         DCHaptics.tap()
                         app.openTopic(topicKey: session.topicKey)
                     } label: {
                         ContinueReadingRow(session: session, forum: app.forumInfo(siteURL: session.siteURL))
-                            .padding(.horizontal, DCTheme.spacingM)
-                            .padding(.vertical, 10)
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 14)
                     }
                     .tint(.primary)
                     .accessibilityIdentifier("continueReading-\(session.topicID)")
@@ -377,7 +377,7 @@ private struct HomeList: View {
         if !following.isEmpty {
             VStack(alignment: .leading, spacing: DCTheme.spacingS) {
                 sectionTitle("Following", comment: "Home section: followed topics with new replies")
-                    .padding(.horizontal, 4)
+                    .padding(.horizontal, 16)
                 homeCard(following) { watched in
                     Button {
                         DCHaptics.tap()
@@ -397,8 +397,8 @@ private struct HomeList: View {
                             Spacer(minLength: DCTheme.spacingS)
                             NewRepliesBadge(text: String(localized: "\(watched.newReplies) new", comment: "Badge: number of new replies in a followed topic"))
                         }
-                        .padding(.horizontal, DCTheme.spacingM)
-                        .padding(.vertical, 10)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 14)
                         .contentShape(Rectangle())
                     }
                     .tint(.primary)
@@ -417,11 +417,11 @@ private struct HomeList: View {
                 row(item)
                 if index < items.count - 1 {
                     Divider()
-                        .padding(.leading, DCTheme.spacingM)
+                        .padding(.horizontal, 20)
                 }
             }
         }
-        .background(DCTheme.surface, in: RoundedRectangle(cornerRadius: DCTheme.cardCornerRadius, style: .continuous))
+        .background(DCTheme.surface, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
     }
 
     private func sectionTitle(_ key: LocalizedStringKey, comment: StaticString) -> some View {

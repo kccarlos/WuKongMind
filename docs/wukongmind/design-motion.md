@@ -221,8 +221,11 @@ Ordered by felt value per effort. Each is one pull request with its own check. S
   - Before (`77f0134`): `tap busy_ms` 718, 599, 557, 586, 582 (median **586 ms**); `f:addressEdit.focus` 507, 380, 379, 384, 383 (median **383 ms**); `HomeList.body` first hit 86, 87, 99, 95, 94 (2× per tap); `home_keystrokes busy_ms` 6280, 6420, 6320, 6344, 6319 (median **6320 ms**, `HomeList.body` 40).
   - A/B check keeping `List(.insetGrouped)` with deferred mount + observation narrowing (3 runs): `tap busy_ms` 574, 511, 505 (median **511 ms**, +16% vs 440 ms, with a 52–76 ms post-focus display-link gap); `home_keystrokes busy_ms` 6070, 6084, 6145 (median **6084 ms**).
   - After (`ScrollView` + `LazyVStack` + deferred mount + observation narrowing, 5 runs): `tap busy_ms` 609, 474, 481, 486, 472 (median **481 ms**, -105 ms, +9.3% vs pre-Motion-4's 440 ms); `f:addressEdit.focus` 423, 322, 318, 337, 320 (median **322 ms**, -61 ms); `HomeList.body` first hit 377, 285, 280, 301, 282 (1× per tap, after focus, zero post-focus hitch); `home_keystrokes busy_ms` 5499, 5555, 5486, 5600, 5553 (median **5553 ms**, -767 ms, `HomeList.body` 0).
+  - Visual check: compared `List(.insetGrouped)` vs `ScrollView` + `LazyVStack` side-by-side in Light, Dark, Accessibility XXXL, and inset-grouped cards (Starter sites, Recent, Continue reading) via `HomeUITests` on iPhone 18 Pro simulator, matching card corner radius (26 pt), section-header inset (16 pt), row padding (20 × 14 pt), and separator insets (20 pt) to iOS 27 `List(.insetGrouped)` (screenshots in WUKO-197's proof artifact).
 
 ## 7. Not proven
+
+- **Home's grouped-card metrics (`HomeView.homeCard`):** row padding (20 × 14 pt), corner radius (26 pt), separator inset (20 pt), and section-header inset (16 pt) are visually matched to iOS 27 `List(.insetGrouped)` at Light, Dark, and XXXL rather than driven by `UICollectionViewListConfiguration`, so future OS-level `List` metric changes will not apply automatically.
 
 - **No prototype was built.** Whether the six still pictures read apart at 16 pt, and whether the done one-shot feels right at 250 ms, is settled in task 2 by its screenshots, not here.
 - **Address-bar speed.** No number exists for tap-to-Home or per-keystroke suggestions; task 3 adds the measurement. The 200 ms budget is the drawer's, assumed to fit.
