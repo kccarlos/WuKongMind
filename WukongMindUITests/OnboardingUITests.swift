@@ -188,6 +188,18 @@ final class OnboardingUITests: DCUITestCase {
         capture("provider-key-in-app-tab")
     }
 
+    func testFailedOnboardingKeyTestShowsFailureAndNoDoneRow() throws {
+        let app = launch(["-dc-onboarding-step", "model", "-dc-no-provider"])
+        let continueButton = app.buttons["onboardingContinue"]
+        XCTAssertTrue(waitOrDump(continueButton, timeout: 20, in: app), "Onboarding Continue button did not appear.")
+        continueButton.tap()
+
+        let failure = any(app, "providerTestFailure")
+        XCTAssertTrue(reveal(failure, in: app, swipes: 2), "Failed key test did not show cinnabar failure status.")
+        XCTAssertFalse(any(app, "providerTestSuccess").exists, "Failed key test must not show the saved ring.")
+        capture("onboarding-key-test-failed")
+    }
+
     /// Clean launch with no key: skip model selection, open a page, pass Terms,
     /// reach the setup card saying the Agent needs a key, open Settings › Models,
     /// and still browse normally after skipping step 3.

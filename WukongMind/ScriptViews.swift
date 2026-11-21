@@ -1249,10 +1249,9 @@ struct PageCapabilitiesView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         } else if script.readsSite {
-            Label {
+            HStack(spacing: 5) {
+                DCAgentRing(state: .done, size: 12, lineWidth: 1.5)
                 Text("Reads this site", comment: "Subtitle under a script the Agent learned that reads this site's threads, in This page and Settings › Scripts")
-            } icon: {
-                Image(systemName: "book.closed")
             }
             .font(.caption)
             .foregroundStyle(.secondary)

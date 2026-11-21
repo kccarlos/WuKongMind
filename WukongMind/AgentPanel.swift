@@ -557,7 +557,9 @@ private struct AgentRunSectionView: View, Equatable {
                     AgentScriptCardView(app: app, entry: entry, scriptsModelDisplayName: model.scriptsModelDisplayName)
                         .dcRiseIn()
                 }
-                DCSavedNote()
+                DCSavedNote(animateDone: model.isLatest && !session.doneShownRunIDs.contains(run.id)) {
+                    session.markSavedNoteDoneShown(for: run.id)
+                }
             }
 
             let reply = run.assistantText.trimmingCharacters(in: .whitespacesAndNewlines)

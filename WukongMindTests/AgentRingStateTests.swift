@@ -231,7 +231,16 @@ final class AgentRingStateTests: XCTestCase {
         )
         app.browserAgent.restoreConversation(savedCompleted)
         XCTAssertEqual(app.browserAgent.seenRunID, completedID)
+        XCTAssertTrue(app.browserAgent.doneShownRunIDs.contains(completedID), "Restored run must not replay the saved-note done one-shot")
         XCTAssertEqual(app.agentRingState(isAvailable: true), .idle, "A restored completed run must not show as unseen done")
+
+        let liveRunID = UUID()
+        XCTAssertFalse(app.browserAgent.doneShownRunIDs.contains(liveRunID))
+        app.browserAgent.markSavedNoteDoneShown(for: liveRunID)
+        XCTAssertTrue(app.browserAgent.doneShownRunIDs.contains(liveRunID))
+
+        app.browserAgent.resetConversation()
+        XCTAssertTrue(app.browserAgent.doneShownRunIDs.isEmpty)
 
         let failedID = UUID()
         let savedFailed = SavedAgentConversation(
