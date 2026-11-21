@@ -11,7 +11,9 @@ SIM_IPHONES=(
   "16A99B26-BFFC-49B4-B068-EA0FE058AFA5" # iPhone 18 Pro
   "3AB57DA3-3CDD-4130-97D4-D9EE35C15F8C" # iPhone 18 Pro (2)
 )
+SIM_IPHONE_69="26A0D5BB-E4E4-420F-BC16-4F52B8B2D998" # iPhone 18 Pro Max (6.9", 1320x2868)
 SIM_IPAD="F0750EC3-8319-4183-B43E-BE6E6BE694F3" # iPad Air 11-inch (M4)
+SIM_IPAD_13="232148C0-E048-438A-9A33-C0FD7CC855B1" # iPad Pro 13-inch (M5) (13", 2064x2752 / 2752x2064)
 BUILD_LOCK="build"
 
 SCRIPT_PATH="${BASH_SOURCE[0]}"
@@ -42,12 +44,16 @@ Modes:
   build   `xcodebuild build` for a generic simulator under the build lock.
 
 Options:
-  --sim iphone|ipad|<udid>  simulator (default iphone). Allowed simulators on
-                            the mini:
-                            iphone = iPhone 18 Pro      16A99B26-BFFC-49B4-B068-EA0FE058AFA5
-                                     iPhone 18 Pro (2)  3AB57DA3-3CDD-4130-97D4-D9EE35C15F8C
-                                     (takes whichever iPhone is free)
-                            ipad   = iPad Air 11-inch (M4)  F0750EC3-8319-4183-B43E-BE6E6BE694F3
+  --sim iphone|iphone-69|ipad|ipad-13|<udid>  simulator (default iphone).
+                            Allowed simulators on the mini:
+                            iphone    = iPhone 18 Pro      16A99B26-BFFC-49B4-B068-EA0FE058AFA5
+                                        iPhone 18 Pro (2)  3AB57DA3-3CDD-4130-97D4-D9EE35C15F8C
+                                        (takes whichever iPhone is free)
+                            iphone-69 = iPhone 18 Pro Max  26A0D5BB-E4E4-420F-BC16-4F52B8B2D998
+                            ipad      = iPad Air 11-inch (M4)  F0750EC3-8319-4183-B43E-BE6E6BE694F3
+                            ipad-13   = iPad Pro 13-inch (M5)  232148C0-E048-438A-9A33-C0FD7CC855B1
+  --clean-status-bar        override simulator status bar (9:41, full Wi-Fi/battery)
+                            for App Store screenshots and clear on exit
   --out <dir>               where results are copied back (default:
                             /Volumes/Ext/dev/build/wukongmind-remote-test/<worktree>-<timestamp>)
   --timeout <seconds>       limit for the xcodebuild steps (default 1800)
@@ -347,7 +353,7 @@ mode_demo_flow() { # _demo-flow <build-secs> <test-secs> [timeout]: exercise bui
 
 # ---------- main ----------
 
-MODE="test"; SIM="iphone"; OUT=""; TIMEOUT=1800
+MODE="test"; SIM="iphone"; OUT=""; TIMEOUT=1800; CLEAN_STATUS_BAR=0
 SECRET_NAMES=(); SECRET_TARGETS=(); DEBUG_PRINT_SECRETS=0
 INVOCATION="remote-test.sh $*"
 EXTRA=()
@@ -362,6 +368,7 @@ while (( $# )); do
   case "$1" in
     -h|--help) usage; exit 0 ;;
     --sim) SIM="${2:?--sim needs a value}"; shift 2 ;;
+    --clean-status-bar) CLEAN_STATUS_BAR=1; shift ;;
     --out) OUT="${2:?--out needs a value}"; shift 2 ;;
     --timeout) TIMEOUT="${2:?--timeout needs a value}"; shift 2 ;;
     --secret)
@@ -378,13 +385,15 @@ done
 SIM_CANDIDATES=()
 case "$SIM" in
   iphone) SIM_CANDIDATES=("${SIM_IPHONES[@]}") ;;
+  iphone-69|"$SIM_IPHONE_69") SIM_CANDIDATES=("$SIM_IPHONE_69") ;;
   ipad) SIM_CANDIDATES=("$SIM_IPAD") ;;
+  ipad-13|"$SIM_IPAD_13") SIM_CANDIDATES=("$SIM_IPAD_13") ;;
   "$SIM_IPAD") SIM_CANDIDATES=("$SIM") ;;
   *)
     for s in "${SIM_IPHONES[@]}"; do
       if [[ "$SIM" == "$s" ]]; then SIM_CANDIDATES=("$SIM"); break; fi
     done
-    (( ${#SIM_CANDIDATES[@]} )) || die "--sim must be iphone, ipad or one of the allowed UDIDs (got: $SIM)" 2
+    (( ${#SIM_CANDIDATES[@]} )) || die "--sim must be iphone, iphone-69, ipad, ipad-13 or one of the allowed UDIDs (got: $SIM)" 2
     ;;
 esac
 
@@ -563,6 +572,20 @@ fi
 echo "== xcodebuild test-without-building ($UDID)"
 ts=$(date +%s)
 EOS
+      if (( CLEAN_STATUS_BAR )); then
+        cat <<'EOS'
+xcrun simctl status_bar "$UDID" override \
+  --time "9:41" \
+  --dataNetwork wifi \
+  --wifiMode active \
+  --wifiBars 3 \
+  --cellularMode active \
+  --cellularBars 4 \
+  --operatorName "" \
+  --batteryState charged \
+  --batteryLevel 100 || true
+EOS
+      fi
       if (( DEBUG_PRINT_SECRETS )); then echo '[ -n "$SD" ] && echo "LEAK-DEMO: $(cat "$SD/env")"'; fi
       printf '( [ -n "$SD" ] && . "$SD/env"; xcodebuild test-without-building -parallel-testing-enabled NO -resultBundlePath %q -project WukongMind.xcodeproj -scheme %q -destination %q -derivedDataPath "$HOME/%s/%s" CODE_SIGNING_ALLOWED=NO' \
         "../$WT_NAME.results/$RUN_ID/test.xcresult" "$SCHEME" "$DEST" "$REMOTE_BASE" "$REMOTE_DD"
@@ -571,6 +594,11 @@ EOS
       cat <<'EOS'
 rc=$?
 [ -n "$SD" ] && rm -rf "$SD"; SD=""
+EOS
+      if (( CLEAN_STATUS_BAR )); then
+        echo 'xcrun simctl status_bar "$UDID" clear 2>/dev/null || true'
+      fi
+      cat <<'EOS'
 echo "STAGE test-without-building $(( $(date +%s) - ts ))"
 echo "REMOTE_TEST_RC=$rc"
 exit "$rc"
