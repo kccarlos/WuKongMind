@@ -788,8 +788,9 @@ same coordinates; update it by hand.
 ## Website
 
 The public site (privacy policy, support, product page; English, 简体中文, 繁體中文) is plain
-HTML and CSS in `site/`, built by one standard-library script. No JavaScript, no
-tracking, no third-party fonts or scripts.
+HTML and CSS in `site/`, built by one standard-library script. No framework, no
+tracking, no third-party fonts or scripts. Only the home page has JavaScript: one small
+file for its demos.
 
 ```sh
 python3 scripts/site/build.py --out _site   # build, then check every internal link, anchor, alt text, lang, file size
@@ -797,7 +798,8 @@ python3 -m http.server 8000 -d _site        # preview at http://localhost:8000/ 
 ```
 
 - The privacy page is generated from `PRIVACY.md` (and a terms page from `TERMS.md` once that file exists): edit those files, never the site. The script only renders the small Markdown subset they use and fails on anything else. The Chinese pages show the English text under a short note, since the policy is English only.
-- Hand-written text is in `site/lang/<code>/` (home, support, one-line partials); the page frame is `site/layout.html`; colours and type come from the design system tokens in `site/styles.css`.
+- Hand-written text is in `site/lang/<code>/` (`home.json`, support, one-line partials); the page frame is `site/layout.html`; colours and type come from the design system tokens in `site/styles.css`.
+- The home page is one template, `site/home.html`, filled with each language's `home.json` and the shared pieces in `site/partials/` (the ring, the browser bar, the demo article). Its demos (the ring's states, the scroll-driven restyle, Home over the page, the Add script sheet) are drawn in `site/home.css` from the design boards with the app's own strings and timings, and driven by `site/home.js`. The markup alone is every demo's finished frame: that is what shows without JavaScript and with reduced motion. Motion runs only under `html.anim`, which an inline script sets before first paint when motion is allowed. Animate only opacity, transform, colour and stroke inside the fixed-size frames, so nothing shifts. A new demo string goes in all three `home.json` files (the build fails on a missing one).
 - `site/config.json` holds each changing value once: `support_email` and `testflight_url`. While one is a `*_TBD` placeholder the part of the page that needs it is not rendered (no TestFlight section, no email line); the build prints a note.
 - `.github/workflows/site.yml` builds on pull requests that touch these files and deploys `_site/` to GitHub Pages on `main`. Needs Settings › Pages › Source: "GitHub Actions" once. Live at https://kccarlos.github.io/WuKongMind/ (links are relative, so a custom domain works too).
 
