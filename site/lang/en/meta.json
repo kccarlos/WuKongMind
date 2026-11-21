@@ -1,6 +1,7 @@
 {
   "html_lang": "en",
   "label": "English",
+  "short": "EN",
   "skip": "Skip to content",
   "nav_label": "Pages",
   "lang_label": "Language",
@@ -16,7 +17,7 @@
   "pages": {
     "home": {
       "title": "WukongMind Browser: AI agent for any web page",
-      "description": "A browser for iPhone and iPad with an AI agent that reads, changes and automates any web page. No accounts, no analytics, your own AI."
+      "description": "Too cluttered, hard to read, too long? Ask the Agent in WukongMind Browser for iPhone and iPad to change the page in front of you. No accounts, no tracking, your own AI."
     },
     "privacy": {
       "title": "Privacy | WukongMind Browser",

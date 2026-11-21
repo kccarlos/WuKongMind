@@ -1,6 +1,7 @@
 {
   "html_lang": "zh-Hans",
   "label": "简体中文",
+  "short": "简",
   "skip": "跳到正文",
   "nav_label": "页面",
   "lang_label": "语言",
@@ -16,7 +17,7 @@
   "pages": {
     "home": {
       "title": "WukongMind 浏览器：任意网页上的 AI 智能体",
-      "description": "适用于 iPhone 和 iPad 的浏览器，AI 智能体可以读取、修改和自动化任何网页。无账号、无统计，使用你自己的 AI。"
+      "description": "网页太乱、看着累、太长？在 iPhone 和 iPad 上用 WukongMind 浏览器，说一句话，让智能体当面把网页改好。无账号、无追踪，使用你自己的 AI。"
     },
     "privacy": {
       "title": "隐私 | WukongMind 浏览器",

@@ -34,14 +34,14 @@
         if (Number(at) <= n) state = name;
       });
       if (!ring.classList.contains('is-' + state)) {
-        ring.classList.remove('is-idle', 'is-work', 'is-done');
+        ring.classList.remove('is-idle', 'is-work', 'is-ask', 'is-done');
         ring.classList.add('is-' + state);
       }
     });
   }
 
-  // A stage with data-steps plays step by step while it is in view, holds its last
-  // frame, then starts again (data-loops rotates data-loop, for the hero's three asks).
+  // A stage with data-steps plays step by step while a third of its phone is in view, holds its last
+  // frame, then starts again (data-loops, when set, rotates data-loop between plays).
   function makeStage(el) {
     const delays = el.dataset.steps.split(',').map(Number);
     const hold = Number(el.dataset.hold || 3000);
@@ -67,14 +67,14 @@
       clearTimeout(timer);
       if (visible && !paused) timer = setTimeout(tick, step === delays.length ? hold : delays[step]);
     }
-    return { el, schedule, show(on) { visible = on; schedule(); } };
+    return { el, watch: el.querySelector('.phone') || el, schedule, show(on) { visible = on; schedule(); } };
   }
 
   const stages = [...document.querySelectorAll('[data-steps]')].map(makeStage);
   const stageObserver = new IntersectionObserver(entries => {
-    entries.forEach(entry => stages.find(s => s.el === entry.target).show(entry.isIntersecting));
+    entries.forEach(entry => stages.find(s => s.watch === entry.target).show(entry.isIntersecting));
   }, { threshold: 0.35 });
-  stages.forEach(stage => stageObserver.observe(stage.el));
+  stages.forEach(stage => stageObserver.observe(stage.watch));
 
   // One pause button under each looping demo; any of them pauses all of them.
   // The buttons are in the markup (shown only under html.anim), so adding them moves nothing.
