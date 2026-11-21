@@ -298,10 +298,21 @@ enum AppVersion {
     }
 
     static let repositoryURL = URL(string: "https://github.com/kccarlos/WuKongMind")!
-    static let websiteURL = URL(string: "https://github.com/kccarlos/WuKongMind")!
-    static let supportURL = URL(string: "https://github.com/kccarlos/WuKongMind/issues")!
-    static let privacyPolicyURL = URL(string: "https://github.com/kccarlos/WuKongMind/blob/main/PRIVACY.md")!
-    static let termsURL = URL(string: "https://github.com/kccarlos/WuKongMind/blob/main/TERMS.md")!
+    private static let siteBaseURL = "https://kccarlos.github.io/WuKongMind/"
+
+    /// Returns the localized website URL for `path` (e.g. `"privacy/"`, `"terms/"`).
+    static func siteURL(path: String = "", language: String = AppLanguage.current) -> URL {
+        let prefix = switch language {
+        case "zh-Hans", "zh-Hant": "\(language)/"
+        default: ""
+        }
+        return URL(string: "\(siteBaseURL)\(prefix)\(path)")!
+    }
+
+    static var websiteURL: URL { siteURL() }
+    static var supportURL: URL { siteURL(path: "support/") }
+    static var privacyPolicyURL: URL { siteURL(path: "privacy/") }
+    static var termsURL: URL { siteURL(path: "terms/") }
 }
 
 extension AppModel {
