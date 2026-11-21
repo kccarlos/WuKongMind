@@ -3987,6 +3987,23 @@
         }
       }
     },
+    "Ask the Agent: “%@”" : {
+      "comment" : "Address bar suggestion: ask the Agent about the current page",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "询问代理：“%@”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "詢問代理：「%@」"
+          }
+        }
+      }
+    },
     "Ask the Agent…" : {
       "comment" : "Unified Agent panel composer placeholder",
       "localizations" : {
@@ -16225,6 +16242,74 @@
         }
       }
     },
+    "Return asks the Agent" : {
+      "comment" : "VoiceOver announcement when Return in the address bar will ask the Agent",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回车将询问代理"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按下 Return 將詢問代理"
+          }
+        }
+      }
+    },
+    "Return opens address" : {
+      "comment" : "VoiceOver announcement when Return in the address bar will open a web address",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回车将打开地址"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按下 Return 將開啟網址"
+          }
+        }
+      }
+    },
+    "Return searches the web" : {
+      "comment" : "VoiceOver announcement when Return in the address bar will search the web",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回车将搜索网页"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按下 Return 將搜尋網頁"
+          }
+        }
+      }
+    },
+    "Return searches this site" : {
+      "comment" : "VoiceOver announcement when Return in the address bar will search the current site",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回车将搜索此网站"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按下 Return 將搜尋此網站"
+          }
+        }
+      }
+    },
     "Returned" : {
       "comment" : "Trial run section title\nTrial run sheet title",
       "localizations" : {
@@ -17293,6 +17378,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "搜尋"
+          }
+        }
+      }
+    },
+    "Search %@ for “%@”" : {
+      "comment" : "Address bar suggestion: search the current site or the web with the chosen search engine",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 %1$@ 中搜索“%2$@”"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 %1$@ 中搜尋「%2$@」"
           }
         }
       }
@@ -20442,6 +20544,23 @@
         }
       }
     },
+    "The Agent can read and act on pages you’re signed in to, and asks before saving scripts or sending requests." : {
+      "comment" : "First-run step 1 footnote explaining that the Agent can act on signed-in pages and asks before saving scripts or sending requests",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "智能体可以读取并操作你已登录的页面，并在保存脚本或发送请求前询问你。"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "代理可以讀取並操作你已登入的頁面，並在儲存指令碼或傳送請求前詢問你。"
+          }
+        }
+      }
+    },
     "The Agent needs an API key or a local server. Add one in Settings › Models." : {
       "comment" : "Browser agent not ready card: explains that the Agent needs an API key or a local server",
       "localizations" : {
@@ -20472,23 +20591,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "代理需要 API 金鑰或本機伺服器，Apple Intelligence 僅用於摘要。請在「設定 › 模型」中加入。"
-          }
-        }
-      }
-    },
-    "The Agent can read and act on pages you’re signed in to, and asks before saving scripts or sending requests." : {
-      "comment" : "First-run step 1 footnote explaining that the Agent can act on signed-in pages and asks before saving scripts or sending requests",
-      "localizations" : {
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "智能体可以读取并操作你已登录的页面，并在保存脚本或发送请求前询问你。"
-          }
-        },
-        "zh-Hant" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "代理可以讀取並操作你已登入的頁面，並在儲存指令碼或傳送請求前詢問你。"
           }
         }
       }

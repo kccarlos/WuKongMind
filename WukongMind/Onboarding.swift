@@ -219,8 +219,8 @@ struct OnboardingFlow: View {
                     forumSearchURL: nil,
                     webSearchURL: { app.webSearchURL(query: $0) }
                 )
-                if let action = AddressInput.actions(for: text, context: context).first {
-                    app.browser.load(action.url)
+                if let action = AddressInput.actions(for: text, context: context).first, let url = action.url {
+                    app.browser.load(url)
                 }
             } else if let suggested {
                 app.openSuggestedSite(suggested)

@@ -491,6 +491,11 @@ struct AssistantPanel: View {
             )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .onReceive(app.router.$pendingProviderSetup) { pending in
+            guard pending else { return }
+            requestedProviderSetup = true
+            app.router.pendingProviderSetup = false
+        }
         .overlay(alignment: .bottom) { FeedbackToastObserver(slice: relay.feedbackToast, app: app) }
         .background { PanelCommandsObserver(slice: relay.commands, app: app) }
         .background(Color.clear)

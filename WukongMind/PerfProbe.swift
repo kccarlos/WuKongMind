@@ -309,7 +309,7 @@ struct PerfTimelineState: View {
         for (index, threshold) in PerfProbe.MainThreadReport.thresholds.enumerated() {
             fields.append("over\(Int(threshold * 1_000))=\(main.over[index])")
         }
-        for name in ["HomeList.body", "AddressEditBar.body"] {
+        for name in ["HomeList.body", "AddressEditBar.body", "AddressSuggestionsList.body"] {
             fields.append("n:\(name)=\(probe.counts[name] ?? 0)")
         }
         for name in ["HomeSites.matches", "AddressInput.actions"] {
