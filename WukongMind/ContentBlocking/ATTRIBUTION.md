@@ -4,8 +4,8 @@ The `ads-*.json` and `privacy-*.json` files in this directory are **derived
 from** the following filter lists, written by **The EasyList authors**
 (<https://easylist.to/>):
 
-- **EasyList** — <https://easylist.to/easylist/easylist.txt> (list version 202611161717, last modified 16 Nov 2026 17:17 UTC)
-- **EasyPrivacy** — <https://easylist.to/easylist/easyprivacy.txt> (list version 202611161717, last modified 16 Nov 2026 17:17 UTC)
+- **EasyList** — <https://easylist.to/easylist/easylist.txt> (list version 202611231806, last modified 23 Nov 2026 18:06 UTC)
+- **EasyPrivacy** — <https://easylist.to/easylist/easyprivacy.txt> (list version 202611231806, last modified 23 Nov 2026 18:06 UTC)
 
 EasyList and EasyPrivacy are dual-licensed under GPLv3 and the Creative Commons
 Attribution-ShareAlike 3.0 Unported license; this app uses them under
