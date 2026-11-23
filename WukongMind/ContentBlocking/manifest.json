@@ -1,22 +1,22 @@
 {
-  "version": "2026-11-16-8479a336e006",
-  "generatedAt": "2026-11-16T17:21:44Z",
+  "version": "2026-11-23-e93172de311b",
+  "generatedAt": "2026-11-23T18:19:12Z",
   "sources": [
     {
       "name": "EasyList",
       "url": "https://easylist.to/easylist/easylist.txt",
-      "listVersion": "202611161717",
+      "listVersion": "202611231806",
       "license": "CC BY-SA 3.0",
-      "lastModified": "16 Nov 2026 17:17 UTC",
-      "commit": "08cc2b70ceb861d4ec0ae2bc6d4783a74ea14199"
+      "lastModified": "23 Nov 2026 18:06 UTC",
+      "commit": "e0135ddb4a3d65048f527215dcc254c077b6c77a"
     },
     {
       "name": "EasyPrivacy",
       "url": "https://easylist.to/easylist/easyprivacy.txt",
-      "listVersion": "202611161717",
+      "listVersion": "202611231806",
       "license": "CC BY-SA 3.0",
-      "lastModified": "16 Nov 2026 17:17 UTC",
-      "commit": "08cc2b70ceb861d4ec0ae2bc6d4783a74ea14199"
+      "lastModified": "23 Nov 2026 18:06 UTC",
+      "commit": "e0135ddb4a3d65048f527215dcc254c077b6c77a"
     }
   ],
   "lists": [
@@ -24,29 +24,29 @@
       "identifier": "ads-1",
       "category": "ads",
       "file": "ads-1.json",
-      "ruleCount": 49049,
-      "sha256": "75639ebdc68dc3d47c8b6ffaaf8a81c4102f3ce33791ca52c7a7d5eacbad2138"
+      "ruleCount": 49800,
+      "sha256": "e370ab174cca94d9c161734cd5ca02753a8dc61cb40b15f0278bcc8ad43ec671"
     },
     {
       "identifier": "ads-2",
       "category": "ads",
       "file": "ads-2.json",
       "ruleCount": 13976,
-      "sha256": "af6494519b90ab1d846ac406d108da8d9245cc8c5fe8e1bd6ffbfe0143b2f043"
+      "sha256": "8f1cfc5e9efa26dae89bbee35eaad3653dcd8b67b213b6015000637fafa92e46"
     },
     {
       "identifier": "privacy-1",
       "category": "privacy",
       "file": "privacy-1.json",
-      "ruleCount": 28710,
-      "sha256": "38e1564380fea68762df10035fb559981b47530fa92b944e3d73d9a10d42576a"
+      "ruleCount": 28783,
+      "sha256": "2870b53e10e3a0fdeda0d0f21bbf0b34df47273c84253c609456ed3cf794ed60"
     },
     {
       "identifier": "privacy-2",
       "category": "privacy",
       "file": "privacy-2.json",
-      "ruleCount": 28709,
-      "sha256": "52653323f3ccabf7a43c817673eda5672e3f6a5704802eab5b1ef27fb5aff740"
+      "ruleCount": 28782,
+      "sha256": "79d0840a0ba4bcb906774c7c9a46ec1934ad79a46e1757cc488d96ed36350aad"
     },
     {
       "identifier": "privacy-3",
