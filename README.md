@@ -76,24 +76,6 @@
 
 ---
 
-## Designed with care
-
-WukongMind replaces gradients and noisy chrome with four ink-painting colours — **Ink** on warm paper or lacquer black, **Gold** for the Agent and its ring, **Jade** for website content, and **Cinnabar** only for stop and errors. Typography uses system fonts only (**SF Pro**, **PingFang SC**, and **SF Mono** for code), scaled with iOS Dynamic Type and framed by subtle hairlines.
-
-<p align="center">
-  <img src="docs/brand/readme/palette-light.svg" width="840" alt="WukongMind light palette and Agent ring states">
-</p>
-<p align="center">
-  <img src="docs/brand/readme/palette-dark.svg" width="840" alt="WukongMind dark palette and Agent ring states">
-</p>
-
-<p align="center">
-  <img src="docs/wukongmind/design/design-system/assets/Mascot/wave.svg" width="64" alt="WukongMind mascot waving"><br>
-  <sub>See the full <a href="docs/wukongmind/design/design-system/README.md">design system</a> for tokens, ring states, and component specs.</sub>
-</p>
-
----
-
 ## Private by design · Bring your own key
 
 There are no WukongMind accounts, servers, analytics, or tracking. Your API keys live in the iOS Keychain (with optional iCloud Keychain sync), and requests go straight from your device to the AI provider you choose — or to a local model on your own network.
@@ -117,21 +99,18 @@ For bridge isolation, key isolation, content delimiters, and the full threat mod
 
 ---
 
-## Project status
-
-- **Version 1.6.2** on TestFlight — one open-source codebase ships the same behaviour and safety defaults across App Store, TestFlight, and source builds.
-- **Three languages** — English, Simplified Chinese (`zh-Hans`), and Traditional Chinese (`zh-Hant`).
-- **iPhone and iPad** — native SwiftUI app (iOS / iPadOS 17+) with zero third-party dependencies.
-- **Open source** — licensed under [Apache License 2.0](LICENSE), with automated CI checks on every change.
-
----
-
 ## Developers & License
 
+- **Builds & releases:** Native SwiftUI app for iPhone and iPad (iOS / iPadOS 17+) with zero third-party dependencies, localized in English, Simplified Chinese (`zh-Hans`), and Traditional Chinese (`zh-Hant`). Try the beta on [TestFlight][testflight], or build from source with automated CI checks on every change.
 - **Developers:** Build from source, run tests, and explore milestone status, tool internals, and architecture docs in **[docs/DEVELOPER.md](docs/DEVELOPER.md)**.
 - **Policies & community:** [LICENSE](LICENSE) · [PRIVACY.md](PRIVACY.md) · [SECURITY.md](SECURITY.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) · [NOTICE](NOTICE).
 - WukongMind is forked from **[Forumind](https://github.com/kccarlos/forumind)** (`Copyright 2026 kccarlos and Forumind contributors`) and is licensed under the **[Apache License 2.0](LICENSE)**. Optional ad and tracker blocking uses rules derived from [EasyList and EasyPrivacy](https://easylist.to/) (CC BY-SA 3.0; see [NOTICE](NOTICE)).
 - WukongMind is an independent open-source project and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. ("Discourse"), WordPress, Hacker News, or Tampermonkey.
+
+<p align="center">
+  <img src="docs/wukongmind/design/design-system/assets/Mascot/wave.svg" width="64" alt="WukongMind mascot waving"><br>
+  <sub>Make any web page work your way — see the <a href="docs/wukongmind/design/design-system/README.md">design system</a> for tokens, ring states, and component specs.</sub>
+</p>
 
 <!-- Coordinator: replace the URL below with the public TestFlight link once it is live. -->
 [testflight]: https://kccarlos.github.io/WuKongMind/
