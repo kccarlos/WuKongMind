@@ -76,24 +76,6 @@
 
 ---
 
-## 用心打磨的设计
-
-WukongMind 摒弃渐变与花哨装饰，用四种水墨色彩表达四种含义：**墨**落在宣纸与漆黑底色上，**金**代表智能体与圆环，**青**标识来自网页的内容，**朱**只用于停止与错误。排版仅使用系统字体（**SF Pro**、**苹方**与代码用的 **SF Mono**），支持 iOS 动态字体，并以细腻分割线替代厚重阴影。
-
-<p align="center">
-  <img src="docs/brand/readme/palette-light.svg" width="840" alt="WukongMind 浅色配色与智能体圆环状态">
-</p>
-<p align="center">
-  <img src="docs/brand/readme/palette-dark.svg" width="840" alt="WukongMind 深色配色与智能体圆环状态">
-</p>
-
-<p align="center">
-  <img src="docs/wukongmind/design/design-system/assets/Mascot/wave.svg" width="64" alt="WukongMind 吉祥物挥手"><br>
-  <sub>完整的颜色标记、圆环状态与组件规范见<a href="docs/wukongmind/design/design-system/README.md">设计系统文档（英文）</a>。</sub>
-</p>
-
----
-
 ## 隐私优先 · 自带密钥（BYOK）
 
 没有 WukongMind 账号、后端服务器、统计分析或追踪。API 密钥保存在 iOS 钥匙串中（可选通过 iCloud 钥匙串同步），请求直接从你的设备发往所选 AI 提供方，或发往你局域网里的本地模型。
@@ -117,21 +99,18 @@ WukongMind 摒弃渐变与花哨装饰，用四种水墨色彩表达四种含义
 
 ---
 
-## 项目现状
-
-- **TestFlight 版本 1.6.2** — 全球同一代码库，App Store、TestFlight 与源码自建版拥有完全相同的行为与默认安全设置。
-- **三种语言** — English、简体中文（`zh-Hans`）与繁體中文（`zh-Hant`）。
-- **iPhone 与 iPad** — 原生 SwiftUI 应用（iOS / iPadOS 17+），零第三方依赖。
-- **开源可靠** — 采用 [Apache License 2.0](LICENSE) 开源许可，每次改动均通过自动化 CI 检查。
-
----
-
 ## 开发者与许可证
 
+- **构建与发布：** 原生 SwiftUI 应用，支持 iPhone 与 iPad（iOS / iPadOS 17+），零第三方依赖，提供 English、简体中文（`zh-Hans`）与繁體中文（`zh-Hant`）三种语言。欢迎加入 [TestFlight][testflight] 测试，或从源码构建，每次改动均通过自动化 CI 检查。
 - **开发者入口：** 从源码构建、运行测试、里程碑进展、工具原理与完整文档索引请参阅 **[docs/DEVELOPER.md](docs/DEVELOPER.md)**（英文）。
 - **政策与社区：** [LICENSE](LICENSE) · [PRIVACY.md](PRIVACY.md) · [SECURITY.md](SECURITY.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) · [NOTICE](NOTICE)。
 - WukongMind 派生自 **[Forumind](https://github.com/kccarlos/forumind)**（`Copyright 2026 kccarlos and Forumind contributors`），采用 **[Apache License 2.0](LICENSE)** 开源许可。可选广告与跟踪器拦截规则源自 [EasyList 和 EasyPrivacy](https://easylist.to/)（CC BY-SA 3.0，详见 [NOTICE](NOTICE)）。
 - 本项目为独立开源项目，与 Civilized Discourse Construction Kit, Inc.（"Discourse"）、WordPress、Hacker News 及 Tampermonkey 均无关联。
+
+<p align="center">
+  <img src="docs/wukongmind/design/design-system/assets/Mascot/wave.svg" width="64" alt="WukongMind 吉祥物挥手"><br>
+  <sub>网页顺手，逛得轻松 — 完整的颜色标记、圆环状态与组件规范见<a href="docs/wukongmind/design/design-system/README.md">设计系统文档（英文）</a>。</sub>
+</p>
 
 <!-- Coordinator: replace the URL below with the public TestFlight link once it is live. -->
 [testflight]: https://kccarlos.github.io/WuKongMind/

@@ -4,6 +4,17 @@ WukongMind (悟空) is a browser for iPhone and iPad where you just ask: one inp
 
 The name comes from the Monkey King, whose mark is the gold band he wears. The band is the system's one signature shape, and its colours come from ink painting: ink, gold leaf, jade and a cinnabar seal.
 
+## Designed with care
+
+WukongMind replaces gradients and noisy chrome with four ink-painting colours — **Ink** on warm paper or lacquer black, **Gold** for the Agent and its ring, **Jade** for website content, and **Cinnabar** only for stop and errors. Typography uses system fonts only (**SF Pro**, **PingFang SC**, and **SF Mono** for code), scaled with iOS Dynamic Type and framed by subtle hairlines.
+
+<p align="center">
+  <img src="../../../brand/readme/palette-light.svg" width="840" alt="WukongMind light palette and Agent ring states">
+</p>
+<p align="center">
+  <img src="../../../brand/readme/palette-dark.svg" width="840" alt="WukongMind dark palette and Agent ring states">
+</p>
+
 ## Content fundamentals
 
 - **Just ask.** The interface offers sentences, not features. Suggestions read as things a person would say: "Summarize this post and replies", "Make it dark".
