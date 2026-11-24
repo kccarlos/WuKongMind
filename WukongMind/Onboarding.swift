@@ -47,6 +47,7 @@ struct OnboardingFlow: View {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("onboarding")
+        .inAppWebSheet()
     }
 
     private var content: some View {

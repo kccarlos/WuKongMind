@@ -51,7 +51,7 @@ enum RootPresentation: Identifiable, Equatable {
     case aiConsent(AIProvider)
     /// Before the first live voice session sending microphone audio to Google (`AIDataConsent.swift`).
     case voiceConsent(VoiceProvider)
-    /// Terms of Use acceptance shown once on first run after onboarding/consent (`TermsAndReporting.swift`).
+    /// Terms of Use acceptance shown once on first run before onboarding and consent (`TermsAndReporting.swift`).
     case termsGate
     /// Report an AI summary or answer (`TermsAndReporting.swift`).
     case reportAIOutput(AIOutputReportTarget)
@@ -386,12 +386,12 @@ extension AppModel {
     /// What the root host shows, highest priority first. A request that
     /// arrives while a higher one is up waits until it closes.
     var rootPresentation: RootPresentation? {
+        if needsTermsAcceptance { return .termsGate }
         if !settings.hasCompletedOnboarding || router.onboardingReplay == .showing { return .onboarding }
         // The sheet the replay was asked from is leaving: nothing else comes.
         if router.onboardingReplay == .waitingForSheet { return nil }
         if let provider = aiConsent.asking { return .aiConsent(provider) }
         if let provider = voice.consentProvider { return .voiceConsent(provider) }
-        if needsTermsAcceptance { return .termsGate }
         if let item = router.item { return item }
         if scriptImporter.activeSessionID != nil && !scriptImporter.presentsInSettings {
             return .scriptImport

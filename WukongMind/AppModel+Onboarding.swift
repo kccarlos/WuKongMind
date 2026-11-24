@@ -420,8 +420,9 @@ enum OnboardingDebug {
 }
 
 extension AppModel {
-    /// - `-dc-reset`               shows the walkthrough again (no data is deleted)
+    /// - `-dc-reset`               shows the Terms gate and walkthrough again (no data is deleted)
     /// - `-dc-onboarding-step N`   walkthrough on step N (1-based) or a step name (3: the Agent's first run over the browser)
+    /// - `-dc-ask-terms`           resets Terms acceptance so the Terms gate shows
     /// - `-dc-skip-onboarding`     marks the walkthrough done (UI tests)
     /// - `-dc-show-settings <page>` Settings on launch (root, provider, forums, …)
     /// - `-dc-panel-settings [page]` opens Settings (a sheet) once the page is up
@@ -430,26 +431,30 @@ extension AppModel {
     func applyOnboardingDebugArguments() {
         let arguments = OnboardingDebug.arguments
         let asksTerms = arguments.contains("-dc-ask-terms")
+        let resets = arguments.contains("-dc-reset")
         if arguments.contains("-dc-panel-settings") {
             // The route itself is set once the page is up (WukongMindApp).
             settings.hasCompletedOnboarding = true
             if !asksTerms { settings.acceptedTermsVersion = TermsOfUse.currentVersion }
         }
-        if arguments.contains("-dc-reset") || OnboardingDebug.initialStep != nil {
+        if resets {
             settings.hasCompletedOnboarding = false
             settings.acceptedTermsVersion = 0
+        } else if OnboardingDebug.initialStep != nil {
+            settings.hasCompletedOnboarding = false
+            if !asksTerms { settings.acceptedTermsVersion = TermsOfUse.currentVersion }
         }
         // Step 3 runs over the browser, so it needs no walkthrough.
         if OnboardingDebug.initialStep == .tryAgent {
             settings.hasCompletedOnboarding = true
-            if !asksTerms { settings.acceptedTermsVersion = TermsOfUse.currentVersion }
+            if !asksTerms && !resets { settings.acceptedTermsVersion = TermsOfUse.currentVersion }
             firstRun = .prompts
         }
         // The keychain probe's alert can't show over the walkthrough cover.
         if arguments.contains("-dc-skip-onboarding") || OnboardingDebug.settingsPage != nil
             || arguments.contains(KeychainSyncProbe.launchArgument) {
             settings.hasCompletedOnboarding = true
-            if !asksTerms && !arguments.contains("-dc-reset") {
+            if !asksTerms && !resets {
                 settings.acceptedTermsVersion = TermsOfUse.currentVersion
             }
         }

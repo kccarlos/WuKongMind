@@ -583,7 +583,7 @@ runs are labeled as Apple Intelligence runs and it is the selected provider.
 
 | Argument | Effect |
 | --- | --- |
-| `-dc-reset` | Shows the walkthrough again (no data deleted). |
+| `-dc-reset` | Shows the Terms gate and walkthrough again (no data deleted). |
 | `-dc-onboarding-step <n\|name>` | Opens the first run on a step: 1-based number, or `model`, `site`, `tryAgent`. Step 3 (`tryAgent`) runs over the browser, not in the cover. |
 | `-dc-scroll-bottom`, `-dc-focus` | Walkthrough: scroll to the bottom / focus the key field. |
 | `-dc-skip-onboarding` | Marks the walkthrough done. |

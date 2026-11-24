@@ -1,3 +1,4 @@
+import SafariServices
 import SwiftUI
 
 // The first-run pages (design-unified.md §5): 1 pick a model, 2 open a site.
@@ -611,4 +612,84 @@ struct ShareActionsIllustration: View {
         }
         .accessibilityElement(children: .combine)
     }
+}
+
+// MARK: In-app web sheet (first-run links)
+
+private struct PresentedWebURL: Identifiable {
+    let id = UUID()
+    let url: URL
+}
+
+/// Presents an http/https URL in an in-app `SFSafariViewController` sheet when
+/// attached by `.inAppWebSheet()`. Returns `false` when no presenter is attached
+/// or the URL is not http/https (e.g. `app-settings:` or `mailto:`).
+struct OpenInAppWebPageAction {
+    var action: ((URL) -> Void)?
+
+    @discardableResult
+    func callAsFunction(_ url: URL) -> Bool {
+        guard let action,
+              let scheme = url.scheme?.lowercased(),
+              scheme == "http" || scheme == "https" else {
+            return false
+        }
+        action(url)
+        return true
+    }
+}
+
+private struct OpenInAppWebPageKey: EnvironmentKey {
+    static let defaultValue = OpenInAppWebPageAction()
+}
+
+extension EnvironmentValues {
+    var openInAppWebPage: OpenInAppWebPageAction {
+        get { self[OpenInAppWebPageKey.self] }
+        set { self[OpenInAppWebPageKey.self] = newValue }
+    }
+}
+
+private struct InAppWebSheetModifier: ViewModifier {
+    @State private var presentedURL: PresentedWebURL?
+
+    func body(content: Content) -> some View {
+        let open: (URL) -> Void = { url in
+            presentedURL = PresentedWebURL(url: url)
+        }
+        content
+            .environment(\.openInAppWebPage, OpenInAppWebPageAction(action: open))
+            .environment(\.openURL, OpenURLAction { url in
+                guard let scheme = url.scheme?.lowercased(),
+                      scheme == "http" || scheme == "https" else {
+                    return .systemAction
+                }
+                open(url)
+                return .handled
+            })
+            .sheet(item: $presentedURL) { item in
+                SafariSheetView(url: item.url)
+                    .ignoresSafeArea()
+            }
+    }
+}
+
+extension View {
+    /// Opens http/https links (including SwiftUI `Link` and `openInAppWebPage`)
+    /// inside an in-app `SFSafariViewController` sheet without leaving the flow.
+    func inAppWebSheet() -> some View {
+        modifier(InAppWebSheetModifier())
+    }
+}
+
+struct SafariSheetView: UIViewControllerRepresentable {
+    let url: URL
+
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        let controller = SFSafariViewController(url: url)
+        controller.preferredControlTintColor = UIColor(DCTheme.goldInk)
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 }
