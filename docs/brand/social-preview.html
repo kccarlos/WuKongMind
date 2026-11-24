@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>WukongMind Browser — Social Preview</title>
+  <style>
+    /* Tokens from docs/wukongmind/design/design-system/tokens.json (light theme) */
+    :root {
+      --ground: #f7f3ea;
+      --surface: #fffdf8;
+      --surface-raised: #efe9dc;
+      --ink: #1a1612;
+      --ink-muted: #5f574c;
+      --hairline: rgba(26, 22, 18, 0.14);
+      --border-strong: #8c8375;
+      --gold: #b07f0c;
+      --gold-ink: #8a6200;
+      --gold-wash: #f6ecd0;
+      --shadow-pop: 0 12px 40px rgba(20, 17, 14, 0.22);
+      --radius-lg: 14px;
+      --radius-full: 999px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", system-ui, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 1280px;
+      height: 640px;
+      overflow: hidden;
+      background: var(--ground);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .canvas {
+      position: relative;
+      width: 1280px;
+      height: 640px;
+      padding: 48px 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 40px;
+      background: var(--ground);
+    }
+
+    /* Subtle gold ring motif from the design system */
+    .ring-motif {
+      position: absolute;
+      right: -40px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 620px;
+      height: 620px;
+      pointer-events: none;
+    }
+
+    .ring {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: var(--radius-full);
+      border: 2px solid var(--gold);
+    }
+
+    .ring-1 {
+      width: 340px;
+      height: 340px;
+      opacity: 0.22;
+    }
+
+    .ring-2 {
+      width: 470px;
+      height: 470px;
+      opacity: 0.14;
+    }
+
+    .ring-3 {
+      width: 600px;
+      height: 600px;
+      opacity: 0.08;
+    }
+
+    /* Left column: brand, headline, one-liner */
+    .copy {
+      position: relative;
+      z-index: 2;
+      flex: 0 0 600px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .mark {
+      width: 60px;
+      height: 60px;
+      display: block;
+      flex-shrink: 0;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 14px rgba(20, 17, 14, 0.14);
+    }
+
+    .brand-name {
+      font-size: 26px;
+      line-height: 32px;
+      font-weight: 700;
+      letter-spacing: -0.015em;
+      color: var(--ink);
+    }
+
+    .accent-rule {
+      width: 56px;
+      height: 4px;
+      background: var(--gold);
+      border-radius: var(--radius-full);
+    }
+
+    .headline {
+      font-size: 56px;
+      line-height: 62px;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--ink);
+    }
+
+    .subtitle {
+      font-size: 21px;
+      line-height: 30px;
+      font-weight: 500;
+      color: var(--ink-muted);
+      max-width: 560px;
+    }
+
+    /* Right column: two real App Store screenshots in simple device frames */
+    .devices {
+      position: relative;
+      z-index: 2;
+      flex: 1;
+      height: 544px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .phone {
+      position: absolute;
+      width: 244px;
+      padding: 8px;
+      background: var(--ink);
+      border-radius: 36px;
+      box-shadow: var(--shadow-pop);
+      border: 1px solid var(--hairline);
+    }
+
+    .phone img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 28px;
+      background: var(--surface);
+    }
+
+    .phone-back {
+      right: 12px;
+      top: 26px;
+      transform: rotate(4deg);
+      z-index: 1;
+    }
+
+    .phone-front {
+      left: 24px;
+      top: 10px;
+      transform: rotate(-3deg);
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <main class="canvas">
+    <div class="ring-motif" aria-hidden="true">
+      <div class="ring ring-1"></div>
+      <div class="ring ring-2"></div>
+      <div class="ring ring-3"></div>
+    </div>
+
+    <section class="copy">
+      <div class="brand">
+        <img class="mark" src="wukongmind-mark.svg" alt="WukongMind mark">
+        <span class="brand-name">WukongMind Browser</span>
+      </div>
+      <div class="accent-rule" aria-hidden="true"></div>
+      <h1 class="headline">Make any web page work your way.</h1>
+      <p class="subtitle">AI agent browser for iPhone &amp; iPad · Bring your own key · Open source</p>
+    </section>
+
+    <section class="devices" aria-label="App Store screenshots">
+      <div class="phone phone-back">
+        <img src="../../appstore/screenshots/en-US/iphone/03-script-approval.png" alt="Script approval sheet">
+      </div>
+      <div class="phone phone-front">
+        <img src="../../appstore/screenshots/en-US/iphone/01-change-page.png" alt="Agent changing a web page">
+      </div>
+    </section>
+  </main>
+</body>
+</html>
