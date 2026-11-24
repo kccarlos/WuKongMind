@@ -29,7 +29,7 @@
 
 ## Security
 
-For risks around active web logins and untrusted page content when running the Agent, see [SECURITY.md](SECURITY.md) and the [Risk Statement in README.md](README.md#risk-statement).
+For risks around active web logins and untrusted page content when running the Agent, see [SECURITY.md](SECURITY.md) and the [Risk Statement in docs/DEVELOPER.md](docs/DEVELOPER.md#risk-statement).
 
 ## Contact
 

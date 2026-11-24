@@ -12,7 +12,7 @@ Include steps to reproduce and the concrete impact. Reports are reviewed and fix
 
 ## Threat model and scope
 
-Before reporting, review the [Risk Statement in README.md](README.md#risk-statement). By design, the browser agent runs JavaScript (`run_js`) inside the active `WKWebView` session. In **Settings › Agent › Safety**, **Confirm before writes** is on by default, while **Give cookie values to the model** and **Save scripts without asking** are off by default (users may change these switches). Reading cookies (`cookies_get`) and sending site logins to another origin always ask for confirmation. Untrusted page text steering the model (prompt injection) remains an inherent risk of browser agents — do not sign in to banking, payment, or primary email accounts in WukongMind.
+Before reporting, review the [Risk Statement in docs/DEVELOPER.md](docs/DEVELOPER.md#risk-statement). By design, the browser agent runs JavaScript (`run_js`) inside the active `WKWebView` session. In **Settings › Agent › Safety**, **Confirm before writes** is on by default, while **Give cookie values to the model** and **Save scripts without asking** are off by default (users may change these switches). Reading cookies (`cookies_get`) and sending site logins to another origin always ask for confirmation. Untrusted page text steering the model (prompt injection) remains an inherent risk of browser agents — do not sign in to banking, payment, or primary email accounts in WukongMind.
 
 **In scope (documented safety boundaries):**
 
