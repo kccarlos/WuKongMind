@@ -1,1 +1,1 @@
-browser,AI agent,userscript,web,automation,summarize,reader,CSS,JavaScript,voice,privacy,open source
+userscript,automation,summarize,reader,read aloud,dark mode,adblock,JavaScript,privacy,open source
