@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="224" viewBox="0 0 840 224" role="img" aria-label="WukongMind Light palette and Agent ring states">
+  <rect x="0.5" y="0.5" width="839" height="223" rx="14" fill="#f7f3ea" stroke="rgba(26,22,18,0.14)"/>
+  <text x="20" y="29" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="13" font-weight="600" fill="#1a1612">WukongMind · Light</text>
+  <text x="820" y="29" text-anchor="end" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="11" fill="#5f574c">tokens.json</text>
+  <rect x="20.0" y="44" width="105.7" height="102" rx="10" fill="#fffdf8" stroke="rgba(26,22,18,0.14)"/>
+  <rect x="28.0" y="52" width="89.7" height="48" rx="6" fill="#f7f3ea" stroke="rgba(26,22,18,0.14)"/>
+  <text x="30.0" y="118" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" font-weight="600" fill="#1a1612">Ground</text>
+  <text x="30.0" y="134" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="10.5" fill="#5f574c">#f7f3ea</text>
+  <rect x="135.7" y="44" width="105.7" height="102" rx="10" fill="#fffdf8" stroke="rgba(26,22,18,0.14)"/>
+  <rect x="143.7" y="52" width="89.7" height="48" rx="6" fill="#fffdf8" stroke="rgba(26,22,18,0.14)"/>
+  <text x="145.7" y="118" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" font-weight="600" fill="#1a1612">Surface</text>
+  <text x="145.7" y="134" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="10.5" fill="#5f574c">#fffdf8</text>
+  <rect x="251.4" y="44" width="105.7" height="102" rx="10" fill="#fffdf8" stroke="rgba(26,22,18,0.14)"/>
+  <rect x="259.4" y="52" width="89.7" height="48" rx="6" fill="#1a1612" stroke="rgba(26,22,18,0.14)"/>
+  <text x="261.4" y="118" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" font-weight="600" fill="#1a1612">Ink</text>
+  <text x="261.4" y="134" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="10.5" fill="#5f574c">#1a1612</text>
+  <rect x="367.1" y="44" width="105.7" height="102" rx="10" fill="#fffdf8" stroke="rgba(26,22,18,0.14)"/>
+  <rect x="375.1" y="52" width="89.7" height="48" rx="6" fill="#b07f0c" stroke="rgba(26,22,18,0.14)"/>
+  <text x="377.1" y="118" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" font-weight="600" fill="#1a1612">Gold</text>
+  <text x="377.1" y="134" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="10.5" fill="#5f574c">#b07f0c</text>
+  <rect x="482.9" y="44" width="105.7" height="102" rx="10" fill="#fffdf8" stroke="rgba(26,22,18,0.14)"/>
+  <rect x="490.9" y="52" width="89.7" height="48" rx="6" fill="#8a6200" stroke="rgba(26,22,18,0.14)"/>
+  <text x="492.9" y="118" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" font-weight="600" fill="#1a1612">Gold ink</text>
+  <text x="492.9" y="134" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="10.5" fill="#5f574c">#8a6200</text>
+  <rect x="598.6" y="44" width="105.7" height="102" rx="10" fill="#fffdf8" stroke="rgba(26,22,18,0.14)"/>
+  <rect x="606.6" y="52" width="89.7" height="48" rx="6" fill="#1f6f66" stroke="rgba(26,22,18,0.14)"/>
+  <text x="608.6" y="118" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" font-weight="600" fill="#1a1612">Jade</text>
+  <text x="608.6" y="134" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="10.5" fill="#5f574c">#1f6f66</text>
+  <rect x="714.3" y="44" width="105.7" height="102" rx="10" fill="#fffdf8" stroke="rgba(26,22,18,0.14)"/>
+  <rect x="722.3" y="52" width="89.7" height="48" rx="6" fill="#b3321f" stroke="rgba(26,22,18,0.14)"/>
+  <text x="724.3" y="118" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" font-weight="600" fill="#1a1612">Cinnabar</text>
+  <text x="724.3" y="134" font-family="ui-monospace, 'SF Mono', Menlo, monospace" font-size="10.5" fill="#5f574c">#b3321f</text>
+  <line x1="20" y1="162" x2="820" y2="162" stroke="rgba(26,22,18,0.14)"/>
+  <text x="20" y="196" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" font-weight="600" fill="#5f574c">The ring</text>
+  <circle cx="126.0" cy="192" r="10" fill="none" stroke="#b07f0c" stroke-width="2.0" stroke-dasharray="53 10" stroke-linecap="round" transform="rotate(-35 126.0 192)"/>
+  <text x="144.0" y="196" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" fill="#1a1612">Idle</text>
+  <circle cx="244.0" cy="192" r="10" fill="none" stroke="rgba(26,22,18,0.14)" stroke-width="2.0"/><circle cx="244.0" cy="192" r="10" fill="none" stroke="#b07f0c" stroke-width="2.0" stroke-dasharray="22 41" stroke-linecap="round" transform="rotate(-90 244.0 192)"/>
+  <text x="262.0" y="196" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" fill="#1a1612">Working</text>
+  <circle cx="362.0" cy="192" r="10" fill="none" stroke="#b07f0c" stroke-width="2.0"/><text x="362.0" y="196" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="12" font-weight="700" fill="#8a6200">?</text>
+  <text x="380.0" y="196" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" fill="#1a1612">Needs you</text>
+  <circle cx="480.0" cy="192" r="10" fill="none" stroke="#b07f0c" stroke-width="2.0"/><path d="M 475.8 192.3 L 478.8 195.4 L 484.5 188.8" fill="none" stroke="#8a6200" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="498.0" y="196" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" fill="#1a1612">Done</text>
+  <circle cx="598.0" cy="192" r="10" fill="none" stroke="#a34a08" stroke-width="2.0"/><text x="598.0" y="196" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="12" font-weight="700" fill="#a34a08">!</text>
+  <text x="616.0" y="196" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" fill="#1a1612">Failed</text>
+  <circle cx="716.0" cy="192" r="10" fill="none" stroke="#756c5f" stroke-width="2.0"/>
+  <text x="734.0" y="196" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Text', 'PingFang SC', system-ui, sans-serif" font-size="11.5" fill="#1a1612">Unavailable</text>
+</svg>

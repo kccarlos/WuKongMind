@@ -1,249 +1,137 @@
-# WukongMind Browser
+<div align="center">
+  <img src="docs/brand/wukongmind-icon-1024.png" width="120" height="120" alt="WukongMind app icon">
+  <h1>WukongMind Browser</h1>
+  <p><strong>Make any web page work your way.</strong></p>
+  <p>Too cluttered, too hard to read, too long? Say what you want in one sentence. The Agent changes the page in front of you, and keeps the change only if you approve it.</p>
 
-<p>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License: Apache-2.0"></a>
-  <img src="https://img.shields.io/badge/iOS_%7C_iPadOS-17%2B-000000?logo=apple&logoColor=white" alt="iOS and iPadOS 17 or later">
-  <img src="https://img.shields.io/badge/Swift-F05138?logo=swift&logoColor=white" alt="Swift">
-  <img src="https://img.shields.io/badge/Made_with-SwiftUI-2396F3?logo=swift&logoColor=white" alt="Made with SwiftUI">
-</p>
+  <p>
+    <a href="LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-blue" alt="License: Apache-2.0"></a>
+    <img src="https://img.shields.io/badge/iOS_%7C_iPadOS-17%2B-000000?logo=apple&logoColor=white" alt="iOS and iPadOS 17 or later">
+    <img src="https://img.shields.io/badge/Swift-F05138?logo=swift&logoColor=white" alt="Swift">
+    <img src="https://img.shields.io/badge/Made_with-SwiftUI-2396F3?logo=swift&logoColor=white" alt="Made with SwiftUI">
+  </p>
 
-<p>
-  <b>English</b> · <a href="README.zh-Hans.md">简体中文</a> · <a href="README.zh-Hant.md">繁體中文</a>
-</p>
+  <p>
+    <b>English</b> · <a href="README.zh-Hans.md">简体中文</a> · <a href="README.zh-Hant.md">繁體中文</a>
+  </p>
+</div>
 
-**WukongMind Browser** is an open-source, AI-assisted browser for iPhone and iPad whose Agent reads and changes any web page by running JavaScript and injecting CSS, and saves its changes as per-site userscripts (like Tampermonkey).
+<div align="center">
 
-- **One build everywhere.** WukongMind is forked from [Forumind](https://github.com/kccarlos/forumind), which is a read-only forum reader. WukongMind is a general web browser with an AI agent, built from one codebase with no hidden or store-only behaviour: App Store, TestFlight, and source builds ship the same code and the same safety defaults.
-- **Code-driven page agent.** The AI never touches the page directly. It writes code; the app runs that code inside `WKWebView` and returns the result in a tool-calling loop until the task is done.
-- **Bring your own key (BYOK).** There is no WukongMind backend, account, analytics, or proxy. API keys live in the iOS Keychain, and requests go straight from your device to the model provider (or a local server on your LAN).
-- **Current status:** Version `1.5.4` is shipped with the browser Agent, per-site userscripts, Tampermonkey-compatible `GM_*` APIs, and Learn on ask. See [Status](#status).
+[![Try the beta on TestFlight](https://img.shields.io/badge/Try_the_beta_on_TestFlight-e0b040?style=for-the-badge&logo=apple&logoColor=1a1612)][testflight]
+[![Website](https://img.shields.io/badge/Website-1a1612?style=for-the-badge)](https://kccarlos.github.io/WuKongMind/)
+[![Developer Guide](https://img.shields.io/badge/Developer_Guide-5f574c?style=for-the-badge)](docs/DEVELOPER.md)
+
+</div>
 
 ---
 
-## Risk Statement
+## In the app
+
+<table>
+  <tr>
+    <td align="center" width="33%">
+      <img src="appstore/screenshots/en-US/iphone/01-change-page.png" width="260" alt="An article turned dark after asking the Agent to make it dark and hide the sidebar"><br>
+      <sub>Change a page by asking</sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="appstore/screenshots/en-US/iphone/02-agent-steps.png" width="260" alt="The Agent listing every step as it runs"><br>
+      <sub>See every step</sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="appstore/screenshots/en-US/iphone/03-script-approval.png" width="260" alt="The Add script sheet showing matching sites and full code before saving"><br>
+      <sub>Approve before saving a script</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" width="33%">
+      <img src="appstore/screenshots/en-US/iphone/04-tabs-navigation.png" width="260" alt="Tab overview with open web pages"><br>
+      <sub>Tabs and overview</sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="appstore/screenshots/en-US/iphone/05-summarize-read-aloud.png" width="260" alt="Page summary with the Read aloud player"><br>
+      <sub>Summarize and read aloud</sub>
+    </td>
+    <td align="center" width="33%">
+      <img src="appstore/screenshots/en-US/iphone/06-browser-bar.png" width="260" alt="Browser bar with the gold Agent ring"><br>
+      <sub>One gold ring in the browser bar</sub>
+    </td>
+  </tr>
+</table>
+
+<p align="center">
+  <img src="appstore/screenshots/en-US/ipad/06-ipad-split.png" width="780" alt="iPad split view showing a web page and the Agent panel side by side"><br>
+  <sub>On iPad, the web page and the Agent sit side by side</sub>
+</p>
+
+---
+
+## What you can do
+
+- **Clean up any page** — hide banners, sidebars, and pop-ups, or switch a bright site to dark mode and larger text with a single sentence.
+- **Keep what works for your next visit** — save a fix as a small per-site script so it runs automatically every time you open that site, only after you review and approve it.
+- **Summarize and listen** — get the main points of a long article or discussion thread, ask follow-up questions, or listen with Read aloud and live voice.
+- **Watch every step** — see each change as it happens, with **Stop** always on screen.
+- **Use it as a full browser** — tabs, pinned sites, history, on-device translation (iOS 18+), optional ad and tracker blocking, and side-by-side browsing on iPad.
+
+---
+
+## Designed with care
+
+WukongMind replaces gradients and noisy chrome with four ink-painting colours — **Ink** on warm paper or lacquer black, **Gold** for the Agent and its ring, **Jade** for website content, and **Cinnabar** only for stop and errors. Typography uses system fonts only (**SF Pro**, **PingFang SC**, and **SF Mono** for code), scaled with iOS Dynamic Type and framed by subtle hairlines.
+
+<p align="center">
+  <img src="docs/brand/readme/palette-light.svg" width="840" alt="WukongMind light palette and Agent ring states">
+</p>
+<p align="center">
+  <img src="docs/brand/readme/palette-dark.svg" width="840" alt="WukongMind dark palette and Agent ring states">
+</p>
+
+<p align="center">
+  <img src="docs/wukongmind/design/design-system/assets/Mascot/wave.svg" width="64" alt="WukongMind mascot waving"><br>
+  <sub>See the full <a href="docs/wukongmind/design/design-system/README.md">design system</a> for tokens, ring states, and component specs.</sub>
+</p>
+
+---
+
+## Private by design · Bring your own key
+
+There are no WukongMind accounts, servers, analytics, or tracking. Your API keys live in the iOS Keychain (with optional iCloud Keychain sync), and requests go straight from your device to the AI provider you choose — or to a local model on your own network.
+
+- **Cloud (API key):** OpenRouter, OpenAI, Anthropic, Google Gemini, Google Vertex AI, Groq, xAI (Grok), DeepSeek, NVIDIA NIM.
+- **Local network (no key):** Ollama, LM Studio.
+- **On-device (Summaries only):** Apple Intelligence.
+
+---
+
+## Safety
 
 > [!WARNING]
 > **Web content can steer the agent, and the agent can use every login in the app. Do not log in to banking, payment, or main email accounts in WukongMind.**
 
-Understand the security model before signing in to websites or running the agent:
+- **Every step is shown and stoppable** — actions are listed as they happen, and **Stop** stays on screen for the entire run.
+- **Asks before sensitive actions** — by default the Agent asks before sending network requests, posting notifications, reading cookies, or sending your login to another site.
+- **Scripts are saved only with your approval** — before anything is kept, you see which sites it runs on, what it can use, and its full code.
 
-- **Prompt injection and active sessions:** Untrusted text on a web page can steer the model into unintended actions, and the agent operates inside the same `WKWebView` cookie and session store as your browsing. Any site you are signed in to inside WukongMind is reachable by the agent. Avoid logging in to banking, payment, primary email, or other high-value accounts.
-- **Page execution (`run_js`) and safety defaults:** `run_js` runs JavaScript inside the current page (DOM reads and writes, page globals in the `page` world, forms, and same-origin requests). In **Settings › Agent › Safety**, **Confirm before writes** is **on by default** (asking before `http_request`), while **Give cookie values to the model** and **Save scripts without asking** are **off by default** (cookie values are hidden from `cookies_get` and redacted from `run_js` results while off). Reading cookies (`cookies_get`) and sending your login to another site always ask. You can change these switches in Settings.
-- **Built-in safety baselines:**
-  - **Bridge isolation:** The app–page message channel (`WKScriptMessageHandlerWithReply`) is registered only in an isolated `WKContentWorld`, invisible to page scripts so pages cannot call native tools or forge tool results.
-  - **Key isolation:** Provider API keys stay in the iOS Keychain, never enter the page context or conversation history, and are redacted if they ever appear in tool output.
-  - **Untrusted content delimiters:** Web page output returned to the model is wrapped in `<untrusted_web_content>` delimiters, and the system prompt instructs the model never to follow instructions found inside page content.
-  - **Stop any time:** A **Stop** button stays visible for the entire run and cancels the loop immediately; runs also stop at a configurable step limit (`30` steps by default). A global userscript switch and an on-disk tool audit log are built in.
+For bridge isolation, key isolation, content delimiters, and the full threat model, see [docs/DEVELOPER.md](docs/DEVELOPER.md#risk-statement) and [SECURITY.md](SECURITY.md).
 
 ---
 
-## Status
+## Project status
 
-WukongMind is built in sequential milestones ([docs/wukongmind/requirements.md](docs/wukongmind/requirements.md), [docs/wukongmind/README.md](docs/wukongmind/README.md)):
-
-| Milestone | Status | Scope |
-| :--- | :--- | :--- |
-| **M0 — Survey** | **Shipped** | Forumind module map ([m0-module-map.md](docs/wukongmind/m0-module-map.md)) and `WKWebView` CSP / execution-world verification ([m0-csp-and-worlds.md](docs/wukongmind/m0-csp-and-worlds.md)). |
-| **M1 — Core loop** | **Shipped** | General address bar on any site, **Agent** chat panel (bottom drawer on iPhone, resizable split panel on iPad) and toolbar button, `AgentLoop` with native tool calling, Stop button, token count, and in-page tools (`read_page`, `run_js`, `inject_css`, `wait_for`). |
-| **M2 — Persistence** | **Shipped** | Per-site userscripts (`ScriptStore`, `.user.js` files with `// ==UserScript==` headers and `@match` rules), script tools (`script_save`, `script_list`, `script_read`, `script_update`, `script_delete`), automatic injection on load and SPA route changes, script manager UI, toolbar badge, and global script switch. |
-| **M3 — Full abilities** | **Shipped** | `screenshot` (vision), `network_log`, `navigate`, multi-tab `tabs`, cross-origin `http_request`, `cookies_get` (including `httpOnly`), workspace `file_read` / `file_write`, on-disk `AuditLog` UI, and "Confirm before writes" mode. |
-| **One loop** | **Shipped** | Unified conversation view, one Agent loop with capabilities wired as Agent tools, and voice sessions sharing tools. |
-| **M4 — Self-extension & Tampermonkey** | **Shipped** | `GM_addStyle`, `GM_getValue`, `GM_setValue`, `GM_xmlhttpRequest`, `GM_ai`, userscript import from URL, one-tap "let the agent fix" on script errors, `notify`, and iCloud sync for scripts. |
-| **Learn on ask (`1.5.x`)** | **Shipped** | Automatic site-reader learning when asked, site inspector, and performance improvements (`1.5.4`). |
+- **Version 1.6.2** on TestFlight — one open-source codebase ships the same behaviour and safety defaults across App Store, TestFlight, and source builds.
+- **Three languages** — English, Simplified Chinese (`zh-Hans`), and Traditional Chinese (`zh-Hant`).
+- **iPhone and iPad** — native SwiftUI app (iOS / iPadOS 17+) with zero third-party dependencies.
+- **Open source** — licensed under [Apache License 2.0](LICENSE), with automated CI checks on every change.
 
 ---
 
-## How It Works
+## Developers & License
 
-### Browser agent (`M1`)
-
-1. Open any web page and tap the **✦** button in the browser bar (or use the side-by-side panel on iPad) to open **Agent** mode.
-2. Describe what you want to read or change (for example, *"make this page dark and hide the sidebar"*).
-3. The app sends your prompt, the system prompt, tool schemas, and the page's URL and title to your selected model. The model proposes tool calls, the app runs them in `WKWebView` via `callAsyncJavaScript`, and each tool call appears as an expandable row with arguments, duration, and result summary.
-4. Tools run in an **isolated `WKContentWorld`** by default (full DOM access, unaffected by page `eval` / `connect-src` CSP, invisible to page JS) or in the **`page` world** when inspecting or mutating page JS state. Stylesheets are applied through `adoptedStyleSheets` so strict `style-src` policies do not block them.
-
-| In-page tool (`M1`) | Purpose |
-| :--- | :--- |
-| `read_page` | Condensed DOM structure summary, plain text, or HTML (optional CSS selector and length limit). |
-| `run_js` | Async JavaScript execution (`await` supported, 10 s default timeout) in `isolated` or `page` world; returns JSON value, console output, and errors. |
-| `inject_css` | Injects CSS via `adoptedStyleSheets` across the document and open shadow roots. |
-| `wait_for` | Waits for a CSS selector to appear or for a delay in milliseconds. |
-
-### Inherited from Forumind
-
-WukongMind keeps Forumind's existing forum features working beside the new **Agent** mode:
-
-- **Built-in site readers, summaries, and voice:** Discourse, WordPress, and Hacker News readers, long-page and thread **Summaries**, site-wide Q&A via the Agent, watched-topic notifications, daily digest, two-host podcast, and Gemini Live voice mode.
-- **Ad and tracker blocking:** Optional `WKContentRuleList` blocker built from EasyList and EasyPrivacy (off by default; toggle in **Settings › Browser**).
-- **Localization:** English, Simplified Chinese (`zh-Hans`), and Traditional Chinese (`zh-Hant`).
-
----
-
-## Bring Your Own Key (BYOK)
-
-WukongMind talks directly from your device to the AI provider you configure — there are no WukongMind servers or accounts.
-
-- **Keychain storage:** API keys are saved in the iOS Keychain (and optionally synced across your own devices via iCloud Keychain). Keys are stripped from on-disk app state and never exposed to web pages or agent tools.
-- **Dedicated Browser Agent model:** No model is preset for the **Browser agent** (`Settings › Models › Browser agent`). On first use, pick any model from a provider that supports native tool calling, independent of the model chosen for **Summaries**.
-
-| Provider | Credentials | Notes |
-| :--- | :--- | :--- |
-| **OpenRouter** | API key | Single key across many tool-calling models |
-| **OpenAI** | API key | GPT models |
-| **Anthropic** | API key | Claude models |
-| **Google Gemini** | API key | Gemini models (AI Studio) |
-| **Google Vertex AI** | Vertex AI API key | Gemini models billed to your Google Cloud project |
-| **Groq** | API key | Fast open-weight models |
-| **xAI** | API key | Grok models |
-| **DeepSeek** | API key | DeepSeek models |
-| **NVIDIA NIM** | API key | OpenAI-compatible hosted models |
-| **Ollama** | None (LAN URL, e.g. `http://192.168.1.20:11434`) | Local models on your own computer |
-| **LM Studio** | None (LAN URL, e.g. `http://192.168.1.20:1234/v1`) | Local models on your own computer |
-| **Apple Intelligence** | None (on-device / Private Cloud Compute) | Available for **Summaries** only (not general browser-agent tool calling) |
-
----
-
-## Build and Install from Source
-
-### Requirements
-
-- A Mac running **Xcode 27** (`Xcode 27.2` in CI; iOS / iPadOS **17.0+** deployment target).
-- **Ruby** with the **`xcodeproj`** gem (`gem install --user-install xcodeproj` with macOS system Ruby, or `gem install xcodeproj` with your Ruby manager).
-- An Apple account (a free Apple ID personal team or a paid Apple Developer Program team) to sign and install on a physical iPhone or iPad. Simulator builds need no signing account.
-- No Swift packages, CocoaPods, or Carthage dependencies.
-
-> **Generated Xcode project:** `WukongMind.xcodeproj` (scheme **`WukongMind`**) is generated by `scripts/generate_project.rb` (`CFBundleDisplayName = WukongMind`, URL scheme `wukongmind://`). Always change build settings in `scripts/generate_project.rb`, not in Xcode's UI — regenerating overwrites manual `.xcodeproj` edits.
-
-### 1. Run in the iOS Simulator
-
-```sh
-git clone https://github.com/kccarlos/WuKongMind.git
-cd WuKongMind
-gem install --user-install xcodeproj
-ruby scripts/generate_project.rb
-open WukongMind.xcodeproj
-```
-
-In Xcode, select the **WukongMind** scheme and any iPhone or iPad Simulator, then press **Run** (`⌘R`). (If Xcode warns about the default signing team before you have added an account, generate with `DEVELOPMENT_TEAM="" ruby scripts/generate_project.rb`.)
-
-To build unsigned from the command line:
-
-```sh
-destination="$(scripts/ci/pick-simulator.sh)"
-xcodebuild build \
-  -project WukongMind.xcodeproj \
-  -scheme WukongMind \
-  -destination "$destination" \
-  CODE_SIGNING_ALLOWED=NO \
-  CODE_SIGNING_REQUIRED=NO
-```
-
-### 2. Build and install on your iPhone or iPad
-
-Apple bundle identifiers are globally unique across all developer accounts. Because `scripts/generate_project.rb` defaults to `io.github.kccarlos.wukongmind`, **installing on a physical device with your own Apple team requires setting both your Team ID and your own reverse-DNS `BUNDLE_ID_PREFIX`**.
-
-1. Find your 10-character **Team ID** in **Xcode › Settings › Accounts** or at [developer.apple.com/account](https://developer.apple.com/account) under Membership details (or sign in with a free Apple ID in **Xcode › Settings › Accounts**).
-2. Configure your Team ID and regenerate `WukongMind.xcodeproj` with your own `BUNDLE_ID_PREFIX`:
-
-   ```sh
-   # Option A: keep your Team ID in Config/DevelopmentTeam.txt (git-ignored)
-   cp Config/DevelopmentTeam.example.txt Config/DevelopmentTeam.txt
-   # Edit Config/DevelopmentTeam.txt and replace ABCDE12345 with your 10-character Team ID
-   BUNDLE_ID_PREFIX=com.example.wukongmind ruby scripts/generate_project.rb
-
-   # Option B: pass both as environment variables (DEVELOPMENT_TEAM overrides the file)
-   DEVELOPMENT_TEAM=ABCDE12345 BUNDLE_ID_PREFIX=com.example.wukongmind \
-     ruby scripts/generate_project.rb
-   ```
-
-   `BUNDLE_ID_PREFIX` updates every target and identifier together (`<prefix>` for the app, `<prefix>.share` for the share extension, `group.<prefix>`, `iCloud.<prefix>`, Keychain service names, background task IDs, and test bundles).
-
-3. Open `WukongMind.xcodeproj`, connect your iPhone or iPad, pick the **WukongMind** scheme and your device, and press **Run** (`⌘R`).
-4. On first install on iOS/iPadOS, turn on **Developer Mode** if prompted (**Settings › Privacy & Security › Developer Mode**) and trust your developer certificate under **Settings › General › VPN & Device Management**.
-
-#### Capabilities and free vs. paid Apple teams
-
-- **Works out of the box on free personal teams:** In `scripts/generate_project.rb`, `DC_ENABLE_SHARE_EXTENSION`, `DC_ENABLE_APP_GROUP`, `DC_ENABLE_CLOUDKIT`, and `DC_ENABLE_PCC` all default to `NO` (see [docs/wukongmind/README.md](docs/wukongmind/README.md)). Signed device builds use empty base entitlements, so both free Apple ID personal teams (7-day app expiry; reinstall from Xcode) and paid teams build and install without portal setup.
-- **Optional Share Extension and iCloud Sync (paid team required):** After registering `group.<prefix>` and `iCloud.<prefix>` on the Apple Developer portal, enable them with:
-
-  ```sh
-  DEVELOPMENT_TEAM=ABCDE12345 \
-  BUNDLE_ID_PREFIX=com.example.wukongmind \
-  DC_ENABLE_SHARE_EXTENSION=YES \
-  DC_ENABLE_CLOUDKIT=YES \
-    ruby scripts/generate_project.rb
-  ```
-
-- **Contributing back:** Never commit `WukongMind.xcodeproj` generated with your own `DEVELOPMENT_TEAM`, `BUNDLE_ID_PREFIX`, or `DC_ENABLE_*` flags. Move `Config/DevelopmentTeam.txt` aside and run `env -u DEVELOPMENT_TEAM -u BUNDLE_ID_PREFIX ruby scripts/generate_project.rb` before committing project changes so CI's `scripts/ci/check-project-drift.sh` passes.
-
----
-
-## Tests and Checks
-
-Run the simulator-free macOS core unit tests (`AgentLoop` and `ToolRegistry`):
-
-```sh
-xcodebuild test \
-  -project WukongMind.xcodeproj \
-  -scheme WukongMindAgentCoreTests \
-  -destination 'platform=macOS' \
-  CODE_SIGNING_ALLOWED=NO \
-  CODE_SIGNING_REQUIRED=NO
-```
-
-Run the full iOS Simulator unit test suite (matching `.github/workflows/ci.yml`):
-
-```sh
-destination="$(scripts/ci/pick-simulator.sh)"
-xcodebuild test \
-  -project WukongMind.xcodeproj \
-  -scheme WukongMind \
-  -destination "$destination" \
-  -only-testing:WukongMindTests \
-  CODE_SIGNING_ALLOWED=NO \
-  CODE_SIGNING_REQUIRED=NO
-```
-
-Run the repository lint and project-drift checks:
-
-```sh
-scripts/ci/lint-plists.sh
-scripts/ci/check-project-drift.sh
-scripts/ci/check-site-layering.sh
-scripts/i18n/check-catalogs.py
-scripts/adblock/run_tests.sh
-```
-
----
-
-## Documentation
-
-### WukongMind
-
-- [docs/wukongmind/README.md](docs/wukongmind/README.md) — fork overview and build capability defaults
-- [docs/wukongmind/requirements.md](docs/wukongmind/requirements.md) — product requirements, tool specs, script system, safety boundaries, and milestones (`M0`–`M4`)
-- [docs/wukongmind/m0-module-map.md](docs/wukongmind/m0-module-map.md) — Forumind module map and file-level milestone change list
-- [docs/wukongmind/m0-csp-and-worlds.md](docs/wukongmind/m0-csp-and-worlds.md) — `WKWebView` Content Security Policy and `WKContentWorld` verification
-- [docs/wukongmind/design-m1.md](docs/wukongmind/design-m1.md) — `M1` agent chat panel and browser toolbar design
-
-### Inherited Forumind docs
-
-The architectural and development guides below are inherited from Forumind and still apply to shared subsystems (note that WukongMind's default bundle prefix and `DC_ENABLE_*` defaults follow `scripts/generate_project.rb` as documented above):
-
-- [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) — signing details, UI tests, String Catalog localization, DEBUG launch arguments
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — app state, browser shell, site adapters, voice, and podcast architecture
-- [docs/ADDING_A_SITE.md](docs/ADDING_A_SITE.md) — adding a forum/site adapter
-- [docs/AD_BLOCKING.md](docs/AD_BLOCKING.md) — EasyList / EasyPrivacy content-blocking pipeline
-- [docs/SYNC.md](docs/SYNC.md) — CloudKit sync engine and encryption
-- [docs/APPLE_INTELLIGENCE.md](docs/APPLE_INTELLIGENCE.md) — on-device and Private Cloud Compute integration
-- [docs/CI.md](docs/CI.md) — GitHub Actions workflows
-
----
-
-## Credits and License
-
-WukongMind is forked from **[Forumind](https://github.com/kccarlos/forumind)** (`Copyright 2026 kccarlos and Forumind contributors`) and is licensed under the **[Apache License 2.0](LICENSE)**.
-
-- Optional ad and tracker blocking uses rules derived from [EasyList and EasyPrivacy](https://easylist.to/), licensed under CC BY-SA 3.0; see [NOTICE](NOTICE).
-- See [PRIVACY.md](PRIVACY.md), [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md), and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) (open issues and pull requests in [kccarlos/WuKongMind](https://github.com/kccarlos/WuKongMind)).
+- **Developers:** Build from source, run tests, and explore milestone status, tool internals, and architecture docs in **[docs/DEVELOPER.md](docs/DEVELOPER.md)**.
+- **Policies & community:** [LICENSE](LICENSE) · [PRIVACY.md](PRIVACY.md) · [SECURITY.md](SECURITY.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) · [NOTICE](NOTICE).
+- WukongMind is forked from **[Forumind](https://github.com/kccarlos/forumind)** (`Copyright 2026 kccarlos and Forumind contributors`) and is licensed under the **[Apache License 2.0](LICENSE)**. Optional ad and tracker blocking uses rules derived from [EasyList and EasyPrivacy](https://easylist.to/) (CC BY-SA 3.0; see [NOTICE](NOTICE)).
 - WukongMind is an independent open-source project and is not affiliated with or endorsed by Civilized Discourse Construction Kit, Inc. ("Discourse"), WordPress, Hacker News, or Tampermonkey.
+
+<!-- Coordinator: replace the URL below with the public TestFlight link once it is live. -->
+[testflight]: https://kccarlos.github.io/WuKongMind/
