@@ -682,6 +682,7 @@
 		D45578DB5749C264BE1F8A2CDE319589 /* ScriptStoreCoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42E7F87CC093D2F7EFD1ADA1611E4BB2 /* ScriptStoreCoreTests.swift */; };
 		D46E5283E576C5ED98AE43AEAAF88D10 /* ScriptManagerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1529C84C46C81C78A95198E48682016D /* ScriptManagerUITests.swift */; };
 		D48310536BF77D969000D18A6BC3EF08 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 896D7FD3130A89A5D2D0368FD7434E73 /* Cocoa.framework */; };
+		D48E34D17209F3F745AD181D9CFB0D16 /* LaunchPerfUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD2605CB00F15E3D80DB009A324F8726 /* LaunchPerfUITests.swift */; };
 		D521C72E3BA5111E96039CE86EA2FF5A /* discourse-meta-appinn-net-raw-18527-c34d07392c90.json in Resources */ = {isa = PBXBuildFile; fileRef = 7D7FD81A62592C5EB4F62DF62FF73073 /* discourse-meta-appinn-net-raw-18527-c34d07392c90.json */; };
 		D550FD3FD356AAC6CCB7BF25991C2F63 /* SiteContractTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D37AD0308C15CB0D2E08606B6098D63D /* SiteContractTests.swift */; };
 		D5583AFA2F29B941162EC974D0884286 /* PostBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3D591E39CCBB2DD98E92F589C85C891 /* PostBlock.swift */; };
@@ -1597,6 +1598,7 @@
 		FBCA00C9374D371AD2F64CF203DB0F42 /* page-07.html */ = {isa = PBXFileReference; includeInIndex = 1; name = "page-07.html"; path = "Fixtures/CrawlForum/page-07.html"; sourceTree = "<group>"; };
 		FCB84DEDB3CB0421A114797F0A7D72BE /* gate2-hackernews-hn-algolia-com-api-v1-items-50498273-3c22a804a662.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "gate2-hackernews-hn-algolia-com-api-v1-items-50498273-3c22a804a662.json"; path = "Fixtures/Comparison/gate2/hackernews/gate2-hackernews-hn-algolia-com-api-v1-items-50498273-3c22a804a662.json"; sourceTree = "<group>"; };
 		FCFE4824C9C61312ED269C55D27C4B0D /* discourse-meta-appinn-net-search-json-04619a832c36.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-meta-appinn-net-search-json-04619a832c36.json"; path = "Fixtures/Comparison/discourse/discourse-meta-appinn-net-search-json-04619a832c36.json"; sourceTree = "<group>"; };
+		FD2605CB00F15E3D80DB009A324F8726 /* LaunchPerfUITests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LaunchPerfUITests.swift; sourceTree = "<group>"; };
 		FD73157C2614D72878254CF5736E2A15 /* discourse-meta-appinn-net-search-json-e3ea1500d129.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "discourse-meta-appinn-net-search-json-e3ea1500d129.json"; path = "Fixtures/Comparison/discourse/discourse-meta-appinn-net-search-json-e3ea1500d129.json"; sourceTree = "<group>"; };
 		FD7901B663BEBA5F14BDA9C66B1D3AAB /* run-D2.json */ = {isa = PBXFileReference; includeInIndex = 1; name = "run-D2.json"; path = "Fixtures/Comparison/runs/run-D2.json"; sourceTree = "<group>"; };
 		FDCFFB2F74334A9338A90AEC538DF3B3 /* HackerNewsAgent.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = HackerNewsAgent.swift; path = Sites/HackerNews/HackerNewsAgent.swift; sourceTree = "<group>"; };
@@ -1705,6 +1707,7 @@
 				DAF3AE5C6FB321E40E4D9DCC691837FE /* HistoryUITests.swift */,
 				C7D800716807CECAC51BCF32D045EF0D /* HomeUITests.swift */,
 				EF40ADF0AF8AFD61BA28EEE78E6E54DA /* IPadLayoutUITests.swift */,
+				FD2605CB00F15E3D80DB009A324F8726 /* LaunchPerfUITests.swift */,
 				3B414BC040D54331DEE20135B1D04356 /* LearnOnAskRowsUITests.swift */,
 				74D31C19C981C1492CE49B18143C4DDA /* LongThreadDrawerPerfUITests.swift */,
 				0C1786083E0440C2BB771A21E0515729 /* M3LiveAcceptanceUITests.swift */,
@@ -3483,6 +3486,7 @@
 				C93C24E2DD2F5366F00FC3722E557948 /* HistoryUITests.swift in Sources */,
 				A03B070C1279C334246D3493C38F6AAB /* HomeUITests.swift in Sources */,
 				0D0FD1A5631857AE79D4C809F0C496CF /* IPadLayoutUITests.swift in Sources */,
+				D48E34D17209F3F745AD181D9CFB0D16 /* LaunchPerfUITests.swift in Sources */,
 				5EDE1CAB80A71C9E529AB088C394FD4C /* LearnOnAskRowsUITests.swift in Sources */,
 				D314701853EC75CF31E29B4A0B8E83AB /* LongThreadDrawerPerfUITests.swift in Sources */,
 				B237FB19A00BE101C21D545BC9DFCFD9 /* M3LiveAcceptanceUITests.swift in Sources */,

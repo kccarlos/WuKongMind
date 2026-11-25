@@ -1204,6 +1204,17 @@ struct LaunchLogoOverlay: View {
     @State private var phase: Phase = .pending
     @State private var opacity: Double = 1
 
+    private var canShowAtColdStart: Bool {
+        LogoAssemblyPolicy.shouldShowLaunchOverlay(
+            settingEnabled: app.settings.launchLogoAnimationEnabled,
+            isColdStart: !app.hasHandledColdStartOverlay,
+            needsTermsAcceptance: app.needsTermsAcceptance,
+            reduceMotion: reduceMotion,
+            voiceOverRunning: UIAccessibility.isVoiceOverRunning,
+            animationsEnabled: UIView.areAnimationsEnabled
+        )
+    }
+
     private var shouldShow: Bool {
         switch phase {
         case .playing, .fading:
@@ -1211,37 +1222,34 @@ struct LaunchLogoOverlay: View {
         case .dismissed:
             return false
         case .pending:
-            return LogoAssemblyPolicy.shouldShowLaunchOverlay(
-                settingEnabled: app.settings.launchLogoAnimationEnabled,
-                isColdStart: !app.hasHandledColdStartOverlay,
-                needsTermsAcceptance: app.needsTermsAcceptance,
-                reduceMotion: reduceMotion,
-                voiceOverRunning: UIAccessibility.isVoiceOverRunning,
-                animationsEnabled: UIView.areAnimationsEnabled
-            )
+            return canShowAtColdStart
         }
     }
 
     var body: some View {
-        if shouldShow {
-            ZStack {
-                DCTheme.ground
-                    .ignoresSafeArea()
-                DCLogoView(size: 120, assembles: true) {
-                    beginFadeOut()
+        ZStack {
+            if shouldShow {
+                ZStack {
+                    DCTheme.ground
+                        .ignoresSafeArea()
+                    DCLogoView(size: 120, assembles: true) {
+                        beginFadeOut()
+                    }
                 }
+                .opacity(opacity)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    dismissImmediately()
+                }
+                .accessibilityIdentifier("launchLogoOverlay")
             }
-            .opacity(opacity)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                dismissImmediately()
-            }
-            .accessibilityIdentifier("launchLogoOverlay")
-            .onAppear {
-                guard phase == .pending else { return }
-                app.hasHandledColdStartOverlay = true
-                phase = .playing
-            }
+        }
+        .allowsHitTesting(shouldShow)
+        .onAppear {
+            guard phase == .pending else { return }
+            let show = canShowAtColdStart
+            app.hasHandledColdStartOverlay = true
+            phase = show ? .playing : .dismissed
         }
     }
 

@@ -220,7 +220,8 @@ final class TermsAndReportUITests: DCUITestCase {
         RunLoop.current.run(until: Date().addingTimeInterval(0.6))
         settingsApp.terminate()
 
-        // Relaunch with animations enabled: overlay must never appear.
+        // Relaunch with animations enabled: overlay must never appear, and turning
+        // the switch back on mid-session must not trigger the overlay either.
         let coldApp = XCUIApplication()
         coldApp.launchArguments = ["-dc-skip-onboarding", "-dc-forums-home"]
         coldApp.launch()
@@ -228,8 +229,11 @@ final class TermsAndReportUITests: DCUITestCase {
         XCTAssertTrue(waitForHittable(coldApp.buttons["browserTitle"], timeout: 15), "Browser bar did not become hittable.")
         coldApp.terminate()
 
-        // Restore default ON state for subsequent tests.
-        let restoreApp = launch(["-dc-show-settings", "browser"])
+        // Re-enable in Settings with animations enabled: turning the switch on mid-session must not show the overlay.
+        let restoreApp = XCUIApplication()
+        restoreApp.launchArguments = ["-dc-skip-onboarding", "-dc-show-settings", "browser"]
+        restoreApp.launch()
+        XCTAssertFalse(any(restoreApp, "launchLogoOverlay").exists, "Overlay appeared on launch while setting was still off.")
         let restoreToggle = restoreApp.switches["launchLogoAnimationToggle"].firstMatch
         for _ in 0..<5 where !restoreToggle.exists {
             restoreApp.swipeUp()
@@ -238,7 +242,27 @@ final class TermsAndReportUITests: DCUITestCase {
         if (restoreToggle.value as? String) == "0" {
             restoreToggle.tap()
             XCTAssertTrue(wait(timeout: 5) { (restoreToggle.value as? String) == "1" })
+            XCTAssertFalse(any(restoreApp, "launchLogoOverlay").exists, "Turning Logo animation at launch on mid-session must not trigger the cold-start overlay.")
             RunLoop.current.run(until: Date().addingTimeInterval(0.6))
         }
+    }
+
+    /// Accepting Terms on first run (with animations enabled) must not play the
+    /// cold-start overlay back to back over onboarding.
+    func testAcceptingTermsDoesNotTriggerColdStartOverlay() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-dc-reset"]
+        app.launch()
+        let termsGate = any(app, "termsGate")
+        XCTAssertTrue(waitOrDump(termsGate, timeout: 20, in: app))
+        XCTAssertFalse(any(app, "launchLogoOverlay").exists, "Cold-start overlay must not appear during first-run Terms gate.")
+        let agreeSwitch = app.switches["termsAgree"].firstMatch
+        XCTAssertTrue(waitForHittable(agreeSwitch, timeout: 5))
+        agreeSwitch.tap()
+        let continueButton = app.buttons["termsContinue"]
+        XCTAssertTrue(wait(timeout: 5) { continueButton.isEnabled })
+        continueButton.tap()
+        XCTAssertFalse(any(app, "launchLogoOverlay").exists, "Cold-start overlay must not play after accepting Terms.")
+        XCTAssertTrue(waitOrDump(any(app, "onboarding"), timeout: 15, in: app), "Onboarding did not appear after accepting Terms.")
     }
 }
