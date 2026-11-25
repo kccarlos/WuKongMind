@@ -114,6 +114,8 @@ struct AppSettings: Codable, Equatable {
     var searchEngine: SearchEngine = .google
     /// Where the app opens (HomeState.swift). Synced.
     var launchDestination: LaunchDestination = .automatic
+    /// Cold-start logo assembly animation (`Settings › Browser`). On by default; synced.
+    var launchLogoAnimationEnabled = true
     /// Confirmation before write actions (`Settings › Agent`). On by default.
     var agentConfirmBeforeWrites = true
     /// One-time upgrade marker: existing installs saved `agentConfirmBeforeWrites = false`
@@ -197,6 +199,7 @@ struct AppSettings: Codable, Equatable {
         case browserBarPosition
         case searchEngine
         case launchDestination
+        case launchLogoAnimationEnabled
         case agentConfirmBeforeWrites
         case didMigrateAgentConfirmBeforeWritesDefault
         case agentShareCookieValues
@@ -277,6 +280,7 @@ struct AppSettings: Codable, Equatable {
         browserBarPosition = try container.decodeIfPresent(BrowserBarPosition.self, forKey: .browserBarPosition) ?? stock.browserBarPosition
         searchEngine = try container.decodeIfPresent(SearchEngine.self, forKey: .searchEngine) ?? stock.searchEngine
         launchDestination = try container.decodeIfPresent(LaunchDestination.self, forKey: .launchDestination) ?? stock.launchDestination
+        launchLogoAnimationEnabled = try container.decodeIfPresent(Bool.self, forKey: .launchLogoAnimationEnabled) ?? stock.launchLogoAnimationEnabled
         let migratedConfirmDefault = try container.decodeIfPresent(Bool.self, forKey: .didMigrateAgentConfirmBeforeWritesDefault) ?? false
         if migratedConfirmDefault {
             agentConfirmBeforeWrites = try container.decodeIfPresent(Bool.self, forKey: .agentConfirmBeforeWrites) ?? stock.agentConfirmBeforeWrites

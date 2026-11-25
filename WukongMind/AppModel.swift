@@ -153,6 +153,10 @@ final class AppModel: ObservableObject {
     /// Topics whose saved summary New conversation hid from the drawer (WUKO-134).
     /// In memory only: the saved summary stays; asking for one again shows it.
     @Published private(set) var drawerSummaryHiddenTopicKeys: Set<String> = []
+    /// Per-process guards so the Terms gate assembly and the cold-start logo
+    /// overlay each play at most once per launch. In memory only.
+    var hasPlayedTermsLogoAssembly = false
+    var hasHandledColdStartOverlay = false
     @Published var panelRoute: PanelRoute = .topic
     /// Shared between the inline panel and its full-screen copy so opening the
     /// assistant full screen keeps the same mode.

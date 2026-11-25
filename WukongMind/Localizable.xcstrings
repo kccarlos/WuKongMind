@@ -10569,6 +10569,23 @@
         }
       }
     },
+    "Logo animation at launch" : {
+      "comment" : "Settings › Browser toggle for the cold-start logo assembly animation",
+      "localizations" : {
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "启动时播放 logo 动画"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "啟動時播放 logo 動畫"
+          }
+        }
+      }
+    },
     "Long topics take longer to read: a 2,000-post topic takes about 20 seconds." : {
       "comment" : "Reading pace footer for the Gentle pace (20 pages of 100 posts at 1 per second)",
       "localizations" : {

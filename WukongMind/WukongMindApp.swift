@@ -126,6 +126,9 @@ private struct RootView: View {
 
     var body: some View {
         ContentView(app: app)
+            .overlay {
+                LaunchLogoOverlay(app: app)
+            }
             #if DEBUG
             .preferredColorScheme(debugColorScheme)
             #endif
