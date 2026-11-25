@@ -112,5 +112,4 @@ For bridge isolation, key isolation, content delimiters, and the full threat mod
   <sub>Make any web page work your way — see the <a href="docs/wukongmind/design/design-system/README.md">design system</a> for tokens, ring states, and component specs.</sub>
 </p>
 
-<!-- Coordinator: replace the URL below with the public TestFlight link once it is live. -->
-[testflight]: https://kccarlos.github.io/WuKongMind/
+[testflight]: https://testflight.apple.com/join/t5RNVr7M

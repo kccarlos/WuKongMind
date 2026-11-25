@@ -112,5 +112,4 @@
   <sub>网页顺手，逛得轻松 — 完整的颜色标记、圆环状态与组件规范见<a href="docs/wukongmind/design/design-system/README.md">设计系统文档（英文）</a>。</sub>
 </p>
 
-<!-- Coordinator: replace the URL below with the public TestFlight link once it is live. -->
-[testflight]: https://kccarlos.github.io/WuKongMind/
+[testflight]: https://testflight.apple.com/join/t5RNVr7M
