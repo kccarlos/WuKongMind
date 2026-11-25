@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WukongMind 动效提案</title>
+<style>
+/*
+VOICE: 克制、精确，像设计系统里一页新增的 Motion 规范
+IDEA: 金箍的三个细环是 Agent 的“表情”，只有环会动
+PICTURE: 一部手机里 logo 组装后把外环交给浏览器栏的 Agent 环
+COLOUR and TYPE: 墨 #1a1612、金 #e0b040、朱砂只表示停止；系统字体
+LAYOUT: 首屏是主演示，然后每种动效一张可重播的卡，最后是优先级表
+*/
+:root{color-scheme:light dark;
+--bg:light-dark(#f7f3ea,#141110);--surface:light-dark(#fffdf8,#1f1b18);--ink:light-dark(#1a1612,#f2ece0);
+--muted:light-dark(#5f574c,#b5ab9b);--hair:light-dark(rgba(26,22,18,.14),rgba(242,236,224,.14));
+--gold:#e0b040;--goldink:light-dark(#8a6200,#e0b040);--wash:light-dark(#f6ead0,#3a2f17);
+--cin:light-dark(#b3321f,#e2604a);--jade:light-dark(#1f6f66,#6cc3b6);--jwash:light-dark(#dcefeb,#17322e)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif;overflow-x:clip;-webkit-font-smoothing:antialiased}
+.band{padding:clamp(28px,4vw,64px) max(5vw,16px);max-width:1240px;margin:0 auto}
+h1{font-size:clamp(32px,5vw,48px);line-height:1.08;margin:0 0 14px;text-wrap:balance;font-weight:700}
+h2{font-size:22px;line-height:1.25;margin:0 0 6px}
+p{margin:0 0 12px;max-width:62ch}.m{color:var(--muted)}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13px}
+.hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,340px);gap:clamp(24px,5vw,72px);align-items:center}
+.phone{position:relative;width:100%;max-width:320px;aspect-ratio:9/17;margin:0 auto;border-radius:44px;background:light-dark(#f7f3ea,#141110);border:1px solid var(--hair);overflow:hidden;box-shadow:0 30px 60px -30px rgba(26,22,18,.35)}
+.phone .stage{position:absolute;inset:0;display:grid;place-items:center}
+#mk{width:42%;transform-origin:center}
+.bar{position:absolute;left:12px;right:12px;bottom:16px;height:52px;border-radius:26px;background:light-dark(rgba(255,253,248,.8),rgba(40,35,30,.8));border:1px solid var(--hair);display:flex;align-items:center;gap:10px;padding:0 6px 0 18px;box-shadow:0 8px 24px -10px rgba(0,0,0,.3);opacity:0}
+.bar .addr{flex:1;height:10px;border-radius:5px;background:var(--hair)}
+.aring{width:40px;height:40px;border-radius:50%;border:3px solid var(--gold);flex:none;opacity:0}
+.btn{appearance:none;font:inherit;font-size:15px;font-weight:600;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--hair);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn.g{background:var(--gold);color:#1a1612;border-color:transparent}
+.btn:focus-visible{outline:2px solid var(--goldink);outline-offset:2px}
+.rule{margin-top:18px;padding:14px 16px;border-left:2px solid var(--gold);background:var(--surface);border-radius:0 10px 10px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:12px}
+.demo{position:relative;min-height:190px;border-radius:10px;background:var(--bg);border:1px solid var(--hair);display:grid;place-items:center;overflow:hidden}
+.spec{font-size:13px;color:var(--muted);line-height:1.5}
+.spec b{color:var(--ink);font-weight:600}
+.tag{display:inline-block;font-size:12px;font-weight:600;padding:1px 7px;border-radius:5px;background:var(--wash);color:var(--goldink);margin-right:6px}
+.states{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px;width:100%;padding:16px}
+.st{display:flex;flex-direction:column;align-items:center;gap:6px;font-size:13px;color:var(--muted);text-align:center}
+.st svg{width:64px;height:64px;overflow:visible}
+.st b{color:var(--ink);font-size:14px}
+svg .g{fill:none;stroke:var(--gold);stroke-width:2}
+svg .gi{fill:none;stroke:var(--goldink);stroke-width:2}
+@media (prefers-reduced-motion:no-preference){
+.br{animation:br 1.5s ease-in-out infinite}.br:nth-child(2){animation-delay:.18s}.br:nth-child(3){animation-delay:.36s}
+@keyframes br{0%,100%{opacity:.2}40%{opacity:1}}
+.rp{transform-origin:32px 32px;animation:rp 1.6s cubic-bezier(.2,.8,.2,1) infinite}
+@keyframes rp{0%{transform:scale(1);opacity:.9}100%{transform:scale(1.6);opacity:0}}
+.spin{transform-origin:32px 32px;animation:spin 1.1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+.cl{animation:cl 2.6s ease-out infinite}@keyframes cl{0%{stroke-dashoffset:.28}25%,100%{stroke-dashoffset:0}}
+.ck{animation:ck 2.6s ease-out infinite}@keyframes ck{0%,25%{stroke-dashoffset:1}40%,100%{stroke-dashoffset:0}}
+.sq{transform-origin:32px 32px;animation:sq 2.6s ease-out infinite}@keyframes sq{0%,70%{transform:scale(1)}74%{transform:scale(.9)}80%,100%{transform:scale(1)}}
+}
+/* tighten */
+.sc{width:min(86%,300px);background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:14px;display:flex;gap:12px;align-items:center}
+.sc .ic{position:relative;width:36px;height:36px;flex:none;display:grid;place-items:center}
+.sc .ic .tr{position:absolute;inset:0;border-radius:50%;border:2px solid var(--gold);opacity:0}
+.sc .ic svg{width:18px;height:18px;opacity:.25}
+.sc .t{font-size:15px;font-weight:600}.sc .s{font-size:13px;color:var(--muted)}
+/* page edit */
+.pg{width:min(88%,300px);background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.ln{position:relative;height:12px;border-radius:4px;background:var(--hair)}
+.ln.w{width:70%}.ln.h{height:18px;width:85%;background:light-dark(rgba(26,22,18,.3),rgba(242,236,224,.3))}
+.ad{height:34px;border-radius:6px;background:repeating-linear-gradient(45deg,var(--hair) 0 6px,transparent 6px 12px);display:grid;place-items:center;font-size:11px;color:var(--muted);overflow:hidden}
+.hl{position:absolute;inset:-4px;width:calc(100% + 8px);height:calc(100% + 8px);pointer-events:none;overflow:visible}
+.hl rect{fill:none;stroke:var(--gold);stroke-width:1.5;stroke-dasharray:1;stroke-dashoffset:1}
+.seal{position:absolute;right:-6px;top:-12px;font-size:11px;font-weight:600;padding:0 6px;border-radius:4px;background:var(--wash);color:var(--goldink);opacity:0}
+/* voice */
+#vo{width:150px;height:150px;overflow:visible}
+/* seam */
+.sm{position:absolute;inset:0;background:#141110;clip-path:inset(0 100% 0 0)}
+.sm .ln2{position:absolute;left:24px;right:24px;height:10px;border-radius:4px;background:rgba(242,236,224,.16)}
+.seamline{position:absolute;top:0;bottom:0;width:2px;background:var(--gold);left:0;opacity:0}
+.lt .ln2{position:absolute;left:24px;right:24px;height:10px;border-radius:4px;background:rgba(26,22,18,.12)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--hair);vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:600}
+.scroll{overflow-x:auto}
+
+.pad{position:relative;width:100%;aspect-ratio:10/7;border-radius:28px;background:var(--bg);border:1px solid var(--hair);overflow:hidden;box-shadow:0 30px 60px -34px rgba(26,22,18,.35)}
+.pad .stage{position:absolute;inset:0;display:grid;place-items:center}
+#pmk{width:16%}
+.tb{position:absolute;left:3%;right:3%;top:4%;height:44px;border-radius:22px;background:light-dark(rgba(255,253,248,.85),rgba(40,35,30,.85));border:1px solid var(--hair);display:flex;align-items:center;gap:10px;padding:0 4px 0 16px;opacity:0}
+.tb .addr{flex:1;height:9px;border-radius:5px;background:var(--hair)}
+.tb svg,.mbar svg,.cmp svg,.ph svg{flex:none;overflow:visible}
+.pcol{position:absolute;left:6%;top:20%;width:54%;display:flex;flex-direction:column;gap:10px;opacity:0}
+.pn{position:absolute;top:0;right:0;bottom:0;width:36%;background:var(--surface);border-left:1px solid var(--hair);transform:translateX(101%);padding:16px 14px;display:flex;flex-direction:column;gap:10px}
+.ph{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px}
+.chip{font-size:12px;border:1px solid var(--hair);border-radius:8px;padding:6px 9px;background:var(--bg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cmp{margin-top:auto;display:flex;align-items:center;gap:8px;border:1px solid var(--hair);border-radius:10px;padding:5px 5px 5px 10px;font-size:12px;color:var(--muted);background:var(--bg)}
+.cmp span{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hv{appearance:none;background:none;border:0;padding:12px;cursor:pointer;border-radius:50%;transition:transform .15s}
+.hv svg{width:72px;height:72px;display:block}
+.hv .in{opacity:0;transition:opacity .15s}.hv .in2{transition-delay:.05s}
+.hv:hover,.hv:focus-visible{transform:scale(1.06)}.hv:hover .in,.hv:focus-visible .in,.hv.on .in{opacity:1}
+.hv:focus-visible{outline:2px solid var(--goldink);outline-offset:2px}
+.sb{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:clamp(20px,4vw,56px);align-items:start}
+.lay{position:absolute;inset:0;opacity:0}
+#fmk{position:absolute;left:50%;top:50%;width:34%;transform:translate(-50%,-50%)}
+.fh{position:absolute;left:24px;right:24px;top:70px;display:flex;align-items:center;gap:10px}
+.fh .slot{width:40px;height:40px;flex:none}
+.fh b{font-size:20px}.fh small{display:block;font-size:12px;color:var(--muted)}
+.rows{position:absolute;left:18px;right:18px;top:140px;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:10px 12px;font-size:14px}
+.row .k{margin-left:auto;font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.row .tg{position:relative;width:20px;height:20px;display:grid;place-items:center}
+.row .tg i{position:absolute;inset:0;border-radius:50%;border:1.5px solid var(--gold);opacity:0}
+.row .tg svg{width:12px;height:12px;opacity:0}
+.av{width:26px;height:26px;border-radius:6px;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;flex:none}
+.cta{position:absolute;left:18px;right:18px;bottom:28px;height:44px;border-radius:10px;background:var(--gold);color:#1a1612;font-weight:600;display:grid;place-items:center;font-size:15px}
+#find{position:absolute;left:50%;top:22px;width:30px;height:30px;transform:translateX(-50%);overflow:visible}
+#find .tk{fill:none;stroke:var(--hair);stroke-width:1.6}
+#find .d{fill:none;stroke:var(--gold);stroke-width:1.8;stroke-dasharray:1;stroke-dashoffset:1}
+.mbar{position:absolute;left:10px;right:10px;bottom:14px;height:48px;border-radius:24px;background:light-dark(rgba(255,253,248,.85),rgba(40,35,30,.85));border:1px solid var(--hair);display:flex;align-items:center;gap:8px;padding:0 4px 0 16px}
+.mbar .addr{flex:1;height:9px;border-radius:5px;background:var(--hair)}
+.fpg{position:absolute;left:20px;right:20px;top:70px;display:flex;flex-direction:column;gap:9px}
+.fpg .hd{position:relative;max-width:88%;font-weight:700;font-size:16px;line-height:1.25;transform-origin:left top}
+.dr{position:absolute;left:0;right:0;bottom:0;height:46%;background:var(--surface);border-top:1px solid var(--hair);border-radius:18px 18px 0 0;box-shadow:0 -10px 30px -16px rgba(0,0,0,.3);transform:translateY(101%);padding:14px;display:flex;flex-direction:column;gap:8px}
+.dr .grab{width:36px;height:4px;border-radius:2px;background:var(--hair);margin:0 auto 4px}
+.done{position:absolute;inset:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:var(--surface);opacity:0;text-align:center;font-size:13px;color:var(--muted)}
+.done b{font-size:17px;color:var(--ink)}
+.done img{width:96px;height:96px}
+.steps{margin:0;padding-left:22px;display:flex;flex-direction:column;gap:6px}
+.steps li{color:var(--muted);transition:color .2s;padding:2px 0}
+.steps li.on{color:var(--ink)}.steps li.on::marker{color:var(--goldink);font-weight:700}
+.steps li b{color:inherit}
+@media (prefers-reduced-motion:no-preference){
+.cl1{animation:cl1 .3s ease-out forwards}@keyframes cl1{from{stroke-dashoffset:.28}to{stroke-dashoffset:0}}
+.ck1{stroke-dashoffset:1;animation:ck1 .25s .3s ease-out forwards}@keyframes ck1{to{stroke-dashoffset:0}}
+.sq1{transform-origin:32px 32px;animation:sq1 .2s .55s ease-out}@keyframes sq1{50%{transform:scale(.9)}}
+}
+@media (prefers-reduced-motion:reduce){.ck1{stroke-dashoffset:0}}
+@media(max-width:760px){.sb{grid-template-columns:minmax(0,1fr)}}
+
+.hpage{position:absolute;inset:0;padding:60px 20px;display:flex;flex-direction:column;gap:9px;transform-origin:50% 40%}
+.hpage .hd2{font-weight:700;font-size:16px;line-height:1.25;max-width:88%}
+.hov{position:absolute;inset:0;background:light-dark(rgba(247,243,234,.94),rgba(20,17,16,.94));-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:0;pointer-events:none;padding:56px 16px 0}
+.hov h4{margin:0 0 8px;font-size:15px}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 8px;margin-bottom:18px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:10px;overflow-wrap:anywhere;line-height:1.25;color:var(--muted);text-align:center}
+.tile i{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;color:#fff;font-style:normal;font-weight:700;font-size:16px}
+.rrow{display:flex;align-items:center;gap:10px;padding:9px 10px;background:var(--surface);border:1px solid var(--hair);border-radius:10px;font-size:12.5px;margin-bottom:6px}
+.rrow small{display:block;color:var(--muted);font-size:11px}
+.rrow svg{flex:none;overflow:visible}
+.hsug{position:absolute;left:16px;right:16px;top:56px;opacity:0}
+.kb{position:absolute;left:0;right:0;bottom:0;height:36%;background:light-dark(#d9d4ca,#2b2622);transform:translateY(101%);display:grid;grid-template-rows:repeat(4,1fr);gap:6px;padding:10px 6px 22px}
+.kb div{display:flex;gap:5px}.kb span{flex:1;border-radius:5px;background:light-dark(#fffdf8,#4a433d)}
+.hbar{position:absolute;left:10px;right:10px;bottom:14px;height:48px;border-radius:24px;background:light-dark(rgba(255,253,248,.92),rgba(40,35,30,.92));border:1px solid var(--hair);display:flex;align-items:center;gap:8px;padding:0 4px 0 14px;font-size:13px;z-index:2}
+.hbar .bk,.hbar .tb2{color:var(--muted);font-size:18px;width:20px;text-align:center;flex:none}
+.hbar .fld{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+.hbar .fld.ed{text-align:left;color:var(--ink)}.hbar .fld.ph{color:var(--muted)}
+.hbar svg{flex:none;overflow:visible;transition:opacity .2s}
+.caret{display:inline-block;width:1.5px;height:15px;background:var(--goldink);vertical-align:-3px;margin-left:1px}
+@media (prefers-reduced-motion:no-preference){.caret{animation:blink 1s steps(1) infinite}@keyframes blink{50%{opacity:0}}}
+.today{width:min(88%,300px);display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--hair);border-radius:14px;padding:14px}
+.today .ti{width:38px;height:38px;border-radius:9px;background:var(--bg);display:grid;place-items:center;flex:none}
+.today .ti svg{width:28px;height:28px;overflow:visible}
+.today b{font-size:15px;display:block}.today small{font-size:12px;color:var(--muted)}
+.today .mk{margin-left:auto;min-height:36px;padding:0 14px;border-radius:9px;background:var(--wash);color:var(--goldink);font-weight:600;border:0;font:inherit;font-size:14px;font-weight:600;cursor:pointer}
+@media(max-width:760px){.hero{grid-template-columns:minmax(0,1fr)}.phone{max-width:260px}}
+@media(max-width:600px){table{font-size:14px}.stack thead{display:none}.stack tr{display:grid;padding-block:10px;border-bottom:1px solid var(--hair)}.stack td{display:flow-root;border:0;padding:3px 0;padding-inline-start:6.5em}.stack td::before{content:attr(data-l);float:inline-start;width:6em;margin-inline-start:-6.5em;color:var(--muted);font-size:13px}}
+</style>
+<script>new MutationObserver(()=>{for(const c of document.querySelectorAll('.stack td:not([data-l])')){let i=0,p=c;while(p=p.previousElementSibling)i+=p.colSpan;c.dataset.l=c.closest('table').rows[0].cells[i]?.textContent||''}}).observe(document,{childList:true,subtree:true})</script>
+</head>
+<body>
+
+<section class="band hero">
+<div>
+<h1>只有环会动：WukongMind 的动效提案</h1>
+<p class="m">金箍的三个细环不只是 logo，它可以成为 Agent 的表情。下面每个演示都能重播；系统开启“减弱动态效果”时，它们都会退化成淡入淡出或静止。</p>
+<p>右边是主演示：冷启动时 logo 组装，再把最外圈的环交给浏览器栏里的 Agent 按钮。它说的是一件事：<b>这个环就是 Agent</b>。</p>
+<button class="btn g" id="playHero">重播启动</button>
+<div class="rule"><b>建议改写的规则</b><br><span class="m">现在的规范：“转动的金环是唯一的持续动画，不允许装饰性动效。” 建议改成：“只有环会动，每次动都表示 Agent 的一种状态或一个结果。其余界面仍只用系统转场，≤250 ms，不回弹。” 克制的气质保留，表达力来自环。</span></div>
+</div>
+<div class="phone" aria-label="启动动画演示">
+<div class="stage">
+<svg id="mk" viewBox="0 0 1024 1024" aria-hidden="true">
+<defs><clipPath id="sq"><rect width="1024" height="1024" rx="230"/></clipPath><clipPath id="L"><rect width="512" height="1024"/></clipPath><clipPath id="R"><rect x="512" width="512" height="1024"/></clipPath></defs>
+<g clip-path="url(#sq)">
+<rect id="hL" width="512" height="1024" fill="#1a1612"/><rect id="hR" x="512" width="512" height="1024" fill="#e0b040"/>
+<g clip-path="url(#L)" id="rL"></g><g clip-path="url(#R)" id="rR"></g>
+</g></svg>
+</div>
+<div id="pgc" style="position:absolute;left:22px;right:22px;top:64px;display:flex;flex-direction:column;gap:10px;opacity:0"><div class="ln h"></div><div class="ln"></div><div class="ln w"></div><div class="ln"></div><div class="ln w"></div></div>
+<div class="bar" id="bar"><div class="addr"></div><div class="aring" id="aring"></div></div>
+</div>
+</section>
+
+<section class="band">
+<h2>1 · Agent 环的状态语言</h2>
+<p class="m">今天环只有“转”一种动作。用 logo 的三环给它五种状态，用户看一眼就知道 Agent 在干什么，不用读字。</p>
+<div class="card">
+<div class="demo"><div class="states">
+<div class="st"><svg viewBox="0 0 64 64"><circle class="g" cx="32" cy="32" r="22" stroke-width="3"/></svg><b>待命</b>静止的金环</div>
+<div class="st"><svg viewBox="0 0 64 64"><g><circle class="g br" cx="32" cy="32" r="8"/><circle class="g br" cx="32" cy="32" r="15"/><circle class="g br" cx="32" cy="32" r="22"/></g></svg><b>思考</b>三环由内向外呼吸</div>
+<div class="st"><svg viewBox="0 0 64 64"><circle class="g rp" cx="32" cy="32" r="22"/><circle class="g" cx="32" cy="32" r="22" stroke-width="3"/></svg><b>读页面</b>每读一次放出一圈涟漪</div>
+<div class="st"><svg viewBox="0 0 64 64"><circle class="g spin" cx="32" cy="32" r="22" stroke-width="3" pathLength="1" stroke-dasharray=".72 .28" stroke-linecap="round"/></svg><b>运行</b>现有的开口转环</div>
+<div class="st"><svg viewBox="0 0 64 64"><g class="sq"><circle class="g cl" cx="32" cy="32" r="22" stroke-width="3" pathLength="1" stroke-dasharray="1" transform="rotate(-90 32 32)"/><path class="gi ck" d="M22 33l7 7 13-15" pathLength="1" stroke-dasharray="1" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g></svg><b>完成</b>缺口合上，箍一下，变成勾</div>
+<div class="st"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="22" fill="none" stroke="var(--cin)" stroke-width="3"/><rect x="25" y="25" width="14" height="14" rx="2" fill="var(--cin)"/></svg><b>停止</b>朱砂，不动</div>
+</div></div>
+<div class="spec"><span class="tag">P0</span><b>思考</b>每环 1.5 s 循环，错开 0.18 s；<b>涟漪</b>与 tool call 一一对应，不是装饰循环；<b>完成</b>缺口 300 ms 合上 + 一次 0.9× 收紧 + success 触感，随后吉祥物换成 cheer。<br>SwiftUI：<span class="mono">Circle().trim(from:to:)</span> + <span class="mono">PhaseAnimator</span> / <span class="mono">keyframeAnimator</span>；减弱动态：全部静止，只换图形。</div>
+</div>
+</section>
+
+<section class="band grid">
+<div class="card">
+<h2>2 · 收紧 = 学会了</h2>
+<p class="m">“紧箍”本身就是很好的隐喻。站点工具验证通过、脚本保存时，一个大环从外面收紧，箍住这一项。</p>
+<div class="demo"><div class="sc"><div class="ic"><div class="tr" id="tr"></div><svg id="tck" viewBox="0 0 18 18"><path d="M4 9.5l3.2 3.2L14 5.5" fill="none" stroke="var(--goldink)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div><div class="t">Reads this site</div><div class="s" id="tst">还没验证</div></div></div></div>
+<div><button class="btn" id="playT">试运行并保存</button></div>
+<div class="spec"><span class="tag">P0</span>环从 2.4× 缩到 1×，220 ms，<span class="mono">.snappy</span>（无回弹），落定时 success 触感。用在 Learn on ask 的“打勾”和 ScriptCard 保存。减弱动态：直接出现。</div>
+</div>
+
+<div class="card">
+<h2>3 · 金线描出被改过的地方</h2>
+<p class="m">WukongMind 的核心是 Agent 改网页。改完后用一条金色细线把变动的元素描一圈再淡出，用户立刻知道改了哪里。</p>
+<div class="demo"><div class="pg" id="pg">
+<div class="ln h"></div><div class="ad" id="ad">广告</div>
+<div class="ln" id="e1"><svg class="hl" preserveAspectRatio="none"><rect x="1" y="1" rx="5" pathLength="1" width="98%" height="80%"/></svg><span class="seal">已改</span></div>
+<div class="ln w"></div><div class="ln"></div></div></div>
+<div><button class="btn" id="playE">让 Agent 去掉广告、放大正文</button></div>
+<div class="spec"><span class="tag">P1</span>在网页里注入：被删的元素 200 ms 收起，被改的元素描边 400 ms，停 1.2 s，淡出 600 ms；角上留一个“已改”印章，点开可撤销。实现在 userscript 运行层（注入 CSS + SVG/outline），不需要 SwiftUI。</div>
+</div>
+
+<div class="card">
+<h2>4 · 语音时三环就是声纹</h2>
+<p class="m">现在语音按钮用的是 symbol 的 pulse。换成三环随音量扩张：听你说时跟着麦克风，Agent 说话时跟着输出。</p>
+<div class="demo"><svg id="vo" viewBox="0 0 150 150"><circle class="g" cx="75" cy="75" r="20" stroke-width="2.5"/><circle class="g" cx="75" cy="75" r="36"/><circle class="g" cx="75" cy="75" r="52"/></svg></div>
+<div><button class="btn" id="playV">开始听</button></div>
+<div class="spec"><span class="tag">P1</span>内环跟实时电平，外两环延迟 60/120 ms 跟随，像水波；电平做平滑避免抖动。用于 PhoneVoice 和 Sheepdog 式的免手语音。减弱动态：只用不透明度表示电平。</div>
+</div>
+
+<div class="card">
+<h2>5 · 中缝：墨与金的切换</h2>
+<p class="m">logo 中间那条看不见的缝，可以做深浅主题切换和引导页翻页的转场：一条金线扫过，后面变成另一半。</p>
+<div class="demo" id="seam"><div class="lt" style="position:absolute;inset:0"><div class="ln2" style="top:40px"></div><div class="ln2" style="top:62px;right:90px"></div><div class="ln2" style="top:84px"></div></div><div class="sm" id="dk"><div class="ln2" style="top:40px"></div><div class="ln2" style="top:62px;right:90px"></div><div class="ln2" style="top:84px"></div></div><div class="seamline" id="sl"></div></div>
+<div><button class="btn" id="playS">切换主题</button></div>
+<div class="spec"><span class="tag">P2</span>只用在用户主动切换时（设置里的外观、引导页三步），320 ms ease-in-out。日常页面跳转不用，免得变成装饰。减弱动态：交叉淡化。</div>
+</div>
+</section>
+
+
+<section class="band">
+<h2>6 · iPad：环在顶栏，面板在旁边</h2>
+<p class="m">iPad 和 iPhone 用同一套环的语言，差别在于 Agent 环在顶栏右上角，面板是并排的侧栏，而且有触控板和键盘。</p>
+<div class="card">
+<div class="pad" aria-label="iPad 演示">
+<div class="stage"><svg id="pmk" viewBox="0 0 1024 1024" aria-hidden="true"></svg></div>
+<div class="tb" id="ptb"><div class="addr"></div><svg id="pring" width="36" height="36" viewBox="0 0 64 64"></svg></div>
+<div class="pcol" id="pcol"><div class="ln h"></div><div class="ln"></div><div class="ln w"></div><div class="ln"></div><div class="ln"></div><div class="ln w"></div></div>
+<div class="pn" id="ppn"><div class="ph"><svg id="pst" width="22" height="22" viewBox="0 0 64 64"></svg>Agent</div><div class="chip">Summarize this page</div><div class="chip">Make it dark</div><div class="cmp"><span id="pcmp">Ask the Agent…</span><svg width="26" height="26" viewBox="0 0 64 64"><circle class="g" cx="32" cy="32" r="22" stroke-width="4"/></svg></div></div>
+</div>
+<div><button class="btn g" id="playP">播放 iPad 版</button></div>
+<div class="spec"><span class="tag">P0</span><b>启动交接</b>的终点从底栏换成顶栏右上角的环；logo 保持约 120 pt 的绝对尺寸，不随屏幕放大。<b>打开面板</b>时侧栏 240 ms 推进，顶栏让出宽度，顶栏的环变成 <span class="mono">gold-wash</span> 填充并静止，状态动画搬到面板标题旁边。同一时刻只有一个环在表达状态，不会两处同时转。</div>
+</div>
+<div class="grid" style="margin-top:16px">
+<div class="card">
+<h2>指针悬停：露出三环</h2>
+<p class="m">用触控板或鼠标指到 Agent 环上，内两环淡入，环本身轻微抬起。平时它就是一个细环，只在你准备点它时才露出 logo 的样子。</p>
+<div class="demo"><button class="hv" id="hv" aria-label="Agent 环悬停演示"><svg viewBox="0 0 64 64"><circle class="g in" cx="32" cy="32" r="9"/><circle class="g in in2" cx="32" cy="32" r="16"/><circle class="g" cx="32" cy="32" r="23" stroke-width="3"/></svg></button></div>
+<div class="spec"><span class="tag">P0</span>150 ms，配合系统 <span class="mono">.hoverEffect(.lift)</span> 和指针吸附。触屏上不出现。键盘焦点（Tab 到环上）显示同样的样子，⌘J 打开面板。</div>
+</div>
+<div class="card">
+<h2>iPad 才有的机会</h2>
+<ul>
+<li><b>面板和页面联动</b>：并排时，指到面板里的引用编号或工具行，页面里对应的段落就用金线描出来（第 3 条的描边能力）。iPhone 抽屉挡着页面，做不到这么直接。</li>
+<li><b>标签页总览</b>：四列卡片里，正在跑 Agent 的标签页在卡片角上显示小号的状态环，一眼看出哪个页面在干活。</li>
+<li><b>窗口变窄</b>（Split View、台前调度）时侧栏退回成 iPhone 式抽屉，用系统转场，环的语言不变。</li>
+<li><b>以后：圈一下</b>。用 Pencil 或手指在页面上画个圈，吸附成金环，把圈住的元素交给 Agent 当上下文。画圈就是金箍的动作，也呼应“画地为圈”，但西方用户不需要懂这个典故也能用。</li>
+</ul>
+</div>
+</div>
+</section>
+
+<section class="band">
+<h2>7 · 第一次打开</h2>
+<p class="m">现有设计是三步：选模型、打开一个网站、试一次 Agent。建议把 P0 的三件事串进这三步里，让第一次使用本身就是一次 logo 的组装。</p>
+<div class="sb">
+<div class="phone" aria-label="首次打开演示">
+<svg id="find" viewBox="0 0 30 30" aria-hidden="true" style="opacity:0"><circle class="tk" cx="15" cy="15" r="4"/><circle class="tk" cx="15" cy="15" r="8.5"/><circle class="tk" cx="15" cy="15" r="13"/><circle class="d" cx="15" cy="15" r="4" pathLength="1" transform="rotate(-90 15 15)"/><circle class="d" cx="15" cy="15" r="8.5" pathLength="1" transform="rotate(-90 15 15)"/><circle class="d" cx="15" cy="15" r="13" pathLength="1" transform="rotate(-90 15 15)"/></svg>
+<div class="lay" id="L1"><div class="fh"><div class="slot" id="fslot"></div><div><b>WukongMind</b><small>An agent for any web page</small></div></div>
+<div class="rows"><div class="row"><div class="av" style="background:#c26a4a">A</div>Anthropic<span class="k"><span id="fk">验证中…</span><span class="tg"><i id="fti"></i><svg id="ftc" viewBox="0 0 18 18"><path d="M4 9.5l3.2 3.2L14 5.5" fill="none" stroke="var(--goldink)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></span></div><div class="row"><div class="av" style="background:#6a5acd">O</div>OpenRouter</div><div class="row"><div class="av" style="background:#2f7d5b">O</div>OpenAI</div></div>
+<div class="cta">Continue</div></div>
+<div class="lay" id="L2"><div class="fh"><div><b>Open a site</b><small>Any address works.</small></div></div>
+<div class="rows"><div class="row" style="color:var(--muted)">Address</div><div class="row"><div class="av" style="background:#4b7bb5">H</div>Home Lab Talk</div><div class="row"><div class="av" style="background:#e06c1f">Y</div>Hacker News</div><div class="row" id="fnw"><div class="av" style="background:#1f6f66">N</div>Northwind</div></div></div>
+<div class="lay" id="L3"><div class="fpg"><div class="hd" id="fhd">Harbour towns bet on night ferries to ease the summer rush<svg class="hl" preserveAspectRatio="none"><rect x="1" y="1" rx="5" pathLength="1" width="10" height="10"/></svg></div><div class="ln"></div><div class="ln w"></div><div class="ln"></div><div class="ln"></div></div>
+<div class="mbar"><div class="addr"></div><svg id="fbr" width="36" height="36" viewBox="0 0 64 64"></svg></div>
+<div class="dr" id="fdr"><div class="grab"></div><div style="font-size:13px;font-weight:600">Try the Agent once</div><div class="chip" id="fchip">Make this page easier to read</div><div class="chip">Hide everything but the article</div><div class="cmp"><span id="fcmp">Ask anything about this page…</span><svg id="fcr" width="28" height="28" viewBox="0 0 64 64"></svg></div>
+<div class="done" id="fdone"><img src="cheer.svg" alt=""><b>You're set</b>iCloud sync: On · Daily digest: in Settings</div></div></div>
+<svg id="fmk" viewBox="0 0 1024 1024" aria-hidden="true"></svg>
+</div>
+<div>
+<button class="btn g" id="playF">从头播放</button>
+<ol class="steps" id="fsteps" style="margin-top:18px">
+<li><b>启动屏</b>：只有纸色底。现在的 <span class="mono">LaunchBackground</span> 已经是纯色，和动画第一帧无缝衔接。</li>
+<li><b>组装</b>：墨金两半合上，三环画出。只有第一次是完整的 1.1 s，点任意处跳过。</li>
+<li><b>落到第一步</b>：logo 缩小移到标题旁边，“WukongMind”和副标题淡入。logo 自己成了第一页的标题，不是一个先放完再消失的开场。</li>
+<li><b>钥匙验证通过</b>：服务商那一行用“收紧”打勾。顶部进度的内环画上。验证失败只显示朱砂文字，不抖动。</li>
+<li><b>打开一个网站</b>：中环画上，网页打开，底栏的 Agent 环放一圈涟漪，表示它在读这个页面，准备给建议。</li>
+<li><b>试一次</b>：建议飞进输入框，环依次思考、运行、完成。页面里改动的地方被金线描出来，外环画上，进度变成完整的三环。</li>
+<li><b>完成</b>：吉祥物 cheer 和 “You're set” 卡片。</li>
+</ol>
+<div class="rule"><b>进度指示用三个同心环代替三个点</b><br><span class="m">每完成一步画上一圈，三步走完正好是 logo 的三环。之前“引导页圆点拉伸”被去掉了，这个不一样：它表示进度，不是装饰。</span></div>
+</div>
+</div>
+<div class="grid" style="margin-top:16px">
+<div class="card"><h2>iPad 的第一次</h2><ul>
+<li>logo 在屏幕中央组装，然后表单页从下面升起，logo 落进表单页的标题位置（第 1、2 步在 iPad 上是表单页）。</li>
+<li>第 3 步表单页关闭，网页打开时侧栏已经开着，两条建议就在侧栏里，不用抽屉。</li>
+<li>如果接了键盘，第 3 步的输入框直接获得焦点，环显示悬停时的三环样子，提示可以直接打字。</li>
+</ul></div>
+<div class="card"><h2>不走主线的情况</h2><ul>
+<li><b>第 1 步点了 Later</b>：没有模型，第 3 步显示“还没有模型”的卡片，环保持待命不动。没有发生的事不演。</li>
+<li><b>以后的冷启动</b>：不再组装，静态的纸色底直接进上次的页面，或者只做 350 ms 的交接。</li>
+<li><b>减弱动态</b>：组装换成 200 ms 淡入，进度环直接出现，其余照前面的规则。</li>
+</ul></div>
+</div>
+</section>
+
+<section class="band">
+<h2>8 · 首页：像 Safari 一样，点地址栏就是首页</h2>
+<p class="m">你截图里的首页现在有两个输入口：顶上的 “Search or enter address” 和底栏。学 Safari 之后只剩底栏一个：在任何页面点地址栏，首页就浮在当前页面上面，键盘升起，底栏贴到键盘上方。首页从“一个页面”变成“编辑地址时的状态”，新标签页也是它。</p>
+<div class="sb">
+<div class="phone" aria-label="地址栏唤出首页演示">
+<div class="hpage" id="hpage"><div class="hd2">Harbour towns bet on night ferries to ease the summer rush</div><div class="ln"></div><div class="ln w"></div><div class="ln"></div><div class="ln"></div><div class="ln w"></div><div class="ln"></div></div>
+<div class="hov" id="hov"><div id="hhome"><h4>Sites</h4><div class="tiles"><div class="tile"><i style="background:#4b7bb5">美</i>美卡论坛</div><div class="tile"><i style="background:#6f86f5">X</i>x.com</div><div class="tile"><i style="background:#9b8cf5">D</i>Doctor Of Credit</div><div class="tile"><i style="background:#3cc4b3">F</i>flightconnections</div><div class="tile"><i style="background:#3cc4b3">G</i>google.com</div><div class="tile"><i style="background:#ef6aa0">B</i>bbc.com</div><div class="tile"><i style="background:#9b8cf5">H</i>Hacker News</div><div class="tile"><i style="background:#3cc4b3">V</i>vincent.build</div></div><h4>Recent</h4>
+<div class="rrow"><svg width="22" height="22" viewBox="0 0 64 64">{RUN}</svg><div>Summarize this thread and replies<small>Agent · doctorofcredit.com · 正在运行</small></div></div>
+<div class="rrow"><svg width="22" height="22" viewBox="0 0 64 64"><circle class="g" cx="32" cy="32" r="22" stroke-width="4"/></svg><div>Make this page dark and hide the sidebar<small>Agent · news.example.com · 10 min</small></div></div></div>
+<div class="hsug" id="hsug"><div class="rrow" id="hask"><svg width="22" height="22" viewBox="0 0 64 64"><circle class="g" cx="32" cy="32" r="22" stroke-width="4"/></svg><div><b>Ask the Agent</b><small>which fanless box is quietest?</small></div></div>
+<div class="rrow"><span style="width:22px;text-align:center;color:var(--muted)">⌕</span><div>Search Google<small>which fanless box is quietest</small></div></div>
+<div class="rrow"><i class="av" style="background:#4b7bb5;width:22px;height:22px;font-size:11px;font-style:normal">H</i><div>Which fanless boxes do people regret?<small>Home Lab Talk · 历史记录</small></div></div></div></div>
+<div class="kb" id="hkb"><div><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div><div><span style="flex:2"></span><span style="flex:6"></span><span style="flex:2;background:var(--gold)"></span></div></div>
+<div class="hbar" id="hbar"><span class="bk" id="hbk">‹</span><span class="fld" id="hfld">news.example.com</span><span class="tb2" id="htb">⧉</span><svg id="hring" width="36" height="36" viewBox="0 0 64 64"></svg></div>
+</div>
+<div>
+<button class="btn g" id="playH">点地址栏</button>
+<ol class="steps" id="hsteps" style="margin-top:18px">
+<li><b>点地址栏</b>：底栏按钮淡出、地址框展开（就是现有的 bar 形变），键盘升起，底栏跟着贴到键盘上方。首页内容在当前页面上淡入并上移 8 pt，背后的页面模糊，不跳走，取消就回到原处。全部 ≤250 ms。</li>
+<li><b>环先暗下去</b>：输入框是空的或者像网址时，Agent 环变暗，这时它不是主角。</li>
+<li><b>开始打字</b>：Sites 和 Recent 换成建议列表，一次切换，不逐条错开。</li>
+<li><b>像问题时环被点亮</b>：输入看起来像一句话，第一行变成 “Ask the Agent”，底栏的环亮回金色，回车就交给 Agent；像网址就打开，像关键词就搜索。</li>
+<li><b>交给 Agent</b>：首页和键盘收起，环直接进入“思考”。</li>
+</ol>
+</div>
+</div>
+<div class="grid" style="margin-top:16px">
+<div class="card"><h2>首页上的环也是活的</h2>
+<p class="m">Recent 里 Agent 的条目本来就用金环当图标，让它和真实状态同步：还在跑的那条转着，刚跑完的那条收紧成勾，过几秒回到静止。首页一眼就能看出哪个任务还没完。</p>
+<p class="m">你截图里底栏的环在首页是灰的（没有页面）。按上面的方案，它在首页会变成“有问题就亮”的样子，灰色就有了含义。</p></div>
+<div class="card"><h2>Today 卡片</h2>
+<div class="demo" style="min-height:120px"><div class="today"><div class="ti"><svg id="tdi" viewBox="0 0 64 64"><circle cx="32" cy="32" r="9" fill="none" stroke="var(--ink)" stroke-width="4"/><path d="M32 10v7M32 47v7M10 32h7M47 32h7M16 16l5 5M43 43l5 5M16 48l5-5M43 21l5-5" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/></svg></div><div><b>Today</b><small id="tds">Make a digest of today's topics</small></div><button class="mk" id="tdb">Make</button></div></div>
+<div class="spec">点 Make 之后，太阳图标换成状态环（思考 → 读页面 → 完成），按钮变成 Play。不另做进度条。</div></div>
+<div class="card"><h2>保持不变的</h2><ul>
+<li>点站点图标<b>不做放大</b>（你之前去掉了 tile zoom）：用系统转场打开页面，打开后底栏的环放一圈“读页面”的涟漪。</li>
+<li>站点图标保留各自的颜色，论坛的气泡角标照旧。</li>
+<li>iPad：点顶栏地址框，首页以弹出层出现在地址框下方（像 iPad Safari），侧栏不受影响。</li>
+</ul></div>
+</div>
+</section>
+
+<section class="band">
+<h2>优先级和交给实现 agent 的要点</h2>
+<div class="scroll"><table class="stack">
+<thead><tr><th>项</th><th>优先级</th><th>落在哪里</th><th>实现要点</th></tr></thead>
+<tbody>
+<tr><td>Agent 环五态</td><td>P0 · 已同意</td><td>BrowserBar 环、收起的 pill、ToolRow、Composer</td><td>把 <span class="mono">DesignSystem.swift</span> 里的 AgentRing 扩成带 state 的组件，三态共用一套三环几何（复用 <span class="mono">BrandGeometry.ringRadiiRatios</span>）</td></tr>
+<tr><td>启动组装 + 交接</td><td>P0 · 已同意</td><td>首次启动（落进第 1 步标题）、以后冷启动（只交接）；iPad 交到顶栏</td><td>让 <span class="mono">BrandHalfRingsShape</span> 支持 <span class="mono">Animatable</span> 的 progress；交接用 <span class="mono">matchedGeometryEffect</span>；总长 ≤ 1.1 s，可点击跳过，只在冷启动播一次</td></tr>
+<tr><td>收紧 = 学会</td><td>P0 · 已同意</td><td>Learn on ask 打勾、ScriptCard 保存、引导第 1 步钥匙验证</td><td>scale + opacity，配 <span class="mono">.sensoryFeedback(.success)</span></td></tr>
+<tr><td>地址栏唤出首页</td><td>待你定</td><td>底栏地址框、新标签页；去掉首页顶部的输入框</td><td>首页做成 overlay（不是 push），复用 bar 形变；输入分类（网址 / 关键词 / 问题）决定第一行和环的亮暗</td></tr>
+<tr><td>悬停露出三环</td><td>P0（iPad）</td><td>iPad 顶栏的 Agent 环、键盘焦点</td><td><span class="mono">.hoverEffect</span> + 内两环 opacity；触屏不出现</td></tr>
+<tr><td>三环进度指示</td><td>待你定</td><td>引导页</td><td>替换 <span class="mono">OnboardingProgressDots</span>，每步 trim 画上一环</td></tr>
+<tr><td>网页改动描边</td><td>P1</td><td>脚本运行后的页面</td><td>注入层统一提供 <span class="mono">wk.highlight(el)</span>，Agent 写的脚本调用它；和撤销绑定</td></tr>
+<tr><td>语音声纹环</td><td>P1</td><td>VoiceViews、PhoneVoice</td><td>替换 <span class="mono">.symbolEffect(.pulse)</span>，电平用 <span class="mono">TimelineView</span> 驱动</td></tr>
+<tr><td>中缝转场</td><td>P2</td><td>外观设置、引导页</td><td>全屏 overlay 的 mask 从左到右推进</td></tr>
+<tr><td>吉祥物动起来</td><td>以后</td><td>空状态</td><td>Mascot README 说现在的 SVG 是描出来的、头部不一致，要先用一个母版头重画，再考虑尾巴摆动之类的小动作</td></tr>
+</tbody></table></div>
+<p class="m" style="margin-top:16px">这些都要同步回设计系统 artifact 的 Motion 部分和统一界面画布的 Motion 画板，再重新导出到 repo 的 <span class="mono">docs/wukongmind/design/</span>。</p>
+</section>
+
+<script>
+{
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const E='cubic-bezier(.2,.8,.2,1)';
+const $=id=>document.getElementById(id);
+const NS='http://www.w3.org/2000/svg';
+const radii=[130,235,340];
+const mk=(g,col)=>radii.map(r=>{const c=document.createElementNS(NS,'circle');c.setAttribute('cx',512);c.setAttribute('cy',512);c.setAttribute('r',r);c.setAttribute('fill','none');c.setAttribute('stroke',col);c.setAttribute('stroke-width',28);c.setAttribute('pathLength',1);c.setAttribute('stroke-dasharray',1);c.setAttribute('transform','rotate(-90 512 512)');g.appendChild(c);return c});
+const rl=mk($('rL'),'#e0b040'),rr=mk($('rR'),'#1a1612');
+let busy=false;
+function hero(){
+  if(busy)return;busy=true;
+  const m=$('mk'),bar=$('bar'),ar=$('aring');
+  m.getAnimations().forEach(a=>a.cancel());
+  m.style.opacity=1;m.style.transform='';$('pgc').getAnimations().forEach(a=>a.cancel());bar.style.opacity=0;ar.style.opacity=0;
+  if(RM){m.animate([{opacity:0},{opacity:1}],{duration:200});[...rl,...rr].forEach(c=>c.style.strokeDashoffset=0);
+    setTimeout(()=>{m.animate([{opacity:1},{opacity:0}],{duration:200,fill:'forwards'});bar.animate([{opacity:0},{opacity:1}],{duration:200,fill:'forwards'});ar.animate([{opacity:0},{opacity:1}],{duration:200,fill:'forwards'});busy=false},900);return}
+  $('hL').animate([{transform:'translateY(-100%)'},{transform:'none'}],{duration:320,easing:E});
+  $('hR').animate([{transform:'translateY(100%)'},{transform:'none'}],{duration:320,easing:E});
+  radii.forEach((_,i)=>[rl[i],rr[i]].forEach(c=>c.animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:420,delay:240+i*70,easing:E,fill:'both'})));
+  setTimeout(()=>{
+    const a=m.getBoundingClientRect(),b=ar.getBoundingClientRect();
+    const dx=(b.left+b.width/2)-(a.left+a.width/2),dy=(b.top+b.height/2)-(a.top+a.height/2),s=b.width/a.width;
+    $('pgc').animate([{opacity:0},{opacity:1}],{duration:300,delay:200,fill:'forwards'});
+    bar.animate([{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}],{duration:240,easing:E,fill:'forwards'});
+    m.animate([{transform:'none',opacity:1},{opacity:1,offset:.6},{transform:`translate(${dx}px,${dy}px) scale(${s})`,opacity:0}],{duration:380,easing:E,fill:'forwards'});
+    ar.animate([{opacity:0,transform:'scale(1.25)'},{opacity:1,transform:'none'}],{duration:200,delay:260,easing:E,fill:'forwards'});
+    setTimeout(()=>busy=false,700);
+  },1150);
+}
+$('playHero').onclick=hero;
+new IntersectionObserver((en,o)=>{if(en[0].isIntersecting){o.disconnect();setTimeout(hero,300)}}).observe($('mk'));
+
+$('playT').onclick=()=>{
+  const tr=$('tr'),ck=$('tck');$('tst').textContent='试运行中…';tr.style.opacity=0;ck.style.opacity=.25;
+  setTimeout(()=>{$('tst').textContent='已学会，下次更快';ck.style.opacity=1;
+    tr.animate(RM?[{opacity:0},{opacity:1}]:[{transform:'scale(2.4)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:RM?150:220,easing:E,fill:'forwards'});
+    if(navigator.vibrate)try{navigator.vibrate(12)}catch(e){}
+  },700);
+};
+
+$('playE').onclick=()=>{
+  const ad=$('ad'),e1=$('e1'),r=e1.querySelector('rect'),sl=e1.querySelector('.seal');
+  ad.getAnimations().forEach(a=>a.cancel());r.getAnimations().forEach(a=>a.cancel());sl.getAnimations().forEach(a=>a.cancel());e1.getAnimations().forEach(a=>a.cancel());
+  ad.animate([{height:'34px',opacity:1},{height:'0px',opacity:0,marginTop:'-8px'}],{duration:RM?1:200,easing:E,fill:'forwards'});
+  e1.animate([{height:'12px'},{height:'16px'}],{duration:RM?1:200,delay:200,easing:E,fill:'forwards'});
+  if(RM){r.style.strokeDashoffset=0;r.animate([{opacity:0},{opacity:1},{opacity:1},{opacity:0}],{duration:2400,fill:'forwards'})}
+  else r.animate([{strokeDashoffset:1,opacity:1},{strokeDashoffset:0,opacity:1,offset:.2},{strokeDashoffset:0,opacity:1,offset:.75},{strokeDashoffset:0,opacity:0}],{duration:2200,delay:300,easing:'ease-out',fill:'forwards'});
+  sl.animate([{opacity:0},{opacity:1}],{duration:200,delay:600,fill:'forwards'});
+  const fit=()=>{const g=r.ownerSVGElement;r.setAttribute('width',Math.max(1,g.clientWidth-2));r.setAttribute('height',Math.max(1,g.clientHeight-2))};fit();setTimeout(fit,RM?0:210);
+  setTimeout(()=>{ad.getAnimations().forEach(a=>a.cancel());e1.getAnimations().forEach(a=>a.cancel());sl.getAnimations().forEach(a=>a.cancel())},5000);
+};
+
+let vOn=false,lv=0,raf;const vc=[...$('vo').querySelectorAll('circle')],base=[20,36,52],hist=[];
+function vtick(t){
+  const target=vOn?(.35+.65*Math.abs(Math.sin(t/180)*Math.sin(t/470+1)))*(Math.random()*.3+.7):0;
+  lv+=(target-lv)*.18;hist.unshift(lv);hist.length=12;
+  vc.forEach((c,i)=>{const v=hist[i*4]||0;if(RM){c.style.opacity=.3+.7*v}else c.setAttribute('r',base[i]+v*(8+i*5))});
+  if(vOn||lv>.01)raf=requestAnimationFrame(vtick);
+}
+$('playV').onclick=()=>{vOn=!vOn;$('playV').textContent=vOn?'停止':'开始听';cancelAnimationFrame(raf);raf=requestAnimationFrame(vtick)};
+
+let dark=false;
+$('playS').onclick=()=>{
+  dark=!dark;const dk=$('dk'),sl=$('sl'),w=$('seam').clientWidth,d=RM?200:320;
+  if(RM){dk.animate([{opacity:dark?0:1,clipPath:'inset(0 0 0 0)'},{opacity:dark?1:0,clipPath:'inset(0 0 0 0)'}],{duration:d,fill:'forwards'});return}
+  dk.animate(dark?[{clipPath:'inset(0 100% 0 0)'},{clipPath:'inset(0 0 0 0)'}]:[{clipPath:'inset(0 0 0 0)'},{clipPath:'inset(0 0 0 100%)'}],{duration:d,easing:'ease-in-out',fill:'forwards'});
+  sl.animate([{transform:'translateX(0)',opacity:1},{transform:`translateX(${w}px)`,opacity:1}],{duration:d,easing:'ease-in-out'});
+};
+}
+</script>
+
+<script>
+{
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const E='cubic-bezier(.2,.8,.2,1)';
+const $=id=>document.getElementById(id);
+const R=[130,235,340];
+const circ=(col)=>R.map(r=>`<circle cx="512" cy="512" r="${r}" fill="none" stroke="${col}" stroke-width="28" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" transform="rotate(-90 512 512)"/>`).join('');
+function build(svg,p){svg.innerHTML=`<defs><clipPath id="${p}q"><rect width="1024" height="1024" rx="230"/></clipPath><clipPath id="${p}l"><rect width="512" height="1024"/></clipPath><clipPath id="${p}r"><rect x="512" width="512" height="1024"/></clipPath></defs><g clip-path="url(#${p}q)"><rect class="hL" width="512" height="1024" fill="#1a1612"/><rect class="hR" x="512" width="512" height="1024" fill="#e0b040"/><g clip-path="url(#${p}l)">${circ('#e0b040')}</g><g clip-path="url(#${p}r)">${circ('#1a1612')}</g></g>`}
+function clear(el){el.getAnimations({subtree:true}).forEach(a=>a.cancel())}
+function assemble(svg){
+  clear(svg);svg.style.opacity=1;
+  const cs=[...svg.querySelectorAll('circle')];
+  if(RM){cs.forEach(c=>c.style.strokeDashoffset=0);svg.animate([{opacity:0},{opacity:1}],{duration:200});return}
+  cs.forEach(c=>c.style.strokeDashoffset='');
+  svg.querySelector('.hL').animate([{transform:'translateY(-100%)'},{transform:'none'}],{duration:320,easing:E});
+  svg.querySelector('.hR').animate([{transform:'translateY(100%)'},{transform:'none'}],{duration:320,easing:E});
+  cs.forEach((c,i)=>c.animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:420,delay:240+(i%3)*70,easing:E,fill:'both'}));
+}
+function moveTo(el,target,dur,fade){
+  const a=el.getBoundingClientRect(),b=target.getBoundingClientRect();
+  const dx=(b.left+b.width/2)-(a.left+a.width/2),dy=(b.top+b.height/2)-(a.top+a.height/2),s=b.width/a.width;
+  const base=getComputedStyle(el).transform;const bt=base==='none'?'':base+' ';
+  const end={transform:`translate(${dx}px,${dy}px) ${bt}scale(${s})`};if(fade)end.opacity=0;
+  return el.animate(RM?[{opacity:1},{opacity:fade?0:1}]:[{transform:bt||'none',opacity:1},end],{duration:RM?200:dur,easing:E,fill:'forwards'});
+}
+const T={
+ idle:'<circle class="g" cx="32" cy="32" r="22" stroke-width="3.5"/>',
+ wash:'<circle cx="32" cy="32" r="22" fill="var(--wash)" stroke="var(--gold)" stroke-width="3.5"/>',
+ think:'<circle class="g br" cx="32" cy="32" r="8" stroke-width="3"/><circle class="g br" cx="32" cy="32" r="15" stroke-width="3"/><circle class="g br" cx="32" cy="32" r="22" stroke-width="3"/>',
+ read:'<circle class="g rp" cx="32" cy="32" r="22" stroke-width="2.5"/><circle class="g" cx="32" cy="32" r="22" stroke-width="3.5"/>',
+ run:'<circle class="g spin" cx="32" cy="32" r="22" stroke-width="3.5" pathLength="1" stroke-dasharray=".72 .28" stroke-linecap="round"/>',
+ send:'<circle cx="32" cy="32" r="24" fill="var(--gold)"/><path d="M32 42V22M23 30l9-9 9 9" fill="none" stroke="#1a1612" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>',
+ done:'<g class="sq1"><circle class="g cl1" cx="32" cy="32" r="22" stroke-width="3.5" pathLength="1" stroke-dasharray="1" transform="rotate(-90 32 32)"/><path class="gi ck1" d="M22 33l7 7 13-15" pathLength="1" stroke-dasharray="1" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></g>'
+};
+const set=(svg,k)=>svg.innerHTML=T[k];
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+const fadeIn=(el,d=220)=>el.animate([{opacity:0},{opacity:1}],{duration:d,fill:'forwards'});
+const fadeOut=(el,d=200)=>el.animate([{opacity:1},{opacity:0}],{duration:d,fill:'forwards'});
+
+/* iPad */
+const pmk=$('pmk');build(pmk,'pp');
+let pTok=0;
+async function pad(){
+  const tok=++pTok,ok=()=>tok===pTok;
+  const tb=$('ptb'),ring=$('pring'),pn=$('ppn'),pc=$('pcol'),st=$('pst');
+  [tb,pn,pc,pmk].forEach(clear);tb.style.right='';set(ring,'idle');set(st,'idle');$('pcmp').textContent='Ask the Agent…';
+  assemble(pmk);await wait(RM?700:1150);if(!ok())return;
+  fadeIn(tb,240);fadeIn(pc,300);moveTo(pmk,ring,380,true);
+  await wait(1000);if(!ok())return;
+  pn.animate([{transform:'translateX(101%)'},{transform:'none'}],{duration:RM?1:240,easing:E,fill:'forwards'});
+  tb.animate([{right:'3%'},{right:'39%'}],{duration:RM?1:240,easing:E,fill:'forwards'});
+  pc.animate([{width:'54%'},{width:'48%'}],{duration:RM?1:240,easing:E,fill:'forwards'});
+  set(ring,'wash');
+  await wait(700);if(!ok())return;$('pcmp').textContent='Summarize this page';
+  for(const [k,ms] of [['think',1500],['read',1300],['run',1300],['done',1600]]){if(!ok())return;set(st,k);await wait(ms)}
+}
+$('playP').onclick=pad;
+new IntersectionObserver((en,o)=>{if(en[0].isIntersecting){o.disconnect();setTimeout(pad,300)}},{threshold:.5}).observe($('ppn').parentElement);
+$('hv').onclick=e=>e.currentTarget.classList.toggle('on');
+
+/* first launch */
+const fmk=$('fmk');build(fmk,'ff');
+const lis=[...$('fsteps').children];
+const cap=i=>lis.forEach((l,j)=>l.classList.toggle('on',j===i));
+let fTok=0;
+async function first(){
+  const tok=++fTok,ok=()=>tok===fTok;
+  const L1=$('L1'),L2=$('L2'),L3=$('L3'),ind=$('find'),dr=$('fdr'),done=$('fdone'),hd=$('fhd'),hr=hd.querySelector('rect'),chip=$('fchip');
+  [L1,L2,L3,ind,dr,done,hd,hr,chip,fmk,$('fti'),$('ftc'),$('fnw')].forEach(clear);
+  [L1,L2,L3,ind,done].forEach(e=>e.style.opacity=0);fmk.style.opacity=0;
+  ind.querySelectorAll('.d').forEach(c=>c.style.strokeDashoffset='');
+  $('fk').textContent='验证中…';$('fcmp').textContent='Ask anything about this page…';set($('fbr'),'idle');set($('fcr'),'idle');
+  const draw=i=>{const c=ind.querySelectorAll('.d')[i];c.animate([{strokeDashoffset:1},{strokeDashoffset:0}],{duration:RM?1:360,easing:E,fill:'forwards'})};
+  cap(0);await wait(700);if(!ok())return;
+  cap(1);assemble(fmk);await wait(RM?600:1300);if(!ok())return;
+  cap(2);L1.style.opacity=1;[...L1.children].forEach(c=>c.querySelector&&fadeIn(c,260));fadeIn(ind,260);
+  moveTo(fmk,$('fslot'),360,false);
+  await wait(1400);if(!ok())return;
+  cap(3);$('fk').textContent='已验证';
+  $('fti').animate(RM?[{opacity:0},{opacity:1}]:[{transform:'scale(2.4)',opacity:0},{transform:'scale(1)',opacity:1}],{duration:220,easing:E,fill:'forwards'});
+  fadeIn($('ftc'),120);await wait(500);draw(0);
+  await wait(1100);if(!ok())return;
+  cap(4);fadeOut(L1);fadeOut(fmk);await wait(200);L2.style.opacity=1;[...L2.children].forEach(c=>fadeIn(c,240));
+  await wait(1000);if(!ok())return;
+  $('fnw').animate([{background:'var(--surface)'},{background:'var(--wash)'}],{duration:150,fill:'forwards'});draw(1);
+  await wait(500);if(!ok())return;
+  fadeOut(L2);await wait(200);L3.style.opacity=1;fadeIn(L3,240);set($('fbr'),'read');
+  await wait(1700);if(!ok())return;
+  cap(5);set($('fbr'),'idle');dr.animate([{transform:'translateY(101%)'},{transform:'none'}],{duration:RM?1:250,easing:E,fill:'forwards'});
+  await wait(900);if(!ok())return;
+  moveTo(chip,$('fcmp'),240,true);await wait(240);chip.animate([{height:chip.offsetHeight+'px',marginBottom:'0px'},{height:'0px',paddingTop:'0px',paddingBottom:'0px',borderWidth:'0px',marginBottom:'-8px'}],{duration:RM?1:180,easing:E,fill:'forwards'});$('fcmp').textContent='Make this page easier to read';set($('fcr'),'send');
+  await wait(450);if(!ok())return;
+  set($('fcr'),'think');$('fcmp').textContent='Ask anything about this page…';await wait(1300);if(!ok())return;
+  set($('fcr'),'run');await wait(1200);if(!ok())return;
+  set($('fcr'),'done');if(navigator.vibrate)try{navigator.vibrate(12)}catch(e){}
+  hd.animate([{transform:'none'},{transform:'scale(1.05)'}],{duration:RM?1:220,easing:E,fill:'forwards'});
+  const g=hr.ownerSVGElement;hr.setAttribute('width',Math.max(1,g.clientWidth-2));hr.setAttribute('height',Math.max(1,g.clientHeight-2));
+  if(RM)hr.style.strokeDashoffset=0;
+  hr.animate(RM?[{opacity:0},{opacity:1},{opacity:0}]:[{strokeDashoffset:1,opacity:1},{strokeDashoffset:0,opacity:1,offset:.25},{strokeDashoffset:0,opacity:1,offset:.75},{strokeDashoffset:0,opacity:0}],{duration:2000,easing:'ease-out',fill:'forwards'});
+  await wait(400);draw(2);
+  await wait(1500);if(!ok())return;
+  cap(6);fadeIn(done,240);
+}
+$('playF').onclick=first;
+new IntersectionObserver((en,o)=>{if(en[0].isIntersecting){o.disconnect();setTimeout(first,300)}},{threshold:.5}).observe(fmk.parentElement);
+
+/* home */
+document.querySelector('#hhome svg').innerHTML=T.run;
+const hsteps=[...$('hsteps').children];const hcap=i=>hsteps.forEach((l,j)=>l.classList.toggle('on',j===i));
+let hTok=0;
+async function home(){
+  const tok=++hTok,ok=()=>tok===hTok;
+  const bar=$('hbar'),kb=$('hkb'),ov=$('hov'),hm=$('hhome'),sg=$('hsug'),fld=$('hfld'),ring=$('hring'),pg=$('hpage');
+  [bar,kb,ov,hm,sg,pg,ring,$('hbk'),$('htb'),$('hask')].forEach(clear);
+  fld.className='fld';fld.textContent='news.example.com';set(ring,'idle');ring.style.opacity=1;
+  await wait(300);if(!ok())return;
+  hcap(0);const kh=kb.offsetHeight-14+6;
+  [$('hbk'),$('htb')].forEach(e=>e.animate([{opacity:1,width:'20px'},{opacity:0,width:'0px'}],{duration:RM?1:160,fill:'forwards'}));
+  kb.animate([{transform:'translateY(101%)'},{transform:'none'}],{duration:RM?1:250,easing:E,fill:'forwards'});
+  bar.animate([{transform:'none'},{transform:`translateY(${-kh}px)`}],{duration:RM?1:250,easing:E,fill:'forwards'});
+  ov.animate([{opacity:0},{opacity:1}],{duration:200,fill:'forwards'});
+  hm.animate(RM?[{opacity:0},{opacity:1}]:[{transform:'translateY(8px)',opacity:0},{transform:'none',opacity:1}],{duration:220,easing:E,fill:'forwards'});
+  if(!RM)pg.animate([{transform:'none'},{transform:'scale(.98)'}],{duration:250,easing:E,fill:'forwards'});
+  fld.className='fld ed ph';fld.innerHTML='<span class="caret"></span> Search or enter address';
+  hcap(1);ring.style.opacity=.3;
+  await wait(1400);if(!ok())return;
+  hcap(2);fld.className='fld ed';
+  const q='which fanless box is quietest?';
+  for(let i=1;i<=q.length;i++){if(!ok())return;fld.innerHTML=q.slice(0,i)+'<span class="caret"></span>';
+    if(i===6){hm.animate([{opacity:1},{opacity:0}],{duration:150,fill:'forwards'});sg.animate([{opacity:0},{opacity:1}],{duration:150,fill:'forwards'})}
+    if(i===19){hcap(3);ring.style.opacity=1}
+    await wait(45)}
+  await wait(900);if(!ok())return;
+  $('hask').animate([{background:'var(--surface)'},{background:'var(--wash)'}],{duration:120,fill:'forwards'});
+  await wait(350);if(!ok())return;
+  hcap(4);
+  kb.animate([{transform:'none'},{transform:'translateY(101%)'}],{duration:RM?1:250,easing:E,fill:'forwards'});
+  bar.animate([{transform:`translateY(${-kh}px)`},{transform:'none'}],{duration:RM?1:250,easing:E,fill:'forwards'});
+  ov.animate([{opacity:1},{opacity:0}],{duration:200,fill:'forwards'});
+  if(!RM)pg.animate([{transform:'scale(.98)'},{transform:'none'}],{duration:250,easing:E,fill:'forwards'});
+  [$('hbk'),$('htb')].forEach(e=>e.animate([{opacity:0,width:'0px'},{opacity:1,width:'20px'}],{duration:RM?1:200,delay:100,fill:'forwards'}));
+  fld.className='fld';fld.textContent='news.example.com';set(ring,'think');
+}
+$('playH').onclick=home;
+new IntersectionObserver((en,o)=>{if(en[0].isIntersecting){o.disconnect();setTimeout(home,300)}},{threshold:.5}).observe($('hbar').parentElement);
+let tdBusy=false;
+$('tdb').onclick=async()=>{
+  if(tdBusy)return;const b=$('tdb'),ic=$('tdi'),st=$('tds');
+  if(b.textContent==='Play'){st.textContent='Playing · 9 min';return}
+  tdBusy=true;const sun=ic.innerHTML;b.disabled=true;
+  for(const [k,ms,t] of [['think',1400,'Picking topics…'],['read',1600,'Reading 5 threads…'],['done',1200,'5 topics · 9 min podcast']]){set(ic,k);st.textContent=t;await wait(ms)}
+  ic.innerHTML=sun;b.textContent='Play';b.disabled=false;tdBusy=false;
+};
+}
+</script>
+</body>
+</html>

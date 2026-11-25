@@ -1142,14 +1142,25 @@ enum DCLogoVariant: String, CaseIterable, Sendable {
     case monoPaper = "LogoMarkMonoPaper"
 
     var assetName: String { rawValue }
+
+    var brandVariant: BrandMark.Variant {
+        switch self {
+        case .mark: .color
+        case .monoInk: .monoInk
+        case .monoPaper: .monoPaper
+        }
+    }
 }
 
-/// Renders the WukongMind vector logo mark from `Assets.xcassets`, optionally paired
-/// with `"WukongMind"` in semibold `ink` per `assets/Logo/README.md`.
+/// Renders the WukongMind SwiftUI logo mark (`BrandMark`), optionally assembling
+/// once on appear (`assembles: true`) and optionally paired with `"WukongMind"`
+/// in semibold `ink` per `assets/Logo/README.md`.
 struct DCLogoView: View {
     var variant: DCLogoVariant = .mark
     var size: CGFloat = 48
     var showsWordmark = false
+    var assembles = false
+    var onAssemblyFinished: (() -> Void)? = nil
 
     static let minimumSize: CGFloat = 24
 
@@ -1159,12 +1170,12 @@ struct DCLogoView: View {
 
     var body: some View {
         HStack(spacing: max(DCTheme.space2, round(clampedSize * 0.28))) {
-            Image(variant.assetName)
-                .resizable()
-                .interpolation(.high)
-                .scaledToFit()
-                .frame(width: clampedSize, height: clampedSize)
-                .accessibilityHidden(true)
+            BrandMark(
+                size: clampedSize,
+                variant: variant.brandVariant,
+                assembles: assembles,
+                onAssemblyFinished: onAssemblyFinished
+            )
             if showsWordmark {
                 Text(verbatim: "WukongMind")
                     .font(.system(size: round(clampedSize * 0.50), weight: .semibold))
@@ -1173,6 +1184,90 @@ struct DCLogoView: View {
         }
         .accessibilityElement(children: showsWordmark ? .combine : .ignore)
         .accessibilityHidden(!showsWordmark)
+    }
+}
+
+/// Brief cold-start logo assembly overlay on paper (`DCTheme.ground`), fading
+/// out within ≤ 0.8 s total. Any tap skips immediately; the app underneath
+/// mounts and loads in parallel. Never shown on first run (Terms gate animates
+/// instead), when disabled in Settings, with Reduce Motion, or with VoiceOver.
+struct LaunchLogoOverlay: View {
+    private enum Phase {
+        case pending
+        case playing
+        case fading
+        case dismissed
+    }
+
+    @ObservedObject var app: AppModel
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var phase: Phase = .pending
+    @State private var opacity: Double = 1
+
+    private var canShowAtColdStart: Bool {
+        LogoAssemblyPolicy.shouldShowLaunchOverlay(
+            settingEnabled: app.settings.launchLogoAnimationEnabled,
+            isColdStart: !app.hasHandledColdStartOverlay,
+            needsTermsAcceptance: app.needsTermsAcceptance,
+            reduceMotion: reduceMotion,
+            voiceOverRunning: UIAccessibility.isVoiceOverRunning,
+            animationsEnabled: UIView.areAnimationsEnabled
+        )
+    }
+
+    private var shouldShow: Bool {
+        switch phase {
+        case .playing, .fading:
+            return true
+        case .dismissed:
+            return false
+        case .pending:
+            return canShowAtColdStart
+        }
+    }
+
+    var body: some View {
+        ZStack {
+            if shouldShow {
+                ZStack {
+                    DCTheme.ground
+                        .ignoresSafeArea()
+                    DCLogoView(size: 120, assembles: true) {
+                        beginFadeOut()
+                    }
+                }
+                .opacity(opacity)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    dismissImmediately()
+                }
+                .accessibilityIdentifier("launchLogoOverlay")
+            }
+        }
+        .allowsHitTesting(shouldShow)
+        .onAppear {
+            guard phase == .pending else { return }
+            let show = canShowAtColdStart
+            app.hasHandledColdStartOverlay = true
+            phase = show ? .playing : .dismissed
+        }
+    }
+
+    private func beginFadeOut() {
+        guard phase == .playing else { return }
+        phase = .fading
+        withAnimation(
+            .easeOut(duration: BrandLogoAssemblyTiming.overlayFadeDuration),
+            completionCriteria: .logicallyComplete
+        ) {
+            opacity = 0
+        } completion: {
+            phase = .dismissed
+        }
+    }
+
+    private func dismissImmediately() {
+        phase = .dismissed
     }
 }
 

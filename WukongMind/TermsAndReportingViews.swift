@@ -59,16 +59,24 @@ struct TermsPoints: View {
 struct TermsGateView: View {
     @ObservedObject var app: AppModel
     @State private var agreed = false
+    @State private var shouldAssemble: Bool?
 
     var body: some View {
         NavigationStack {
             OnboardingPage {
+                DCLogoView(size: 56, assembles: shouldAssemble ?? !app.hasPlayedTermsLogoAssembly)
                 OnboardingHeader(
                     eyebrow: String(localized: "Terms of Use", comment: "Terms gate eyebrow"),
                     title: String(localized: "Before you continue", comment: "Terms gate title"),
                     subtitle: String(localized: "Please read and accept the Terms of Use. They explain what isn’t allowed and how to report AI output.", comment: "Terms gate subtitle")
                 )
                 TermsAgreementCard(agreed: $agreed)
+            }
+            .onAppear {
+                if shouldAssemble == nil {
+                    shouldAssemble = !app.hasPlayedTermsLogoAssembly
+                    app.hasPlayedTermsLogoAssembly = true
+                }
             }
             .safeAreaInset(edge: .bottom) {
                 Button {

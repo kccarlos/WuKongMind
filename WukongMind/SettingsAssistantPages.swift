@@ -891,6 +891,10 @@ struct SettingsBrowserPage: View {
                     }
                 }
                 .accessibilityIdentifier("launchDestination")
+                Toggle(isOn: $app.settings.launchLogoAnimationEnabled) {
+                    Text("Logo animation at launch", comment: "Settings › Browser toggle for the cold-start logo assembly animation")
+                }
+                .accessibilityIdentifier("launchLogoAnimationToggle")
             } footer: {
                 Text("Automatic opens Home the first time each day, and otherwise the site you read last. Links, notifications, Siri and shared pages always open what they point to.")
             }
@@ -899,6 +903,7 @@ struct SettingsBrowserPage: View {
         .onChange(of: app.settings.searchEngine) { app.saveSettings() }
         .onChange(of: app.settings.browserBarPosition) { app.saveSettings() }
         .onChange(of: app.settings.launchDestination) { app.saveSettings() }
+        .onChange(of: app.settings.launchLogoAnimationEnabled) { app.saveSettings() }
     }
 }
 
