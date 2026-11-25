@@ -3527,27 +3527,26 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		1332A909A0B43B09A83CFB5E7653E510 /* Debug */ = {
+		04B2FA9601F8FD3F2E9C3FCA818C0E5D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				APPLICATION_EXTENSION_API_ONLY = YES;
 				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
 				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
 				DEVELOPMENT_TEAM = GV776BZVA8;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMind/Info.plist;
+				INFOPLIST_FILE = WukongMindShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.6.2;
-				OTHER_SWIFT_FLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
+				MARKETING_VERSION = 1.6.3;
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -3618,67 +3617,6 @@
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
-		};
-		36092AE1AF4A71E480E9BCC9B5DF9569 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				APPLICATION_EXTENSION_API_ONLY = YES;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMindShare/WukongMindShare.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
-				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
-				DEVELOPMENT_TEAM = GV776BZVA8;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMindShare/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.6.2;
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
-		3BAE8062101DC299305FFB4FCD6765D0 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CLANG_ENABLE_OBJC_WEAK = NO;
-				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
-				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
-				DEVELOPMENT_TEAM = GV776BZVA8;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = WukongMind/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 1.6.2;
-				OTHER_SWIFT_FLAGS = "$(inherited)";
-				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
-				SUPPORTS_MACCATALYST = NO;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_STRICT_CONCURRENCY = minimal;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
 		};
 		3DBADB521FFCFACAEDD12716EB9A43F4 /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -3754,7 +3692,7 @@
 			};
 			name = Release;
 		};
-		820478CD71528E5D8E23B33F32F04F17 /* Debug */ = {
+		4D125126A6A03A08237A5B7A6412825F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				APPLICATION_EXTENSION_API_ONLY = YES;
@@ -3769,7 +3707,7 @@
 				INFOPLIST_FILE = WukongMindShare/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 1.6.2;
+				MARKETING_VERSION = 1.6.3;
 				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind.share;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -3780,8 +3718,9 @@
 				SWIFT_STRICT_CONCURRENCY = minimal;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
 			};
-			name = Debug;
+			name = Release;
 		};
 		A17E747EE02E2D562FEB4A47D484B91D /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -3876,6 +3815,67 @@
 			};
 			name = Release;
 		};
+		EA4E7A0150C1C22507135DB7E5AF8AB8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMind/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.6.3;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		ED7260F6494488622C4EAEC198D69451 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = WukongMind/WukongMind.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DC_APP_GROUP = group.io.github.kccarlos.wukongmind;
+				DC_IDENTIFIER_PREFIX = io.github.kccarlos.wukongmind;
+				DEVELOPMENT_TEAM = GV776BZVA8;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = WukongMind/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				MARKETING_VERSION = 1.6.3;
+				OTHER_SWIFT_FLAGS = "$(inherited)";
+				PRODUCT_BUNDLE_IDENTIFIER = io.github.kccarlos.wukongmind;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_STRICT_CONCURRENCY = minimal;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -3891,8 +3891,8 @@
 		7F47FA70E98716F0343E66C51BF1D32A /* Build configuration list for PBXNativeTarget "WukongMind" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				3BAE8062101DC299305FFB4FCD6765D0 /* Release */,
-				1332A909A0B43B09A83CFB5E7653E510 /* Debug */,
+				ED7260F6494488622C4EAEC198D69451 /* Release */,
+				EA4E7A0150C1C22507135DB7E5AF8AB8 /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -3927,8 +3927,8 @@
 		E4F9F055622E051509E620676B2CAF91 /* Build configuration list for PBXNativeTarget "WukongMindShare" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				36092AE1AF4A71E480E9BCC9B5DF9569 /* Release */,
-				820478CD71528E5D8E23B33F32F04F17 /* Debug */,
+				4D125126A6A03A08237A5B7A6412825F /* Release */,
+				04B2FA9601F8FD3F2E9C3FCA818C0E5D /* Debug */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
