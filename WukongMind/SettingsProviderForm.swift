@@ -475,6 +475,7 @@ struct ProviderSetupForm: View {
     /// First-run step 1 lists the providers itself and tests with its own
     /// Continue: no provider menu, no captions and no "Test & save" button.
     var isCompact = false
+    @Environment(\.openInAppWebPage) private var openInAppWebPage
     @State private var showingAdvanced = false
 
     private var scopeBindings: ModelScopeBindings { ModelScopeBindings(app: app, scope: scope) }
@@ -548,7 +549,9 @@ struct ProviderSetupForm: View {
                     fieldLabel("API key")
                     Spacer()
                     Button {
-                        app.openProviderGuideLink(guide.link)
+                        if !openInAppWebPage(guide.link) {
+                            app.openProviderGuideLink(guide.link)
+                        }
                     } label: {
                         SwiftUI.Label("Get a key", systemImage: "arrow.up.right.square")
                             .font(.footnote.weight(.semibold))
@@ -574,7 +577,9 @@ struct ProviderSetupForm: View {
                     fieldLabel("Server address")
                     Spacer()
                     Button {
-                        app.openProviderGuideLink(guide.link)
+                        if !openInAppWebPage(guide.link) {
+                            app.openProviderGuideLink(guide.link)
+                        }
                     } label: {
                         SwiftUI.Label(guide.linkTitle, systemImage: "arrow.down.circle")
                             .font(.footnote.weight(.semibold))

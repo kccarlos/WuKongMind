@@ -23,12 +23,20 @@ final class OnboardingUITests: DCUITestCase {
         app.buttons.matching(NSPredicate(format: "identifier IN %@", ["suggestion-tryReadable", "suggestion-tryHideClutter"]))
     }
 
-    /// Model → site → the Agent's first run over the browser.
+    /// Terms → model → site → the Agent's first run over the browser.
     func testThreeStepsThroughToTheFirstRun() throws {
         let server = FixtureWordPressServer()
         try server.start()
         defer { server.stop() }
         let app = launch(["-dc-reset"])
+
+        let termsGate = any(app, "termsGate")
+        XCTAssertTrue(waitOrDump(termsGate, timeout: 20, in: app), "Terms of Use gate did not appear first on fresh launch.")
+        let agree = app.switches["termsAgree"].firstMatch
+        XCTAssertTrue(waitForHittable(agree))
+        agree.tap()
+        app.buttons["termsContinue"].tap()
+        XCTAssertTrue(waitForGone(termsGate, timeout: 10), "Terms gate did not dismiss.")
 
         XCTAssertTrue(any(app, "onboarding").waitForExistence(timeout: 20), "The walkthrough did not appear.")
         let progress = any(app, "onboardingProgress")
@@ -73,13 +81,6 @@ final class OnboardingUITests: DCUITestCase {
         // 3 Try the Agent once: over the real browser, two suggestions; Skip
         // ends in the "You're set" card and Done closes it.
         XCTAssertTrue(waitForGone(any(app, "onboarding"), timeout: 10), "The walkthrough did not close.")
-        let termsGate = any(app, "termsGate")
-        XCTAssertTrue(waitOrDump(termsGate, timeout: 15, in: app), "Terms of Use gate did not appear after onboarding.")
-        let agree = app.switches["termsAgree"].firstMatch
-        XCTAssertTrue(waitForHittable(agree))
-        agree.tap()
-        app.buttons["termsContinue"].tap()
-        XCTAssertTrue(waitForGone(termsGate, timeout: 10), "Terms gate did not dismiss.")
         let panel = any(app, "onboardingTryPanel")
         XCTAssertTrue(waitOrDump(panel, timeout: 20, in: app), "Step 3 did not show.")
         assertStep(3, any(app, "onboardingProgress"))
@@ -181,11 +182,18 @@ final class OnboardingUITests: DCUITestCase {
         capture("onboarding-get-a-key-button")
         keyLink.tap()
 
-        XCTAssertTrue(waitForGone(onboarding, timeout: 10), "Onboarding did not close after tapping Get a key.")
-        XCTAssertEqual(app.state, .runningForeground, "Tapping Get a key left the app instead of opening an in-app browser tab.")
-        let browserTitle = any(app, "browserTitle")
-        XCTAssertTrue(browserTitle.waitForExistence(timeout: 10), "Browser bar did not appear for the provider key tab.")
-        capture("provider-key-in-app-tab")
+        let safariBar = app.otherElements["TopBrowserBar"]
+        XCTAssertTrue(waitOrDump(safariBar, timeout: 15, in: app), "In-app Safari sheet did not appear after tapping Get a key.")
+        XCTAssertEqual(app.state, .runningForeground, "Tapping Get a key left the app instead of opening an in-app web sheet.")
+        capture("provider-key-in-app-sheet")
+
+        let close = safariBar.buttons["Close"].firstMatch
+        let dismissButton = close.exists ? close : app.buttons.matching(NSPredicate(format: "identifier IN %@", ["Done", "Close"])).firstMatch
+        XCTAssertTrue(waitForHittable(dismissButton), "In-app Safari dismiss button is missing.")
+        dismissButton.tap()
+        XCTAssertTrue(waitForGone(safariBar, timeout: 10), "In-app Safari sheet did not dismiss.")
+        XCTAssertTrue(onboarding.waitForExistence(timeout: 10), "Onboarding did not remain visible with state intact.")
+        assertStep(1, any(app, "onboardingProgress"))
     }
 
     func testFailedOnboardingKeyTestShowsFailureAndNoDoneRow() throws {
@@ -200,7 +208,7 @@ final class OnboardingUITests: DCUITestCase {
         capture("onboarding-key-test-failed")
     }
 
-    /// Clean launch with no key: skip model selection, open a page, pass Terms,
+    /// Clean launch with no key: accept Terms first, skip model selection, open a page,
     /// reach the setup card saying the Agent needs a key, open Settings › Models,
     /// and still browse normally after skipping step 3.
     func testNoKeyFirstRunReachesPageAndSetupCard() throws {
@@ -208,6 +216,14 @@ final class OnboardingUITests: DCUITestCase {
         try server.start()
         defer { server.stop() }
         let app = launch(["-dc-reset", "-dc-no-provider", "-dc-apple-intelligence", "on-device"])
+
+        let termsGate = any(app, "termsGate")
+        XCTAssertTrue(waitOrDump(termsGate, timeout: 20, in: app), "Terms of Use gate did not appear first.")
+        let agree = app.switches["termsAgree"].firstMatch
+        XCTAssertTrue(waitForHittable(agree))
+        agree.tap()
+        app.buttons["termsContinue"].tap()
+        XCTAssertTrue(waitForGone(termsGate, timeout: 10))
 
         XCTAssertTrue(any(app, "onboarding").waitForExistence(timeout: 20), "The walkthrough did not appear.")
         let later = app.buttons["onboardingSkipStep"]
@@ -220,14 +236,6 @@ final class OnboardingUITests: DCUITestCase {
         field.typeText(server.baseURL + "\n")
 
         XCTAssertTrue(waitForGone(any(app, "onboarding"), timeout: 10))
-        let termsGate = any(app, "termsGate")
-        XCTAssertTrue(waitOrDump(termsGate, timeout: 15, in: app), "Terms of Use gate did not appear.")
-        let agree = app.switches["termsAgree"].firstMatch
-        XCTAssertTrue(waitForHittable(agree))
-        agree.tap()
-        app.buttons["termsContinue"].tap()
-        XCTAssertTrue(waitForGone(termsGate, timeout: 10))
-
         let panel = any(app, "onboardingTryPanel")
         XCTAssertTrue(waitOrDump(panel, timeout: 20, in: app), "Step 3 did not show.")
 

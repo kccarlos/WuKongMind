@@ -55,7 +55,7 @@ struct TermsPoints: View {
     }
 }
 
-/// Shown once after onboarding/consent (or after an update that bumps `TermsOfUse.currentVersion`).
+/// Shown once on first run before onboarding and consent (or after an update that bumps `TermsOfUse.currentVersion`).
 struct TermsGateView: View {
     @ObservedObject var app: AppModel
     @State private var agreed = false
@@ -90,6 +90,7 @@ struct TermsGateView: View {
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("termsGate")
         .interactiveDismissDisabled()
+        .inAppWebSheet()
     }
 }
 

@@ -312,13 +312,112 @@ final class FirstRunTests: XCTestCase {
     func testTheFirstRunIsOffUntilTheWalkthroughOpensASite() throws {
         let app = try model()
         XCTAssertNil(app.firstRun)
-        XCTAssertEqual(app.rootPresentation, .onboarding, "a fresh install starts with step 1")
-        app.completeOnboarding()
-        XCTAssertEqual(app.rootPresentation, .termsGate, "Terms come right after onboarding")
+        XCTAssertEqual(app.rootPresentation, .termsGate, "a fresh install starts with Terms of Use")
         app.acceptTerms()
+        XCTAssertEqual(app.rootPresentation, .onboarding, "onboarding follows Terms acceptance")
+        app.completeOnboarding()
         app.firstRun = .prompts
         XCTAssertNil(app.rootPresentation, "the cover is gone; step 3 is not a presentation")
         XCTAssertEqual(app.firstRun, .prompts)
+    }
+
+    func testRootPresentationOrderingTable() throws {
+        struct Case {
+            let name: String
+            let acceptedTermsVersion: Int
+            let hasCompletedOnboarding: Bool
+            let replay: OnboardingReplay
+            let pendingAIConsent: AIProvider?
+            let expected: RootPresentation?
+        }
+
+        let cases: [Case] = [
+            Case(
+                name: "fresh install shows Terms first",
+                acceptedTermsVersion: 0,
+                hasCompletedOnboarding: false,
+                replay: .none,
+                pendingAIConsent: nil,
+                expected: .termsGate
+            ),
+            Case(
+                name: "fresh install with pending AI consent still shows Terms first",
+                acceptedTermsVersion: 0,
+                hasCompletedOnboarding: false,
+                replay: .none,
+                pendingAIConsent: .anthropic,
+                expected: .termsGate
+            ),
+            Case(
+                name: "terms accepted + onboarding incomplete shows onboarding",
+                acceptedTermsVersion: TermsOfUse.currentVersion,
+                hasCompletedOnboarding: false,
+                replay: .none,
+                pendingAIConsent: nil,
+                expected: .onboarding
+            ),
+            Case(
+                name: "old terms version + onboarding done shows Terms gate",
+                acceptedTermsVersion: 0,
+                hasCompletedOnboarding: true,
+                replay: .none,
+                pendingAIConsent: nil,
+                expected: .termsGate
+            ),
+            Case(
+                name: "replay shows onboarding only and never Terms gate",
+                acceptedTermsVersion: TermsOfUse.currentVersion,
+                hasCompletedOnboarding: true,
+                replay: .showing,
+                pendingAIConsent: nil,
+                expected: .onboarding
+            ),
+            Case(
+                name: "completed user with current terms has no root presentation",
+                acceptedTermsVersion: TermsOfUse.currentVersion,
+                hasCompletedOnboarding: true,
+                replay: .none,
+                pendingAIConsent: nil,
+                expected: nil
+            )
+        ]
+
+        for testCase in cases {
+            let app = try model()
+            app.settings.acceptedTermsVersion = testCase.acceptedTermsVersion
+            app.settings.hasCompletedOnboarding = testCase.hasCompletedOnboarding
+            app.router.onboardingReplay = testCase.replay
+            if let provider = testCase.pendingAIConsent {
+                app.aiConsent.ask(provider)
+            }
+            XCTAssertEqual(app.rootPresentation, testCase.expected, testCase.name)
+        }
+
+        // Accepting Terms on an existing user with onboarding already done clears the gate without re-running onboarding.
+        let existing = try model()
+        existing.settings.hasCompletedOnboarding = true
+        existing.settings.acceptedTermsVersion = 0
+        XCTAssertEqual(existing.rootPresentation, .termsGate)
+        existing.acceptTerms()
+        XCTAssertNil(existing.rootPresentation)
+    }
+
+    func testOpenInAppWebPageActionFiltersHTTPAndHTTPSOnly() {
+        var opened: [URL] = []
+        let action = OpenInAppWebPageAction { opened.append($0) }
+        let httpsURL = URL(string: "https://console.anthropic.com/settings/keys")!
+        let httpURL = URL(string: "http://example.com")!
+        let settingsURL = URL(string: UIApplication.openSettingsURLString)!
+        let mailtoURL = URL(string: "mailto:support@example.com")!
+
+        XCTAssertTrue(action(httpsURL))
+        XCTAssertTrue(action(httpURL))
+        XCTAssertFalse(action(settingsURL))
+        XCTAssertFalse(action(mailtoURL))
+        XCTAssertEqual(opened, [httpsURL, httpURL])
+
+        let unset = OpenInAppWebPageAction()
+        XCTAssertFalse(unset(httpsURL))
     }
 
     func testOnboardingIsACoverOnPhoneAndAFormSheetOnPad() {

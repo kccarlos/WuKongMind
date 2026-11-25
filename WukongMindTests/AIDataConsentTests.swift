@@ -194,6 +194,7 @@ final class AIDataConsentTests: XCTestCase {
     func testVoiceConsentGateAndBackstopBlockUntilAllow() {
         let app = makeApp()
         app.settings.hasCompletedOnboarding = true
+        app.settings.acceptedTermsVersion = TermsOfUse.currentVersion
         select(app, .gemini, model: "gemini-test", key: "voice-key")
         app.settings.voiceEnabled = true
 
@@ -296,6 +297,7 @@ final class AIDataConsentTests: XCTestCase {
     func testAuthorizeWaitsForAnswerWithdrawBlocksAndUnattendedNeverAsks() async throws {
         let app = makeApp()
         app.settings.hasCompletedOnboarding = true
+        app.settings.acceptedTermsVersion = TermsOfUse.currentVersion
         select(app, .openAI, model: "gpt-test", key: "key")
 
         // Unattended work never shows the consent page.

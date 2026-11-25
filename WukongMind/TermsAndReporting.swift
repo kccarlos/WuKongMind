@@ -3,7 +3,7 @@ import Foundation
 // MARK: - Terms of Use and AI output reporting (App Review 1.2, 4.7.1)
 //
 // - `TermsOfUse`: versioned Terms of Use acceptance shown once on first run
-//   (right after onboarding/consent) and whenever `currentVersion` bumps.
+//   (before onboarding and consent) and whenever `currentVersion` bumps.
 // - `AIOutputReport`: prefilled email draft (or copy/share fallback) for
 //   reporting objectionable or inaccurate AI summaries and answers.
 
